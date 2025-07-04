@@ -1,29 +1,31 @@
 import Header from "@/components/layout/header";
+import CongratulationsBanner from "@/components/dashboard/congratulations-banner";
 import PortfolioSummary from "@/components/dashboard/portfolio-summary";
-import InvestmentBundles from "@/components/dashboard/investment-bundles";
-import RiskAssessor from "@/components/dashboard/risk-assessor";
-import CommunityTrends from "@/components/dashboard/community-trends";
+import GoalProgress from "@/components/dashboard/goal-progress";
+import CommunityLeaderboard from "@/components/dashboard/community-leaderboard";
+import PopularAmong from "@/components/dashboard/popular-among";
 import Chatbot from "@/components/chatbot/chatbot";
+import BottomNav from "@/components/layout/bottom-nav";
+import TopInvestmentBundle from "@/components/dashboard/top-investment-bundle";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
+    <div className="w-full bg-background font-body">
       <Header />
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
-        <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-4">
-          <div className="lg:col-span-3">
-            <PortfolioSummary />
-          </div>
-          <div className="flex flex-col gap-4 md:gap-8">
-            <RiskAssessor />
-            <CommunityTrends />
-          </div>
+      <main className="p-4 space-y-4 pb-40">
+        <CongratulationsBanner />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <PortfolioSummary />
+          <TopInvestmentBundle />
         </div>
-        <div>
-          <InvestmentBundles />
+        <GoalProgress />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <CommunityLeaderboard />
+          <PopularAmong />
         </div>
       </main>
       <Chatbot />
+      <BottomNav />
     </div>
   );
 }

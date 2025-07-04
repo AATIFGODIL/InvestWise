@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, type FormEvent } from "react";
-import { Bot, Send, User } from "lucide-react";
+import { Bot, Send, User, MessageCircleQuestion } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,7 +13,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { handleInvestmentQuery } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -72,13 +72,17 @@ export default function Chatbot() {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
-        <Button
-          className="fixed bottom-4 right-4 h-16 w-16 rounded-full shadow-lg"
-          size="icon"
-        >
-          <Bot className="h-8 w-8" />
-          <span className="sr-only">Open Chatbot</span>
-        </Button>
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-40">
+            <Button variant="outline" className="w-full justify-between items-center p-3 h-auto rounded-xl shadow-lg bg-card border-primary/10">
+                <div className="flex items-center gap-3">
+                    <Bot className="h-6 w-6 text-primary" />
+                    <span className="text-sm font-semibold text-foreground">Hi! How can I assist you today?</span>
+                </div>
+                <div className="p-2 bg-primary rounded-lg">
+                    <MessageCircleQuestion className="h-5 w-5 text-primary-foreground" />
+                </div>
+            </Button>
+        </div>
       </SheetTrigger>
       <SheetContent className="flex flex-col">
         <SheetHeader>

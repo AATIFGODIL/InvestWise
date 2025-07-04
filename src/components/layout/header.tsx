@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Leaf,
   LogOut,
   Settings,
   User,
@@ -21,16 +20,15 @@ import {
 
 export default function Header() {
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-20 items-center justify-between bg-primary px-4 sm:px-6 text-primary-foreground">
       <div className="flex items-center gap-2 font-semibold">
-        <Leaf className="h-6 w-6 text-primary" />
-        <span className="text-lg">InvestWise</span>
+        <h1 className="text-xl font-bold">Investment Analysis</h1>
       </div>
-      <div className="ml-auto flex items-center gap-4">
+      <div className="flex items-center gap-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-              <Avatar className="h-9 w-9">
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+              <Avatar className="h-10 w-10 border-2 border-primary-foreground">
                 <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="@user" />
                 <AvatarFallback>U</AvatarFallback>
               </Avatar>
