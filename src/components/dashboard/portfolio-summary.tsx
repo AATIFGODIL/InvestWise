@@ -20,6 +20,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useToast } from "@/hooks/use-toast";
 
 
 const chartData = [
@@ -39,6 +40,15 @@ const chartConfig = {
 };
 
 export default function PortfolioSummary() {
+  const { toast } = useToast();
+
+  const handleButtonClick = () => {
+    toast({
+      title: "Coming Soon!",
+      description: "This feature is currently under development.",
+    });
+  };
+
   return (
     <TooltipProvider>
       <Card>
@@ -110,7 +120,7 @@ export default function PortfolioSummary() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button className="w-full bg-primary hover:bg-primary/90">Auto-Invest</Button>
+          <Button onClick={handleButtonClick} className="w-full bg-primary hover:bg-primary/90">Auto-Invest</Button>
         </CardFooter>
       </Card>
     </TooltipProvider>

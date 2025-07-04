@@ -1,14 +1,26 @@
+"use client";
+
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, BarChart2, User2 } from "lucide-react";
+import { TrendingUp, BarChart2, UserRound } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const leaderboard = [
-    { rank: 5, name: 'Anon.', icon: <User2 className="h-5 w-5 text-muted-foreground" /> },
+    { rank: 5, name: 'Anon.', icon: <UserRound className="h-5 w-5 text-muted-foreground" /> },
     { rank: 4, name: '', icon: <TrendingUp className="h-5 w-5 text-primary" /> },
     { rank: 6, name: '', icon: <BarChart2 className="h-5 w-5 text-primary" /> },
 ];
 
 export default function CommunityLeaderboard() {
+  const { toast } = useToast();
+
+  const handleButtonClick = () => {
+    toast({
+      title: "Coming Soon!",
+      description: "This feature is currently under development.",
+    });
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -26,7 +38,7 @@ export default function CommunityLeaderboard() {
         ))}
       </CardContent>
       <CardFooter className="pt-4 px-6">
-        <Button className="w-full bg-primary hover:bg-primary/90">View All</Button>
+        <Button onClick={handleButtonClick} className="w-full bg-primary hover:bg-primary/90">View All</Button>
       </CardFooter>
     </Card>
   );

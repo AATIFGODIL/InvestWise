@@ -1,8 +1,21 @@
+"use client";
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trophy } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CongratulationsBanner() {
+  const { toast } = useToast();
+
+  const handleButtonClick = () => {
+    toast({
+      title: "Coming Soon!",
+      description: "This feature is currently under development.",
+      variant: "default",
+    });
+  };
+
   return (
     <Card className="bg-primary border-none text-primary-foreground shadow-lg overflow-hidden">
       <div className="relative p-4 flex items-center gap-4">
@@ -18,7 +31,10 @@ export default function CongratulationsBanner() {
             You've completed all 3 beginner lessons.
           </p>
         </div>
-        <Button className="bg-accent hover:bg-accent/90 text-accent-foreground shrink-0 rounded-lg">
+        <Button
+          onClick={handleButtonClick}
+          className="bg-accent hover:bg-accent/90 text-accent-foreground shrink-0 rounded-lg"
+        >
           View Certificate
         </Button>
       </div>

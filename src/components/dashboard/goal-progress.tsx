@@ -1,14 +1,26 @@
+"use client";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function GoalProgress() {
+  const { toast } = useToast();
+
+  const handleButtonClick = () => {
+    toast({
+      title: "Coming Soon!",
+      description: "This feature is currently under development.",
+    });
+  };
+
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-medium">Goal Progress</CardTitle>
-        <Button variant="link" size="sm" className="text-primary">View All</Button>
+        <Button onClick={handleButtonClick} variant="link" size="sm" className="text-primary">View All</Button>
       </CardHeader>
       <CardContent className="flex items-center gap-4 pt-2">
         <div className="flex-grow">
