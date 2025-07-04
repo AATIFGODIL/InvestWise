@@ -1,6 +1,6 @@
 "use client";
 
-import { Line, LineChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Line, LineChart, Tooltip } from "recharts";
 import {
   Card,
   CardContent,
@@ -58,34 +58,53 @@ export default function PortfolioSummary() {
         <CardContent className="relative">
           <div className="text-3xl font-bold tracking-tighter">R12,750</div>
           <div className="text-sm text-green-500 font-semibold">+200 Today</div>
-          <div className="h-40 mt-4 -ml-4">
-              <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 0 }}>
-                  <defs>
-                      <linearGradient id="fillGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
-                      </linearGradient>
-                  </defs>
-                  <Tooltip
-                  cursor={false}
-                  content={<ChartTooltipContent
-                      formatter={(value) => `R${Number(value).toLocaleString()}`}
-                      hideLabel
-                      hideIndicator
-                  />}
+          <ChartContainer config={chartConfig} className="h-40 mt-4 -ml-4 aspect-auto">
+            <LineChart
+              accessibilityLayer
+              data={chartData}
+              margin={{
+                top: 5,
+                right: 10,
+                left: 10,
+                bottom: 0,
+              }}
+            >
+              <defs>
+                <linearGradient id="fillGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="hsl(var(--primary))"
+                    stopOpacity={0.3}
                   />
-                  <Line
-                      dataKey="value"
-                      type="monotone"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth={3}
-                      dot={false}
-                      fill="url(#fillGradient)"
+                  <stop
+                    offset="95%"
+                    stopColor="hsl(var(--primary))"
+                    stopOpacity={0}
                   />
-              </LineChart>
-              </ResponsiveContainer>
-          </div>
+                </linearGradient>
+              </defs>
+              <Tooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    formatter={(value) =>
+                      `R${Number(value).toLocaleString()}`
+                    }
+                    hideLabel
+                    hideIndicator
+                  />
+                }
+              />
+              <Line
+                dataKey="value"
+                type="monotone"
+                stroke="hsl(var(--primary))"
+                strokeWidth={3}
+                dot={false}
+                fill="url(#fillGradient)"
+              />
+            </LineChart>
+          </ChartContainer>
           <div className="absolute bottom-4 right-4 bg-yellow-400 p-3 rounded-full shadow-lg">
               <DollarSign className="h-6 w-6 text-yellow-900" />
           </div>
