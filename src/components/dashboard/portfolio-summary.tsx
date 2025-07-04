@@ -1,6 +1,6 @@
 "use client";
 
-import { Line, LineChart, Tooltip } from "recharts";
+import { Line, LineChart, Tooltip, ResponsiveContainer } from "recharts";
 import {
   Card,
   CardContent,
