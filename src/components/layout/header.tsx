@@ -22,7 +22,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-30 flex h-20 items-center justify-between bg-primary px-4 sm:px-6 text-primary-foreground">
       <div className="flex items-center gap-2 font-semibold">
-        <h1 className="text-xl font-bold">Investment Analysis</h1>
+        <h1 className="text-xl font-bold">InvestWise</h1>
       </div>
       <div className="flex items-center gap-4">
         <DropdownMenu>
