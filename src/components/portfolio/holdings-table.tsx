@@ -96,7 +96,8 @@ export default function HoldingsTable() {
                     {holdings.map((holding) => {
                         const totalValue = calculateTotalValue(holding.qty, holding.currentPrice);
                         const gainLoss = calculateGainLoss(holding.qty, holding.currentPrice, holding.purchasePrice);
-                        const gainLossPercent = (gainLoss / (holding.purchasePrice * holding.qty)) * 100;
+                        const purchaseValue = holding.purchasePrice * holding.qty;
+                        const gainLossPercent = purchaseValue !== 0 ? (gainLoss / purchaseValue) * 100 : 0;
                         const isGain = gainLoss >= 0;
 
                         return (
