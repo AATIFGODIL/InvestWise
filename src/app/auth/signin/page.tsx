@@ -71,8 +71,8 @@ export default function SignInPage() {
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" required />
           </div>
-          <Button type="submit" className="w-full">
-            Create account
+          <Button asChild className="w-full">
+            <Link href="/onboarding/quiz">Create account</Link>
           </Button>
         </CardContent>
         <CardFooter className="text-center text-sm">

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Home, Briefcase, BarChart, Users } from "lucide-react";
@@ -7,7 +8,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-  { href: "/", label: "Explore", icon: Home },
+  { href: "/dashboard", label: "Explore", icon: Home },
   { href: "/portfolio", label: "Portfolio", icon: Briefcase },
   { href: "/goals", label: "Goals", icon: BarChart },
   { href: "/community", label: "Community", icon: Users },
