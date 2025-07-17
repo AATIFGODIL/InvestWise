@@ -70,11 +70,11 @@ export default function HoldingsTable() {
                 </div>
                 <div>
                     <p className="text-xs text-muted-foreground">TODAY'S CHANGE</p>
-                    <p className="text-lg font-bold text-green-500 flex items-center gap-1">$93.50 (1.30%) <ArrowUp className="h-4 w-4"/></p>
+                    <p className="text-lg font-bold flex items-center gap-1">$93.50 (1.30%) <ArrowUp className="h-4 w-4"/></p>
                 </div>
                 <div>
                     <p className="text-xs text-muted-foreground">TOTAL GAIN/LOSS</p>
-                    <p className="text-lg font-bold text-red-500 flex items-center gap-1">-$3,425.50 (-31.93%) <ArrowDown className="h-4 w-4"/></p>
+                    <p className="text-lg font-bold flex items-center gap-1">-$3,425.50 (-31.93%) <ArrowDown className="h-4 w-4"/></p>
                 </div>
             </div>
             <div className="overflow-x-auto">
