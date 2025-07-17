@@ -1,5 +1,7 @@
+
 "use client";
 
+import Link from "next/link";
 import {
   LogOut,
   Settings,
@@ -49,10 +51,12 @@ export default function Header() {
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
+              <Link href="/settings">
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
@@ -65,3 +69,5 @@ export default function Header() {
     </header>
   );
 }
+
+    
