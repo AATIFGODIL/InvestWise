@@ -15,7 +15,7 @@ export default function PortfolioPage() {
         <div>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Holdings</h2>
-             <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+             <div className="flex items-center gap-2 text-sm text-primary">
                 <Clock className="h-4 w-4" />
                 <span>Market is open.</span>
             </div>
