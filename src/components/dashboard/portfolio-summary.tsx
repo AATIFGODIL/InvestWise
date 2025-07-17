@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Line, LineChart, Tooltip, ResponsiveContainer } from "recharts";
@@ -83,12 +84,12 @@ export default function PortfolioSummary() {
                 <linearGradient id="fillGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="5%"
-                    stopColor="hsl(var(--primary))"
+                    stopColor="var(--color-value)"
                     stopOpacity={0.3}
                   />
                   <stop
                     offset="95%"
-                    stopColor="hsl(var(--primary))"
+                    stopColor="var(--color-value)"
                     stopOpacity={0}
                   />
                 </linearGradient>
@@ -108,7 +109,7 @@ export default function PortfolioSummary() {
               <Line
                 dataKey="value"
                 type="monotone"
-                stroke="hsl(var(--primary))"
+                stroke="var(--color-value)"
                 strokeWidth={3}
                 dot={false}
                 fill="url(#fillGradient)"
