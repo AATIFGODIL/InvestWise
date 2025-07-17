@@ -1,14 +1,26 @@
+
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
+import PortfolioValue from "@/components/portfolio/portfolio-value";
+import HoldingsTable from "@/components/portfolio/holdings-table";
+import { Clock } from "lucide-react";
 
 export default function PortfolioPage() {
   return (
-    <div className="w-full bg-background font-body">
+    <div className="w-full bg-background font-body dark:bg-card">
       <Header />
-      <main className="p-4 space-y-4 pb-40">
+      <main className="p-4 space-y-6 pb-40">
         <h1 className="text-2xl font-bold">Portfolio</h1>
-        <div className="border rounded-lg p-8 text-center">
-          <p className="text-muted-foreground">Your portfolio page is coming soon!</p>
+        <PortfolioValue />
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Holdings</h2>
+             <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                <Clock className="h-4 w-4" />
+                <span>Market is open.</span>
+            </div>
+          </div>
+          <HoldingsTable />
         </div>
       </main>
       <BottomNav />
