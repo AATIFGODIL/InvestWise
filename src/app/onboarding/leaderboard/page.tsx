@@ -12,11 +12,11 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Shield, Users } from "lucide-react";
+import { Shield, Users, EyeOff } from "lucide-react";
 
 export default function OnboardingLeaderboardPage() {
   const router = useRouter();
-  const [selection, setSelection] = useState<"anonymous" | "public" | null>(null);
+  const [selection, setSelection] = useState<"public" | "private" | null>(null);
 
   const handleContinue = () => {
     // Here you would typically save the user's preference
@@ -26,31 +26,32 @@ export default function OnboardingLeaderboardPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
-      <Card className="w-full max-w-md text-center">
+      <Card className="w-full max-w-lg text-center">
         <CardHeader>
-          <CardTitle>Community Visibility</CardTitle>
+          <CardTitle>Community Leaderboard</CardTitle>
           <CardDescription>
-            Would you like your rank to appear on the community leaderboard? Your
-            name will always be anonymous.
+            Choose how you appear in the community. You can change this later in your settings.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4">
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card
             className={`cursor-pointer ${selection === 'public' ? 'border-primary ring-2 ring-primary' : ''}`}
             onClick={() => setSelection('public')}
           >
             <CardContent className="p-6 flex flex-col items-center justify-center gap-2">
               <Users className="h-10 w-10 text-primary" />
-              <p className="font-semibold">Yes, show my rank</p>
+              <p className="font-semibold">Show my rank (anonymously)</p>
+              <p className="text-xs text-muted-foreground">Your performance will be visible, but your identity will be hidden.</p>
             </CardContent>
           </Card>
           <Card
-            className={`cursor-pointer ${selection === 'anonymous' ? 'border-primary ring-2 ring-primary' : ''}`}
-            onClick={() => setSelection('anonymous')}
+            className={`cursor-pointer ${selection === 'private' ? 'border-primary ring-2 ring-primary' : ''}`}
+            onClick={() => setSelection('private')}
           >
             <CardContent className="p-6 flex flex-col items-center justify-center gap-2">
-              <Shield className="h-10 w-10 text-muted-foreground" />
-              <p className="font-semibold">Keep me anonymous</p>
+              <EyeOff className="h-10 w-10 text-muted-foreground" />
+              <p className="font-semibold">Opt out of leaderboard</p>
+              <p className="text-xs text-muted-foreground">You will not appear on the leaderboard in any form.</p>
             </CardContent>
           </Card>
         </CardContent>
