@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -36,6 +36,12 @@ export default function SettingsPage() {
   const [leaderboard, setLeaderboard] = useState(true);
   const [parentalControl, setParentalControl] = useState(false);
   const [theme, setTheme] = useState("light");
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+    root.classList.add(theme);
+  }, [theme]);
 
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -154,5 +160,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    
