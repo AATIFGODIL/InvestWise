@@ -111,8 +111,8 @@ export default function HoldingsTable() {
                                 <TableCell className="text-right hidden lg:table-cell">{holding.qty}</TableCell>
                                 <TableCell className="text-right hidden md:table-cell font-medium">${totalValue.toFixed(2)}</TableCell>
                                 <TableCell className={cn("text-right", isGain ? "text-green-500" : "text-red-500")}>
-                                    <div>${gainLoss.toFixed(2)}</div>
-                                    <div className="text-xs">({gainLossPercent.toFixed(2)}%)</div>
+                                    ${gainLoss.toFixed(2)}
+                                    <span className="text-xs"> ({gainLossPercent.toFixed(2)}%)</span>
                                 </TableCell>
                                 <TableCell className="text-center">
                                     <div className="flex flex-col sm:flex-row gap-2 justify-center">
