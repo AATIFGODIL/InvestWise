@@ -54,7 +54,7 @@ export default function HoldingsTable() {
   const calculateGainLoss = (qty: number, currentPrice: number, purchasePrice: number) => (currentPrice - purchasePrice) * qty;
 
   return (
-    <Card className="dark:bg-background">
+    <Card>
       <CardContent className="p-0">
         <Tabs defaultValue="stocks">
           <TabsList className="p-2 m-2 bg-muted dark:bg-card">
