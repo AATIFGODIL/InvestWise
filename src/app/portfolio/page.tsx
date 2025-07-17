@@ -7,7 +7,7 @@ import { Clock } from "lucide-react";
 
 export default function PortfolioPage() {
   return (
-    <div className="w-full bg-background font-body dark:bg-card">
+    <div className="w-full bg-background font-body">
       <Header />
       <main className="p-4 space-y-6 pb-40">
         <h1 className="text-2xl font-bold">Portfolio</h1>
