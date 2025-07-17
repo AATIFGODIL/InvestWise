@@ -19,7 +19,7 @@ export default function OnboardingGoalPage() {
   const router = useRouter();
 
   const handleContinue = () => {
-    router.push("/onboarding/welcome");
+    router.push("/onboarding/leaderboard");
   };
 
   return (
