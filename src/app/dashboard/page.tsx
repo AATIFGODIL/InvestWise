@@ -14,7 +14,7 @@ import RiskManagement from "@/components/dashboard/risk-management";
 import CommunityTrends from "@/components/dashboard/community-trends";
 import EducationalVideo from '@/components/shared/educational-video';
 import AutoInvest from '@/components/dashboard/auto-invest';
-import { recommendedBundles } from '@/data/bundles';
+import { recommendedBundles, specializedBundles } from '@/data/bundles';
 
 const beginnerVideos = [
     {
@@ -55,6 +55,7 @@ export default function DashboardPage() {
   }, []);
 
   const showBeginnerContent = userProfile === 'Beginner' || userProfile === 'Amateur';
+  const bundlesToShow = showBeginnerContent ? [...recommendedBundles, ...specializedBundles] : recommendedBundles;
 
   return (
     <div className="w-full bg-background font-body">
@@ -70,7 +71,7 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <InvestmentBundles 
-            bundles={recommendedBundles}
+            bundles={bundlesToShow}
             title="Explore Investment Bundles"
             description="Recommended for you"
           />
