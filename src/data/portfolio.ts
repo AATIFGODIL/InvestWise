@@ -93,7 +93,7 @@ if (portfolioSummary.totalValue > 0) {
 }
 
 const finalValue = portfolioSummary.totalValue;
-const todayFormatted = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: '2025' });
+const todayFormatted = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
 // Generate chart data relative to the final value
 export const chartData = {
