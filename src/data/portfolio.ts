@@ -1,5 +1,5 @@
 
-export const holdings = [
+export let holdings = [
   {
     symbol: "NKE",
     description: "Nike, Inc. - Ordinary Shares - Class B",
@@ -32,6 +32,45 @@ export const holdings = [
   },
 ];
 
+const holidays2025 = new Set([
+  '2025-01-01', // New Year's Day
+  '2025-01-20', // Martin Luther King, Jr. Day
+  '2025-02-17', // Washington's Birthday
+  '2025-04-18', // Good Friday
+  '2025-05-26', // Memorial Day
+  '2025-06-19', // Juneteenth
+  '2025-07-04', // Independence Day
+  '2025-09-01', // Labor Day
+  '2025-11-27', // Thanksgiving Day
+  '2025-12-25', // Christmas Day
+]);
+
+function isTradingDay(date: Date): boolean {
+  const day = date.getDay();
+  if (day === 0 || day === 6) { // Sunday or Saturday
+    return false;
+  }
+  const dateString = date.toISOString().split('T')[0];
+  if (holidays2025.has(dateString)) {
+    return false;
+  }
+  return true;
+}
+
+const today = new Date();
+if (isTradingDay(today)) {
+  holdings = holdings.map(holding => {
+    const changePercent = (Math.random() - 0.5) * 0.05; // Fluctuate by up to 2.5%
+    const priceChange = holding.currentPrice * changePercent;
+    return {
+      ...holding,
+      currentPrice: holding.currentPrice + priceChange,
+      todaysChange: priceChange,
+      todaysChangePercent: changePercent * 100,
+    };
+  });
+}
+
 const calculateTotalValue = (qty: number, price: number) => qty * price;
 const calculateGainLoss = (qty: number, currentPrice: number, purchasePrice: number) => (currentPrice - purchasePrice) * qty;
 
@@ -53,67 +92,42 @@ if (portfolioSummary.totalValue > 0) {
     portfolioSummary.annualRatePercent = weightedAnnualRate;
 }
 
-
-// Adjusted to make the final value match the calculated totalValue
 const finalValue = portfolioSummary.totalValue;
-
-const today = new Date();
 const todayFormatted = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: '2025' });
 
-// Add a random fluctuation for today's value
-const randomFluctuation = (Math.random() - 0.5) * (finalValue * 0.02);
-const todayValue = finalValue + randomFluctuation;
-
-
+// Generate chart data relative to the final value
 export const chartData = {
     '1W': [
-        { date: "July 14, 2025", value: finalValue - 250 }, // Monday
-        { date: "July 15, 2025", value: finalValue - 180 }, // Tuesday
-        { date: "July 16, 2025", value: finalValue - 210 }, // Wednesday
-        { date: "July 17, 2025", value: finalValue - 120 }, // Thursday
-        { date: "July 18, 2025", value: finalValue - 50 },  // Friday
-        { date: "July 19, 2025", value: finalValue - 50 },  // Saturday
-        { date: todayFormatted, value: todayValue }, // Today
+        { date: "July 14, 2025", value: finalValue - 250 + (portfolioSummary.todaysChange * 5) },
+        { date: "July 15, 2025", value: finalValue - 180 + (portfolioSummary.todaysChange * 4) },
+        { date: "July 16, 2025", value: finalValue - 210 + (portfolioSummary.todaysChange * 3) },
+        { date: "July 17, 2025", value: finalValue - 120 + (portfolioSummary.todaysChange * 2) },
+        { date: "July 18, 2025", value: finalValue - 50 + portfolioSummary.todaysChange },
+        { date: "July 19, 2025", value: finalValue - 50 + portfolioSummary.todaysChange },
+        { date: todayFormatted, value: finalValue },
     ],
     '1M': [
         { date: "June 23, 2025", value: finalValue - 590 },
-        { date: "June 24, 2025", value: finalValue - 550 },
-        { date: "June 25, 2025", value: finalValue - 570 },
-        { date: "June 26, 2025", value: finalValue - 520 },
-        { date: "June 27, 2025", value: finalValue - 490 },
         { date: "June 30, 2025", value: finalValue - 480 },
-        { date: "July 01, 2025", value: finalValue - 450 },
-        { date: "July 02, 2025", value: finalValue - 470 },
-        { date: "July 03, 2025", value: finalValue - 420 },
-        // July 4th is a holiday
         { date: "July 07, 2025", value: finalValue - 390 },
-        { date: "July 08, 2025", value: finalValue - 350 },
-        { date: "July 09, 2025", value: finalValue - 370 },
-        { date: "July 10, 2025", value: finalValue - 320 },
-        { date: "July 11, 2025", value: finalValue - 290 },
         { date: "July 14, 2025", value: finalValue - 250 },
-        { date: "July 15, 2025", value: finalValue - 180 },
-        { date: "July 16, 2025", value: finalValue - 210 },
-        { date: "July 17, 2025", value: finalValue - 120 },
         { date: "July 18, 2025", value: finalValue - 50 },
-        { date: todayFormatted, value: todayValue }, // Today
+        { date: todayFormatted, value: finalValue },
     ],
     '6M': [
         { date: "January 20, 2025", value: finalValue - 1090 },
         { date: "February 20, 2025", value: finalValue - 790 },
         { date: "March 20, 2025", value: finalValue - 890 },
-        { date: "April 21, 2025", value: finalValue - 590 }, // Monday after weekend
+        { date: "April 21, 2025", value: finalValue - 590 },
         { date: "May 20, 2025", value: finalValue - 490 },
         { date: "June 20, 2025", value: finalValue - 550 },
-        { date: "July 18, 2025", value: finalValue - 50 }, 
-        { date: todayFormatted, value: todayValue }, // Today
+        { date: todayFormatted, value: finalValue },
     ],
     '1Y': [
-        { date: "July 19, 2024", value: finalValue - 1590 }, 
-        { date: "October 21, 2024", value: finalValue - 1390 }, // Monday
+        { date: "July 19, 2024", value: finalValue - 1590 },
+        { date: "October 21, 2024", value: finalValue - 1390 },
         { date: "January 20, 2025", value: finalValue - 1090 },
-        { date: "April 21, 2025", value: finalValue - 590 }, // Monday
-        { date: "July 18, 2025", value: finalValue - 50 }, // Friday
-        { date: todayFormatted, value: todayValue }, // Today
+        { date: "April 21, 2025", value: finalValue - 590 },
+        { date: todayFormatted, value: finalValue },
     ]
 };
