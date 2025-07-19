@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronLeft, KeyRound, User, Save, Mail, Upload } from "lucide-react";
+import { ChevronLeft, KeyRound, User, Save, Mail, Upload, Repeat, BarChart, Briefcase, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 export default function ProfilePage() {
@@ -125,6 +125,42 @@ export default function ProfilePage() {
                         Send Reset Email
                     </Button>
                 </div>
+            </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">Quick Actions</CardTitle>
+                <CardDescription>Navigate to other parts of the app.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+                 <Button asChild variant="outline" className="w-full justify-between">
+                    <Link href="/trade">
+                         <div className="flex items-center gap-2">
+                            <Repeat className="text-primary"/>
+                            <span>Trade a stock</span>
+                        </div>
+                        <ChevronRight />
+                    </Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-between">
+                    <Link href="/goals">
+                       <div className="flex items-center gap-2">
+                            <BarChart className="text-primary"/>
+                            <span>Check your goals</span>
+                        </div>
+                        <ChevronRight />
+                    </Link>
+                </Button>
+                 <Button asChild variant="outline" className="w-full justify-between">
+                    <Link href="/portfolio">
+                         <div className="flex items-center gap-2">
+                            <Briefcase className="text-primary"/>
+                            <span>Go to portfolio</span>
+                        </div>
+                        <ChevronRight />
+                    </Link>
+                </Button>
             </CardContent>
         </Card>
       </main>
