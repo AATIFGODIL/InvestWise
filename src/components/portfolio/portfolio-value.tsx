@@ -34,7 +34,7 @@ export default function PortfolioValue() {
       return (
         <div className="p-2 bg-background border border-border rounded-lg shadow-lg">
           <p className="label text-sm text-muted-foreground">{`${label}`}</p>
-          <p className="intro font-bold text-foreground">{`$${payload[0].value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}</p>
+          <p className="intro font-bold text-primary">{`$${payload[0].value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}</p>
         </div>
       );
     }
