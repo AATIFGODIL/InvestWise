@@ -41,6 +41,19 @@ export default function PortfolioSummary() {
   
   const isTodayChangePositive = portfolioSummary.todaysChange >= 0;
 
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="p-2 bg-background border border-border rounded-lg shadow-lg">
+          <p className="label text-sm text-muted-foreground">{`${label}`}</p>
+          <p className="intro font-bold text-foreground">{`$${payload[0].value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}</p>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <TooltipProvider>
       <Card>
@@ -68,12 +81,7 @@ export default function PortfolioSummary() {
             <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData['1W']} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
                     <Tooltip 
-                        contentStyle={{
-                            background: "hsl(var(--background))",
-                            borderColor: "hsl(var(--border))",
-                            borderRadius: "var(--radius)",
-                        }}
-                        formatter={(value: number) => `$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+                        content={<CustomTooltip />}
                     />
                     <Line 
                         type="monotone" 

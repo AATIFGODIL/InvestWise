@@ -29,6 +29,20 @@ export default function PortfolioValue() {
   const isTodaysChangePositive = portfolioSummary.todaysChange >= 0;
   const todaysChangePercent = portfolioSummary.totalValue !== 0 ? (portfolioSummary.todaysChange / (portfolioSummary.totalValue - portfolioSummary.todaysChange)) * 100 : 0;
 
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="p-2 bg-background border border-border rounded-lg shadow-lg">
+          <p className="label text-sm text-muted-foreground">{`${label}`}</p>
+          <p className="intro font-bold text-foreground">{`$${payload[0].value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}</p>
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+
   return (
     <Card>
         <CardHeader>
@@ -73,13 +87,7 @@ export default function PortfolioValue() {
                     tickFormatter={(value) => `$${value.toLocaleString()}`}
                 />
                 <Tooltip
-                    contentStyle={{
-                        background: "hsl(var(--background))",
-                        borderColor: "hsl(var(--border))",
-                        borderRadius: "var(--radius)",
-                    }}
-                    formatter={(value: number) => `$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
-                    labelStyle={{ display: "block" }}
+                    content={<CustomTooltip />}
                 />
                 <Line
                   type="monotone"
