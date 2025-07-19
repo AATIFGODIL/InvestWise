@@ -44,7 +44,7 @@ export default function InvestmentBundles({ bundles, title, description, showDis
         >
           <CarouselContent>
             {bundles.map((bundle, index) => (
-              <CarouselItem key={index} className="md:basis-1/2 lg:basis-full">
+              <CarouselItem key={index} className="md:basis-1/2">
                 <div className="p-1">
                   <Card className="h-full flex flex-col">
                     <CardHeader className="p-0">
