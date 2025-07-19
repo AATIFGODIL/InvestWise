@@ -134,28 +134,28 @@ export default function ProfilePage() {
                 <CardDescription>Navigate to other parts of the app.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-                 <Button asChild variant="outline" className="w-full justify-between">
+                 <Button asChild variant="default" className="w-full justify-between">
                     <Link href="/trade">
                          <div className="flex items-center gap-2">
-                            <Repeat className="text-primary"/>
+                            <Repeat />
                             <span>Trade a stock</span>
                         </div>
                         <ChevronRight />
                     </Link>
                 </Button>
-                <Button asChild variant="outline" className="w-full justify-between">
+                <Button asChild variant="default" className="w-full justify-between">
                     <Link href="/goals">
                        <div className="flex items-center gap-2">
-                            <BarChart className="text-primary"/>
+                            <BarChart />
                             <span>Check your goals</span>
                         </div>
                         <ChevronRight />
                     </Link>
                 </Button>
-                 <Button asChild variant="outline" className="w-full justify-between">
+                 <Button asChild variant="default" className="w-full justify-between">
                     <Link href="/portfolio">
                          <div className="flex items-center gap-2">
-                            <Briefcase className="text-primary"/>
+                            <Briefcase />
                             <span>Go to portfolio</span>
                         </div>
                         <ChevronRight />
