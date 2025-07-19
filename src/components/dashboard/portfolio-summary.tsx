@@ -103,6 +103,7 @@ export default function PortfolioSummary() {
                   type="monotone"
                   dataKey="value"
                   stroke="hsl(var(--primary))"
+                  strokeWidth={2}
                   activeDot={{ r: 8 }}
                   name=""
                 />
