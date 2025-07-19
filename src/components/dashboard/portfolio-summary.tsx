@@ -73,6 +73,7 @@ export default function PortfolioSummary() {
                             borderColor: "hsl(var(--border))",
                             borderRadius: "var(--radius)",
                         }}
+                        formatter={(value: number) => [`$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, '']}
                     />
                     <Line 
                         type="monotone" 
