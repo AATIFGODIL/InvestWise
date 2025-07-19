@@ -44,12 +44,12 @@ export default function ParentalGatePage() {
            <div className="space-y-2">
               <Label htmlFor="parent-id-proof">Parent's ID Proof</Label>
                <Button asChild variant="outline" className="w-full justify-start text-muted-foreground font-normal">
-                  <div>
+                  <Label htmlFor="parent-id-proof" className="cursor-pointer flex items-center w-full">
                       <FileUp className="h-4 w-4 mr-2" />
                       Upload Parent's Government ID
-                  </div>
+                  </Label>
               </Button>
-               <Input id="parent-id-proof" type="file" className="hidden" />
+               <Input id="parent-id-proof" type="file" className="hidden" accept="application/pdf, image/*" />
               <p className="text-xs text-muted-foreground">An email will be sent to your parent for verification.</p>
           </div>
         </CardContent>
