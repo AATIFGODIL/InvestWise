@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PartyPopper } from "lucide-react";
+import Link from "next/link";
 
 export default function OnboardingWelcomePage() {
   const router = useRouter();
@@ -17,10 +18,6 @@ export default function OnboardingWelcomePage() {
 
     return () => clearTimeout(timer);
   }, [router]);
-
-  const handleContinue = () => {
-    router.push("/dashboard");
-  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
@@ -35,8 +32,8 @@ export default function OnboardingWelcomePage() {
           <p className="text-muted-foreground">
             You're all set up. Let's start your investment journey together.
           </p>
-          <Button onClick={handleContinue} className="w-full">
-            Go to Dashboard
+          <Button asChild className="w-full">
+            <Link href="/dashboard" prefetch={false}>Go to Dashboard</Link>
           </Button>
           <p className="text-xs text-muted-foreground">
             You will be redirected automatically.
