@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowUp, ArrowDown, PlusCircle, MinusCircle, History } from "lucide-react";
+import { ArrowUp, ArrowDown, PlusCircle, MinusCircle, History, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { holdings, portfolioSummary } from "@/data/portfolio";
@@ -30,6 +30,8 @@ export default function HoldingsTable() {
   const isTotalGainLossPositive = portfolioSummary.totalGainLoss >= 0;
   const totalPurchaseValue = holdings.reduce((acc, h) => acc + (h.purchasePrice * h.qty), 0);
   const totalGainLossPercent = totalPurchaseValue !== 0 ? (portfolioSummary.totalGainLoss / totalPurchaseValue) * 100 : 0;
+  
+  const isPortfolioAnnualRatePositive = portfolioSummary.annualRatePercent >= 0;
 
 
   return (
@@ -42,7 +44,7 @@ export default function HoldingsTable() {
             <TabsTrigger value="shorts" disabled>Shorts</TabsTrigger>
           </TabsList>
           <TabsContent value="stocks">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border-b">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 border-b">
                 <div>
                     <p className="text-xs text-muted-foreground">TOTAL VALUE</p>
                     <p className="text-lg font-bold">${portfolioSummary.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
@@ -59,6 +61,13 @@ export default function HoldingsTable() {
                      <p className={cn("text-lg font-bold flex items-center gap-1", isTotalGainLossPositive ? 'text-green-500' : 'text-red-500')}>
                         ${portfolioSummary.totalGainLoss.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({totalGainLossPercent.toFixed(2)}%)
                         {isTotalGainLossPositive ? <ArrowUp className="h-4 w-4"/> : <ArrowDown className="h-4 w-4"/>}
+                    </p>
+                </div>
+                 <div>
+                    <p className="text-xs text-muted-foreground">PORTFOLIO ANNUAL RETURN</p>
+                     <p className={cn("text-lg font-bold flex items-center gap-1", isPortfolioAnnualRatePositive ? 'text-green-500' : 'text-red-500')}>
+                        {portfolioSummary.annualRatePercent.toFixed(2)}%
+                        {isPortfolioAnnualRatePositive ? <Percent className="h-4 w-4"/> : <Percent className="h-4 w-4"/>}
                     </p>
                 </div>
             </div>
