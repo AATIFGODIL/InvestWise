@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardContent,
@@ -23,7 +23,7 @@ import { portfolioSummary, chartData } from "@/data/portfolio";
 
 type TimeRange = '1W' | '1M' | '6M' | '1Y';
 
-export default function PortfolioValue() {
+function PortfolioValue() {
   const [timeRange, setTimeRange] = useState<TimeRange>('1W');
 
   const isTodaysChangePositive = portfolioSummary.todaysChange >= 0;
@@ -104,3 +104,5 @@ export default function PortfolioValue() {
     </Card>
   );
 }
+
+export default React.memo(PortfolioValue);
