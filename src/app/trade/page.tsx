@@ -5,6 +5,7 @@ import EducationalVideo from "@/components/shared/educational-video";
 import StockFilter from "@/components/trade/stock-filter";
 import StockList from "@/components/trade/stock-list";
 import TradeForm from "@/components/trade/trade-form";
+import AutoInvest from "@/components/dashboard/auto-invest";
 
 const videos = [
     {
@@ -31,6 +32,7 @@ export default function TradePage() {
         <StockFilter />
         <StockList />
         <TradeForm />
+        <AutoInvest />
         <div className="space-y-4 pt-4">
             <h2 className="text-xl font-bold">Learn About Trading</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
