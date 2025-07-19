@@ -1,7 +1,6 @@
 
 "use client";
 
-import { Line, LineChart, Tooltip, ResponsiveContainer } from "recharts";
 import {
   Card,
   CardContent,
@@ -9,10 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
 import { Button } from "@/components/ui/button";
 import { DollarSign, Info } from "lucide-react";
 import {
@@ -23,15 +18,9 @@ import {
 } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { chartData, portfolioSummary } from "@/data/portfolio";
+import { portfolioSummary } from "@/data/portfolio";
+import TradingViewWidget from "../shared/trading-view-widget";
 
-
-const chartConfig = {
-  value: {
-    label: "Value",
-    color: "hsl(var(--primary))",
-  },
-};
 
 export default function PortfolioSummary() {
   const { toast } = useToast();
@@ -68,53 +57,9 @@ export default function PortfolioSummary() {
           <div className={`text-sm font-semibold ${isTodayChangePositive ? 'text-green-500' : 'text-red-500'}`}>
             {isTodayChangePositive ? '+' : ''}${portfolioSummary.todaysChange.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Today
           </div>
-          <ChartContainer config={chartConfig} className="h-40 mt-4 -ml-4 aspect-auto">
-            <LineChart
-              accessibilityLayer
-              data={chartData['1M']}
-              margin={{
-                top: 5,
-                right: 10,
-                left: 10,
-                bottom: 0,
-              }}
-            >
-              <defs>
-                <linearGradient id="fillGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="var(--color-value)"
-                    stopOpacity={0.3}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="var(--color-value)"
-                    stopOpacity={0}
-                  />
-                </linearGradient>
-              </defs>
-              <Tooltip
-                cursor={false}
-                content={
-                  <ChartTooltipContent
-                    formatter={(value) =>
-                      `$${Number(value).toLocaleString()}`
-                    }
-                    hideLabel
-                    hideIndicator
-                  />
-                }
-              />
-              <Line
-                dataKey="value"
-                type="monotone"
-                stroke="var(--color-value)"
-                strokeWidth={3}
-                dot={false}
-                fill="url(#fillGradient)"
-              />
-            </LineChart>
-          </ChartContainer>
+          <div className="h-56 mt-4">
+            <TradingViewWidget />
+          </div>
           <div className="absolute bottom-4 right-4 bg-yellow-400 p-3 rounded-full shadow-lg">
               <DollarSign className="h-6 w-6 text-yellow-900" />
           </div>
