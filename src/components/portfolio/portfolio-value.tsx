@@ -16,7 +16,6 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -79,9 +78,9 @@ export default function PortfolioValue() {
                         borderColor: "hsl(var(--border))",
                         borderRadius: "var(--radius)",
                     }}
-                    formatter={(value: number) => `$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+                    formatter={(value: number) => [`$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, '']}
+                    labelStyle={{ display: 'none' }}
                 />
-                <Legend />
                 <Line
                   type="monotone"
                   dataKey="value"
