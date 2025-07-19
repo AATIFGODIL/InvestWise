@@ -45,34 +45,34 @@ const finalValue = portfolioSummary.totalValue;
 
 export const chartData = {
     '1W': [
-        { date: "2024-07-14", value: finalValue - 250 }, // Sunday
-        { date: "2024-07-15", value: finalValue - 250 }, // Monday (same as Sunday)
-        { date: "2024-07-16", value: finalValue - 200 },
-        { date: "2024-07-17", value: finalValue - 300 },
-        { date: "2024-07-18", value: finalValue - 150 },
-        { date: "2024-07-19", value: finalValue - 100 },
-        { date: "2024-07-20", value: finalValue },
+        { date: "2025-07-14", value: finalValue - 250 }, // Sunday
+        { date: "2025-07-15", value: finalValue - 250 }, // Monday (same as Sunday)
+        { date: "2025-07-16", value: finalValue - 200 },
+        { date: "2025-07-17", value: finalValue - 300 },
+        { date: "2025-07-18", value: finalValue - 150 },
+        { date: "2025-07-19", value: finalValue - 100 },
+        { date: "2025-07-20", value: finalValue },
     ],
     '1M': [
-        { date: "2024-06-21", value: finalValue - 590 },
-        { date: "2024-06-28", value: finalValue - 490 },
-        { date: "2024-07-05", value: finalValue - 540 },
-        { date: "2024-07-12", value: finalValue - 390 },
-        { date: "2024-07-20", value: finalValue },
+        { date: "2025-06-21", value: finalValue - 590 },
+        { date: "2025-06-28", value: finalValue - 490 },
+        { date: "2025-07-05", value: finalValue - 540 },
+        { date: "2025-07-12", value: finalValue - 390 },
+        { date: "2025-07-20", value: finalValue },
     ],
     '6M': [
-        { date: "2024-01-20", value: finalValue - 1090 },
-        { date: "2024-02-20", value: finalValue - 790 },
-        { date: "2024-03-20", value: finalValue - 890 },
-        { date: "2024-04-20", value: finalValue - 590 },
-        { date: "2024-05-20", value: finalValue - 490 },
-        { date: "2024-07-20", value: finalValue },
+        { date: "2025-01-20", value: finalValue - 1090 },
+        { date: "2025-02-20", value: finalValue - 790 },
+        { date: "2025-03-20", value: finalValue - 890 },
+        { date: "2025-04-20", value: finalValue - 590 },
+        { date: "2025-05-20", value: finalValue - 490 },
+        { date: "2025-07-20", value: finalValue },
     ],
     '1Y': [
-        { date: "Jul '23", value: finalValue - 1590 },
-        { date: "Oct '23", value: finalValue - 1390 },
-        { date: "Jan '24", value: finalValue - 1090 },
-        { date: "Apr '24", value: finalValue - 590 },
-        { date: "Jul '24", value: finalValue },
+        { date: "Jul '24", value: finalValue - 1590 },
+        { date: "Oct '24", value: finalValue - 1390 },
+        { date: "Jan '25", value: finalValue - 1090 },
+        { date: "Apr '25", value: finalValue - 590 },
+        { date: "Jul '25", value: finalValue },
     ]
 };
