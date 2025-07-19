@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FileUp } from "lucide-react";
 import Link from "next/link";
 
 const GoogleIcon = () => (
@@ -70,6 +71,17 @@ export default function SignUpPage() {
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" required />
+          </div>
+           <div className="grid gap-2">
+              <Label htmlFor="id-proof">ID Verification</Label>
+              <Button asChild variant="outline" className="w-full justify-start text-muted-foreground font-normal">
+                  <div>
+                      <FileUp className="h-4 w-4 mr-2" />
+                      Upload Government ID
+                  </div>
+              </Button>
+               <Input id="id-proof" type="file" className="hidden" />
+              <p className="text-xs text-muted-foreground">For security and compliance, please upload a government-issued ID.</p>
           </div>
           <Button asChild className="w-full">
             <Link href="/onboarding/quiz">Create account</Link>

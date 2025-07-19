@@ -13,9 +13,10 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { CreditCard, Shield, Sun, Moon, Eye, LogOut, ChevronLeft, ShieldBan } from "lucide-react";
+import { CreditCard, Shield, Sun, Moon, Eye, LogOut, ChevronLeft, ShieldBan, FileUp } from "lucide-react";
 import Link from "next/link";
 import { LeaderboardVisibility } from "../community/page";
+import { Input } from "@/components/ui/input";
 
 const VisaIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 38 24" fill="none">
@@ -72,7 +73,7 @@ export default function SettingsPage() {
               Manage content and feature restrictions for younger users.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
               <Label htmlFor="parental-control" className="font-medium">Enable Parental Controls</Label>
               <Switch 
@@ -81,6 +82,25 @@ export default function SettingsPage() {
                 onCheckedChange={setParentalControl}
               />
             </div>
+             {parentalControl && (
+                 <div className="p-4 rounded-lg bg-muted/50 space-y-4">
+                     <div className="space-y-2">
+                         <Label htmlFor="parent-email">Parent's Email</Label>
+                         <Input id="parent-email" type="email" placeholder="parent@example.com"/>
+                     </div>
+                     <div className="space-y-2">
+                         <Label htmlFor="parent-id">Parent's ID Verification</Label>
+                         <Button asChild variant="outline" className="w-full justify-start text-muted-foreground font-normal">
+                            <div>
+                                <FileUp className="h-4 w-4 mr-2" />
+                                Upload Parent's Government ID
+                            </div>
+                        </Button>
+                        <Input id="parent-id" type="file" className="hidden" />
+                     </div>
+                     <Button className="w-full">Save Parental Settings</Button>
+                 </div>
+             )}
           </CardContent>
         </Card>
 
