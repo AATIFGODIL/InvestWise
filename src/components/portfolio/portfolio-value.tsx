@@ -78,14 +78,15 @@ export default function PortfolioValue() {
                         borderColor: "hsl(var(--border))",
                         borderRadius: "var(--radius)",
                     }}
-                    formatter={(value: number) => [`$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, '']}
+                    formatter={(value: number) => `$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+                    labelStyle={{ display: "block" }}
                 />
                 <Line
                   type="monotone"
                   dataKey="value"
                   stroke="hsl(var(--primary))"
                   activeDot={{ r: 8 }}
-                  name="Portfolio Value"
+                  name=""
                 />
               </LineChart>
             </ResponsiveContainer>
