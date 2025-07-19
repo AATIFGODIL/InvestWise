@@ -11,11 +11,15 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { EyeOff, ShieldBan } from "lucide-react";
-import { useState } from "react";
 
-export default function PrivacySettings() {
-  const [optOutLeaderboard, setOptOutLeaderboard] = useState(false);
-  const [optOutQuests, setOptOutQuests] = useState(false);
+interface PrivacySettingsProps {
+    showLeaderboard: boolean;
+    setShowLeaderboard: (show: boolean) => void;
+    showQuests: boolean;
+    setShowQuests: (show: boolean) => void;
+}
+
+export default function PrivacySettings({ showLeaderboard, setShowLeaderboard, showQuests, setShowQuests }: PrivacySettingsProps) {
 
   return (
     <Card>
@@ -32,23 +36,23 @@ export default function PrivacySettings() {
         <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
             <Label htmlFor="opt-out-leaderboard" className="font-medium flex items-center gap-2">
                 <ShieldBan className="h-4 w-4" />
-                Opt-out of Leaderboard
+                Appear on Leaderboard
             </Label>
             <Switch
                 id="opt-out-leaderboard"
-                checked={optOutLeaderboard}
-                onCheckedChange={setOptOutLeaderboard}
+                checked={showLeaderboard}
+                onCheckedChange={setShowLeaderboard}
             />
         </div>
         <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
             <Label htmlFor="opt-out-quests" className="font-medium flex items-center gap-2">
                 <ShieldBan className="h-4 w-4" />
-                Opt-out of Quests
+                Participate in Quests
             </Label>
             <Switch
                 id="opt-out-quests"
-                checked={optOutQuests}
-                onCheckedChange={setOptOutQuests}
+                checked={showQuests}
+                onCheckedChange={setShowQuests}
             />
         </div>
       </CardContent>

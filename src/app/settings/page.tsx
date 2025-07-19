@@ -13,7 +13,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { CreditCard, Shield, Sun, Moon, Eye, LogOut, ChevronLeft } from "lucide-react";
+import { CreditCard, Shield, Sun, Moon, Eye, LogOut, ChevronLeft, ShieldBan } from "lucide-react";
 import Link from "next/link";
 
 const VisaIcon = () => (
@@ -34,6 +34,7 @@ const MasterCardIcon = () => (
 
 export default function SettingsPage() {
   const [leaderboard, setLeaderboard] = useState(true);
+  const [quests, setQuests] = useState(true);
   const [parentalControl, setParentalControl] = useState(false);
   const [theme, setTheme] = useState("light");
 
@@ -112,13 +113,27 @@ export default function SettingsPage() {
               Control how your information is shared within the community.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-2">
             <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-              <Label htmlFor="leaderboard-switch" className="font-medium">Appear on Leaderboard</Label>
+              <Label htmlFor="leaderboard-switch" className="font-medium flex items-center gap-2">
+                <ShieldBan className="h-4 w-4" />
+                Appear on Leaderboard
+              </Label>
               <Switch 
                 id="leaderboard-switch" 
                 checked={leaderboard} 
                 onCheckedChange={setLeaderboard}
+              />
+            </div>
+             <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+              <Label htmlFor="quests-switch" className="font-medium flex items-center gap-2">
+                <ShieldBan className="h-4 w-4" />
+                Participate in Quests
+                </Label>
+              <Switch 
+                id="quests-switch" 
+                checked={quests} 
+                onCheckedChange={setQuests}
               />
             </div>
           </CardContent>

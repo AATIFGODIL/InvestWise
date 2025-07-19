@@ -1,4 +1,6 @@
 
+"use client";
+
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
 import Leaderboard from "@/components/community/leaderboard";
@@ -6,6 +8,7 @@ import Quests from "@/components/community/quests";
 import AskMentor from "@/components/community/ask-mentor";
 import PrivacySettings from "@/components/community/privacy-settings";
 import EducationalVideo from "@/components/shared/educational-video";
+import { useState } from "react";
 
 const videos = [
     {
@@ -23,6 +26,9 @@ const videos = [
 ]
 
 export default function CommunityPage() {
+  const [showLeaderboard, setShowLeaderboard] = useState(true);
+  const [showQuests, setShowQuests] = useState(true);
+
   return (
     <div className="w-full bg-background font-body">
       <Header />
@@ -30,9 +36,14 @@ export default function CommunityPage() {
         <h1 className="text-2xl font-bold">Community</h1>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-                <Leaderboard />
-                <PrivacySettings />
-                <Quests />
+                <Leaderboard showUser={showLeaderboard} />
+                <PrivacySettings 
+                    showLeaderboard={showLeaderboard}
+                    setShowLeaderboard={setShowLeaderboard}
+                    showQuests={showQuests}
+                    setShowQuests={setShowQuests}
+                />
+                {showQuests && <Quests />}
             </div>
             <div className="space-y-6">
                 <AskMentor />
