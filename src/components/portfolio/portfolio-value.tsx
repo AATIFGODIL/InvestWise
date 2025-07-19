@@ -89,7 +89,7 @@ export default function PortfolioValue() {
             </div>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-80 -ml-4">
+          <ChartContainer config={chartConfig} className="h-80">
             <LineChart
               accessibilityLayer
               data={chartData[timeRange]}
