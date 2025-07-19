@@ -1,9 +1,10 @@
+import type { ReactNode } from "react";
 import { Laptop, Car, Plane, Check } from "lucide-react";
 
 export interface Goal {
     id: string;
     name: string;
-    icon: React.ReactNode;
+    icon: ReactNode;
     current: number;
     target: number;
     progress: number;
@@ -36,7 +37,7 @@ export const initialGoals: Goal[] = [
     },
 ];
 
-export const goalIcons: { [key: string]: React.ReactNode } = {
+export const goalIcons: { [key: string]: ReactNode } = {
     laptop: <Laptop className="h-8 w-8 text-primary"/>,
     car: <Car className="h-8 w-8 text-primary"/>,
     plane: <Plane className="h-8 w-8 text-primary"/>,

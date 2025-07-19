@@ -7,7 +7,7 @@ import BottomNav from "@/components/layout/bottom-nav";
 import CreateGoal from "@/components/goals/create-goal";
 import GoalList from "@/components/goals/goal-list";
 import EducationalVideo from "@/components/shared/educational-video";
-import { initialGoals, goalIcons } from "@/data/goals.tsx";
+import { initialGoals, goalIcons, type Goal } from "@/data/goals";
 import Chatbot from "@/components/chatbot/chatbot";
 
 const videos = [
@@ -24,15 +24,6 @@ const videos = [
         hint: "calendar time"
     }
 ]
-
-export interface Goal {
-    id: string;
-    name: string;
-    icon: React.ReactNode;
-    current: number;
-    target: number;
-    progress: number;
-}
 
 export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>(initialGoals);
