@@ -15,6 +15,7 @@ import InvestmentBundles from "@/components/dashboard/investment-bundles";
 import RiskManagement from "@/components/dashboard/risk-management";
 import CommunityTrends from "@/components/dashboard/community-trends";
 import EducationalVideo from '@/components/shared/educational-video';
+import AutoInvest from '@/components/dashboard/auto-invest';
 
 const beginnerVideos = [
     {
@@ -61,10 +62,14 @@ export default function DashboardPage() {
       <Header />
       <main className="p-4 space-y-4 pb-40">
         {showBeginnerContent && <CongratulationsBanner />}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="lg:col-span-2">
+        
+        <div className="lg:col-span-2">
             <PortfolioSummary />
-          </div>
+        </div>
+        
+        <AutoInvest />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <TopInvestmentBundle />
           <GoalProgress />
         </div>
