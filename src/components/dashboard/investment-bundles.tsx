@@ -1,3 +1,4 @@
+
 import Image from "next/image";
 import {
   Card,
@@ -16,41 +17,21 @@ import {
 } from "@/components/ui/carousel";
 import { Button } from "../ui/button";
 import { Info } from "lucide-react";
+import { type Bundle } from "@/data/bundles";
 
-const bundles = [
-  {
-    title: "Tech Starter Pack",
-    description: "Invest in leading tech companies with this diversified bundle. Ideal for growth-oriented beginners.",
-    image: "https://placehold.co/600x400.png",
-    hint: "tech computer",
-  },
-  {
-    title: "Green Energy Fund",
-    description: "Support a sustainable future by investing in renewable energy and clean technology companies.",
-    image: "https://placehold.co/600x400.png",
-    hint: "solar panels",
-  },
-  {
-    title: "Global Giants",
-    description: "A stable collection of well-established international corporations with a history of solid returns.",
-    image: "https://placehold.co/600x400.png",
-    hint: "city skyline",
-  },
-  {
-    title: "Healthcare Innovators",
-    description: "Focus on the future of health with companies in biotechnology and medical research.",
-    image: "https://placehold.co/600x400.png",
-    hint: "science laboratory",
-  },
-];
+interface InvestmentBundlesProps {
+  bundles: Bundle[];
+  title: string;
+  description: string;
+}
 
-export default function InvestmentBundles() {
+export default function InvestmentBundles({ bundles, title, description }: InvestmentBundlesProps) {
   return (
     <Card className="flex flex-col h-full">
       <CardHeader>
-        <CardTitle>Explore Investment Bundles</CardTitle>
+        <CardTitle>{title}</CardTitle>
         <CardDescription>
-          Recommended for you
+          {description}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-grow">
