@@ -79,7 +79,7 @@ export default function DashboardPage() {
              <div className="space-y-4 pt-4">
                 <h2 className="text-xl font-bold">New to Investing? Start Here!</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {beginnersVideos.map((video) => (
+                    {beginnerVideos.map((video) => (
                         <EducationalVideo key={video.title} {...video} />
                     ))}
                 </div>
