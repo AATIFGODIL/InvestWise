@@ -4,7 +4,25 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Repeat } from "lucide-react";
+import { PlusCircle, Repeat, DollarSign } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const autoInvestments = [
     {
@@ -48,10 +66,67 @@ export default function AutoInvest() {
                         </div>
                     </div>
                 ))}
-                 <Button className="w-full" variant="outline">
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Set Up New Auto-Invest
-                </Button>
+                 <Dialog>
+                    <DialogTrigger asChild>
+                        <Button className="w-full">
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Set Up New Auto-Invest
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                            <DialogTitle>Set Up New Auto-Invest</DialogTitle>
+                            <DialogDescription>
+                                Schedule a recurring investment to automate your growth.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="investment-name" className="text-right">
+                                    Investment
+                                </Label>
+                                <Input
+                                    id="investment-name"
+                                    defaultValue="S&P 500 ETF"
+                                    className="col-span-3"
+                                />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="amount" className="text-right">
+                                    Amount
+                                </Label>
+                                <div className="relative col-span-3">
+                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="amount"
+                                        type="number"
+                                        placeholder="50"
+                                        className="pl-9"
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="frequency" className="text-right">
+                                    Frequency
+                                </Label>
+                                <Select>
+                                    <SelectTrigger className="col-span-3">
+                                        <SelectValue placeholder="Select frequency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="daily">Daily</SelectItem>
+                                        <SelectItem value="weekly">Weekly</SelectItem>
+                                        <SelectItem value="bi-weekly">Bi-weekly</SelectItem>
+                                        <SelectItem value="monthly">Monthly</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button type="submit">Save Changes</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </CardContent>
         </Card>
     )
