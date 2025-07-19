@@ -17,6 +17,7 @@ import { CreditCard, Shield, Sun, Moon, Eye, LogOut, ChevronLeft, ShieldBan, Fil
 import Link from "next/link";
 import { LeaderboardVisibility } from "../community/page";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const VisaIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 38 24" fill="none">
@@ -38,19 +39,20 @@ export default function SettingsPage() {
   const [leaderboardVisibility, setLeaderboardVisibility] = useState<LeaderboardVisibility>("public");
   const [quests, setQuests] = useState(true);
   const [parentalControl, setParentalControl] = useState(false);
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState<string | null>(null);
 
   useEffect(() => {
-    // On mount, read the theme from the HTML tag
     const root = window.document.documentElement;
     const currentTheme = root.classList.contains("dark") ? "dark" : "light";
     setTheme(currentTheme);
   }, []);
 
   useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-    root.classList.add(theme);
+    if (theme) {
+        const root = window.document.documentElement;
+        root.classList.remove("light", "dark");
+        root.classList.add(theme);
+    }
   }, [theme]);
 
   return (
@@ -120,16 +122,23 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <RadioGroup value={theme} onValueChange={setTheme} className="space-y-2">
-                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                    <Label htmlFor="theme-light" className="flex items-center gap-2 cursor-pointer"><Sun className="h-4 w-4"/> Light Mode</Label>
-                    <RadioGroupItem value="light" id="theme-light" />
+            {!theme ? (
+                <div className="space-y-2">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
                 </div>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                    <Label htmlFor="theme-dark" className="flex items-center gap-2 cursor-pointer"><Moon className="h-4 w-4"/> Dark Mode</Label>
-                    <RadioGroupItem value="dark" id="theme-dark" />
-                </div>
-            </RadioGroup>
+            ) : (
+                <RadioGroup value={theme} onValueChange={setTheme} className="space-y-2">
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                        <Label htmlFor="theme-light" className="flex items-center gap-2 cursor-pointer"><Sun className="h-4 w-4"/> Light Mode</Label>
+                        <RadioGroupItem value="light" id="theme-light" />
+                    </div>
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                        <Label htmlFor="theme-dark" className="flex items-center gap-2 cursor-pointer"><Moon className="h-4 w-4"/> Dark Mode</Label>
+                        <RadioGroupItem value="dark" id="theme-dark" />
+                    </div>
+                </RadioGroup>
+            )}
           </CardContent>
         </Card>
 
@@ -211,3 +220,5 @@ export default function SettingsPage() {
     </div>
   );
 }
+
+    
