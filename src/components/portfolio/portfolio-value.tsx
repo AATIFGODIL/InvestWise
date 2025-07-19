@@ -63,7 +63,7 @@ export default function PortfolioValue() {
   const [timeRange, setTimeRange] = useState<TimeRange>('1M');
 
   return (
-    <Card className="dark:bg-background">
+    <Card>
         <CardHeader>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-baseline gap-2">
@@ -89,7 +89,7 @@ export default function PortfolioValue() {
             </div>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-60 -ml-4">
+          <ChartContainer config={chartConfig} className="h-80 -ml-4">
             <LineChart
               accessibilityLayer
               data={chartData[timeRange]}
