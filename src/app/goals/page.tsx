@@ -8,6 +8,7 @@ import CreateGoal from "@/components/goals/create-goal";
 import GoalList from "@/components/goals/goal-list";
 import EducationalVideo from "@/components/shared/educational-video";
 import { initialGoals, goalIcons } from "@/data/goals.tsx";
+import Chatbot from "@/components/chatbot/chatbot";
 
 const videos = [
     {
@@ -64,6 +65,7 @@ export default function GoalsPage() {
             </div>
         </div>
       </main>
+      <Chatbot />
       <BottomNav />
     </div>
   );

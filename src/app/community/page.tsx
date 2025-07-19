@@ -12,6 +12,7 @@ import { useState } from "react";
 import { useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CommunityTrends from "@/components/dashboard/community-trends";
+import Chatbot from "@/components/chatbot/chatbot";
 
 const videos = [
     {
@@ -77,6 +78,7 @@ export default function CommunityPage() {
             </div>
         </div>
       </main>
+      <Chatbot />
       <BottomNav />
     </div>
   );

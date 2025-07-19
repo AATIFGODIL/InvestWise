@@ -4,6 +4,7 @@ import BottomNav from "@/components/layout/bottom-nav";
 import PortfolioValue from "@/components/portfolio/portfolio-value";
 import HoldingsTable from "@/components/portfolio/holdings-table";
 import { Clock } from "lucide-react";
+import Chatbot from "@/components/chatbot/chatbot";
 
 export default function PortfolioPage() {
   return (
@@ -23,6 +24,7 @@ export default function PortfolioPage() {
           <HoldingsTable />
         </div>
       </main>
+      <Chatbot />
       <BottomNav />
     </div>
   );
