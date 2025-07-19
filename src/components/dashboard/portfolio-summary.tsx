@@ -26,7 +26,7 @@ import { portfolioSummary, chartData } from "@/data/portfolio";
 type TimeRange = '1W' | '1M' | '6M' | '1Y';
 
 export default function PortfolioSummary() {
-  const [timeRange, setTimeRange] = useState<TimeRange>('1M');
+  const [timeRange, setTimeRange] = useState<TimeRange>('1W');
 
   const isTodaysChangePositive = portfolioSummary.todaysChange >= 0;
   const todaysChangePercent = portfolioSummary.totalValue !== 0 ? (portfolioSummary.todaysChange / (portfolioSummary.totalValue - portfolioSummary.todaysChange)) * 100 : 0;
