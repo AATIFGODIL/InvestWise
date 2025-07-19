@@ -84,10 +84,10 @@ const questions = [
     text: "What amount are you comfortable investing today?",
     options: [
         { text: "I’m not ready to invest yet", score: 1 },
-        { text: "Less than ₹5,000", score: 2 },
-        { text: "₹5,000 – ₹25,000", score: 3 },
-        { text: "₹25,000 – ₹1,00,000", score: 4 },
-        { text: "Over ₹1,00,000", score: 5 },
+        { text: "Less than $100", score: 2 },
+        { text: "$100 – $500", score: 3 },
+        { text: "$500 – $2,000", score: 4 },
+        { text: "Over $2,000", score: 5 },
     ],
   },
   {
