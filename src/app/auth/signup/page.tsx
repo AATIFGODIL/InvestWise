@@ -16,8 +16,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileUp } from "lucide-react";
 import Link from "next/link";
-import { auth } from "@/lib/firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
 const GoogleIcon = () => (
@@ -39,44 +37,15 @@ const AppleIcon = () => (
 export default function SignUpPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignUp = async () => {
-    if (!email || !password || !username) {
-      toast({
-        variant: "destructive",
-        title: "Missing Information",
-        description: "Please fill out all fields.",
-      });
-      return;
-    }
-    setIsLoading(true);
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-      // We can store the username in Firestore later
-      toast({
+  const handleSignUp = () => {
+    // This is a prototype, so we just navigate.
+    // In a real app, you'd handle form validation and API calls here.
+    toast({
         title: "Success!",
-        description: "Your account has been created.",
+        description: "Your account has been created (prototype).",
       });
-      router.push("/onboarding/quiz");
-    } catch (error: any) {
-      let errorMessage = "An unexpected error occurred.";
-      if (error.code === "auth/email-already-in-use") {
-        errorMessage = "This email address is already in use.";
-      } else if (error.code === "auth/weak-password") {
-        errorMessage = "The password is too weak. Please use at least 6 characters.";
-      }
-      toast({
-        variant: "destructive",
-        title: "Sign-up failed",
-        description: errorMessage,
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    router.push("/onboarding/quiz");
   };
 
   return (
@@ -111,15 +80,15 @@ export default function SignUpPage() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="username">Username</Label>
-            <Input id="username" type="text" placeholder="JohnDoe" required value={username} onChange={(e) => setUsername(e.target.value)} />
+            <Input id="username" type="text" placeholder="JohnDoe" required />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input id="email" type="email" placeholder="m@example.com" required />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+            <Input id="password" type="password" required />
           </div>
            <div className="grid gap-2">
               <Label htmlFor="id-proof">ID Verification</Label>
@@ -141,8 +110,8 @@ export default function SignUpPage() {
               </Link>
               .
           </div>
-          <Button onClick={handleSignUp} disabled={isLoading} className="w-full">
-            {isLoading ? 'Creating account...' : 'Create account'}
+          <Button onClick={handleSignUp} className="w-full">
+            Create account
           </Button>
         </CardContent>
         <CardFooter className="text-center text-sm">
@@ -155,5 +124,3 @@ export default function SignUpPage() {
     </div>
   );
 }
-
-    
