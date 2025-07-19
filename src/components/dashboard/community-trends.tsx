@@ -20,8 +20,11 @@ import { TrendingUp } from "lucide-react";
 const trends = [
   { name: "S&P 500 ETF", category: "ETF", popularity: 92 },
   { name: "Tech Bundle", category: "Bundle", popularity: 85 },
+  { name: "NVIDIA Corp.", category: "Stock", popularity: 82 },
   { name: "Apple Inc.", category: "Stock", popularity: 78 },
+  { name: "Microsoft Corp.", category: "Stock", popularity: 75 },
   { name: "Green Energy", category: "Bundle", popularity: 65 },
+  { name: "Amazon.com, Inc.", category: "Stock", popularity: 62 },
 ];
 
 export default function CommunityTrends() {
