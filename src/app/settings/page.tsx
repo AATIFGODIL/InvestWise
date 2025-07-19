@@ -105,7 +105,7 @@ export default function SettingsPage() {
                                 Upload Parent's Government ID
                             </div>
                         </Button>
-                        <Input id="parent-id" type="file" className="hidden" />
+                        <Input id="parent-id" type="file" className="hidden" accept="application/pdf, image/*" />
                      </div>
                      <Button className="w-full">Save Parental Settings</Button>
                  </div>
