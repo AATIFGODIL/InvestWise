@@ -12,11 +12,11 @@ import PopularAmong from "@/components/dashboard/popular-among";
 import BottomNav from "@/components/layout/bottom-nav";
 import Chatbot from "@/components/chatbot/chatbot";
 import InvestmentBundles from "@/components/dashboard/investment-bundles";
-import RiskAssessor from "@/components/dashboard/risk-assessor";
+import RiskManagement from "@/components/dashboard/risk-management";
 import CommunityTrends from "@/components/dashboard/community-trends";
 import EducationalVideo from '@/components/shared/educational-video';
 
-const videos = [
+const beginnerVideos = [
     {
         title: "Understanding Your Dashboard",
         description: "A quick tour of the key features on your homescreen.",
@@ -28,6 +28,21 @@ const videos = [
         description: "Learn why not putting all your eggs in one basket is a core investment principle.",
         image: "https://placehold.co/600x400.png",
         hint: "different assets"
+    }
+];
+
+const riskManagementVideos = [
+    {
+        title: "What is Market Risk?",
+        description: "Learn about the risks inherent to the entire market and how to think about them.",
+        image: "https://placehold.co/600x400.png",
+        hint: "stock chart down"
+    },
+    {
+        title: "The Power of Diversification",
+        description: "A deep dive into how spreading your investments can reduce risk.",
+        image: "https://placehold.co/600x400.png",
+        hint: "assets variety"
     }
 ]
 
@@ -64,14 +79,14 @@ export default function DashboardPage() {
              <div className="space-y-4 pt-4">
                 <h2 className="text-xl font-bold">New to Investing? Start Here!</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {videos.map((video) => (
+                    {beginnersVideos.map((video) => (
                         <EducationalVideo key={video.title} {...video} />
                     ))}
                 </div>
             </div>
         )}
         <InvestmentBundles />
-        <RiskAssessor />
+        <RiskManagement videos={riskManagementVideos} />
       </main>
       <Chatbot />
       <BottomNav />
