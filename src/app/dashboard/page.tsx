@@ -63,9 +63,7 @@ export default function DashboardPage() {
       <main className="p-4 space-y-4 pb-40">
         {showBeginnerContent && <CongratulationsBanner />}
         
-        <div className="lg:col-span-2">
-            <PortfolioSummary />
-        </div>
+        <PortfolioSummary />
         
         <AutoInvest />
 
@@ -76,17 +74,14 @@ export default function DashboardPage() {
             description="Recommended for you"
             showDisclaimer={true}
           />
-          <GoalProgress />
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2">
-              <CommunityTrends />
-            </div>
-            <div className="space-y-4">
+           <div className="space-y-4">
+              <GoalProgress />
               <CommunityLeaderboard />
             </div>
         </div>
+        
+        <CommunityTrends />
+       
         {showBeginnerContent && (
              <div className="space-y-4 pt-4">
                 <h2 className="text-xl font-bold">New to Investing? Start Here!</h2>
