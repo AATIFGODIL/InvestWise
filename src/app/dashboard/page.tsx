@@ -8,7 +8,6 @@ import PortfolioSummary from "@/components/dashboard/portfolio-summary";
 import TopInvestmentBundle from "@/components/dashboard/top-investment-bundle";
 import GoalProgress from "@/components/dashboard/goal-progress";
 import CommunityLeaderboard from "@/components/dashboard/community-leaderboard";
-import PopularAmong from "@/components/dashboard/popular-among";
 import BottomNav from "@/components/layout/bottom-nav";
 import Chatbot from "@/components/chatbot/chatbot";
 import InvestmentBundles from "@/components/dashboard/investment-bundles";
@@ -80,7 +79,6 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-4">
               <CommunityLeaderboard />
-              <PopularAmong />
             </div>
         </div>
         {showBeginnerContent && (

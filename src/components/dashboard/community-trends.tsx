@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -25,36 +26,38 @@ const trends = [
 
 export default function CommunityTrends() {
   return (
-    <Card>
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5" />
-          Community Trends
-        </CardTitle>
-        <CardDescription>
-          Popular investments among investors aged 18-30.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Asset</TableHead>
-              <TableHead className="text-right">Category</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {trends.map((trend) => (
-              <TableRow key={trend.name}>
-                <TableCell className="font-medium">{trend.name}</TableCell>
-                <TableCell className="text-right">
-                  <Badge variant="outline">{trend.category}</Badge>
-                </TableCell>
+    <Link href="/community?tab=trends" className="block hover:ring-2 hover:ring-primary rounded-lg transition-all h-full">
+      <Card className="h-full">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5" />
+            Community Trends
+          </CardTitle>
+          <CardDescription>
+            Popular investments among investors aged 18-30. Click to see more.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Asset</TableHead>
+                <TableHead className="text-right">Category</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+            </TableHeader>
+            <TableBody>
+              {trends.map((trend) => (
+                <TableRow key={trend.name}>
+                  <TableCell className="font-medium">{trend.name}</TableCell>
+                  <TableCell className="text-right">
+                    <Badge variant="outline">{trend.category}</Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
