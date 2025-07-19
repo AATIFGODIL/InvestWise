@@ -60,18 +60,18 @@ const finalValue = portfolioSummary.totalValue;
 export const chartData = {
     '1W': [
         { date: "July 14, 2025", value: finalValue - 250 },
-        { date: "July 15, 2025", value: finalValue - 250 },
-        { date: "July 16, 2025", value: finalValue - 200 },
-        { date: "July 17, 2025", value: finalValue - 300 },
-        { date: "July 18, 2025", value: finalValue - 150 },
-        { date: "July 19, 2025", value: finalValue - 100 },
-        { date: "July 20, 2025", value: finalValue },
+        { date: "July 15, 2025", value: finalValue - 200 },
+        { date: "July 16, 2025", value: finalValue - 150 },
+        { date: "July 17, 2025", value: finalValue - 100 },
+        { date: "July 18, 2025", value: finalValue - 50 },
+        { date: "July 19, 2025", value: finalValue - 50 }, // Saturday, no change
+        { date: "July 20, 2025", value: finalValue }, // Sunday, opens with new value on Monday
     ],
     '1M': [
         { date: "June 21, 2025", value: finalValue - 590 },
         { date: "June 28, 2025", value: finalValue - 490 },
-        { date: "July 05, 2025", value: finalValue - 540 },
-        { date: "July 12, 2025", value: finalValue - 390 },
+        { date: "July 05, 2025", value: finalValue - 540 }, // Saturday
+        { date: "July 12, 2025", value: finalValue - 390 }, // Saturday
         { date: "July 20, 2025", value: finalValue },
     ],
     '6M': [
