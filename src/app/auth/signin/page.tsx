@@ -39,6 +39,13 @@ export default function SignInPage() {
               Forgot your password?
             </Link>
           </div>
+          <div className="text-xs text-muted-foreground">
+              By signing in, you agree to our{" "}
+              <Link href="#" className="underline">
+                Terms and Conditions
+              </Link>
+              .
+          </div>
           <Button asChild className="w-full">
             <Link href="/dashboard">Sign in</Link>
           </Button>
