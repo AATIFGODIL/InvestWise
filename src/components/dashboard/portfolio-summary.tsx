@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -18,7 +19,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { portfolioSummary, chartData } from "@/data/portfolio";
 
@@ -47,7 +48,14 @@ export default function PortfolioSummary() {
   return (
     <Card>
         <CardHeader>
-            <CardTitle>Portfolio</CardTitle>
+            <div className="flex justify-between items-start">
+                <CardTitle>Portfolio</CardTitle>
+                <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                    <Link href="/portfolio">
+                        <Info className="h-5 w-5" />
+                    </Link>
+                </Button>
+            </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-baseline gap-2">
                     <p className="text-3xl font-bold">${portfolioSummary.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
@@ -105,4 +113,3 @@ export default function PortfolioSummary() {
     </Card>
   );
 }
-
