@@ -3,8 +3,12 @@
 
 import Link from "next/link";
 import {
+  Bell,
   LogOut,
+  PlayCircle,
   Settings,
+  TrendingUp,
+  Trophy,
   User,
 } from "lucide-react";
 
@@ -33,7 +37,46 @@ export default function Header() {
       <div className="flex items-center gap-2 font-semibold">
         <h1 className="text-xl font-bold">InvestWise</h1>
       </div>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full">
+                <Bell className="h-6 w-6" />
+                <span className="absolute top-2 right-2 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                </span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-80" align="end">
+             <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+             <DropdownMenuSeparator />
+             <DropdownMenuItem className="flex items-start gap-3 p-3">
+                <TrendingUp className="h-5 w-5 mt-1 text-green-500" />
+                <div>
+                    <p className="font-semibold">Holdings Update</p>
+                    <p className="text-xs text-muted-foreground">Your investment in NKE is up 2.13% today.</p>
+                </div>
+             </DropdownMenuItem>
+             <DropdownMenuSeparator />
+              <DropdownMenuItem className="flex items-start gap-3 p-3">
+                <PlayCircle className="h-5 w-5 mt-1 text-primary" />
+                <div>
+                    <p className="font-semibold">New Content</p>
+                    <p className="text-xs text-muted-foreground">Check out this new video on risk management strategies.</p>
+                </div>
+             </DropdownMenuItem>
+             <DropdownMenuSeparator />
+              <DropdownMenuItem className="flex items-start gap-3 p-3">
+                <Trophy className="h-5 w-5 mt-1 text-yellow-500" />
+                <div>
+                    <p className="font-semibold">Leaderboard Change</p>
+                    <p className="text-xs text-muted-foreground">You've been overtaken by StockSurfer. Click to see the leaderboard.</p>
+                </div>
+             </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
