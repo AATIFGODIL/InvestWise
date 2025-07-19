@@ -22,6 +22,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 
 const chartData = [
@@ -58,17 +59,19 @@ export default function PortfolioSummary() {
               <CardTitle>Portfolio</CardTitle>
               <ShadTooltip>
                   <TooltipTrigger asChild>
+                    <Link href="/portfolio">
                       <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                    </Link>
                   </TooltipTrigger>
                   <TooltipContent>
-                      <p>Your total investment value.</p>
+                      <p>Click to view your detailed portfolio.</p>
                   </TooltipContent>
               </ShadTooltip>
           </div>
         </CardHeader>
         <CardContent className="relative">
           <div className="text-3xl font-bold tracking-tighter">R12,750</div>
-          <div className="text-sm text-green-500 font-semibold">+200 Today</div>
+          <div className="text-sm font-semibold text-green-500">+200 Today</div>
           <ChartContainer config={chartConfig} className="h-40 mt-4 -ml-4 aspect-auto">
             <LineChart
               accessibilityLayer

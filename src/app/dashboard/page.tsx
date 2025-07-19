@@ -8,6 +8,9 @@ import CommunityLeaderboard from "@/components/dashboard/community-leaderboard";
 import PopularAmong from "@/components/dashboard/popular-among";
 import BottomNav from "@/components/layout/bottom-nav";
 import Chatbot from "@/components/chatbot/chatbot";
+import InvestmentBundles from "@/components/dashboard/investment-bundles";
+import RiskAssessor from "@/components/dashboard/risk-assessor";
+import CommunityTrends from "@/components/dashboard/community-trends";
 
 export default function DashboardPage() {
   return (
@@ -20,10 +23,17 @@ export default function DashboardPage() {
           <TopInvestmentBundle />
         </div>
         <GoalProgress />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <CommunityLeaderboard />
-            <PopularAmong />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2">
+              <CommunityTrends />
+            </div>
+            <div className="space-y-4">
+              <CommunityLeaderboard />
+              <PopularAmong />
+            </div>
         </div>
+        <InvestmentBundles />
+        <RiskAssessor />
       </main>
       <Chatbot />
       <BottomNav />

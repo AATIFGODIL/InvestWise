@@ -63,7 +63,7 @@ export default function HoldingsTable() {
             <TabsTrigger value="shorts" disabled>Shorts</TabsTrigger>
           </TabsList>
           <TabsContent value="stocks">
-            <div className="grid grid-cols-3 gap-4 p-4 border-b dark:border-border/50">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border-b">
                 <div>
                     <p className="text-xs text-muted-foreground">TOTAL VALUE</p>
                     <p className="text-lg font-bold">$7,303.50</p>
@@ -99,19 +99,20 @@ export default function HoldingsTable() {
                         const purchaseValue = holding.purchasePrice * holding.qty;
                         const gainLossPercent = purchaseValue !== 0 ? (gainLoss / purchaseValue) * 100 : 0;
                         const isGain = gainLoss >= 0;
+                        const isChangePositive = holding.todaysChange >= 0;
 
                         return (
                             <TableRow key={holding.symbol}>
                                 <TableCell className="font-bold">{holding.symbol}</TableCell>
                                 <TableCell className="hidden md:table-cell">{holding.description}</TableCell>
                                 <TableCell className="text-right font-medium">${holding.currentPrice.toFixed(2)}</TableCell>
-                                <TableCell className={cn("text-right hidden md:table-cell", holding.todaysChange >= 0 ? "text-green-500" : "text-red-500")}>
+                                <TableCell className={cn("text-right hidden md:table-cell", { "text-green-500": isChangePositive, "text-red-500": !isChangePositive })}>
                                     ${holding.todaysChange.toFixed(2)} ({holding.todaysChangePercent.toFixed(2)}%)
                                 </TableCell>
                                 <TableCell className="text-right hidden lg:table-cell">${holding.purchasePrice.toFixed(2)}</TableCell>
                                 <TableCell className="text-right hidden lg:table-cell">{holding.qty}</TableCell>
                                 <TableCell className="text-right hidden md:table-cell font-medium">${totalValue.toFixed(2)}</TableCell>
-                                <TableCell className={cn("text-right", isGain ? "text-green-500" : "text-red-500")}>
+                                <TableCell className={cn("text-right", { "text-green-500": isGain, "text-red-500": !isGain })}>
                                     ${gainLoss.toFixed(2)}
                                     <span className="text-xs"> ({gainLossPercent.toFixed(2)}%)</span>
                                 </TableCell>
@@ -120,7 +121,7 @@ export default function HoldingsTable() {
                                         <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 h-auto p-1">
                                             <PlusCircle className="h-4 w-4 mr-1"/> Buy
                                         </Button>
-                                        <Button variant="ghost" size="sm" className="text-red-500 hover:bg-red-500/10 h-auto p-1">
+                                        <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 h-auto p-1">
                                             <MinusCircle className="h-4 w-4 mr-1"/> Sell
                                         </Button>
                                     </div>

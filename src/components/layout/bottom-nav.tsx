@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Home, Briefcase, BarChart, Users } from "lucide-react";
+import { Home, Briefcase, BarChart, Users, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 const navItems = [
   { href: "/dashboard", label: "Explore", icon: Home },
   { href: "/portfolio", label: "Portfolio", icon: Briefcase },
+  { href: "/trade", label: "Trade", icon: Repeat },
   { href: "/goals", label: "Goals", icon: BarChart },
   { href: "/community", label: "Community", icon: Users },
 ];
