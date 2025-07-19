@@ -83,6 +83,13 @@ export default function SignUpPage() {
                <Input id="id-proof" type="file" className="hidden" />
               <p className="text-xs text-muted-foreground">For security and compliance, please upload a government-issued ID.</p>
           </div>
+           <div className="text-xs text-muted-foreground">
+              By creating an account, you agree to our{" "}
+              <Link href="#" className="underline">
+                Terms and Conditions
+              </Link>
+              .
+          </div>
           <Button asChild className="w-full">
             <Link href="/onboarding/quiz">Create account</Link>
           </Button>
