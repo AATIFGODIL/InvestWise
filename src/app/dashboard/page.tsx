@@ -67,22 +67,20 @@ export default function DashboardPage() {
         
         <AutoInvest />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <InvestmentBundles 
-            bundles={bundlesToShow}
-            title="Explore Investment Bundles"
-            description="Recommended for you"
-            showDisclaimer={true}
-          />
-           <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <GoalProgress />
-                <CommunityLeaderboard />
-              </div>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <GoalProgress />
+          <CommunityLeaderboard />
         </div>
         
-        <CommunityTrends />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <InvestmentBundles 
+                bundles={bundlesToShow}
+                title="Explore Investment Bundles"
+                description="Recommended for you"
+                showDisclaimer={true}
+            />
+            <CommunityTrends />
+        </div>
        
         {showBeginnerContent && (
              <div className="space-y-4 pt-4">
