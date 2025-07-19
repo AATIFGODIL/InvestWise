@@ -25,8 +25,10 @@ const videos = [
     }
 ]
 
+export type LeaderboardVisibility = "public" | "anonymous" | "hidden";
+
 export default function CommunityPage() {
-  const [showLeaderboard, setShowLeaderboard] = useState(true);
+  const [leaderboardVisibility, setLeaderboardVisibility] = useState<LeaderboardVisibility>("public");
   const [showQuests, setShowQuests] = useState(true);
 
   return (
@@ -36,10 +38,10 @@ export default function CommunityPage() {
         <h1 className="text-2xl font-bold">Community</h1>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-                <Leaderboard showUser={showLeaderboard} />
+                <Leaderboard visibility={leaderboardVisibility} />
                 <PrivacySettings 
-                    showLeaderboard={showLeaderboard}
-                    setShowLeaderboard={setShowLeaderboard}
+                    leaderboardVisibility={leaderboardVisibility}
+                    setLeaderboardVisibility={setLeaderboardVisibility}
                     showQuests={showQuests}
                     setShowQuests={setShowQuests}
                 />

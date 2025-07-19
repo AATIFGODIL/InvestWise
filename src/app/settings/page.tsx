@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CreditCard, Shield, Sun, Moon, Eye, LogOut, ChevronLeft, ShieldBan } from "lucide-react";
 import Link from "next/link";
+import { LeaderboardVisibility } from "../community/page";
 
 const VisaIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 38 24" fill="none">
@@ -33,7 +34,7 @@ const MasterCardIcon = () => (
 );
 
 export default function SettingsPage() {
-  const [leaderboard, setLeaderboard] = useState(true);
+  const [leaderboardVisibility, setLeaderboardVisibility] = useState<LeaderboardVisibility>("public");
   const [quests, setQuests] = useState(true);
   const [parentalControl, setParentalControl] = useState(false);
   const [theme, setTheme] = useState("light");
@@ -92,12 +93,12 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <RadioGroup value={theme} onValueChange={setTheme}>
+            <RadioGroup value={theme} onValueChange={setTheme} className="space-y-2">
                 <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                     <Label htmlFor="theme-light" className="flex items-center gap-2 cursor-pointer"><Sun className="h-4 w-4"/> Light Mode</Label>
                     <RadioGroupItem value="light" id="theme-light" />
                 </div>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50 mt-2">
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                     <Label htmlFor="theme-dark" className="flex items-center gap-2 cursor-pointer"><Moon className="h-4 w-4"/> Dark Mode</Label>
                     <RadioGroupItem value="dark" id="theme-dark" />
                 </div>
@@ -113,17 +114,25 @@ export default function SettingsPage() {
               Control how your information is shared within the community.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-              <Label htmlFor="leaderboard-switch" className="font-medium flex items-center gap-2">
-                <ShieldBan className="h-4 w-4" />
-                Appear on Leaderboard
+          <CardContent className="space-y-4">
+             <div className="p-4 rounded-lg bg-muted/50 space-y-3">
+              <Label className="font-medium flex items-center gap-2">
+                Leaderboard Visibility
               </Label>
-              <Switch 
-                id="leaderboard-switch" 
-                checked={leaderboard} 
-                onCheckedChange={setLeaderboard}
-              />
+              <RadioGroup value={leaderboardVisibility} onValueChange={(value) => setLeaderboardVisibility(value as LeaderboardVisibility)}>
+                  <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="public" id="vis-public" />
+                      <Label htmlFor="vis-public">Public (Show rank and username)</Label>
+                  </div>
+                   <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="anonymous" id="vis-anon" />
+                      <Label htmlFor="vis-anon">Anonymous (Show rank, hide username)</Label>
+                  </div>
+                   <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="hidden" id="vis-hidden" />
+                      <Label htmlFor="vis-hidden">Hidden (Don't show on leaderboard)</Label>
+                  </div>
+              </RadioGroup>
             </div>
              <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
               <Label htmlFor="quests-switch" className="font-medium flex items-center gap-2">

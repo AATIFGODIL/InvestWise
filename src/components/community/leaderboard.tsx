@@ -17,8 +17,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Crown, ArrowUp, ArrowDown } from "lucide-react";
 import { Badge } from "../ui/badge";
+import { type LeaderboardVisibility } from "@/app/community/page";
 
-const leaderboardData = [
+const rawLeaderboardData = [
   { rank: 1, name: "CryptoKing", avatar: "https://i.pravatar.cc/150?u=a1", change: 0, gain: "+$5,210.55", isUp: true, isYou: false },
   { rank: 2, name: "StockSurfer", avatar: "https://i.pravatar.cc/150?u=a2", change: 1, gain: "+$4,890.12", isUp: true, isYou: false },
   { rank: 3, name: "You", avatar: "https://i.pravatar.cc/150?u=a042581f4e29026704d", change: -1, gain: "+$4,501.78", isUp: false, isYou: true },
@@ -27,10 +28,14 @@ const leaderboardData = [
 ];
 
 interface LeaderboardProps {
-    showUser: boolean;
+    visibility: LeaderboardVisibility;
 }
 
-export default function Leaderboard({ showUser }: LeaderboardProps) {
+export default function Leaderboard({ visibility }: LeaderboardProps) {
+    const leaderboardData = visibility === 'hidden'
+    ? rawLeaderboardData.filter(investor => !investor.isYou)
+    : rawLeaderboardData;
+    
   return (
     <Card>
       <CardHeader>
@@ -50,7 +55,8 @@ export default function Leaderboard({ showUser }: LeaderboardProps) {
           </TableHeader>
           <TableBody>
             {leaderboardData.map((investor) => {
-              const displayName = investor.isYou && !showUser ? "Anonymous" : investor.name;
+              const displayName = (investor.isYou && visibility === 'anonymous') ? "Anonymous" : investor.name;
+              
               return (
                 <TableRow key={investor.rank} className={investor.isYou ? "bg-accent" : ""}>
                     <TableCell className="font-bold text-lg">
@@ -63,8 +69,8 @@ export default function Leaderboard({ showUser }: LeaderboardProps) {
                     <TableCell>
                     <div className="flex items-center gap-3">
                         <Avatar>
-                        <AvatarImage src={investor.avatar} alt={investor.name} />
-                        <AvatarFallback>{investor.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage src={investor.avatar} alt={displayName} />
+                        <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <span className="font-medium">{displayName}</span>
                         {investor.isYou && <Badge>You</Badge>}
