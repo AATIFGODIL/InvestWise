@@ -82,7 +82,7 @@ export default function HoldingsTable() {
                         <TableHead className="text-right hidden lg:table-cell">QTY</TableHead>
                         <TableHead className="text-right hidden md:table-cell">Total Value</TableHead>
                         <TableHead className="text-right">Total Gain/Loss</TableHead>
-                        <TableHead className="text-right">Annual Rate %</TableHead>
+                        <TableHead className="text-right">Annual Return %</TableHead>
                         <TableHead className="text-center">Trade Actions</TableHead>
                     </TableRow>
                 </TableHeader>
