@@ -53,16 +53,16 @@ export default function InvestmentBundles({ bundles, title, description, showDis
                         alt={bundle.title}
                         width={600}
                         height={400}
-                        className="rounded-t-lg aspect-video object-cover"
+                        className="rounded-t-lg aspect-[16/9] object-cover"
                         data-ai-hint={bundle.hint}
                       />
                     </CardHeader>
-                    <CardContent className="flex-1 p-6">
-                      <h3 className="text-lg font-semibold">{bundle.title}</h3>
-                      <p className="text-sm text-muted-foreground mt-2">{bundle.description}</p>
+                    <CardContent className="flex-1 p-4">
+                      <h3 className="text-md font-semibold">{bundle.title}</h3>
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{bundle.description}</p>
                     </CardContent>
-                    <CardFooter>
-                      <Button variant="outline" className="w-full">
+                    <CardFooter className="p-4 pt-0">
+                      <Button variant="outline" size="sm" className="w-full">
                         Learn More
                       </Button>
                     </CardFooter>
