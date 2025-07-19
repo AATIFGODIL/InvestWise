@@ -23,16 +23,8 @@ import {
 } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
+import { chartData, portfolioSummary } from "@/data/portfolio";
 
-
-const chartData = [
-  { month: "January", value: 10000 },
-  { month: "February", value: 10500 },
-  { month: "March", value: 11500 },
-  { month: "April", value: 11250 },
-  { month: "May", value: 12200 },
-  { month: "June", value: 12750 },
-];
 
 const chartConfig = {
   value: {
@@ -50,6 +42,8 @@ export default function PortfolioSummary() {
       description: "This feature is currently under development.",
     });
   };
+  
+  const isTodayChangePositive = portfolioSummary.todaysChange >= 0;
 
   return (
     <TooltipProvider>
@@ -70,12 +64,14 @@ export default function PortfolioSummary() {
           </div>
         </CardHeader>
         <CardContent className="relative">
-          <div className="text-3xl font-bold tracking-tighter">R12,750</div>
-          <div className="text-sm font-semibold text-green-500">+200 Today</div>
+          <div className="text-3xl font-bold tracking-tighter">${portfolioSummary.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+          <div className={`text-sm font-semibold ${isTodayChangePositive ? 'text-green-500' : 'text-red-500'}`}>
+            {isTodayChangePositive ? '+' : ''}${portfolioSummary.todaysChange.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Today
+          </div>
           <ChartContainer config={chartConfig} className="h-40 mt-4 -ml-4 aspect-auto">
             <LineChart
               accessibilityLayer
-              data={chartData}
+              data={chartData['1M']}
               margin={{
                 top: 5,
                 right: 10,
@@ -102,7 +98,7 @@ export default function PortfolioSummary() {
                 content={
                   <ChartTooltipContent
                     formatter={(value) =>
-                      `R${Number(value).toLocaleString()}`
+                      `$${Number(value).toLocaleString()}`
                     }
                     hideLabel
                     hideIndicator

@@ -17,41 +17,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowUp, ArrowDown, PlusCircle, MinusCircle, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-const holdings = [
-  {
-    symbol: "NKE",
-    description: "Nike, Inc. - Ordinary Shares - Class B",
-    currentPrice: 73.04,
-    todaysChange: 1.52,
-    todaysChangePercent: 2.13,
-    purchasePrice: 107.29,
-    qty: 100,
-  },
-  {
-    symbol: "AAPL",
-    description: "Apple Inc. - Common Stock",
-    currentPrice: 214.29,
-    todaysChange: -2.51,
-    todaysChangePercent: -1.16,
-    purchasePrice: 190.50,
-    qty: 50,
-  },
-  {
-    symbol: "VOO",
-    description: "Vanguard S&P 500 ETF",
-    currentPrice: 502.88,
-    todaysChange: 3.12,
-    todaysChangePercent: 0.62,
-    purchasePrice: 480.20,
-    qty: 25,
-  },
-];
+import { holdings, portfolioSummary } from "@/data/portfolio";
 
 export default function HoldingsTable() {
 
   const calculateTotalValue = (qty: number, price: number) => qty * price;
   const calculateGainLoss = (qty: number, currentPrice: number, purchasePrice: number) => (currentPrice - purchasePrice) * qty;
+
+  const isTodaysChangePositive = portfolioSummary.todaysChange >= 0;
+  const todaysChangePercent = portfolioSummary.totalValue !== 0 ? (portfolioSummary.todaysChange / (portfolioSummary.totalValue - portfolioSummary.todaysChange)) * 100 : 0;
+
+  const isTotalGainLossPositive = portfolioSummary.totalGainLoss >= 0;
+  const totalPurchaseValue = holdings.reduce((acc, h) => acc + (h.purchasePrice * h.qty), 0);
+  const totalGainLossPercent = totalPurchaseValue !== 0 ? (portfolioSummary.totalGainLoss / totalPurchaseValue) * 100 : 0;
+
 
   return (
     <Card>
@@ -66,15 +45,21 @@ export default function HoldingsTable() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 border-b">
                 <div>
                     <p className="text-xs text-muted-foreground">TOTAL VALUE</p>
-                    <p className="text-lg font-bold">$7,303.50</p>
+                    <p className="text-lg font-bold">${portfolioSummary.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                 </div>
                 <div>
                     <p className="text-xs text-muted-foreground">TODAY'S CHANGE</p>
-                    <p className="text-lg font-bold flex items-center gap-1 text-green-500">$93.50 (1.30%) <ArrowUp className="h-4 w-4"/></p>
+                    <p className={cn("text-lg font-bold flex items-center gap-1", isTodaysChangePositive ? 'text-green-500' : 'text-red-500')}>
+                        ${portfolioSummary.todaysChange.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({todaysChangePercent.toFixed(2)}%) 
+                        {isTodaysChangePositive ? <ArrowUp className="h-4 w-4"/> : <ArrowDown className="h-4 w-4"/>}
+                    </p>
                 </div>
                 <div>
                     <p className="text-xs text-muted-foreground">TOTAL GAIN/LOSS</p>
-                    <p className="text-lg font-bold flex items-center gap-1 text-red-500">-$3,425.50 (-31.93%) <ArrowDown className="h-4 w-4"/></p>
+                     <p className={cn("text-lg font-bold flex items-center gap-1", isTotalGainLossPositive ? 'text-green-500' : 'text-red-500')}>
+                        ${portfolioSummary.totalGainLoss.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({totalGainLossPercent.toFixed(2)}%)
+                        {isTotalGainLossPositive ? <ArrowUp className="h-4 w-4"/> : <ArrowDown className="h-4 w-4"/>}
+                    </p>
                 </div>
             </div>
             <div className="overflow-x-auto">
