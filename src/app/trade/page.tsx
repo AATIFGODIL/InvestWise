@@ -4,6 +4,7 @@ import BottomNav from "@/components/layout/bottom-nav";
 import EducationalVideo from "@/components/shared/educational-video";
 import StockFilter from "@/components/trade/stock-filter";
 import StockList from "@/components/trade/stock-list";
+import TradeForm from "@/components/trade/trade-form";
 
 const videos = [
     {
@@ -29,6 +30,7 @@ export default function TradePage() {
         <h1 className="text-2xl font-bold">Trade</h1>
         <StockFilter />
         <StockList />
+        <TradeForm />
         <div className="space-y-4 pt-4">
             <h2 className="text-xl font-bold">Learn About Trading</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
