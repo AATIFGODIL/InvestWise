@@ -74,12 +74,14 @@ export default function SignUpPage() {
           </div>
            <div className="grid gap-2">
               <Label htmlFor="id-proof">ID Verification</Label>
-              <Button asChild variant="outline" className="w-full justify-start text-muted-foreground font-normal">
-                  <div>
-                      <FileUp className="h-4 w-4 mr-2" />
-                      Upload Government ID
-                  </div>
-              </Button>
+              <Label htmlFor="id-proof" className="cursor-pointer">
+                <Button asChild variant="outline" className="w-full justify-start text-muted-foreground font-normal pointer-events-none">
+                    <div>
+                        <FileUp className="h-4 w-4 mr-2" />
+                        Upload Government ID
+                    </div>
+                </Button>
+              </Label>
                <Input id="id-proof" type="file" className="hidden" accept="application/pdf, image/*" />
               <p className="text-xs text-muted-foreground">For security and compliance, please upload a government-issued ID.</p>
           </div>
