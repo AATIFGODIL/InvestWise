@@ -57,6 +57,14 @@ if (portfolioSummary.totalValue > 0) {
 // Adjusted to make the final value match the calculated totalValue
 const finalValue = portfolioSummary.totalValue;
 
+const today = new Date();
+const todayFormatted = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: '2025' });
+
+// Add a random fluctuation for today's value
+const randomFluctuation = (Math.random() - 0.5) * (finalValue * 0.02);
+const todayValue = finalValue + randomFluctuation;
+
+
 export const chartData = {
     '1W': [
         { date: "July 14, 2025", value: finalValue - 250 }, // Monday
@@ -65,7 +73,7 @@ export const chartData = {
         { date: "July 17, 2025", value: finalValue - 120 }, // Thursday
         { date: "July 18, 2025", value: finalValue - 50 },  // Friday
         { date: "July 19, 2025", value: finalValue - 50 },  // Saturday
-        { date: "July 20, 2025", value: finalValue - 50 },  // Sunday -> final value for the week
+        { date: todayFormatted, value: todayValue }, // Today
     ],
     '1M': [
         { date: "June 23, 2025", value: finalValue - 590 },
@@ -88,6 +96,7 @@ export const chartData = {
         { date: "July 16, 2025", value: finalValue - 210 },
         { date: "July 17, 2025", value: finalValue - 120 },
         { date: "July 18, 2025", value: finalValue - 50 },
+        { date: todayFormatted, value: todayValue }, // Today
     ],
     '6M': [
         { date: "January 20, 2025", value: finalValue - 1090 },
@@ -97,6 +106,7 @@ export const chartData = {
         { date: "May 20, 2025", value: finalValue - 490 },
         { date: "June 20, 2025", value: finalValue - 550 },
         { date: "July 18, 2025", value: finalValue - 50 }, 
+        { date: todayFormatted, value: todayValue }, // Today
     ],
     '1Y': [
         { date: "July 19, 2024", value: finalValue - 1590 }, 
@@ -104,5 +114,6 @@ export const chartData = {
         { date: "January 20, 2025", value: finalValue - 1090 },
         { date: "April 21, 2025", value: finalValue - 590 }, // Monday
         { date: "July 18, 2025", value: finalValue - 50 }, // Friday
+        { date: todayFormatted, value: todayValue }, // Today
     ]
 };
