@@ -4,33 +4,14 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Laptop, Car, Plane } from "lucide-react";
+import { Goal } from "@/app/goals/page";
 
-const goals = [
-    { 
-        name: "New Laptop", 
-        icon: <Laptop className="h-8 w-8 text-primary"/>,
-        current: 3200, 
-        target: 5000,
-        progress: 64 
-    },
-    { 
-        name: "First Car", 
-        icon: <Car className="h-8 w-8 text-primary"/>,
-        current: 8000, 
-        target: 20000,
-        progress: 40 
-    },
-    { 
-        name: "Trip to Japan", 
-        icon: <Plane className="h-8 w-8 text-primary"/>,
-        current: 1500, 
-        target: 12000,
-        progress: 12.5
-    },
-];
 
-export default function GoalList() {
+interface GoalListProps {
+    goals: Goal[];
+}
+
+export default function GoalList({ goals }: GoalListProps) {
   return (
     <div className="space-y-4">
         <h2 className="text-xl font-bold">Your Goals</h2>

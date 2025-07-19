@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,15 +15,40 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Goal } from "@/app/goals/page";
 
-export default function CreateGoal() {
+interface CreateGoalProps {
+  onAddGoal: (newGoal: Omit<Goal, 'icon' | 'progress' | 'current'>) => void;
+}
+
+export default function CreateGoal({ onAddGoal }: CreateGoalProps) {
   const { toast } = useToast();
+  const [goalName, setGoalName] = useState("");
+  const [goalAmount, setGoalAmount] = useState("");
 
   const handleSetGoal = () => {
+    if (!goalName || !goalAmount) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please provide both a name and target amount for your goal.",
+      });
+      return;
+    }
+
+    onAddGoal({
+      name: goalName,
+      target: Number(goalAmount),
+    });
+
     toast({
       title: "Goal Set!",
       description: "Your new goal has been added to your list.",
     });
+
+    // Reset fields
+    setGoalName("");
+    setGoalAmount("");
   };
 
   return (
@@ -36,7 +62,12 @@ export default function CreateGoal() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="goal-name">Goal Name</Label>
-            <Input id="goal-name" placeholder="e.g., Dream Vacation, Down Payment" />
+            <Input 
+              id="goal-name" 
+              placeholder="e.g., Dream Vacation, Down Payment" 
+              value={goalName}
+              onChange={(e) => setGoalName(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="goal-amount">Target Amount</Label>
@@ -47,6 +78,8 @@ export default function CreateGoal() {
                 type="number"
                 placeholder="10000"
                 className="pl-10"
+                value={goalAmount}
+                onChange={(e) => setGoalAmount(e.target.value)}
               />
             </div>
           </div>

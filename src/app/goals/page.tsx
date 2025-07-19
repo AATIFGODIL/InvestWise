@@ -1,9 +1,37 @@
 
+"use client";
+
+import { useState } from "react";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
 import CreateGoal from "@/components/goals/create-goal";
 import GoalList from "@/components/goals/goal-list";
 import EducationalVideo from "@/components/shared/educational-video";
+import { Laptop, Car, Plane } from "lucide-react";
+
+const initialGoals = [
+    { 
+        name: "New Laptop", 
+        icon: <Laptop className="h-8 w-8 text-primary"/>,
+        current: 3200, 
+        target: 5000,
+        progress: 64 
+    },
+    { 
+        name: "First Car", 
+        icon: <Car className="h-8 w-8 text-primary"/>,
+        current: 8000, 
+        target: 20000,
+        progress: 40 
+    },
+    { 
+        name: "Trip to Japan", 
+        icon: <Plane className="h-8 w-8 text-primary"/>,
+        current: 1500, 
+        target: 12000,
+        progress: 12.5
+    },
+];
 
 const videos = [
     {
@@ -20,14 +48,34 @@ const videos = [
     }
 ]
 
+export interface Goal {
+    name: string;
+    icon: React.ReactNode;
+    current: number;
+    target: number;
+    progress: number;
+}
+
 export default function GoalsPage() {
+  const [goals, setGoals] = useState<Goal[]>(initialGoals);
+
+  const addGoal = (newGoal: Omit<Goal, 'icon' | 'progress' | 'current'>) => {
+    const goal: Goal = {
+        ...newGoal,
+        current: 0,
+        progress: 0,
+        icon: <Laptop className="h-8 w-8 text-primary"/> // Default icon for new goals
+    };
+    setGoals(prevGoals => [...prevGoals, goal]);
+  };
+
   return (
     <div className="w-full bg-background font-body">
       <Header />
       <main className="p-4 space-y-6 pb-40">
         <h1 className="text-2xl font-bold">Goals</h1>
-        <CreateGoal />
-        <GoalList />
+        <CreateGoal onAddGoal={addGoal} />
+        <GoalList goals={goals} />
 
         <div className="space-y-4 pt-4">
             <h2 className="text-xl font-bold">Learn About Goals</h2>
