@@ -41,6 +41,13 @@ export default function SettingsPage() {
   const [theme, setTheme] = useState("light");
 
   useEffect(() => {
+    // On mount, read the theme from the HTML tag
+    const root = window.document.documentElement;
+    const currentTheme = root.classList.contains("dark") ? "dark" : "light";
+    setTheme(currentTheme);
+  }, []);
+
+  useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove("light", "dark");
     root.classList.add(theme);
