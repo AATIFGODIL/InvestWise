@@ -15,6 +15,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Button } from "../ui/button";
+import { Info } from "lucide-react";
 
 const bundles = [
   {
@@ -45,14 +46,14 @@ const bundles = [
 
 export default function InvestmentBundles() {
   return (
-    <Card>
+    <Card className="flex flex-col h-full">
       <CardHeader>
         <CardTitle>Explore Investment Bundles</CardTitle>
         <CardDescription>
-          Start with our pre-built bundles, curated for first-time investors.
+          Recommended for you
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-grow">
         <Carousel
           opts={{
             align: "start",
@@ -61,7 +62,7 @@ export default function InvestmentBundles() {
         >
           <CarouselContent>
             {bundles.map((bundle, index) => (
-              <CarouselItem key={index} className="md:basis-1/2 lg:basis-1/3">
+              <CarouselItem key={index} className="md:basis-1/2 lg:basis-full">
                 <div className="p-1">
                   <Card className="h-full flex flex-col">
                     <CardHeader className="p-0">
@@ -92,6 +93,12 @@ export default function InvestmentBundles() {
           <CarouselNext className="hidden sm:flex" />
         </Carousel>
       </CardContent>
+       <CardFooter className="pt-4 mt-auto">
+         <div className="text-xs text-muted-foreground flex items-center gap-1">
+            <Info className="h-3 w-3 shrink-0" />
+            <p>Invest at your own risk. AI recommendations are not financial advice.</p>
+        </div>
+      </CardFooter>
     </Card>
   );
 }

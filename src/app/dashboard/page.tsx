@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import Header from "@/components/layout/header";
 import CongratulationsBanner from "@/components/dashboard/congratulations-banner";
 import PortfolioSummary from "@/components/dashboard/portfolio-summary";
-import TopInvestmentBundle from "@/components/dashboard/top-investment-bundle";
 import GoalProgress from "@/components/dashboard/goal-progress";
 import CommunityLeaderboard from "@/components/dashboard/community-leaderboard";
 import BottomNav from "@/components/layout/bottom-nav";
@@ -69,7 +68,7 @@ export default function DashboardPage() {
         <AutoInvest />
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <TopInvestmentBundle />
+          <InvestmentBundles />
           <GoalProgress />
         </div>
         
@@ -91,7 +90,6 @@ export default function DashboardPage() {
                 </div>
             </div>
         )}
-        <InvestmentBundles />
         <RiskManagement videos={riskManagementVideos} />
       </main>
       <Chatbot />
