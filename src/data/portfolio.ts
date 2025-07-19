@@ -8,6 +8,7 @@ export const holdings = [
     todaysChangePercent: 2.13,
     purchasePrice: 107.29,
     qty: 100,
+    annualRatePercent: 4.8,
   },
   {
     symbol: "AAPL",
@@ -17,6 +18,7 @@ export const holdings = [
     todaysChangePercent: -1.16,
     purchasePrice: 190.50,
     qty: 50,
+    annualRatePercent: 15.2,
   },
   {
     symbol: "VOO",
@@ -26,6 +28,7 @@ export const holdings = [
     todaysChangePercent: 0.62,
     purchasePrice: 480.20,
     qty: 25,
+    annualRatePercent: 12.5,
   },
 ];
 
@@ -45,8 +48,8 @@ const finalValue = portfolioSummary.totalValue;
 
 export const chartData = {
     '1W': [
-        { date: "2025-07-14", value: finalValue - 250 }, // Sunday
-        { date: "2025-07-15", value: finalValue - 250 }, // Monday (same as Sunday)
+        { date: "2025-07-14", value: finalValue - 250 },
+        { date: "2025-07-15", value: finalValue - 250 },
         { date: "2025-07-16", value: finalValue - 200 },
         { date: "2025-07-17", value: finalValue - 300 },
         { date: "2025-07-18", value: finalValue - 150 },

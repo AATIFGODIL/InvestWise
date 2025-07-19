@@ -70,10 +70,10 @@ export default function HoldingsTable() {
                         <TableHead className="hidden md:table-cell">Description</TableHead>
                         <TableHead className="text-right">Current Price</TableHead>
                         <TableHead className="text-right hidden md:table-cell">Today's Change</TableHead>
-                        <TableHead className="text-right hidden lg:table-cell">Purchase Price</TableHead>
                         <TableHead className="text-right hidden lg:table-cell">QTY</TableHead>
                         <TableHead className="text-right hidden md:table-cell">Total Value</TableHead>
                         <TableHead className="text-right">Total Gain/Loss</TableHead>
+                        <TableHead className="text-right">Annual Rate %</TableHead>
                         <TableHead className="text-center">Trade Actions</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -85,6 +85,7 @@ export default function HoldingsTable() {
                         const gainLossPercent = purchaseValue !== 0 ? (gainLoss / purchaseValue) * 100 : 0;
                         const isGain = gainLoss >= 0;
                         const isChangePositive = holding.todaysChange >= 0;
+                        const isAnnualRatePositive = holding.annualRatePercent >= 0;
 
                         return (
                             <TableRow key={holding.symbol}>
@@ -94,12 +95,14 @@ export default function HoldingsTable() {
                                 <TableCell className={cn("text-right hidden md:table-cell", { "text-green-500": isChangePositive, "text-red-500": !isChangePositive })}>
                                     ${holding.todaysChange.toFixed(2)} ({holding.todaysChangePercent.toFixed(2)}%)
                                 </TableCell>
-                                <TableCell className="text-right hidden lg:table-cell">${holding.purchasePrice.toFixed(2)}</TableCell>
                                 <TableCell className="text-right hidden lg:table-cell">{holding.qty}</TableCell>
                                 <TableCell className="text-right hidden md:table-cell font-medium">${totalValue.toFixed(2)}</TableCell>
                                 <TableCell className={cn("text-right", { "text-green-500": isGain, "text-red-500": !isGain })}>
                                     ${gainLoss.toFixed(2)}
                                     <span className="text-xs"> ({gainLossPercent.toFixed(2)}%)</span>
+                                </TableCell>
+                                <TableCell className={cn("text-right font-medium", { "text-green-500": isAnnualRatePositive, "text-red-500": !isAnnualRatePositive })}>
+                                    {holding.annualRatePercent.toFixed(2)}%
                                 </TableCell>
                                 <TableCell className="text-center">
                                     <div className="flex flex-col sm:flex-row gap-2 justify-center">
