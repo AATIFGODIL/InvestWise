@@ -7,31 +7,7 @@ import BottomNav from "@/components/layout/bottom-nav";
 import CreateGoal from "@/components/goals/create-goal";
 import GoalList from "@/components/goals/goal-list";
 import EducationalVideo from "@/components/shared/educational-video";
-import { Laptop, Car, Plane } from "lucide-react";
-
-const initialGoals = [
-    { 
-        name: "New Laptop", 
-        icon: <Laptop className="h-8 w-8 text-primary"/>,
-        current: 3200, 
-        target: 5000,
-        progress: 64 
-    },
-    { 
-        name: "First Car", 
-        icon: <Car className="h-8 w-8 text-primary"/>,
-        current: 8000, 
-        target: 20000,
-        progress: 40 
-    },
-    { 
-        name: "Trip to Japan", 
-        icon: <Plane className="h-8 w-8 text-primary"/>,
-        current: 1500, 
-        target: 12000,
-        progress: 12.5
-    },
-];
+import { initialGoals, goalIcons } from "@/data/goals.tsx";
 
 const videos = [
     {
@@ -49,6 +25,7 @@ const videos = [
 ]
 
 export interface Goal {
+    id: string;
     name: string;
     icon: React.ReactNode;
     current: number;
@@ -59,12 +36,13 @@ export interface Goal {
 export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>(initialGoals);
 
-  const addGoal = (newGoal: Omit<Goal, 'icon' | 'progress' | 'current'>) => {
+  const addGoal = (newGoal: Omit<Goal, 'id' | 'icon' | 'progress' | 'current'>) => {
     const goal: Goal = {
         ...newGoal,
+        id: newGoal.name.toLowerCase().replace(/\s/g, '-'),
         current: 0,
         progress: 0,
-        icon: <Laptop className="h-8 w-8 text-primary"/> // Default icon for new goals
+        icon: goalIcons.default,
     };
     setGoals(prevGoals => [...prevGoals, goal]);
   };

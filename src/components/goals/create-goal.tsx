@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Goal } from "@/app/goals/page";
 
 interface CreateGoalProps {
-  onAddGoal: (newGoal: Omit<Goal, 'icon' | 'progress' | 'current'>) => void;
+  onAddGoal: (newGoal: Omit<Goal, 'id' | 'icon' | 'progress' | 'current'>) => void;
 }
 
 export default function CreateGoal({ onAddGoal }: CreateGoalProps) {

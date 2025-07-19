@@ -4,7 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { Goal } from "@/app/goals/page";
+import { type Goal } from "@/data/goals";
 
 
 interface GoalListProps {
@@ -16,7 +16,7 @@ export default function GoalList({ goals }: GoalListProps) {
     <div className="space-y-4">
         <h2 className="text-xl font-bold">Your Goals</h2>
         {goals.map((goal) => (
-            <Card key={goal.name}>
+            <Card key={goal.id}>
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
