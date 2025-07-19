@@ -80,7 +80,7 @@ export default function SignUpPage() {
                       Upload Government ID
                   </div>
               </Button>
-               <Input id="id-proof" type="file" className="hidden" />
+               <Input id="id-proof" type="file" className="hidden" accept="application/pdf, image/*" />
               <p className="text-xs text-muted-foreground">For security and compliance, please upload a government-issued ID.</p>
           </div>
            <div className="text-xs text-muted-foreground">
