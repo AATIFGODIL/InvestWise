@@ -62,10 +62,13 @@ export default function DashboardPage() {
       <main className="p-4 space-y-4 pb-40">
         {showBeginnerContent && <CongratulationsBanner />}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <PortfolioSummary />
+          <div className="lg:col-span-2">
+            <PortfolioSummary />
+          </div>
           <TopInvestmentBundle />
+          <GoalProgress />
         </div>
-        <GoalProgress />
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <div className="lg:col-span-2">
               <CommunityTrends />

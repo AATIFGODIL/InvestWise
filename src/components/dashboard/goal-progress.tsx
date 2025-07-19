@@ -27,7 +27,7 @@ export default function GoalProgress() {
   }
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-medium">Goal Progress</CardTitle>
         <Button asChild variant="link" size="sm" className="text-primary">
