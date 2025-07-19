@@ -93,7 +93,7 @@ export default function PortfolioValue() {
             <LineChart
               accessibilityLayer
               data={chartData[timeRange]}
-              margin={{ top: 5, right: 20, left: 10, bottom: 0 }}
+              margin={{ top: 5, right: 0, left: 0, bottom: 0 }}
             >
               <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted-foreground/20"/>
               <YAxis domain={['dataMin - 100', 'dataMax + 100']} hide />
