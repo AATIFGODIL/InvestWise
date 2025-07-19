@@ -18,8 +18,15 @@ import {
 } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { portfolioSummary } from "@/data/portfolio";
-import TradingViewWidget from "../shared/trading-view-widget";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { portfolioSummary, chartData } from "@/data/portfolio";
 
 
 export default function PortfolioSummary() {
@@ -57,8 +64,27 @@ export default function PortfolioSummary() {
           <div className={`text-sm font-semibold ${isTodayChangePositive ? 'text-green-500' : 'text-red-500'}`}>
             {isTodayChangePositive ? '+' : ''}${portfolioSummary.todaysChange.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Today
           </div>
-          <div className="h-56 mt-4">
-            <TradingViewWidget />
+          <div className="h-56 mt-4 -ml-4">
+            <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData['1W']} margin={{ top: 5, right: 0, left: -20, bottom: 0 }}>
+                    <Tooltip 
+                        contentStyle={{
+                            background: "hsl(var(--background))",
+                            borderColor: "hsl(var(--border))",
+                            borderRadius: "var(--radius)",
+                        }}
+                    />
+                    <Line 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="hsl(var(--primary))" 
+                        strokeWidth={2} 
+                        dot={false}
+                    />
+                    <XAxis dataKey="date" hide={true} />
+                    <YAxis domain={['dataMin', 'dataMax']} hide={true} />
+                </LineChart>
+            </ResponsiveContainer>
           </div>
           <div className="absolute bottom-4 right-4 bg-yellow-400 p-3 rounded-full shadow-lg">
               <DollarSign className="h-6 w-6 text-yellow-900" />
