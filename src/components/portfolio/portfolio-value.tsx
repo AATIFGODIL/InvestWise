@@ -79,7 +79,6 @@ export default function PortfolioValue() {
                         borderRadius: "var(--radius)",
                     }}
                     formatter={(value: number) => [`$${value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`, '']}
-                    labelStyle={{ display: 'none' }}
                 />
                 <Line
                   type="monotone"
