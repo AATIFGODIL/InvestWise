@@ -91,7 +91,7 @@ export default function SignUpPage() {
               .
           </div>
           <Button asChild className="w-full">
-            <Link href="/onboarding/quiz">Create account</Link>
+            <Link href="/onboarding/quiz" prefetch={false}>Create account</Link>
           </Button>
         </CardContent>
         <CardFooter className="text-center text-sm">
