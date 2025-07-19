@@ -1,10 +1,11 @@
 
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PlusCircle, Repeat, DollarSign } from "lucide-react";
+import { PlusCircle, Repeat, DollarSign, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,19 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,8 +36,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
-const autoInvestments = [
+interface AutoInvestment {
+    name: string;
+    amount: number;
+    frequency: string;
+    nextDate: string;
+}
+
+const initialAutoInvestments: AutoInvestment[] = [
     {
         name: "Tech Starter Pack",
         amount: 50,
@@ -37,9 +58,42 @@ const autoInvestments = [
         frequency: "Monthly",
         nextDate: "August 01, 2025"
     }
-]
+];
 
 export default function AutoInvest() {
+    const { toast } = useToast();
+    const [autoInvestments, setAutoInvestments] = useState<AutoInvestment[]>(initialAutoInvestments);
+    const [selectedInvestment, setSelectedInvestment] = useState<AutoInvestment | null>(null);
+    const [isManageOpen, setIsManageOpen] = useState(false);
+
+    const handleManageClick = (investment: AutoInvestment) => {
+        setSelectedInvestment(investment);
+        setIsManageOpen(true);
+    };
+
+    const handleSaveChanges = () => {
+        if (!selectedInvestment) return;
+        setAutoInvestments(prev => 
+            prev.map(inv => inv.name === selectedInvestment.name ? selectedInvestment : inv)
+        );
+        toast({
+            title: "Success!",
+            description: "Your auto-invest settings have been updated.",
+        });
+        setIsManageOpen(false);
+    };
+    
+    const handleRemoveInvestment = () => {
+        if (!selectedInvestment) return;
+        setAutoInvestments(prev => prev.filter(inv => inv.name !== selectedInvestment.name));
+         toast({
+            variant: "destructive",
+            title: "Investment Removed",
+            description: `${selectedInvestment.name} has been removed from your auto-investments.`,
+        });
+        setIsManageOpen(false);
+    }
+
     return (
         <Card>
             <CardHeader>
@@ -62,7 +116,7 @@ export default function AutoInvest() {
                         </div>
                         <div className="text-right">
                            <Badge variant="secondary">Next: {investment.nextDate}</Badge>
-                           <Button variant="link" size="sm" className="h-auto p-0 mt-1">Manage</Button>
+                           <Button variant="link" size="sm" className="h-auto p-0 mt-1" onClick={() => handleManageClick(investment)}>Manage</Button>
                         </div>
                     </div>
                 ))}
@@ -128,6 +182,86 @@ export default function AutoInvest() {
                     </DialogContent>
                 </Dialog>
             </CardContent>
+
+             {/* Manage Dialog */}
+            <Dialog open={isManageOpen} onOpenChange={setIsManageOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Manage {selectedInvestment?.name}</DialogTitle>
+                        <DialogDescription>
+                            Update or remove your recurring investment.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {selectedInvestment && (
+                        <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="manage-amount" className="text-right">
+                                    Amount
+                                </Label>
+                                <div className="relative col-span-3">
+                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="manage-amount"
+                                        type="number"
+                                        value={selectedInvestment.amount}
+                                        onChange={(e) => setSelectedInvestment({ ...selectedInvestment, amount: Number(e.target.value) })}
+                                        className="pl-9"
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="manage-frequency" className="text-right">
+                                    Frequency
+                                </Label>
+                                <Select 
+                                    value={selectedInvestment.frequency}
+                                    onValueChange={(value) => setSelectedInvestment({ ...selectedInvestment, frequency: value })}
+                                >
+                                    <SelectTrigger className="col-span-3">
+                                        <SelectValue placeholder="Select frequency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Daily">Daily</SelectItem>
+                                        <SelectItem value="Weekly">Weekly</SelectItem>
+                                        <SelectItem value="Bi-weekly">Bi-weekly</SelectItem>
+                                        <SelectItem value="Monthly">Monthly</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                    )}
+                    <DialogFooter className="justify-between sm:justify-between">
+                         <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive" className="sm:mr-auto">
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Remove
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This will permanently remove your auto-investment for {selectedInvestment?.name}. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleRemoveInvestment}>Continue</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                        <div className="flex gap-2">
+                           <DialogClose asChild>
+                                <Button type="button" variant="secondary">
+                                    Cancel
+                                </Button>
+                            </DialogClose>
+                            <Button type="button" onClick={handleSaveChanges}>Save Changes</Button>
+                        </div>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </Card>
     )
 }
