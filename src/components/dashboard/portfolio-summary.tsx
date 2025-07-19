@@ -6,6 +6,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,6 +47,7 @@ export default function PortfolioSummary() {
   return (
     <Card>
         <CardHeader>
+            <CardTitle>Portfolio</CardTitle>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-baseline gap-2">
                     <p className="text-3xl font-bold">${portfolioSummary.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
@@ -103,3 +105,4 @@ export default function PortfolioSummary() {
     </Card>
   );
 }
+
