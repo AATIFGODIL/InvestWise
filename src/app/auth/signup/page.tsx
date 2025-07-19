@@ -1,4 +1,8 @@
 
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,6 +16,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FileUp } from "lucide-react";
 import Link from "next/link";
+import { auth } from "@/lib/firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { useToast } from "@/hooks/use-toast";
 
 const GoogleIcon = () => (
     <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -30,6 +37,48 @@ const AppleIcon = () => (
 );
 
 export default function SignUpPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSignUp = async () => {
+    if (!email || !password || !username) {
+      toast({
+        variant: "destructive",
+        title: "Missing Information",
+        description: "Please fill out all fields.",
+      });
+      return;
+    }
+    setIsLoading(true);
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      // We can store the username in Firestore later
+      toast({
+        title: "Success!",
+        description: "Your account has been created.",
+      });
+      router.push("/onboarding/quiz");
+    } catch (error: any) {
+      let errorMessage = "An unexpected error occurred.";
+      if (error.code === "auth/email-already-in-use") {
+        errorMessage = "This email address is already in use.";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage = "The password is too weak. Please use at least 6 characters.";
+      }
+      toast({
+        variant: "destructive",
+        title: "Sign-up failed",
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-sm">
@@ -62,15 +111,15 @@ export default function SignUpPage() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="username">Username</Label>
-            <Input id="username" type="text" placeholder="JohnDoe" required />
+            <Input id="username" type="text" placeholder="JohnDoe" required value={username} onChange={(e) => setUsername(e.target.value)} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="m@example.com" required />
+            <Input id="email" type="email" placeholder="m@example.com" required value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" required />
+            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
            <div className="grid gap-2">
               <Label htmlFor="id-proof">ID Verification</Label>
@@ -92,8 +141,8 @@ export default function SignUpPage() {
               </Link>
               .
           </div>
-          <Button asChild className="w-full">
-            <Link href="/onboarding/quiz" prefetch={false}>Create account</Link>
+          <Button onClick={handleSignUp} disabled={isLoading} className="w-full">
+            {isLoading ? 'Creating account...' : 'Create account'}
           </Button>
         </CardContent>
         <CardFooter className="text-center text-sm">
@@ -106,3 +155,5 @@ export default function SignUpPage() {
     </div>
   );
 }
+
+    
