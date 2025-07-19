@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,17 +15,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronLeft, KeyRound, User, Save, Mail } from "lucide-react";
+import { ChevronLeft, KeyRound, User, Save, Mail, Upload } from "lucide-react";
 import Link from "next/link";
 
 export default function ProfilePage() {
   const { toast } = useToast();
   const [username, setUsername] = useState("First-Time Investor");
+  const [profilePic, setProfilePic] = useState("https://i.pravatar.cc/150?u=a042581f4e29026704d");
 
   const handleSaveChanges = () => {
     toast({
       title: "Success!",
-      description: "Your username has been updated.",
+      description: "Your profile has been updated.",
     });
   };
 
@@ -35,6 +36,22 @@ export default function ProfilePage() {
       description: "Please check your inbox to reset your password.",
     });
   };
+
+  const handleProfilePicChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePic(reader.result as string);
+        toast({
+          title: "Photo Updated",
+          description: "Your new profile picture is ready. Click 'Save Changes' to apply.",
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
 
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -63,11 +80,19 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex items-center gap-4">
-                    <Avatar className="h-20 w-20 border-2 border-primary">
-                        <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="@user" />
-                        <AvatarFallback>U</AvatarFallback>
-                    </Avatar>
-                    <Button variant="outline">Change Photo</Button>
+                    <Label htmlFor="profile-pic-upload" className="cursor-pointer group relative">
+                        <Avatar className="h-20 w-20 border-2 border-primary">
+                            <AvatarImage src={profilePic} alt="@user" />
+                            <AvatarFallback>U</AvatarFallback>
+                        </Avatar>
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Upload className="h-8 w-8 text-white" />
+                        </div>
+                    </Label>
+                    <Input id="profile-pic-upload" type="file" className="hidden" accept="image/*" onChange={handleProfilePicChange} />
+                    <Label htmlFor="profile-pic-upload">
+                      <Button variant="outline" className="pointer-events-none">Change Photo</Button>
+                    </Label>
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="username">Username</Label>
