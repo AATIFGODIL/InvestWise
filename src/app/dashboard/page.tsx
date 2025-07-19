@@ -74,6 +74,7 @@ export default function DashboardPage() {
             bundles={bundlesToShow}
             title="Explore Investment Bundles"
             description="Recommended for you"
+            showDisclaimer={true}
           />
           <GoalProgress />
         </div>

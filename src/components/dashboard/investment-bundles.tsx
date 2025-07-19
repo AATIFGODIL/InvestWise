@@ -23,9 +23,10 @@ interface InvestmentBundlesProps {
   bundles: Bundle[];
   title: string;
   description: string;
+  showDisclaimer?: boolean;
 }
 
-export default function InvestmentBundles({ bundles, title, description }: InvestmentBundlesProps) {
+export default function InvestmentBundles({ bundles, title, description, showDisclaimer = false }: InvestmentBundlesProps) {
   return (
     <Card className="flex flex-col h-full">
       <CardHeader>
@@ -74,12 +75,14 @@ export default function InvestmentBundles({ bundles, title, description }: Inves
           <CarouselNext className="hidden sm:flex" />
         </Carousel>
       </CardContent>
-       <CardFooter className="pt-4 mt-auto">
-         <div className="text-xs text-muted-foreground flex items-center gap-1">
-            <Info className="h-3 w-3 shrink-0" />
-            <p>Invest at your own risk. AI recommendations are not financial advice.</p>
-        </div>
-      </CardFooter>
+       {showDisclaimer && (
+        <CardFooter className="pt-4 mt-auto">
+          <div className="text-xs text-muted-foreground flex items-center gap-1">
+              <Info className="h-3 w-3 shrink-0" />
+              <p>Invest at your own risk. AI recommendations are not financial advice.</p>
+          </div>
+        </CardFooter>
+       )}
     </Card>
   );
 }
