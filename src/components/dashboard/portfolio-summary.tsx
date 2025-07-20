@@ -50,7 +50,7 @@ function PortfolioSummary() {
         <CardHeader>
             <div className="flex justify-between items-start">
                 <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="h-6 w-6" />
+                  <Briefcase className="h-6 w-6 text-primary" />
                   Portfolio
                 </CardTitle>
                 <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
