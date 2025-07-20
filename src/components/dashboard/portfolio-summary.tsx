@@ -19,7 +19,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ArrowUp, ArrowDown, Info } from "lucide-react";
+import { ArrowUp, ArrowDown, Info, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { portfolioSummary, chartData } from "@/data/portfolio";
 
@@ -49,7 +49,10 @@ function PortfolioSummary() {
     <Card>
         <CardHeader>
             <div className="flex justify-between items-start">
-                <CardTitle>Portfolio</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Briefcase className="h-6 w-6" />
+                  Portfolio
+                </CardTitle>
                 <Button asChild variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
                     <Link href="/portfolio">
                         <Info className="h-5 w-5" />
