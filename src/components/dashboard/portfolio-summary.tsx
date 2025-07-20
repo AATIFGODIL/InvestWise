@@ -21,12 +21,13 @@ import {
 } from "recharts";
 import { ArrowUp, ArrowDown, Info, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { portfolioSummary, chartData } from "@/data/portfolio";
+import { usePortfolioData } from "@/data/portfolio";
 
 type TimeRange = '1W' | '1M' | '6M' | '1Y';
 
 function PortfolioSummary() {
   const [timeRange, setTimeRange] = useState<TimeRange>('1W');
+  const { portfolioSummary, chartData } = usePortfolioData();
 
   const isTodaysChangePositive = portfolioSummary.todaysChange >= 0;
   const todaysChangePercent = portfolioSummary.totalValue !== 0 ? (portfolioSummary.todaysChange / (portfolioSummary.totalValue - portfolioSummary.todaysChange)) * 100 : 0;
@@ -89,7 +90,7 @@ function PortfolioSummary() {
                 margin={{
                   top: 5,
                   right: 30,
-                  left: 20,
+                  left: 30,
                   bottom: 5,
                 }}
               >
