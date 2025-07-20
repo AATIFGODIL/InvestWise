@@ -1,7 +1,6 @@
 
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
-import PortfolioValue from "@/components/portfolio/portfolio-value";
 import HoldingsTable from "@/components/portfolio/holdings-table";
 import { Clock } from "lucide-react";
 import Chatbot from "@/components/chatbot/chatbot";
@@ -12,7 +11,6 @@ export default function PortfolioPage() {
       <Header />
       <main className="p-4 space-y-6 pb-40">
         <h1 className="text-2xl font-bold">Portfolio</h1>
-        <PortfolioValue />
         <div>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Holdings</h2>
