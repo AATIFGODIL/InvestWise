@@ -19,13 +19,13 @@ import {
 } from "recharts";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { usePortfolioData } from "@/data/portfolio";
+import usePortfolioStore from "@/store/portfolio-store";
 
 type TimeRange = '1W' | '1M' | '6M' | '1Y';
 
 function PortfolioValue() {
   const [timeRange, setTimeRange] = useState<TimeRange>('1W');
-  const { portfolioSummary, chartData } = usePortfolioData();
+  const { portfolioSummary, chartData } = usePortfolioStore();
 
 
   const isTodaysChangePositive = portfolioSummary.todaysChange >= 0;
