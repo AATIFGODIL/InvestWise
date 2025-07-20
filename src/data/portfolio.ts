@@ -65,6 +65,7 @@ export const chartData = {
         { date: "July 17, 2025", value: finalValue - 120 },
         { date: "July 18, 2025", value: fridayValue },
         { date: "July 19, 2025", value: fridayValue },
+        { date: "July 20, 2025", value: fridayValue },
     ],
     '1M': [
         { date: "June 23, 2025", value: finalValue - 590 },
@@ -72,6 +73,7 @@ export const chartData = {
         { date: "July 07, 2025", value: finalValue - 390 },
         { date: "July 14, 2025", value: finalValue - 250 },
         { date: "July 19, 2025", value: fridayValue },
+        { date: "July 20, 2025", value: fridayValue },
     ],
     '6M': [
         { date: "January 20, 2025", value: finalValue - 1090 },
@@ -81,6 +83,7 @@ export const chartData = {
         { date: "May 20, 2025", value: finalValue - 490 },
         { date: "June 20, 2025", value: finalValue - 550 },
         { date: "July 19, 2025", value: fridayValue },
+        { date: "July 20, 2025", value: fridayValue },
     ],
     '1Y': [
         { date: "July 19, 2024", value: finalValue - 1590 },
@@ -88,5 +91,6 @@ export const chartData = {
         { date: "January 20, 2025", value: finalValue - 1090 },
         { date: "April 21, 2025", value: finalValue - 590 },
         { date: "July 19, 2025", value: fridayValue },
+        { date: "July 20, 2025", value: fridayValue },
     ]
 };
