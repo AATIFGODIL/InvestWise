@@ -17,10 +17,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowUp, ArrowDown, PlusCircle, MinusCircle, History, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { usePortfolioData } from "@/data/portfolio";
+import usePortfolioStore from "@/store/portfolio-store";
 
 export default function HoldingsTable() {
-  const { holdings, portfolioSummary } = usePortfolioData();
+  const { holdings, portfolioSummary } = usePortfolioStore();
 
   const calculateTotalValue = (qty: number, price: number) => qty * price;
   const calculateGainLoss = (qty: number, currentPrice: number, purchasePrice: number) => (currentPrice - purchasePrice) * qty;
