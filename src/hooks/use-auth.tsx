@@ -57,17 +57,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 photoURL: userData.photoURL
             });
           }
-          // Load user-specific portfolio data
           loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
 
-        } else {
-            // This is a new user who just signed up, create their doc
-             await initializeUserDocument(user, "First-Time Investor");
         }
         setUser(user);
       } else {
         setUser(null);
-        resetPortfolio(); // Reset to default state when logged out
+        resetPortfolio();
       }
       setLoading(false);
     });
@@ -86,7 +82,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    await setDoc(doc(db, "users", user.uid), {
+    const userDocRef = doc(db, "users", user.uid);
+    await setDoc(userDocRef, {
       uid: user.uid,
       email: user.email,
       username: username,
@@ -96,9 +93,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     
     await updateProfile(user, { displayName: username, photoURL: user.photoURL });
+    
+    // Manually set state after creating doc for new user
     setUsername(username);
     setProfilePic(user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`);
     loadInitialData(initialPortfolio.holdings, initialPortfolio.summary);
+    setUser(user);
   };
 
 
@@ -157,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateUserProfile,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
