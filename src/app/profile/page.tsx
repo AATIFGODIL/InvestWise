@@ -15,26 +15,52 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronLeft, KeyRound, User, Save, Mail, Upload, Repeat, BarChart, Briefcase, ChevronRight } from "lucide-react";
+import { ChevronLeft, KeyRound, User, Save, Mail, Upload, Repeat, BarChart, Briefcase, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import useUserStore from "@/store/user-store";
+import { useAuth } from "@/hooks/use-auth";
+import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
+import { updateProfile } from "firebase/auth";
 
 export default function ProfilePage() {
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
   const { username, setUsername: setGlobalUsername } = useUserStore();
-  const [localUsername, setLocalUsername] = useState(username);
+  
+  const [localUsername, setLocalUsername] = useState("");
   const [profilePic, setProfilePic] = useState("https://i.pravatar.cc/150?u=a042581f4e29026704d");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    setLocalUsername(username);
-  }, [username]);
+    if (user) {
+      setLocalUsername(user.displayName || username);
+      setProfilePic(user.photoURL || "https://i.pravatar.cc/150?u=a042581f4e29026704d");
+    }
+  }, [user, username]);
 
-  const handleSaveChanges = () => {
-    setGlobalUsername(localUsername);
-    toast({
-      title: "Success!",
-      description: "Your profile has been updated.",
-    });
+  const handleSaveChanges = async () => {
+    if (!user) {
+        toast({ variant: "destructive", title: "Error", description: "You must be logged in to save changes." });
+        return;
+    }
+    setIsSaving(true);
+    try {
+        const userDocRef = doc(db, "users", user.uid);
+        await updateDoc(userDocRef, { username: localUsername });
+        await updateProfile(user, { displayName: localUsername });
+
+        setGlobalUsername(localUsername);
+        toast({
+            title: "Success!",
+            description: "Your profile has been updated.",
+        });
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        toast({ variant: "destructive", title: "Error", description: "Failed to update profile." });
+    } finally {
+        setIsSaving(false);
+    }
   };
 
   const handlePasswordReset = () => {
@@ -71,8 +97,12 @@ export default function ProfilePage() {
                     </Button>
                     <h1 className="text-xl font-bold">Profile</h1>
                 </Link>
-                 <Button variant="default" size="sm" onClick={handleSaveChanges}>
-                    <Save className="mr-2 h-4 w-4" />
+                 <Button variant="default" size="sm" onClick={handleSaveChanges} disabled={isSaving || authLoading}>
+                    {isSaving ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                        <Save className="mr-2 h-4 w-4" />
+                    )}
                     Save Changes
                 </Button>
             </div>
@@ -90,7 +120,7 @@ export default function ProfilePage() {
                     <Label htmlFor="profile-pic-upload" className="cursor-pointer group relative">
                         <Avatar className="h-20 w-20 border-2 border-primary">
                             <AvatarImage src={profilePic} alt="@user" />
-                            <AvatarFallback>U</AvatarFallback>
+                            <AvatarFallback>{localUsername.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                             <Upload className="h-8 w-8 text-white" />
@@ -107,11 +137,12 @@ export default function ProfilePage() {
                         id="username" 
                         value={localUsername}
                         onChange={(e) => setLocalUsername(e.target.value)}
+                        disabled={authLoading || isSaving}
                     />
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" value="investor@example.com" disabled />
+                    <Input id="email" type="email" value={user?.email || ""} disabled />
                 </div>
             </CardContent>
         </Card>

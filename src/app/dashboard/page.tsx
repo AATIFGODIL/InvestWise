@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from "@/components/layout/header";
 import CongratulationsBanner from "@/components/dashboard/congratulations-banner";
 import PortfolioSummary from "@/components/dashboard/portfolio-summary";
@@ -15,6 +16,8 @@ import CommunityTrends from "@/components/dashboard/community-trends";
 import EducationalVideo from '@/components/shared/educational-video';
 import AutoInvest from '@/components/dashboard/auto-invest';
 import { recommendedBundles, specializedBundles } from '@/data/bundles';
+import { useAuth } from '@/hooks/use-auth';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const beginnerVideos = [
     {
@@ -47,12 +50,37 @@ const riskManagementVideos = [
 ]
 
 export default function DashboardPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
   const [userProfile, setUserProfile] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/auth/signin');
+    }
+  }, [user, loading, router]);
+  
   useEffect(() => {
     const profile = localStorage.getItem('userProfile');
     setUserProfile(profile);
   }, []);
+
+  if (loading || !user) {
+    return (
+        <div className="w-full bg-background font-body">
+            <Header />
+            <main className="p-4 space-y-4 pb-40">
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-96 w-full" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-48 w-full" />
+                </div>
+            </main>
+            <BottomNav />
+        </div>
+    );
+  }
 
   const showBeginnerContent = userProfile === 'Beginner' || userProfile === 'Amateur';
   const bundlesToShow = showBeginnerContent ? [...recommendedBundles, ...specializedBundles] : recommendedBundles;

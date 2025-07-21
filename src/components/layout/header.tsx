@@ -23,16 +23,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
 import useUserStore from "@/store/user-store";
 
 export default function Header() {
-  const router = useRouter();
+  const { user, signOut } = useAuth();
   const { username } = useUserStore();
-
-  const handleLogout = () => {
-    router.push('/auth/signin');
-  };
 
   return (
     <header className="sticky top-0 z-30 flex h-20 items-center justify-between bg-primary px-4 sm:px-6 text-primary-foreground">
@@ -85,8 +81,8 @@ export default function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar className="h-10 w-10 border-2 border-primary-foreground">
-                <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="@user" />
-                <AvatarFallback>{username.charAt(0)}</AvatarFallback>
+                <AvatarImage src={user?.photoURL || "https://i.pravatar.cc/150"} alt="@user" />
+                <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
@@ -95,7 +91,7 @@ export default function Header() {
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium leading-none">{username}</p>
                 <p className="text-xs leading-none text-muted-foreground">
-                  investor@example.com
+                  {user?.email}
                 </p>
               </div>
             </DropdownMenuLabel>
@@ -115,7 +111,7 @@ export default function Header() {
               </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
+            <DropdownMenuItem onClick={signOut}>
               <LogOut className="mr-2 h-4 w-4" />
               <span>Log out</span>
             </DropdownMenuItem>
