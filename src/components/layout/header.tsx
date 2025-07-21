@@ -28,7 +28,7 @@ import useUserStore from "@/store/user-store";
 
 export default function Header() {
   const { user, signOut } = useAuth();
-  const { username } = useUserStore();
+  const { username, profilePic } = useUserStore();
 
   return (
     <header className="sticky top-0 z-30 flex h-20 items-center justify-between bg-primary px-4 sm:px-6 text-primary-foreground">
@@ -81,7 +81,7 @@ export default function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar className="h-10 w-10 border-2 border-primary-foreground">
-                <AvatarImage src={user?.photoURL || "https://i.pravatar.cc/150"} alt="@user" />
+                <AvatarImage src={profilePic} alt={username} />
                 <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
             </Button>

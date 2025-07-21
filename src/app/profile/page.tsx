@@ -19,25 +19,24 @@ import { ChevronLeft, KeyRound, User, Save, Mail, Upload, Repeat, BarChart, Brie
 import Link from "next/link";
 import useUserStore from "@/store/user-store";
 import { useAuth } from "@/hooks/use-auth";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase/config";
 import { updateProfile } from "firebase/auth";
 
 export default function ProfilePage() {
   const { toast } = useToast();
-  const { user, loading: authLoading } = useAuth();
-  const { username, setUsername: setGlobalUsername } = useUserStore();
+  const { user, loading: authLoading, updateUserProfile } = useAuth();
+  const { username, profilePic, setUsername: setGlobalUsername, setProfilePic } = useUserStore();
   
   const [localUsername, setLocalUsername] = useState("");
-  const [profilePic, setProfilePic] = useState("https://i.pravatar.cc/150?u=a042581f4e29026704d");
+  const [localProfilePic, setLocalProfilePic] = useState("");
+  const [newProfilePicDataUrl, setNewProfilePicDataUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     if (user) {
-      setLocalUsername(user.displayName || username);
-      setProfilePic(user.photoURL || "https://i.pravatar.cc/150?u=a042581f4e29026704d");
+      setLocalUsername(username);
+      setLocalProfilePic(profilePic);
     }
-  }, [user, username]);
+  }, [user, username, profilePic]);
 
   const handleSaveChanges = async () => {
     if (!user) {
@@ -46,11 +45,16 @@ export default function ProfilePage() {
     }
     setIsSaving(true);
     try {
-        const userDocRef = doc(db, "users", user.uid);
-        await updateDoc(userDocRef, { username: localUsername });
-        await updateProfile(user, { displayName: localUsername });
-
+        await updateUserProfile({
+            username: localUsername,
+            ...(newProfilePicDataUrl && { photoDataUrl: newProfilePicDataUrl }),
+        });
+        
         setGlobalUsername(localUsername);
+        if (newProfilePicDataUrl) {
+            setProfilePic(localProfilePic);
+        }
+
         toast({
             title: "Success!",
             description: "Your profile has been updated.",
@@ -60,6 +64,7 @@ export default function ProfilePage() {
         toast({ variant: "destructive", title: "Error", description: "Failed to update profile." });
     } finally {
         setIsSaving(false);
+        setNewProfilePicDataUrl(null);
     }
   };
 
@@ -75,10 +80,12 @@ export default function ProfilePage() {
       const file = e.target.files[0];
       const reader = new FileReader();
       reader.onloadend = () => {
-        setProfilePic(reader.result as string);
+        const result = reader.result as string;
+        setLocalProfilePic(result);
+        setNewProfilePicDataUrl(result);
         toast({
-          title: "Photo Updated",
-          description: "Your new profile picture is ready. Click 'Save Changes' to apply.",
+          title: "Photo Ready",
+          description: "Click 'Save Changes' to apply your new profile picture.",
         });
       };
       reader.readAsDataURL(file);
@@ -119,7 +126,7 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-4">
                     <Label htmlFor="profile-pic-upload" className="cursor-pointer group relative">
                         <Avatar className="h-20 w-20 border-2 border-primary">
-                            <AvatarImage src={profilePic} alt="@user" />
+                            <AvatarImage src={localProfilePic} alt="@user" />
                             <AvatarFallback>{localUsername.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
@@ -128,7 +135,9 @@ export default function ProfilePage() {
                     </Label>
                     <Input id="profile-pic-upload" type="file" className="hidden" accept="image/*" onChange={handleProfilePicChange} />
                     <Label htmlFor="profile-pic-upload">
-                      <Button variant="outline" className="pointer-events-none">Change Photo</Button>
+                      <Button asChild variant="outline">
+                        <span>Change Photo</span>
+                      </Button>
                     </Label>
                 </div>
                  <div className="space-y-2">

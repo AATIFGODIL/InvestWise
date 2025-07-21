@@ -1,5 +1,7 @@
 
 import { create } from 'zustand';
+import { doc, updateDoc, getFirestore } from "firebase/firestore";
+import { auth } from '@/lib/firebase/config';
 
 interface Holding {
     symbol: string;
@@ -31,7 +33,16 @@ interface PortfolioState {
     portfolioSummary: PortfolioSummary;
     chartData: ChartData;
     executeTrade: (trade: { symbol: string, qty: number, price: number, description: string }) => { success: boolean, error?: string };
+    loadInitialData: (holdings: Holding[], summary: PortfolioSummary | null) => void;
+    resetPortfolio: () => void;
 }
+
+const defaultSummary: PortfolioSummary = {
+    totalValue: 0,
+    todaysChange: 0,
+    totalGainLoss: 0,
+    annualRatePercent: 0,
+};
 
 const initialHoldings: Holding[] = [
     {
@@ -67,6 +78,9 @@ const initialHoldings: Holding[] = [
 ];
 
 const calculatePortfolioSummary = (holdings: Holding[]): PortfolioSummary => {
+    if (holdings.length === 0) {
+        return { ...defaultSummary };
+    }
     const summary = holdings.reduce((acc, holding) => {
         const holdingValue = holding.qty * holding.currentPrice;
         const gainLoss = (holding.currentPrice - holding.purchasePrice) * holding.qty;
@@ -93,45 +107,65 @@ const calculatePortfolioSummary = (holdings: Holding[]): PortfolioSummary => {
 
 const generateChartData = (totalValue: number): ChartData => {
     const generateDateLabel = (date: Date) => {
-        return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 
-    const generateRandomWalk = (days: number, initialValue: number) => {
+    const generateRandomWalk = (days: number, initialValue: number, startDate: Date) => {
         const data = [];
         let currentValue = initialValue;
-        let currentDate = new Date();
+        let currentDate = new Date(startDate);
 
         for (let i = 0; i < days; i++) {
-            // Move to the previous day
             currentDate.setDate(currentDate.getDate() - 1);
-
-            // Skip weekends (Saturday: 6, Sunday: 0)
-            if (currentDate.getDay() === 6 || currentDate.getDay() === 0) {
-                // to ensure we still get the correct number of data points, we can increment days
-                days++;
-                continue; 
+            if (currentDate.getDay() === 0 || currentDate.getDay() === 6) { // Skip Sunday (0) and Saturday (6)
+                days++; // extend loop to get required number of trading days
+                continue;
             }
-            
-            data.push({ date: generateDateLabel(currentDate), value: Math.max(0, currentValue) });
-            currentValue += (Math.random() - 0.5) * (initialValue * 0.05); // Simulate market fluctuation
+            data.push({ date: generateDateLabel(currentDate), value: Math.max(0, parseFloat(currentValue.toFixed(2))) });
+            currentValue += (Math.random() - 0.5) * (initialValue * 0.05);
         }
-        return data.reverse(); // reverse to show oldest to newest
+        return data.reverse();
     }
     
+    const today = new Date('2025-07-21T12:00:00Z'); // Use July 21st as "today"
+    
     return {
-        '1W': generateRandomWalk(5, totalValue),  // 5 trading days
-        '1M': generateRandomWalk(22, totalValue), // ~22 trading days
-        '6M': generateRandomWalk(126, totalValue),// ~126 trading days
-        '1Y': generateRandomWalk(252, totalValue),// ~252 trading days
+        '1W': generateRandomWalk(5, totalValue, today),
+        '1M': generateRandomWalk(22, totalValue, today),
+        '6M': generateRandomWalk(126, totalValue, today),
+        '1Y': generateRandomWalk(252, totalValue, today),
     };
 };
 
+
 const usePortfolioStore = create<PortfolioState>((set, get) => ({
-  holdings: initialHoldings,
-  portfolioSummary: calculatePortfolioSummary(initialHoldings),
-  chartData: generateChartData(calculatePortfolioSummary(initialHoldings).totalValue),
+  holdings: [],
+  portfolioSummary: { ...defaultSummary },
+  chartData: generateChartData(0),
+  
+  loadInitialData: (holdings, summary) => {
+    const newSummary = summary || calculatePortfolioSummary(holdings);
+    set({
+      holdings: holdings,
+      portfolioSummary: newSummary,
+      chartData: generateChartData(newSummary.totalValue),
+    });
+  },
+
+  resetPortfolio: () => {
+    set({
+      holdings: [],
+      portfolioSummary: { ...defaultSummary },
+      chartData: generateChartData(0),
+    });
+  },
   
   executeTrade: (trade) => {
+    const user = auth.currentUser;
+    if (!user) {
+        return { success: false, error: "You must be logged in to trade." };
+    }
+
     const currentHoldings = get().holdings;
     const existingHoldingIndex = currentHoldings.findIndex(h => h.symbol === trade.symbol);
     let newHoldings = [...currentHoldings];
@@ -147,7 +181,6 @@ const usePortfolioStore = create<PortfolioState>((set, get) => ({
       if (newQty === 0) {
         newHoldings.splice(existingHoldingIndex, 1);
       } else {
-        // Calculate new average purchase price for buys
         const newPurchasePrice = trade.qty > 0 
           ? ((existingHolding.purchasePrice * existingHolding.qty) + (trade.price * trade.qty)) / newQty
           : existingHolding.purchasePrice;
@@ -156,7 +189,7 @@ const usePortfolioStore = create<PortfolioState>((set, get) => ({
           ...existingHolding,
           qty: newQty,
           purchasePrice: newPurchasePrice,
-          currentPrice: trade.price, // Update current price for realism
+          currentPrice: trade.price,
         };
       }
     } else {
@@ -169,15 +202,22 @@ const usePortfolioStore = create<PortfolioState>((set, get) => ({
         currentPrice: trade.price,
         purchasePrice: trade.price,
         qty: trade.qty,
-        todaysChange: 0, // Mock data
-        todaysChangePercent: 0, // Mock data
-        annualRatePercent: 0, // Mock data
+        todaysChange: 0,
+        todaysChangePercent: 0,
+        annualRatePercent: 0,
       };
       newHoldings.push(newHolding);
     }
     
     const newSummary = calculatePortfolioSummary(newHoldings);
     const newChartData = generateChartData(newSummary.totalValue);
+
+    // Update Firestore
+    const userDocRef = doc(getFirestore(), "users", user.uid);
+    updateDoc(userDocRef, { 
+        "portfolio.holdings": newHoldings,
+        "portfolio.summary": newSummary 
+    }).catch(console.error);
 
     set({ 
         holdings: newHoldings,
