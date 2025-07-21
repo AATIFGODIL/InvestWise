@@ -2,13 +2,6 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  devIndicators: {
-    allowedDevOrigins: [
-      '*.cloudworkstations.dev',
-      '*.firebaseapp.com',
-      '*.web.app',
-    ],
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
