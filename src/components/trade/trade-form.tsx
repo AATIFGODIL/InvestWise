@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast";
 import usePortfolioStore from "@/store/portfolio-store";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const tradeSchema = z.object({
   symbol: z.string().min(1, "Symbol is required."),
@@ -66,11 +66,7 @@ const mockStockData = {
     "VOO": { price: 502.88, name: "Vanguard S&P 500 ETF" },
 };
 
-interface TradeFormProps {
-    onSymbolChange: (symbol: string) => void;
-}
-
-export default function TradeForm({ onSymbolChange }: TradeFormProps) {
+export default function TradeForm() {
   const { toast } = useToast();
   const { executeTrade } = usePortfolioStore();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -94,12 +90,6 @@ export default function TradeForm({ onSymbolChange }: TradeFormProps) {
   
   const stockInfo = (mockStockData as any)[symbol];
   const estimatedCost = stockInfo ? stockInfo.price * quantity : 0;
-
-  useEffect(() => {
-    if (symbol && (mockStockData as any)[symbol]) {
-        onSymbolChange(symbol);
-    }
-  }, [symbol, onSymbolChange]);
 
   const handlePreview = (data: TradeFormValues) => {
     setPreviewData(data);
@@ -292,5 +282,3 @@ export default function TradeForm({ onSymbolChange }: TradeFormProps) {
     </TooltipProvider>
   );
 }
-
-    

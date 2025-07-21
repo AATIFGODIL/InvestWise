@@ -1,6 +1,5 @@
 
 "use client"
-import { useState } from "react";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
 import EducationalVideo from "@/components/shared/educational-video";
@@ -10,7 +9,6 @@ import TradeForm from "@/components/trade/trade-form";
 import AutoInvest from "@/components/dashboard/auto-invest";
 import InvestmentBundles from "@/components/dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
-import TradingViewWidget from "@/components/shared/trading-view-widget";
 
 const videos = [
     {
@@ -29,20 +27,14 @@ const videos = [
 
 
 export default function TradePage() {
-  const [activeSymbol, setActiveSymbol] = useState("AAPL");
   return (
     <div className="w-full bg-background font-body">
       <Header />
       <main className="p-4 space-y-6 pb-40">
         <h1 className="text-2xl font-bold">Trade</h1>
-        
-        <div className="h-[450px]">
-          <TradingViewWidget symbol={activeSymbol} />
-        </div>
-
         <StockFilter />
         <StockList />
-        <TradeForm onSymbolChange={setActiveSymbol} />
+        <TradeForm />
         <InvestmentBundles 
           bundles={specializedBundles}
           title="Discover Specialized Bundles"
