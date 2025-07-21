@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 
 interface Holding {
@@ -29,6 +30,7 @@ interface PortfolioState {
     holdings: Holding[];
     portfolioSummary: PortfolioSummary;
     chartData: ChartData;
+    executeTrade: (trade: { symbol: string, qty: number, price: number, description: string }) => { success: boolean, error?: string };
 }
 
 const initialHoldings: Holding[] = [
@@ -78,7 +80,10 @@ const calculatePortfolioSummary = (holdings: Holding[]): PortfolioSummary => {
     if (summary.totalValue > 0) {
         const weightedAnnualRate = holdings.reduce((acc, holding) => {
             const holdingValue = holding.qty * holding.currentPrice;
-            return acc + (holding.annualRatePercent * (holdingValue / summary.totalValue));
+            if (holdingValue > 0) {
+                 return acc + (holding.annualRatePercent * (holdingValue / summary.totalValue));
+            }
+            return acc;
         }, 0);
         summary.annualRatePercent = weightedAnnualRate;
     }
@@ -87,53 +92,94 @@ const calculatePortfolioSummary = (holdings: Holding[]): PortfolioSummary => {
 };
 
 const generateChartData = (totalValue: number): ChartData => {
-    const fridayValue = totalValue - 50;
+    const today = new Date();
+    const generateDate = (daysAgo: number) => {
+        const date = new Date(today);
+        date.setDate(today.getDate() - daysAgo);
+        return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+
+    const generateRandomWalk = (days: number, initialValue: number) => {
+        const data = [];
+        let currentValue = initialValue;
+        for (let i = days - 1; i >= 0; i--) {
+            data.push({ date: generateDate(i), value: Math.max(0, currentValue) });
+            currentValue += (Math.random() - 0.5) * (initialValue * 0.05);
+        }
+        return data;
+    }
+    
     return {
-        '1W': [
-            { date: "July 14, 2025", value: totalValue - 250 },
-            { date: "July 15, 2025", value: totalValue - 180 },
-            { date: "July 16, 2025", value: totalValue - 210 },
-            { date: "July 17, 2025", value: totalValue - 120 },
-            { date: "July 18, 2025", value: fridayValue },
-            { date: "July 19, 2025", value: fridayValue },
-            { date: "July 20, 2025", value: fridayValue },
-        ],
-        '1M': [
-            { date: "June 23, 2025", value: totalValue - 590 },
-            { date: "June 30, 2025", value: totalValue - 480 },
-            { date: "July 07, 2025", value: totalValue - 390 },
-            { date: "July 14, 2025", value: totalValue - 250 },
-            { date: "July 19, 2025", value: fridayValue },
-            { date: "July 20, 2025", value: fridayValue },
-        ],
-        '6M': [
-            { date: "January 20, 2025", value: totalValue - 1090 },
-            { date: "February 20, 2025", value: totalValue - 790 },
-            { date: "March 20, 2025", value: totalValue - 890 },
-            { date: "April 21, 2025", value: totalValue - 590 },
-            { date: "May 20, 2025", value: totalValue - 490 },
-            { date: "June 20, 2025", value: totalValue - 550 },
-            { date: "July 19, 2025", value: fridayValue },
-            { date: "July 20, 2025", value: fridayValue },
-        ],
-        '1Y': [
-            { date: "July 19, 2024", value: totalValue - 1590 },
-            { date: "October 21, 2024", value: totalValue - 1390 },
-            { date: "January 20, 2025", value: totalValue - 1090 },
-            { date: "April 21, 2025", value: totalValue - 590 },
-            { date: "July 19, 2025", value: fridayValue },
-            { date: "July 20, 2025", value: fridayValue },
-        ]
+        '1W': generateRandomWalk(7, totalValue),
+        '1M': generateRandomWalk(30, totalValue),
+        '6M': generateRandomWalk(180, totalValue),
+        '1Y': generateRandomWalk(365, totalValue),
     };
 };
 
-const portfolioSummary = calculatePortfolioSummary(initialHoldings);
-const chartData = generateChartData(portfolioSummary.totalValue);
-
-const usePortfolioStore = create<PortfolioState>(() => ({
+const usePortfolioStore = create<PortfolioState>((set, get) => ({
   holdings: initialHoldings,
-  portfolioSummary: portfolioSummary,
-  chartData: chartData,
+  portfolioSummary: calculatePortfolioSummary(initialHoldings),
+  chartData: generateChartData(calculatePortfolioSummary(initialHoldings).totalValue),
+  
+  executeTrade: (trade) => {
+    const currentHoldings = get().holdings;
+    const existingHoldingIndex = currentHoldings.findIndex(h => h.symbol === trade.symbol);
+    let newHoldings = [...currentHoldings];
+
+    if (existingHoldingIndex > -1) {
+      const existingHolding = newHoldings[existingHoldingIndex];
+      const newQty = existingHolding.qty + trade.qty;
+
+      if (newQty < 0) {
+        return { success: false, error: "You cannot sell more shares than you own." };
+      }
+
+      if (newQty === 0) {
+        newHoldings.splice(existingHoldingIndex, 1);
+      } else {
+        // Calculate new average purchase price for buys
+        const newPurchasePrice = trade.qty > 0 
+          ? ((existingHolding.purchasePrice * existingHolding.qty) + (trade.price * trade.qty)) / newQty
+          : existingHolding.purchasePrice;
+          
+        newHoldings[existingHoldingIndex] = {
+          ...existingHolding,
+          qty: newQty,
+          purchasePrice: newPurchasePrice,
+          currentPrice: trade.price, // Update current price for realism
+        };
+      }
+    } else {
+      if (trade.qty < 0) {
+        return { success: false, error: "You cannot sell shares you do not own." };
+      }
+      const newHolding: Holding = {
+        symbol: trade.symbol,
+        description: trade.description,
+        currentPrice: trade.price,
+        purchasePrice: trade.price,
+        qty: trade.qty,
+        todaysChange: 0, // Mock data
+        todaysChangePercent: 0, // Mock data
+        annualRatePercent: 0, // Mock data
+      };
+      newHoldings.push(newHolding);
+    }
+    
+    const newSummary = calculatePortfolioSummary(newHoldings);
+    const newChartData = generateChartData(newSummary.totalValue);
+
+    set({ 
+        holdings: newHoldings,
+        portfolioSummary: newSummary,
+        chartData: newChartData,
+    });
+
+    return { success: true };
+  }
 }));
 
 export default usePortfolioStore;
+
+    

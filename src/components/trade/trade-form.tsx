@@ -1,6 +1,9 @@
 
 "use client";
 
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   Card,
   CardContent,
@@ -18,121 +21,266 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Info, Eye, Search } from "lucide-react";
+import { Info, Eye, Search, DollarSign } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast";
+import usePortfolioStore from "@/store/portfolio-store";
+import { useState } from "react";
+
+const tradeSchema = z.object({
+  symbol: z.string().min(1, "Symbol is required."),
+  action: z.enum(["buy", "sell"]),
+  quantity: z.coerce.number().positive("Quantity must be positive."),
+  orderType: z.enum(["market", "limit"]),
+  limitPrice: z.coerce.number().optional(),
+  duration: z.enum(["day-only", "gtc"]),
+}).refine(data => data.orderType !== 'limit' || (data.limitPrice !== undefined && data.limitPrice > 0), {
+  message: "Limit price is required for limit orders.",
+  path: ["limitPrice"],
+});
+
+type TradeFormValues = z.infer<typeof tradeSchema>;
+
+const mockStockData = {
+    "AAPL": { price: 214.29, name: "Apple Inc." },
+    "TSLA": { price: 183.01, name: "Tesla, Inc." },
+    "AMZN": { price: 185.57, name: "Amazon.com, Inc." },
+    "GOOGL": { price: 179.22, name: "Alphabet Inc." },
+    "MSFT": { price: 447.67, name: "Microsoft Corp." },
+    "NKE": { price: 73.04, name: "Nike, Inc." },
+    "VOO": { price: 502.88, name: "Vanguard S&P 500 ETF" },
+};
 
 export default function TradeForm() {
+  const { toast } = useToast();
+  const { executeTrade } = usePortfolioStore();
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<TradeFormValues | null>(null);
+
+  const { register, handleSubmit, control, watch, formState: { errors, isValid } } = useForm<TradeFormValues>({
+    resolver: zodResolver(tradeSchema),
+    mode: "onChange",
+    defaultValues: {
+      symbol: "",
+      action: "buy",
+      quantity: 0,
+      orderType: "market",
+      duration: "day-only",
+    },
+  });
+
+  const orderType = watch("orderType");
+  const symbol = watch("symbol").toUpperCase();
+  const quantity = watch("quantity");
+  
+  const stockInfo = (mockStockData as any)[symbol];
+  const estimatedCost = stockInfo ? stockInfo.price * quantity : 0;
+
+  const handlePreview = (data: TradeFormValues) => {
+    setPreviewData(data);
+    setIsPreviewOpen(true);
+  };
+
+  const handleConfirmTrade = () => {
+    if (!previewData) return;
+
+    // This is where you would call the store action
+    const tradeResult = executeTrade({
+      symbol: previewData.symbol.toUpperCase(),
+      qty: previewData.action === 'buy' ? previewData.quantity : -previewData.quantity,
+      price: (mockStockData as any)[previewData.symbol.toUpperCase()]?.price || 0,
+      description: (mockStockData as any)[previewData.symbol.toUpperCase()]?.name || "Unknown Stock"
+    });
+
+    if (tradeResult.success) {
+      toast({
+        title: "Trade Executed!",
+        description: `Successfully ${previewData.action === 'buy' ? 'bought' : 'sold'} ${previewData.quantity} shares of ${previewData.symbol.toUpperCase()}.`,
+      });
+    } else {
+        toast({
+            variant: "destructive",
+            title: "Trade Failed",
+            description: tradeResult.error,
+        });
+    }
+
+    setIsPreviewOpen(false);
+    setPreviewData(null);
+  };
+
   return (
     <TooltipProvider>
       <Card>
-        <CardHeader>
-          <CardTitle>Place an Order</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="symbol">Symbol</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                id="symbol"
-                placeholder="Look up Symbol/Company Name"
-                className="pl-10"
-              />
+        <form onSubmit={handleSubmit(handlePreview)}>
+          <CardHeader>
+            <CardTitle>Place an Order</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="symbol">Symbol</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="symbol"
+                  placeholder="Look up Symbol/Company Name"
+                  className="pl-10"
+                  {...register("symbol")}
+                />
+              </div>
+              {errors.symbol && <p className="text-sm text-destructive">{errors.symbol.message}</p>}
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="action" className="flex items-center gap-1">
-                Action
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Choose to buy or sell the asset.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </Label>
-              <Select defaultValue="buy">
-                <SelectTrigger id="action">
-                  <SelectValue placeholder="Select action" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="buy">Buy</SelectItem>
-                  <SelectItem value="sell">Sell</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="quantity">Quantity</Label>
-              <div className="flex items-center gap-2">
-                <Input id="quantity" type="number" defaultValue="0" />
-                <Button variant="ghost" size="sm" className="text-primary whitespace-nowrap">
-                  <Eye className="h-4 w-4 mr-1"/>
-                  Show Max
-                </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="action" className="flex items-center gap-1">
+                  Action
+                </Label>
+                <Controller
+                    name="action"
+                    control={control}
+                    render={({ field }) => (
+                         <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger id="action">
+                                <SelectValue placeholder="Select action" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="buy">Buy</SelectItem>
+                                <SelectItem value="sell">Sell</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    )}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="quantity">Quantity</Label>
+                <Input id="quantity" type="number" step="any" {...register("quantity")} />
+                 {errors.quantity && <p className="text-sm text-destructive">{errors.quantity.message}</p>}
               </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="order-type" className="flex items-center gap-1">
-                Order Type
-                 <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Market orders execute immediately at the current price. Limit orders execute only at your specified price or better.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </Label>
-              <Select defaultValue="market">
-                <SelectTrigger id="order-type">
-                  <SelectValue placeholder="Select order type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="market">Market</SelectItem>
-                  <SelectItem value="limit">Limit</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="order-type" className="flex items-center gap-1">
+                  Order Type
+                </Label>
+                <Controller
+                    name="orderType"
+                    control={control}
+                    render={({ field }) => (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger id="order-type">
+                            <SelectValue placeholder="Select order type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                            <SelectItem value="market">Market</SelectItem>
+                            <SelectItem value="limit">Limit</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    )}
+                />
+              </div>
+              {orderType === "limit" && (
+                <div className="space-y-2">
+                    <Label htmlFor="limitPrice">Limit Price</Label>
+                    <div className="relative">
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input id="limitPrice" type="number" step="any" className="pl-8" {...register("limitPrice")} />
+                    </div>
+                    {errors.limitPrice && <p className="text-sm text-destructive">{errors.limitPrice.message}</p>}
+                </div>
+              )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="duration" className="flex items-center gap-1">
-                Duration
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>&quot;Day Only&quot; orders are canceled if not filled by the end of the trading day. &quot;Good &apos;til Canceled&quot; orders remain active until filled or canceled.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </Label>
-              <Select defaultValue="day-only">
-                <SelectTrigger id="duration">
-                  <SelectValue placeholder="Select duration" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="day-only">Day Only</SelectItem>
-                  <SelectItem value="gtc">Good &apos;til Canceled (GTC)</SelectItem>
-                </SelectContent>
-              </Select>
+             <div className="space-y-2">
+                <Label htmlFor="duration" className="flex items-center gap-1">
+                    Duration
+                </Label>
+                 <Controller
+                    name="duration"
+                    control={control}
+                    render={({ field }) => (
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <SelectTrigger id="duration">
+                            <SelectValue placeholder="Select duration" />
+                            </SelectTrigger>
+                            <SelectContent>
+                            <SelectItem value="day-only">Day Only</SelectItem>
+                            <SelectItem value="gtc">Good &apos;til Canceled (GTC)</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    )}
+                />
             </div>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-end gap-2">
-          <Button variant="outline">Clear</Button>
-          <Button disabled>Preview Order</Button>
-        </CardFooter>
+            
+            {stockInfo && quantity > 0 && (
+                <div className="p-4 bg-muted rounded-lg text-sm">
+                    <h4 className="font-semibold mb-2">Order Summary</h4>
+                    <div className="flex justify-between">
+                        <span>Estimated Cost:</span>
+                        <span className="font-medium">${estimatedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    </div>
+                     <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>{quantity} shares x ${stockInfo.price.toFixed(2)}/share</span>
+                    </div>
+                </div>
+            )}
+
+          </CardContent>
+          <CardFooter className="flex justify-end gap-2">
+            <Button variant="outline" type="reset">Clear</Button>
+            <Button type="submit" disabled={!isValid}>Preview Order</Button>
+          </CardFooter>
+        </form>
       </Card>
+      
+        <AlertDialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                    <AlertDialogTitle>Confirm Your Order</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        Please review your order details before confirming. This action cannot be undone.
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                {previewData && (
+                    <div className="space-y-2 text-sm">
+                        <div className="flex justify-between"><strong>Action:</strong> <span className="capitalize">{previewData.action}</span></div>
+                        <div className="flex justify-between"><strong>Symbol:</strong> <span>{previewData.symbol.toUpperCase()}</span></div>
+                        <div className="flex justify-between"><strong>Quantity:</strong> <span>{previewData.quantity}</span></div>
+                        <div className="flex justify-between"><strong>Order Type:</strong> <span className="capitalize">{previewData.orderType}</span></div>
+                        {previewData.orderType === 'limit' && (
+                             <div className="flex justify-between"><strong>Limit Price:</strong> <span>${previewData.limitPrice?.toFixed(2)}</span></div>
+                        )}
+                        <div className="flex justify-between"><strong>Duration:</strong> <span>{previewData.duration === 'gtc' ? "Good 'til Canceled" : "Day Only"}</span></div>
+                        <div className="flex justify-between pt-2 border-t mt-2">
+                            <strong>Estimated Total:</strong> 
+                            <strong className="text-primary">${((mockStockData as any)[previewData.symbol.toUpperCase()]?.price * previewData.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                        </div>
+                    </div>
+                )}
+                <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleConfirmTrade}>Confirm Trade</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+
     </TooltipProvider>
   );
 }
+
+    
