@@ -92,28 +92,37 @@ const calculatePortfolioSummary = (holdings: Holding[]): PortfolioSummary => {
 };
 
 const generateChartData = (totalValue: number): ChartData => {
-    const today = new Date();
-    const generateDate = (daysAgo: number) => {
-        const date = new Date(today);
-        date.setDate(today.getDate() - daysAgo);
+    const generateDateLabel = (date: Date) => {
         return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     }
 
     const generateRandomWalk = (days: number, initialValue: number) => {
         const data = [];
         let currentValue = initialValue;
-        for (let i = days - 1; i >= 0; i--) {
-            data.push({ date: generateDate(i), value: Math.max(0, currentValue) });
-            currentValue += (Math.random() - 0.5) * (initialValue * 0.05);
+        let currentDate = new Date();
+
+        for (let i = 0; i < days; i++) {
+            // Move to the previous day
+            currentDate.setDate(currentDate.getDate() - 1);
+
+            // Skip weekends (Saturday: 6, Sunday: 0)
+            if (currentDate.getDay() === 6 || currentDate.getDay() === 0) {
+                // to ensure we still get the correct number of data points, we can increment days
+                days++;
+                continue; 
+            }
+            
+            data.push({ date: generateDateLabel(currentDate), value: Math.max(0, currentValue) });
+            currentValue += (Math.random() - 0.5) * (initialValue * 0.05); // Simulate market fluctuation
         }
-        return data;
+        return data.reverse(); // reverse to show oldest to newest
     }
     
     return {
-        '1W': generateRandomWalk(7, totalValue),
-        '1M': generateRandomWalk(30, totalValue),
-        '6M': generateRandomWalk(180, totalValue),
-        '1Y': generateRandomWalk(365, totalValue),
+        '1W': generateRandomWalk(5, totalValue),  // 5 trading days
+        '1M': generateRandomWalk(22, totalValue), // ~22 trading days
+        '6M': generateRandomWalk(126, totalValue),// ~126 trading days
+        '1Y': generateRandomWalk(252, totalValue),// ~252 trading days
     };
 };
 
@@ -181,5 +190,3 @@ const usePortfolioStore = create<PortfolioState>((set, get) => ({
 }));
 
 export default usePortfolioStore;
-
-    

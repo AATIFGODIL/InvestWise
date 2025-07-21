@@ -37,10 +37,19 @@ const AppleIcon = () => (
 export default function SignUpPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleSignUp = () => {
-    // This is a prototype, so we just navigate.
-    // In a real app, you'd handle form validation and API calls here.
+    if (password !== confirmPassword) {
+        toast({
+            variant: "destructive",
+            title: "Passwords do not match!",
+            description: "Please re-enter your passwords.",
+        });
+        return;
+    }
+
     toast({
         title: "Success!",
         description: "Your account has been created (prototype).",
@@ -88,7 +97,11 @@ export default function SignUpPage() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" required />
+            <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="confirm-password">Confirm Password</Label>
+            <Input id="confirm-password" type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
           </div>
            <div className="grid gap-2">
               <Label htmlFor="id-proof">ID Verification</Label>

@@ -24,9 +24,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
+import useUserStore from "@/store/user-store";
 
 export default function Header() {
   const router = useRouter();
+  const { username } = useUserStore();
 
   const handleLogout = () => {
     router.push('/auth/signin');
@@ -35,7 +37,9 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-30 flex h-20 items-center justify-between bg-primary px-4 sm:px-6 text-primary-foreground">
       <div className="flex items-center gap-2 font-semibold">
-        <h1 className="text-xl font-bold">InvestWise</h1>
+        <Link href="/dashboard">
+          <h1 className="text-xl font-bold">InvestWise</h1>
+        </Link>
       </div>
       <div className="flex items-center gap-2">
         <DropdownMenu>
@@ -82,14 +86,14 @@ export default function Header() {
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar className="h-10 w-10 border-2 border-primary-foreground">
                 <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" alt="@user" />
-                <AvatarFallback>U</AvatarFallback>
+                <AvatarFallback>{username.charAt(0)}</AvatarFallback>
               </Avatar>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">First-Time Investor</p>
+                <p className="text-sm font-medium leading-none">{username}</p>
                 <p className="text-xs leading-none text-muted-foreground">
                   investor@example.com
                 </p>

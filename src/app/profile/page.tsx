@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type ChangeEvent } from "react";
+import { useState, type ChangeEvent, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,13 +17,20 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronLeft, KeyRound, User, Save, Mail, Upload, Repeat, BarChart, Briefcase, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import useUserStore from "@/store/user-store";
 
 export default function ProfilePage() {
   const { toast } = useToast();
-  const [username, setUsername] = useState("First-Time Investor");
+  const { username, setUsername: setGlobalUsername } = useUserStore();
+  const [localUsername, setLocalUsername] = useState(username);
   const [profilePic, setProfilePic] = useState("https://i.pravatar.cc/150?u=a042581f4e29026704d");
 
+  useEffect(() => {
+    setLocalUsername(username);
+  }, [username]);
+
   const handleSaveChanges = () => {
+    setGlobalUsername(localUsername);
     toast({
       title: "Success!",
       description: "Your profile has been updated.",
@@ -98,8 +105,8 @@ export default function ProfilePage() {
                     <Label htmlFor="username">Username</Label>
                     <Input 
                         id="username" 
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
+                        value={localUsername}
+                        onChange={(e) => setLocalUsername(e.target.value)}
                     />
                 </div>
                  <div className="space-y-2">
