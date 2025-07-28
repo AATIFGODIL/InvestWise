@@ -18,6 +18,8 @@ import Link from "next/link";
 import { LeaderboardVisibility } from "../community/page";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import useThemeStore from "@/store/theme-store";
+import { useAuth } from "@/hooks/use-auth";
 
 const VisaIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 38 24" fill="none">
@@ -39,21 +41,13 @@ export default function SettingsPage() {
   const [leaderboardVisibility, setLeaderboardVisibility] = useState<LeaderboardVisibility>("public");
   const [quests, setQuests] = useState(true);
   const [parentalControl, setParentalControl] = useState(false);
-  const [theme, setTheme] = useState<string | null>(null);
-
-  useEffect(() => {
-    const root = window.document.documentElement;
-    const currentTheme = root.classList.contains("dark") ? "dark" : "light";
-    setTheme(currentTheme);
-  }, []);
-
-  useEffect(() => {
-    if (theme) {
-        const root = window.document.documentElement;
-        root.classList.remove("light", "dark");
-        root.classList.add(theme);
-    }
-  }, [theme]);
+  const { theme, setTheme } = useThemeStore();
+  const { updateUserTheme } = useAuth();
+  
+  const handleThemeChange = (newTheme: "light" | "dark") => {
+    setTheme(newTheme);
+    updateUserTheme(newTheme);
+  };
 
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -128,7 +122,7 @@ export default function SettingsPage() {
                     <Skeleton className="h-12 w-full" />
                 </div>
             ) : (
-                <RadioGroup value={theme} onValueChange={setTheme} className="space-y-2">
+                <RadioGroup value={theme} onValueChange={(v) => handleThemeChange(v as "light" | "dark")} className="space-y-2">
                     <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                         <Label htmlFor="theme-light" className="flex items-center gap-2 cursor-pointer"><Sun className="h-4 w-4"/> Light Mode</Label>
                         <RadioGroupItem value="light" id="theme-light" />

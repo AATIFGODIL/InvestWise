@@ -29,6 +29,7 @@ import usePortfolioStore from "@/store/portfolio-store";
 import useNotificationStore, { type Notification } from "@/store/notification-store";
 import useGoalStore from "@/store/goal-store";
 import useAutoInvestStore from "@/store/auto-invest-store";
+import useThemeStore from "@/store/theme-store";
 
 interface AuthContextType {
   user: User | null;
@@ -39,6 +40,7 @@ interface AuthContextType {
   signInWithApple: () => Promise<void>;
   signOut: () => void;
   updateUserProfile: (data: { username?: string, photoDataUrl?: string }) => Promise<void>;
+  updateUserTheme: (theme: "light" | "dark") => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { setNotifications } = useNotificationStore();
   const { loadGoals, resetGoals } = useGoalStore();
   const { loadAutoInvestments, resetAutoInvest } = useAutoInvestStore();
+  const { setTheme } = useThemeStore();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -64,9 +67,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setNotifications(userData.notifications || []);
       loadGoals(userData.goals || []);
       loadAutoInvestments(userData.autoInvestments || []);
+      setTheme(userData.theme || 'light');
     } else {
         // This case handles a new user signing in for the first time via social auth.
-        await initializeUserDocument(user, user.displayName);
+        await initializeUserDocument(user, user.displayName, user.photoURL);
     }
   };
 
@@ -84,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         resetPortfolio();
         resetGoals();
         resetAutoInvest();
+        setTheme('light');
       }
       setLoading(false);
     });
@@ -91,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, []);
 
-  const initializeUserDocument = async (user: User, username?: string | null) => {
+  const initializeUserDocument = async (user: User, username?: string | null, photoURL?: string | null) => {
     const userDocRef = doc(db, "users", user.uid);
     const userDoc = await getDoc(userDocRef);
 
@@ -117,14 +122,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
 
 
-      const displayName = username || user.displayName || "Investor";
-      const photoURL = user.photoURL || "";
+      const displayName = username || "Investor";
+      const finalPhotoURL = photoURL || "";
       
       const newUserDoc = {
         uid: user.uid,
         email: user.email,
         username: displayName,
-        photoURL: photoURL,
+        photoURL: finalPhotoURL,
+        theme: 'light',
         createdAt: new Date(),
         portfolio: initialPortfolio,
         notifications: [welcomeNotification],
@@ -135,18 +141,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await setDoc(userDocRef, newUserDoc);
       
       const profileUpdate: { displayName: string; photoURL?: string } = { displayName };
-      if (photoURL) {
-          profileUpdate.photoURL = photoURL;
+      if (finalPhotoURL) {
+          profileUpdate.photoURL = finalPhotoURL;
       }
       await updateProfile(user, profileUpdate);
       
       // Manually update local state for new users to prevent race conditions
       setUsername(displayName);
-      setProfilePic(photoURL);
+      setProfilePic(finalPhotoURL);
       loadInitialData(initialPortfolio.holdings, initialPortfolio.summary);
       setNotifications([welcomeNotification]);
       loadGoals([]);
       loadAutoInvestments([]);
+      setTheme('light');
     }
   };
 
@@ -216,6 +223,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateUserTheme = async (theme: "light" | "dark") => {
+    if (!user) return;
+    const userDocRef = doc(db, "users", user.uid);
+    await updateDoc(userDocRef, { theme });
+  }
+
 
   const signOut = async () => {
     await firebaseSignOut(auth);
@@ -231,6 +244,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signInWithApple,
     signOut,
     updateUserProfile,
+    updateUserTheme,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
