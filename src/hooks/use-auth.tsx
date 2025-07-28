@@ -83,20 +83,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const userDocRef = doc(db, "users", user.uid);
+    const photoURL = user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`;
+    
     await setDoc(userDocRef, {
       uid: user.uid,
       email: user.email,
       username: username,
-      photoURL: user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`,
+      photoURL: photoURL,
       createdAt: new Date(),
       portfolio: initialPortfolio
     });
     
-    await updateProfile(user, { displayName: username, photoURL: user.photoURL });
+    await updateProfile(user, { displayName: username, photoURL: photoURL });
     
     // Manually set state after creating doc for new user
     setUsername(username);
-    setProfilePic(user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`);
+    setProfilePic(photoURL);
     loadInitialData(initialPortfolio.holdings, initialPortfolio.summary);
     setUser(user);
   };
