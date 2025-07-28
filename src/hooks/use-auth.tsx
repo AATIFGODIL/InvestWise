@@ -26,6 +26,7 @@ import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/store/user-store";
 import usePortfolioStore from "@/store/portfolio-store";
+import useNotificationStore, { type Notification } from "@/store/notification-store";
 
 interface AuthContextType {
   user: User | null;
@@ -43,6 +44,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { setUsername, setProfilePic } = useUserStore();
   const { loadInitialData, resetPortfolio } = usePortfolioStore();
+  const { setNotifications } = useNotificationStore();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -55,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUsername(userData.username || user.displayName || "Investor");
       setProfilePic(userData.photoURL || user.photoURL || "");
       loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
+      setNotifications(userData.notifications || []);
     } else {
         // This case handles a new user signing in for the first time via social auth.
         await initializeUserDocument(user);
@@ -69,6 +72,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await fetchUserData(user);
       } else {
         setUser(null);
+        setUsername("Investor");
+        setProfilePic("");
+        setNotifications([]);
         resetPortfolio();
       }
       setLoading(false);
@@ -91,6 +97,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               annualRatePercent: 0,
           }
       };
+      
+      const welcomeNotification: Notification = {
+        id: `welcome-${Date.now()}`,
+        title: "Welcome to InvestWise!",
+        description: "We're glad to have you. Explore the app to start your journey.",
+        href: "/dashboard",
+        type: 'welcome',
+        read: false,
+        createdAt: new Date().toISOString(),
+      };
+
 
       const displayName = username || user.displayName || "Investor";
       const photoURL = user.photoURL || "";
@@ -101,7 +118,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         username: displayName,
         photoURL: photoURL,
         createdAt: new Date(),
-        portfolio: initialPortfolio
+        portfolio: initialPortfolio,
+        notifications: [welcomeNotification]
       };
 
       await setDoc(userDocRef, newUserDoc);
@@ -114,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUsername(displayName);
       setProfilePic(photoURL);
       loadInitialData(initialPortfolio.holdings, initialPortfolio.summary);
+      setNotifications([welcomeNotification]);
     }
   };
 
@@ -121,9 +140,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email:string, pass: string, username: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
-    // Set user in state *before* initializing document to ensure `onAuthStateChanged` doesn't cause issues
-    setUser(newUser); 
+    await updateProfile(newUser, { displayName: username });
     await initializeUserDocument(newUser, username);
+    setUser(newUser);
   }
 
   const signIn = (email:string, pass: string) => {
@@ -131,9 +150,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
-    const result = await signInWithPopup(auth, provider);
-    const user = result.user;
-    // No need to call `initializeUserDocument` here; onAuthStateChanged will handle it
+    await signInWithPopup(auth, provider);
+    // onAuthStateChanged will handle the rest
   };
 
   const signInWithGoogle = async () => {
