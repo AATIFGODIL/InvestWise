@@ -1,14 +1,13 @@
 
 "use client";
 
-import { useState } from "react";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
 import CreateGoal from "@/components/goals/create-goal";
 import GoalList from "@/components/goals/goal-list";
 import EducationalVideo from "@/components/shared/educational-video";
-import { initialGoals, goalIcons, type Goal } from "@/data/goals";
 import Chatbot from "@/components/chatbot/chatbot";
+import useGoalStore from "@/store/goal-store";
 
 const videos = [
     {
@@ -26,18 +25,7 @@ const videos = [
 ]
 
 export default function GoalsPage() {
-  const [goals, setGoals] = useState<Goal[]>(initialGoals);
-
-  const addGoal = (newGoal: Omit<Goal, 'id' | 'icon' | 'progress' | 'current'>) => {
-    const goal: Goal = {
-        ...newGoal,
-        id: newGoal.name.toLowerCase().replace(/\s/g, '-'),
-        current: 0,
-        progress: 0,
-        icon: goalIcons.default,
-    };
-    setGoals(prevGoals => [...prevGoals, goal]);
-  };
+  const { goals, addGoal } = useGoalStore();
 
   return (
     <div className="w-full bg-background font-body">

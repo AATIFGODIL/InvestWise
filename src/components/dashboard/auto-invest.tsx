@@ -37,34 +37,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-
-interface AutoInvestment {
-    name: string;
-    amount: number;
-    frequency: string;
-    nextDate: string;
-}
-
-const initialAutoInvestments: AutoInvestment[] = [
-    {
-        name: "Tech Starter Pack",
-        amount: 50,
-        frequency: "Weekly",
-        nextDate: "July 25, 2025"
-    },
-    {
-        name: "S&P 500 ETF",
-        amount: 100,
-        frequency: "Monthly",
-        nextDate: "August 01, 2025"
-    }
-];
+import useAutoInvestStore, { type AutoInvestment } from "@/store/auto-invest-store";
 
 export default function AutoInvest() {
     const { toast } = useToast();
-    const [autoInvestments, setAutoInvestments] = useState<AutoInvestment[]>(initialAutoInvestments);
-    const [selectedInvestment, setSelectedInvestment] = useState<AutoInvestment | null>(null);
+    const { autoInvestments, addAutoInvestment, updateAutoInvestment, removeAutoInvestment } = useAutoInvestStore();
+
     const [isManageOpen, setIsManageOpen] = useState(false);
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [selectedInvestment, setSelectedInvestment] = useState<AutoInvestment | null>(null);
+    
+    // State for the creation form
+    const [newName, setNewName] = useState("");
+    const [newAmount, setNewAmount] = useState<number | string>("");
+    const [newFrequency, setNewFrequency] = useState("");
 
     const handleManageClick = (investment: AutoInvestment) => {
         setSelectedInvestment(investment);
@@ -73,9 +59,7 @@ export default function AutoInvest() {
 
     const handleSaveChanges = () => {
         if (!selectedInvestment) return;
-        setAutoInvestments(prev => 
-            prev.map(inv => inv.name === selectedInvestment.name ? selectedInvestment : inv)
-        );
+        updateAutoInvestment(selectedInvestment.name, selectedInvestment);
         toast({
             title: "Success!",
             description: "Your auto-invest settings have been updated.",
@@ -85,7 +69,7 @@ export default function AutoInvest() {
     
     const handleRemoveInvestment = () => {
         if (!selectedInvestment) return;
-        setAutoInvestments(prev => prev.filter(inv => inv.name !== selectedInvestment.name));
+        removeAutoInvestment(selectedInvestment.name);
          toast({
             variant: "destructive",
             title: "Investment Removed",
@@ -93,6 +77,33 @@ export default function AutoInvest() {
         });
         setIsManageOpen(false);
     }
+
+    const handleCreateInvestment = () => {
+        if (!newName || !newAmount || !newFrequency) {
+             toast({
+                variant: "destructive",
+                title: "Missing Information",
+                description: "Please fill out all fields to create a new auto-investment.",
+            });
+            return;
+        }
+        addAutoInvestment({
+            name: newName,
+            amount: Number(newAmount),
+            frequency: newFrequency,
+            nextDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        });
+         toast({
+            title: "Success!",
+            description: `Auto-investment for ${newName} has been created.`,
+        });
+        // Reset form and close dialog
+        setNewName("");
+        setNewAmount("");
+        setNewFrequency("");
+        setIsCreateOpen(false);
+    }
+
 
     return (
         <Card>
@@ -120,7 +131,7 @@ export default function AutoInvest() {
                         </div>
                     </div>
                 ))}
-                 <Dialog>
+                 <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                     <DialogTrigger asChild>
                         <Button className="w-full">
                             <PlusCircle className="mr-2 h-4 w-4" />
@@ -141,8 +152,10 @@ export default function AutoInvest() {
                                 </Label>
                                 <Input
                                     id="investment-name"
-                                    defaultValue="S&P 500 ETF"
+                                    placeholder="e.g. S&P 500 ETF"
                                     className="col-span-3"
+                                    value={newName}
+                                    onChange={(e) => setNewName(e.target.value)}
                                 />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
@@ -156,6 +169,8 @@ export default function AutoInvest() {
                                         type="number"
                                         placeholder="50"
                                         className="pl-9"
+                                        value={newAmount}
+                                        onChange={(e) => setNewAmount(e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -163,21 +178,21 @@ export default function AutoInvest() {
                                 <Label htmlFor="frequency" className="text-right">
                                     Frequency
                                 </Label>
-                                <Select>
+                                <Select value={newFrequency} onValueChange={setNewFrequency}>
                                     <SelectTrigger className="col-span-3">
                                         <SelectValue placeholder="Select frequency" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="daily">Daily</SelectItem>
-                                        <SelectItem value="weekly">Weekly</SelectItem>
-                                        <SelectItem value="bi-weekly">Bi-weekly</SelectItem>
-                                        <SelectItem value="monthly">Monthly</SelectItem>
+                                        <SelectItem value="Daily">Daily</SelectItem>
+                                        <SelectItem value="Weekly">Weekly</SelectItem>
+                                        <SelectItem value="Bi-weekly">Bi-weekly</SelectItem>
+                                        <SelectItem value="Monthly">Monthly</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="submit">Save Changes</Button>
+                            <Button type="submit" onClick={handleCreateInvestment}>Save Changes</Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>

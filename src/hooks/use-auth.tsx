@@ -27,6 +27,8 @@ import { useRouter } from "next/navigation";
 import useUserStore from "@/store/user-store";
 import usePortfolioStore from "@/store/portfolio-store";
 import useNotificationStore, { type Notification } from "@/store/notification-store";
+import useGoalStore from "@/store/goal-store";
+import useAutoInvestStore from "@/store/auto-invest-store";
 
 interface AuthContextType {
   user: User | null;
@@ -45,6 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { setUsername, setProfilePic } = useUserStore();
   const { loadInitialData, resetPortfolio } = usePortfolioStore();
   const { setNotifications } = useNotificationStore();
+  const { loadGoals, resetGoals } = useGoalStore();
+  const { loadAutoInvestments, resetAutoInvest } = useAutoInvestStore();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -55,9 +59,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (userDoc.exists()) {
       const userData = userDoc.data();
       setUsername(userData.username || user.displayName || "Investor");
-      setProfilePic(userData.photoURL || "");
+      setProfilePic(user.photoURL || userData.photoURL || "");
       loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
       setNotifications(userData.notifications || []);
+      loadGoals(userData.goals || []);
+      loadAutoInvestments(userData.autoInvestments || []);
     } else {
         // This case handles a new user signing in for the first time via social auth.
         await initializeUserDocument(user, user.displayName);
@@ -76,6 +82,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setProfilePic("");
         setNotifications([]);
         resetPortfolio();
+        resetGoals();
+        resetAutoInvest();
       }
       setLoading(false);
     });
@@ -119,7 +127,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         photoURL: photoURL,
         createdAt: new Date(),
         portfolio: initialPortfolio,
-        notifications: [welcomeNotification]
+        notifications: [welcomeNotification],
+        goals: [],
+        autoInvestments: [],
       };
 
       await setDoc(userDocRef, newUserDoc);
@@ -135,6 +145,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfilePic(photoURL);
       loadInitialData(initialPortfolio.holdings, initialPortfolio.summary);
       setNotifications([welcomeNotification]);
+      loadGoals([]);
+      loadAutoInvestments([]);
     }
   };
 
@@ -188,7 +200,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const profileUpdate: { displayName?: string; photoURL?: string } = {};
     if (data.username) profileUpdate.displayName = data.username;
-    if (data.photoDataUrl) profileUpdate.photoURL = photoURL;
+    if (data.photoDataUrl && photoURL) {
+      profileUpdate.photoURL = photoURL;
+    }
 
     if (Object.keys(profileUpdate).length > 0) {
         await updateProfile(user, profileUpdate);
