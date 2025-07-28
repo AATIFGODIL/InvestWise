@@ -7,6 +7,7 @@ import {
   createContext,
   useContext,
   type ReactNode,
+  useCallback,
 } from "react";
 import {
   onAuthStateChanged,
@@ -56,24 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  const fetchUserData = async (user: User) => {
-    const userDocRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(userDocRef);
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      setUsername(userData.username || user.displayName || "Investor");
-      setProfilePic(userData.photoURL || "");
-      loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
-      setNotifications(userData.notifications || []);
-      loadGoals(userData.goals || []);
-      loadAutoInvestments(userData.autoInvestments || []);
-      setTheme(userData.theme || 'light');
-      return true;
-    }
-    return false;
-  };
-  
-  const initializeUserDocument = async (user: User, username?: string | null) => {
+  const initializeUserDocument = useCallback(async (user: User, username?: string | null) => {
     const userDocRef = doc(db, "users", user.uid);
 
     const displayName = username || user.displayName || "Investor";
@@ -118,7 +102,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (photoURL) {
         profileUpdate.photoURL = photoURL;
     }
-    await updateProfile(user, profileUpdate);
+    
+    if (profileUpdate.displayName || profileUpdate.photoURL) {
+        await updateProfile(user, profileUpdate);
+    }
     
     setUsername(displayName);
     setProfilePic(photoURL);
@@ -127,8 +114,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loadGoals([]);
     loadAutoInvestments([]);
     setTheme('light');
-  };
+  }, [setUsername, setProfilePic, loadInitialData, setNotifications, loadGoals, loadAutoInvestments, setTheme]);
 
+
+  const fetchUserData = useCallback(async (user: User) => {
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      setUsername(userData.username || user.displayName || "Investor");
+      setProfilePic(userData.photoURL || "");
+      loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
+      setNotifications(userData.notifications || []);
+      loadGoals(userData.goals || []);
+      loadAutoInvestments(userData.autoInvestments || []);
+      setTheme(userData.theme || 'light');
+      return true;
+    }
+    return false;
+  }, [setUsername, setProfilePic, loadInitialData, setNotifications, loadGoals, loadAutoInvestments, setTheme]);
+  
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -137,7 +142,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(user);
         const userExists = await fetchUserData(user);
         if (!userExists) {
-          // This is a new user, likely from a social sign-in.
           await initializeUserDocument(user);
         }
       } else {
@@ -154,13 +158,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchUserData, initializeUserDocument, resetAutoInvest, resetGoals, resetPortfolio, setNotifications, setProfilePic, setTheme, setUsername]);
 
   const signUp = async (email:string, pass: string, username: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
-    // onAuthStateChanged will not re-run for email/password sign up, so we initialize manually.
     await initializeUserDocument(newUser, username);
     setUser(newUser);
   }
