@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (userDoc.exists()) {
       const userData = userDoc.data();
       setUsername(userData.username || user.displayName || "Investor");
-      setProfilePic(userData.photoURL || user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`);
+      setProfilePic(userData.photoURL || user.photoURL || "");
       loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
     } else {
         // This case handles a new user signing in for the first time via social auth.
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       };
 
       const displayName = username || user.displayName || "Investor";
-      const photoURL = user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`;
+      const photoURL = user.photoURL || "";
       
       const newUserDoc = {
         uid: user.uid,
@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       await setDoc(userDocRef, newUserDoc);
 
-      if (!user.displayName || !user.photoURL) {
+      if (!user.displayName || (user.photoURL !== photoURL)) {
           await updateProfile(user, { displayName, photoURL });
       }
       
