@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfilePic(userData.photoURL || user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`);
       loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
     } else {
-        // This case handles a new user signing in for the first time.
+        // This case handles a new user signing in for the first time via social auth.
         await initializeUserDocument(user);
     }
   };
@@ -121,8 +121,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email:string, pass: string, username: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
-    await initializeUserDocument(newUser, username || "First-Time Investor");
+    // Manually set user state before initialization to avoid race conditions
     setUser(newUser);
+    await initializeUserDocument(newUser, username || "Investor");
   }
 
   const signIn = (email:string, pass: string) => {
@@ -132,8 +133,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
+    setUser(user); // Set user immediately after social sign-in
     await initializeUserDocument(user);
-    setUser(user);
   };
 
   const signInWithGoogle = async () => {
