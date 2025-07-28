@@ -107,9 +107,9 @@ export default function SignUpPage() {
       await signInMethod();
       toast({
         title: "Signed In Successfully",
-        description: `Welcome!`,
+        description: `Welcome! Please complete your profile.`,
       });
-      router.push("/dashboard");
+      router.push("/onboarding/id-verification");
     } catch (err: any) {
       setError(err.message);
     } finally {
