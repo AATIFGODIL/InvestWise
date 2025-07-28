@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (userDoc.exists()) {
       const userData = userDoc.data();
       setUsername(userData.username || user.displayName || "Investor");
-      setProfilePic(userData.photoURL || user.photoURL || "");
+      setProfilePic(userData.photoURL || "");
       loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
       setNotifications(userData.notifications || []);
     } else {
@@ -124,8 +124,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       await setDoc(userDocRef, newUserDoc);
 
-      if (!user.displayName || (user.photoURL !== photoURL)) {
-          await updateProfile(user, { displayName, photoURL });
+      if (user.displayName !== displayName || user.photoURL !== photoURL) {
+        await updateProfile(user, { displayName, photoURL });
       }
       
       // Manually update local state for new users to prevent race conditions
@@ -140,6 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email:string, pass: string, username: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
+    // For email sign-up, displayName is set, but photoURL is left as null
     await updateProfile(newUser, { displayName: username });
     await initializeUserDocument(newUser, username);
     setUser(newUser);
@@ -168,7 +169,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) throw new Error("User not authenticated");
 
     const userDocRef = doc(db, "users", user.uid);
-    let photoURL = user.photoURL;
+    let photoURL = user.photoURL || "";
 
     if (data.photoDataUrl) {
         const storageRef = ref(storage, `profile_pictures/${user.uid}`);
@@ -181,16 +182,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         ...(photoURL && { photoURL: photoURL }),
     };
 
+    if (data.username) updateData.username = data.username;
+    if (data.photoDataUrl) updateData.photoURL = photoURL;
+
     await updateDoc(userDocRef, updateData);
     await updateProfile(user, {
         ...(data.username && { displayName: data.username }),
-        ...(photoURL && { photoURL: photoURL }),
+        ...(data.photoDataUrl && { photoURL: photoURL }),
     });
 
     if (data.username) {
         setUsername(data.username);
     }
-    if (photoURL) {
+    if (data.photoDataUrl) {
         setProfilePic(photoURL);
     }
   };
