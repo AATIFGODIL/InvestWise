@@ -121,9 +121,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email:string, pass: string, username: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
-    // Manually set user state before initialization to avoid race conditions
-    setUser(newUser);
-    await initializeUserDocument(newUser, username || "Investor");
+    // Set user in state *before* initializing document to ensure `onAuthStateChanged` doesn't cause issues
+    setUser(newUser); 
+    await initializeUserDocument(newUser, username);
   }
 
   const signIn = (email:string, pass: string) => {
@@ -133,8 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
-    setUser(user); // Set user immediately after social sign-in
-    await initializeUserDocument(user);
+    // No need to call `initializeUserDocument` here; onAuthStateChanged will handle it
   };
 
   const signInWithGoogle = async () => {
@@ -157,7 +156,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const storageRef = ref(storage, `profile_pictures/${user.uid}`);
         await uploadString(storageRef, data.photoDataUrl, 'data_url');
         photoURL = await getDownloadURL(storageRef);
-        setProfilePic(photoURL as string);
     }
     
     const updateData: { [key: string]: any } = {
@@ -173,6 +171,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (data.username) {
         setUsername(data.username);
+    }
+    if (photoURL) {
+        setProfilePic(photoURL);
     }
   };
 
