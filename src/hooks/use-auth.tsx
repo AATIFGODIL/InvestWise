@@ -30,7 +30,7 @@ import usePortfolioStore from "@/store/portfolio-store";
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signUp: (email:string, pass: string) => Promise<any>;
+  signUp: (email:string, pass: string, username: string) => Promise<any>;
   signIn: (email:string, pass: string) => Promise<any>;
   signInWithGoogle: () => Promise<void>;
   signInWithApple: () => Promise<void>;
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [setUsername, setProfilePic, loadInitialData, resetPortfolio]);
+  }, []);
 
   const initializeUserDocument = async (user: User, username?: string | null) => {
     const userDocRef = doc(db, "users", user.uid);
@@ -108,10 +108,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
 
-  const signUp = async (email:string, pass: string) => {
+  const signUp = async (email:string, pass: string, username: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
-    await initializeUserDocument(newUser, "First-Time Investor");
+    await initializeUserDocument(newUser, username || "First-Time Investor");
     setUser(newUser);
     await fetchUserData(newUser);
   }
