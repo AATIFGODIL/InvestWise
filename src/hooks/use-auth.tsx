@@ -59,7 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (userDoc.exists()) {
       const userData = userDoc.data();
       setUsername(userData.username || user.displayName || "Investor");
-      setProfilePic(user.photoURL || userData.photoURL || "");
+      setProfilePic(userData.photoURL || "");
       loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
       setNotifications(userData.notifications || []);
       loadGoals(userData.goals || []);

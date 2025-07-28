@@ -10,7 +10,7 @@ interface UserState {
 
 const useUserStore = create<UserState>((set) => ({
   username: 'Investor',
-  profilePic: 'https://i.pravatar.cc/150',
+  profilePic: '',
   setUsername: (username) => set({ username }),
   setProfilePic: (url) => set({ profilePic: url }),
 }));

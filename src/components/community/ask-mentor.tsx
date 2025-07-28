@@ -16,8 +16,8 @@ import { BadgeCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const mentors = [
-  { name: "Jane Doe", avatar: "https://i.pravatar.cc/150?u=m1", specialty: "Tech Stocks" },
-  { name: "John Smith", avatar: "https://i.pravatar.cc/150?u=m2", specialty: "ETFs & Index Funds" },
+  { name: "Jane Doe", avatar: "", specialty: "Tech Stocks" },
+  { name: "John Smith", avatar: "", specialty: "ETFs & Index Funds" },
 ];
 
 export default function AskMentor() {
