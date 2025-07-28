@@ -121,9 +121,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
-    // This ensures that the current domain is used for the OAuth flow
-    // which can resolve auth/unauthorized-domain issues in some environments.
-    auth.tenantId = auth.config.authDomain;
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
     await initializeUserDocument(user);
