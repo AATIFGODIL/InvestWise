@@ -55,6 +55,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUsername(userData.username || user.displayName || "Investor");
       setProfilePic(userData.photoURL || user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`);
       loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
+    } else {
+        // This case handles a new user signing in for the first time.
+        await initializeUserDocument(user);
     }
   };
 
@@ -92,18 +95,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const displayName = username || user.displayName || "Investor";
       const photoURL = user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`;
       
-      await setDoc(userDocRef, {
+      const newUserDoc = {
         uid: user.uid,
         email: user.email,
         username: displayName,
         photoURL: photoURL,
         createdAt: new Date(),
         portfolio: initialPortfolio
-      });
+      };
+
+      await setDoc(userDocRef, newUserDoc);
 
       if (!user.displayName || !user.photoURL) {
           await updateProfile(user, { displayName, photoURL });
       }
+      
+      // Manually update local state for new users to prevent race conditions
+      setUsername(displayName);
+      setProfilePic(photoURL);
+      loadInitialData(initialPortfolio.holdings, initialPortfolio.summary);
     }
   };
 
@@ -113,7 +123,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const newUser = userCredential.user;
     await initializeUserDocument(newUser, username || "First-Time Investor");
     setUser(newUser);
-    await fetchUserData(newUser);
   }
 
   const signIn = (email:string, pass: string) => {
