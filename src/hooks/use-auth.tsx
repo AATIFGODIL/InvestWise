@@ -14,6 +14,10 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   updateProfile,
+  signInWithPopup,
+  GoogleAuthProvider,
+  OAuthProvider,
+  type AuthProvider as FirebaseAuthProvider,
   type User,
 } from "firebase/auth";
 import { auth, db, storage } from "@/lib/firebase/config";
@@ -28,6 +32,8 @@ interface AuthContextType {
   loading: boolean;
   signUp: (email:string, pass: string) => Promise<any>;
   signIn: (email:string, pass: string) => Promise<any>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
   signOut: () => void;
   updateUserProfile: (data: { username?: string, photoDataUrl?: string }) => Promise<void>;
 }
@@ -41,26 +47,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  const fetchUserData = async (user: User) => {
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      setUsername(userData.username || user.displayName || "Investor");
+      setProfilePic(userData.photoURL || user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`);
+      loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setLoading(true);
       if (user) {
-        const userDocRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setUsername(userData.username || "Investor");
-          setProfilePic(userData.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`);
-          
-          if (!user.displayName || !user.photoURL) {
-             await updateProfile(user, { 
-                displayName: userData.username,
-                photoURL: userData.photoURL
-            });
-          }
-          loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
-        }
         setUser(user);
+        await fetchUserData(user);
       } else {
         setUser(null);
         resetPortfolio();
@@ -71,30 +74,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, [setUsername, setProfilePic, loadInitialData, resetPortfolio]);
 
-  const initializeUserDocument = async (user: User, username: string) => {
-    const initialPortfolio = {
-        holdings: [],
-        summary: {
-            totalValue: 0,
-            todaysChange: 0,
-            totalGainLoss: 0,
-            annualRatePercent: 0,
-        }
-    };
-
+  const initializeUserDocument = async (user: User, username?: string | null) => {
     const userDocRef = doc(db, "users", user.uid);
-    const photoURL = user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`;
-    
-    await setDoc(userDocRef, {
-      uid: user.uid,
-      email: user.email,
-      username: username,
-      photoURL: photoURL,
-      createdAt: new Date(),
-      portfolio: initialPortfolio
-    });
-    
-    await updateProfile(user, { displayName: username, photoURL: photoURL });
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+      const initialPortfolio = {
+          holdings: [],
+          summary: {
+              totalValue: 0,
+              todaysChange: 0,
+              totalGainLoss: 0,
+              annualRatePercent: 0,
+          }
+      };
+
+      const displayName = username || user.displayName || "Investor";
+      const photoURL = user.photoURL || `https://i.pravatar.cc/150?u=${user.uid}`;
+      
+      await setDoc(userDocRef, {
+        uid: user.uid,
+        email: user.email,
+        username: displayName,
+        photoURL: photoURL,
+        createdAt: new Date(),
+        portfolio: initialPortfolio
+      });
+
+      if (!user.displayName || !user.photoURL) {
+          await updateProfile(user, { displayName, photoURL });
+      }
+    }
   };
 
 
@@ -102,13 +112,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
     await initializeUserDocument(newUser, "First-Time Investor");
-    setUser(newUser); // This ensures the state is updated immediately
-    return userCredential;
+    setUser(newUser);
   }
 
   const signIn = (email:string, pass: string) => {
     return signInWithEmailAndPassword(auth, email, pass);
   }
+
+  const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
+    await initializeUserDocument(user);
+    setUser(user);
+  };
+
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    await handleSocialSignIn(provider);
+  };
+
+  const signInWithApple = async () => {
+    const provider = new OAuthProvider("apple.com");
+    await handleSocialSignIn(provider);
+  };
   
   const updateUserProfile = async (data: { username?: string, photoDataUrl?: string }) => {
     if (!user) throw new Error("User not authenticated");
@@ -150,6 +176,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     signUp,
     signIn,
+    signInWithGoogle,
+    signInWithApple,
     signOut,
     updateUserProfile,
   };
