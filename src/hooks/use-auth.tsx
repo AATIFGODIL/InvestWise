@@ -68,18 +68,78 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loadGoals(userData.goals || []);
       loadAutoInvestments(userData.autoInvestments || []);
       setTheme(userData.theme || 'light');
-    } else {
-        // This case handles a new user signing in for the first time via social auth.
-        await initializeUserDocument(user, user.displayName, user.photoURL);
+      return true;
     }
+    return false;
   };
+  
+  const initializeUserDocument = async (user: User, username?: string | null) => {
+    const userDocRef = doc(db, "users", user.uid);
+
+    const displayName = username || user.displayName || "Investor";
+    const photoURL = user.photoURL || "";
+
+    const initialPortfolio = {
+        holdings: [],
+        summary: {
+            totalValue: 0,
+            todaysChange: 0,
+            totalGainLoss: 0,
+            annualRatePercent: 0,
+        }
+    };
+    
+    const welcomeNotification: Notification = {
+      id: `welcome-${Date.now()}`,
+      title: "Welcome to InvestWise!",
+      description: "We're glad to have you. Explore the app to start your journey.",
+      href: "/dashboard",
+      type: 'welcome',
+      read: false,
+      createdAt: new Date().toISOString(),
+    };
+    
+    const newUserDoc = {
+      uid: user.uid,
+      email: user.email,
+      username: displayName,
+      photoURL: photoURL,
+      theme: 'light',
+      createdAt: new Date(),
+      portfolio: initialPortfolio,
+      notifications: [welcomeNotification],
+      goals: [],
+      autoInvestments: [],
+    };
+
+    await setDoc(userDocRef, newUserDoc);
+    
+    const profileUpdate: { displayName: string; photoURL?: string } = { displayName };
+    if (photoURL) {
+        profileUpdate.photoURL = photoURL;
+    }
+    await updateProfile(user, profileUpdate);
+    
+    setUsername(displayName);
+    setProfilePic(photoURL);
+    loadInitialData(initialPortfolio.holdings, initialPortfolio.summary);
+    setNotifications([welcomeNotification]);
+    loadGoals([]);
+    loadAutoInvestments([]);
+    setTheme('light');
+  };
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setLoading(true);
       if (user) {
         setUser(user);
-        await fetchUserData(user);
+        const userExists = await fetchUserData(user);
+        if (!userExists) {
+          // This is a new user, likely from a social sign-in.
+          await initializeUserDocument(user);
+        }
       } else {
         setUser(null);
         setUsername("Investor");
@@ -94,73 +154,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const initializeUserDocument = async (user: User, username?: string | null, photoURL?: string | null) => {
-    const userDocRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(userDocRef);
-
-    if (!userDoc.exists()) {
-      const initialPortfolio = {
-          holdings: [],
-          summary: {
-              totalValue: 0,
-              todaysChange: 0,
-              totalGainLoss: 0,
-              annualRatePercent: 0,
-          }
-      };
-      
-      const welcomeNotification: Notification = {
-        id: `welcome-${Date.now()}`,
-        title: "Welcome to InvestWise!",
-        description: "We're glad to have you. Explore the app to start your journey.",
-        href: "/dashboard",
-        type: 'welcome',
-        read: false,
-        createdAt: new Date().toISOString(),
-      };
-
-
-      const displayName = username || "Investor";
-      const finalPhotoURL = photoURL || "";
-      
-      const newUserDoc = {
-        uid: user.uid,
-        email: user.email,
-        username: displayName,
-        photoURL: finalPhotoURL,
-        theme: 'light',
-        createdAt: new Date(),
-        portfolio: initialPortfolio,
-        notifications: [welcomeNotification],
-        goals: [],
-        autoInvestments: [],
-      };
-
-      await setDoc(userDocRef, newUserDoc);
-      
-      const profileUpdate: { displayName: string; photoURL?: string } = { displayName };
-      if (finalPhotoURL) {
-          profileUpdate.photoURL = finalPhotoURL;
-      }
-      await updateProfile(user, profileUpdate);
-      
-      // Manually update local state for new users to prevent race conditions
-      setUsername(displayName);
-      setProfilePic(finalPhotoURL);
-      loadInitialData(initialPortfolio.holdings, initialPortfolio.summary);
-      setNotifications([welcomeNotification]);
-      loadGoals([]);
-      loadAutoInvestments([]);
-      setTheme('light');
-    }
-  };
-
 
   const signUp = async (email:string, pass: string, username: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
+    // onAuthStateChanged will not re-run for email/password sign up, so we initialize manually.
     await initializeUserDocument(newUser, username);
     setUser(newUser);
   }
