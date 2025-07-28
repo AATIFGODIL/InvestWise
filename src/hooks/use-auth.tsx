@@ -43,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setLoading(true);
       if (user) {
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
@@ -58,7 +59,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             });
           }
           loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
-
         }
         setUser(user);
       } else {
@@ -95,19 +95,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     
     await updateProfile(user, { displayName: username, photoURL: photoURL });
-    
-    // Manually set state after creating doc for new user
-    setUsername(username);
-    setProfilePic(photoURL);
-    loadInitialData(initialPortfolio.holdings, initialPortfolio.summary);
-    setUser(user);
   };
 
 
   const signUp = async (email:string, pass: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-    const user = userCredential.user;
-    await initializeUserDocument(user, "First-Time Investor");
+    const newUser = userCredential.user;
+    await initializeUserDocument(newUser, "First-Time Investor");
+    setUser(newUser); // This ensures the state is updated immediately
     return userCredential;
   }
 
@@ -159,7 +154,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     updateUserProfile,
   };
 
-  return <AuthContext.Provider value={value}>{!loading && children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
