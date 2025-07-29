@@ -50,22 +50,22 @@ const riskManagementVideos = [
 ]
 
 export default function DashboardPage() {
-  const { user, loading } = useAuth();
+  const { user, hydrating: authLoading } = useAuth();
   const router = useRouter();
   const [userProfile, setUserProfile] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       router.push('/auth/signin');
     }
-  }, [user, loading, router]);
+  }, [user, authLoading, router]);
   
   useEffect(() => {
     const profile = localStorage.getItem('userProfile');
     setUserProfile(profile);
   }, []);
 
-  if (loading || !user) {
+  if (authLoading || !user) {
     return (
         <div className="w-full bg-background font-body">
             <Header />

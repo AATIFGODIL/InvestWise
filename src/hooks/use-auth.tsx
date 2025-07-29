@@ -34,7 +34,7 @@ import useThemeStore from "@/store/theme-store";
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
+  hydrating: boolean;
   signUp: (email:string, pass: string, username: string) => Promise<any>;
   signIn: (email:string, pass: string) => Promise<any>;
   signInWithGoogle: () => Promise<void>;
@@ -58,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { setTheme } = useThemeStore();
   
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [hydrating, setHydrating] = useState(true);
 
   const initializeUserDocument = useCallback(async (user: User, username?: string | null) => {
     const userDocRef = doc(db, "users", user.uid);
@@ -136,14 +136,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setLoading(true);
+      setHydrating(true);
       try {
         if (user) {
-          setUser(user);
           const userExists = await fetchUserData(user);
           if (!userExists) {
             await initializeUserDocument(user);
           }
+          setUser(user);
         } else {
           setUser(null);
           resetAllStores();
@@ -153,7 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         resetAllStores();
       } finally {
-        setLoading(false);
+        setHydrating(false);
       }
     });
 
@@ -228,6 +228,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return;
     const userDocRef = doc(db, "users", user.uid);
     await updateDoc(userDocRef, { theme });
+    setTheme(theme);
   }
 
   const signOut = async () => {
@@ -237,7 +238,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = {
     user,
-    loading,
+    hydrating,
     signUp,
     signIn,
     signInWithGoogle,
