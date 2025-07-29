@@ -33,7 +33,6 @@ import useAutoInvestStore from "@/store/auto-invest-store";
 import useThemeStore from "@/store/theme-store";
 import { storage } from "@/lib/firebase/config";
 
-
 interface AuthContextType {
   user: User | null;
   hydrating: boolean;
@@ -124,34 +123,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setTheme('light');
   }, [setUsername, setProfilePic, setNotifications, resetPortfolio, resetGoals, resetAutoInvest, setTheme]);
 
-  useEffect(() => {
-    const processAuthState = async (currentUser: User | null) => {
+ useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
-      if (currentUser) {
-        try {
-          const userDocRef = doc(db, 'users', currentUser.uid);
+      try {
+        if (firebaseUser) {
+          setUser(firebaseUser);
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
           const userDoc = await getDoc(userDocRef);
 
           if (userDoc.exists()) {
-            await fetchUserData(currentUser);
+            await fetchUserData(firebaseUser);
           } else {
-            await initializeUserDocument(currentUser);
+            await initializeUserDocument(firebaseUser);
           }
-          setUser(currentUser);
-        } catch (err) {
-          console.error("Failed to fetch user doc:", err);
-          setUser(currentUser); // fallback: still consider signed in
-        } finally {
-          setHydrating(false);
+        } else {
+          setUser(null);
+          resetAllStores();
         }
-      } else {
-        setUser(null);
+      } catch (error) {
+        console.error("Error during auth state processing:", error);
+        setUser(null); // Go to a logged-out state on error
         resetAllStores();
+      } finally {
         setHydrating(false);
       }
-    };
-
-    const unsubscribe = onAuthStateChanged(auth, processAuthState);
+    });
 
     return () => unsubscribe();
   }, [fetchUserData, initializeUserDocument, resetAllStores]);
