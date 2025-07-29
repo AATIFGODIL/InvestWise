@@ -1,131 +1,95 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useAuth } from "@/hooks/use-auth";
+import { useEffect, useState } from "react";
+import { collection, getDocs, type DocumentData } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
 import Header from "@/components/layout/header";
-import CongratulationsBanner from "@/components/dashboard/congratulations-banner";
-import PortfolioSummary from "@/components/dashboard/portfolio-summary";
-import GoalProgress from "@/components/dashboard/goal-progress";
-import CommunityLeaderboard from "@/components/dashboard/community-leaderboard";
 import BottomNav from "@/components/layout/bottom-nav";
-import Chatbot from "@/components/chatbot/chatbot";
-import InvestmentBundles from "@/components/dashboard/investment-bundles";
-import RiskManagement from "@/components/dashboard/risk-management";
-import CommunityTrends from "@/components/dashboard/community-trends";
-import EducationalVideo from '@/components/shared/educational-video';
-import AutoInvest from '@/components/dashboard/auto-invest';
-import { recommendedBundles, specializedBundles } from '@/data/bundles';
-import { useAuth } from '@/hooks/use-auth';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const beginnerVideos = [
-    {
-        title: "Understanding Your Dashboard",
-        description: "A quick tour of the key features on your homescreen.",
-        image: "https://placehold.co/600x400.png",
-        hint: "dashboard analytics"
-    },
-    {
-        title: "What is Diversification?",
-        description: "Learn why not putting all your eggs in one basket is a core investment principle.",
-        image: "https://placehold.co/600x400.png",
-        hint: "different assets"
-    }
-];
-
-const riskManagementVideos = [
-    {
-        title: "What is Market Risk?",
-        description: "Learn about the risks inherent to the entire market and how to think about them.",
-        image: "https://placehold.co/600x400.png",
-        hint: "stock chart down"
-    },
-    {
-        title: "The Power of Diversification",
-        description: "A deep dive into how spreading your investments can reduce risk.",
-        image: "https://placehold.co/600x400.png",
-        hint: "assets variety"
-    }
-]
+interface ExploreItem extends DocumentData {
+  id: string;
+  title: string;
+  description: string;
+}
 
 export default function DashboardPage() {
-  const { user, hydrating: authLoading } = useAuth();
-  const router = useRouter();
-  const [userProfile, setUserProfile] = useState<string | null>(null);
+  const { hydrating: authLoading } = useAuth();
+  const [content, setContent] = useState<ExploreItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.replace('/auth/signin');
+    const fetchExploreData = async () => {
+      setLoading(true);
+      try {
+        const querySnapshot = await getDocs(collection(db, "explore"));
+        const items = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as ExploreItem[];
+        setContent(items);
+      } catch (error) {
+        console.error("Error fetching explore data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (!authLoading) {
+      fetchExploreData();
     }
-  }, [user, authLoading, router]);
+  }, [authLoading]);
   
-  useEffect(() => {
-    if (user) {
-        const profile = localStorage.getItem('userProfile');
-        setUserProfile(profile);
-    }
-  }, [user]);
-
-  if (authLoading || !user) {
-    return (
-        <div className="w-full bg-background font-body">
-            <Header />
-            <main className="p-4 space-y-4 pb-40">
-                <Skeleton className="h-24 w-full" />
-                <Skeleton className="h-96 w-full" />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Skeleton className="h-48 w-full" />
-                    <Skeleton className="h-48 w-full" />
-                </div>
-            </main>
-            <BottomNav />
+  const PageSkeleton = () => (
+     <div className="w-full bg-background font-body">
+      <Header />
+      <main className="p-4 space-y-4 pb-40">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-48 w-full" />
         </div>
-    );
-  }
+      </main>
+      <BottomNav />
+    </div>
+  )
 
-  const showBeginnerContent = userProfile === 'Beginner' || userProfile === 'Amateur' || userProfile === 'Student' || userProfile === 'New Investor';
-  const bundlesToShow = showBeginnerContent ? [...recommendedBundles, ...specializedBundles] : recommendedBundles;
+  if (authLoading || loading) {
+    return <PageSkeleton />;
+  }
 
   return (
     <div className="w-full bg-background font-body">
-      <Header />
-      <main className="p-4 space-y-4 pb-40">
-        {showBeginnerContent && <CongratulationsBanner />}
-        
-        <PortfolioSummary />
-        
-        <AutoInvest />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <GoalProgress />
-          <CommunityLeaderboard />
-        </div>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <InvestmentBundles 
-                bundles={bundlesToShow}
-                title="Explore Investment Bundles"
-                description="Recommended for you"
-                showDisclaimer={true}
-            />
-            <CommunityTrends />
-        </div>
-       
-        {showBeginnerContent && (
-             <div className="space-y-4 pt-4">
-                <h2 className="text-xl font-bold">New to Investing? Start Here!</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {beginnerVideos.map((video) => (
-                        <EducationalVideo key={video.title} {...video} />
+        <Header />
+        <main className="p-4 space-y-4 pb-40">
+             <h1 className="text-2xl font-bold">Explore</h1>
+            {content.length === 0 ? (
+                <div className="text-center py-10">
+                    <p>No explore data available.</p>
+                    <p className="text-sm text-muted-foreground">Please add documents to the 'explore' collection in Firestore.</p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {content.map((item) => (
+                        <Card key={item.id}>
+                            <CardHeader>
+                                <CardTitle>{item.title}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p>{item.description}</p>
+                            </CardContent>
+                        </Card>
                     ))}
                 </div>
-            </div>
-        )}
-        <RiskManagement videos={riskManagementVideos} />
-      </main>
-      <Chatbot />
-      <BottomNav />
+            )}
+        </main>
+        <BottomNav />
     </div>
   );
 }
