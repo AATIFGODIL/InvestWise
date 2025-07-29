@@ -22,7 +22,7 @@ import {
   type User,
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/config";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/store/user-store";
@@ -61,6 +61,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [hydrating, setHydrating] = useState(true);
 
+  const fetchUserData = useCallback(async (user: User) => {
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+    if (userDoc.exists()) {
+      const userData = userDoc.data();
+      setUsername(userData.username || user.displayName || "Investor");
+      setProfilePic(userData.photoURL || "");
+      loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
+      setNotifications(userData.notifications || []);
+      loadGoals(userData.goals || []);
+      loadAutoInvestments(userData.autoInvestments || []);
+      setTheme(userData.theme || 'light');
+    }
+  }, [setUsername, setProfilePic, loadInitialData, setNotifications, loadGoals, loadAutoInvestments, setTheme]);
+  
+  const initializeUserDocument = useCallback(async (user: User) => {
+      const userDocRef = doc(db, "users", user.uid);
+      const displayName = user.displayName || "Investor";
+      const photoURL = user.photoURL || "";
+      const welcomeNotification: Notification = {
+          id: `welcome-${Date.now()}`,
+          title: "Welcome to InvestWise!",
+          description: "We're glad to have you. Explore the app to start your journey.",
+          href: "/dashboard",
+          type: 'welcome',
+          read: false,
+          createdAt: new Date().toISOString(),
+      };
+      const newUserDoc = {
+          uid: user.uid,
+          email: user.email,
+          username: displayName,
+          photoURL: photoURL,
+          theme: 'light',
+          createdAt: new Date(),
+          portfolio: { holdings: [], summary: { totalValue: 0, todaysChange: 0, totalGainLoss: 0, annualRatePercent: 0 } },
+          notifications: [welcomeNotification],
+          goals: [],
+          autoInvestments: [],
+      };
+      await setDoc(userDocRef, newUserDoc);
+      if (auth.currentUser && auth.currentUser.displayName !== displayName) {
+          await updateProfile(auth.currentUser, { displayName, photoURL });
+      }
+      setUsername(displayName);
+      setProfilePic(photoURL);
+      loadInitialData([], null);
+      setNotifications([welcomeNotification]);
+      loadGoals([]);
+      loadAutoInvestments([]);
+      setTheme('light');
+  }, [setUsername, setProfilePic, loadInitialData, setNotifications, loadGoals, loadAutoInvestments, setTheme]);
+
   const resetAllStores = useCallback(() => {
     setUsername("Investor");
     setProfilePic("");
@@ -74,95 +127,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setHydrating(true);
-      try {
-        if (currentUser) {
-          console.log("Setting user:", currentUser);
+      if (currentUser) {
+        console.log("Setting user:", currentUser);
+
+        // Add connectivity logging
+        const unsubscribeSnapshot = onSnapshot(doc(db, 'users', currentUser.uid), (snapshot) => {
+            console.log('Document data:', snapshot.data());
+        }, (error) => {
+            console.error('🔥 Firestore error:', error);
+        });
+        
+        try {
           const userDocRef = doc(db, "users", currentUser.uid);
-          
-          try {
-            const userDoc = await getDoc(userDocRef);
-            if (userDoc.exists()) {
-              // Existing user: load their data
-              const userData = userDoc.data();
-              setUsername(userData.username || currentUser.displayName || "Investor");
-              setProfilePic(userData.photoURL || "");
-              loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
-              setNotifications(userData.notifications || []);
-              loadGoals(userData.goals || []);
-              loadAutoInvestments(userData.autoInvestments || []);
-              setTheme(userData.theme || 'light');
-            } else {
-              // New user (social sign-in or incomplete email sign-up): create their document
-              const displayName = currentUser.displayName || "Investor";
-              const photoURL = currentUser.photoURL || "";
-
-              const welcomeNotification: Notification = {
-                id: `welcome-${Date.now()}`,
-                title: "Welcome to InvestWise!",
-                description: "We're glad to have you. Explore the app to start your journey.",
-                href: "/dashboard",
-                type: 'welcome',
-                read: false,
-                createdAt: new Date().toISOString(),
-              };
-              
-              const newUserDoc = {
-                uid: currentUser.uid,
-                email: currentUser.email,
-                username: displayName,
-                photoURL: photoURL,
-                theme: 'light',
-                createdAt: new Date(),
-                portfolio: { holdings: [], summary: { totalValue: 0, todaysChange: 0, totalGainLoss: 0, annualRatePercent: 0 } },
-                notifications: [welcomeNotification],
-                goals: [],
-                autoInvestments: [],
-              };
-
-              await setDoc(userDocRef, newUserDoc);
-              
-              // This is for email signup, where displayName isn't set automatically
-              if (auth.currentUser && auth.currentUser.displayName !== displayName) {
-                  await updateProfile(auth.currentUser, { displayName, photoURL });
-              }
-
-              // Set state for the new user
-              setUsername(displayName);
-              setProfilePic(photoURL);
-              loadInitialData([], null);
-              setNotifications([welcomeNotification]);
-              loadGoals([]);
-              loadAutoInvestments([]);
-              setTheme('light');
-            }
-          } catch (err) {
-            console.error("Error fetching user doc:", err);
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists()) {
+            await fetchUserData(currentUser);
+          } else {
+            await initializeUserDocument(currentUser);
           }
           setUser(currentUser);
-        } else {
+        } catch (error) {
+          console.error("Error during auth state processing:", error);
           setUser(null);
           resetAllStores();
+        } finally {
+            // Unsubscribe from the snapshot listener when we're done with it to prevent memory leaks
+            unsubscribeSnapshot();
         }
-      } catch (error) {
-        console.error("Error during auth state processing:", error);
+      } else {
         setUser(null);
         resetAllStores();
-      } finally {
-        setHydrating(false);
       }
+      setHydrating(false);
     });
 
     return () => unsubscribe();
-  }, [setUsername, setProfilePic, loadInitialData, setNotifications, loadGoals, loadAutoInvestments, setTheme, resetAllStores]);
+  }, [fetchUserData, initializeUserDocument, resetAllStores]);
 
 
   const signUp = async (email:string, pass: string, username: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
-    
-    // Manually set displayName for email sign-up
     await updateProfile(newUser, { displayName: username, photoURL: "" });
-    // onAuthStateChanged will handle creating the user document
   }
 
   const signIn = (email:string, pass: string) => {
@@ -171,7 +177,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
     await signInWithPopup(auth, provider);
-    // onAuthStateChanged listener handles the rest.
   };
 
   const signInWithGoogle = async () => {
