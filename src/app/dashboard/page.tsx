@@ -67,6 +67,9 @@ export default function DashboardPage() {
     }
   }, [user]);
 
+  console.log('authLoading:', authLoading);
+  console.log('user:', user);
+
   if (authLoading || !user) {
     return (
         <div className="w-full bg-background font-body">

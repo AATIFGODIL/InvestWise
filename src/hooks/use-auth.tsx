@@ -76,62 +76,67 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setHydrating(true);
       try {
         if (currentUser) {
+          console.log("Setting user:", currentUser);
           const userDocRef = doc(db, "users", currentUser.uid);
-          const userDoc = await getDoc(userDocRef);
+          
+          try {
+            const userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              // Existing user: load their data
+              const userData = userDoc.data();
+              setUsername(userData.username || currentUser.displayName || "Investor");
+              setProfilePic(userData.photoURL || "");
+              loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
+              setNotifications(userData.notifications || []);
+              loadGoals(userData.goals || []);
+              loadAutoInvestments(userData.autoInvestments || []);
+              setTheme(userData.theme || 'light');
+            } else {
+              // New user (social sign-in or incomplete email sign-up): create their document
+              const displayName = currentUser.displayName || "Investor";
+              const photoURL = currentUser.photoURL || "";
 
-          if (userDoc.exists()) {
-            // Existing user: load their data
-            const userData = userDoc.data();
-            setUsername(userData.username || currentUser.displayName || "Investor");
-            setProfilePic(userData.photoURL || "");
-            loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
-            setNotifications(userData.notifications || []);
-            loadGoals(userData.goals || []);
-            loadAutoInvestments(userData.autoInvestments || []);
-            setTheme(userData.theme || 'light');
-          } else {
-            // New user (social sign-in or incomplete email sign-up): create their document
-            const displayName = currentUser.displayName || "Investor";
-            const photoURL = currentUser.photoURL || "";
+              const welcomeNotification: Notification = {
+                id: `welcome-${Date.now()}`,
+                title: "Welcome to InvestWise!",
+                description: "We're glad to have you. Explore the app to start your journey.",
+                href: "/dashboard",
+                type: 'welcome',
+                read: false,
+                createdAt: new Date().toISOString(),
+              };
+              
+              const newUserDoc = {
+                uid: currentUser.uid,
+                email: currentUser.email,
+                username: displayName,
+                photoURL: photoURL,
+                theme: 'light',
+                createdAt: new Date(),
+                portfolio: { holdings: [], summary: { totalValue: 0, todaysChange: 0, totalGainLoss: 0, annualRatePercent: 0 } },
+                notifications: [welcomeNotification],
+                goals: [],
+                autoInvestments: [],
+              };
 
-            const welcomeNotification: Notification = {
-              id: `welcome-${Date.now()}`,
-              title: "Welcome to InvestWise!",
-              description: "We're glad to have you. Explore the app to start your journey.",
-              href: "/dashboard",
-              type: 'welcome',
-              read: false,
-              createdAt: new Date().toISOString(),
-            };
-            
-            const newUserDoc = {
-              uid: currentUser.uid,
-              email: currentUser.email,
-              username: displayName,
-              photoURL: photoURL,
-              theme: 'light',
-              createdAt: new Date(),
-              portfolio: { holdings: [], summary: { totalValue: 0, todaysChange: 0, totalGainLoss: 0, annualRatePercent: 0 } },
-              notifications: [welcomeNotification],
-              goals: [],
-              autoInvestments: [],
-            };
+              await setDoc(userDocRef, newUserDoc);
+              
+              // This is for email signup, where displayName isn't set automatically
+              if (auth.currentUser && auth.currentUser.displayName !== displayName) {
+                  await updateProfile(auth.currentUser, { displayName, photoURL });
+              }
 
-            await setDoc(userDocRef, newUserDoc);
-            
-            // This is for email signup, where displayName isn't set automatically
-            if (auth.currentUser && auth.currentUser.displayName !== displayName) {
-                await updateProfile(auth.currentUser, { displayName, photoURL });
+              // Set state for the new user
+              setUsername(displayName);
+              setProfilePic(photoURL);
+              loadInitialData([], null);
+              setNotifications([welcomeNotification]);
+              loadGoals([]);
+              loadAutoInvestments([]);
+              setTheme('light');
             }
-
-            // Set state for the new user
-            setUsername(displayName);
-            setProfilePic(photoURL);
-            loadInitialData([], null);
-            setNotifications([welcomeNotification]);
-            loadGoals([]);
-            loadAutoInvestments([]);
-            setTheme('light');
+          } catch (err) {
+            console.error("Error fetching user doc:", err);
           }
           setUser(currentUser);
         } else {
