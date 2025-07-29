@@ -55,8 +55,8 @@ export default function DashboardPage() {
   const [userProfile, setUserProfile] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authLoading && !user) {
-      router.push('/auth/signin');
+    if (!authLoading && user === null) {
+      router.replace('/auth/signin');
     }
   }, [user, authLoading, router]);
   
