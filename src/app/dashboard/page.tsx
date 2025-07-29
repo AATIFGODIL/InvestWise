@@ -23,7 +23,6 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const fetchExploreData = async () => {
-      setLoading(true);
       try {
         const querySnapshot = await getDocs(collection(db, "explore"));
         const items = querySnapshot.docs.map((doc) => ({
@@ -33,14 +32,29 @@ export default function DashboardPage() {
         setContent(items);
       } catch (error) {
         console.error("Error fetching explore data:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
-    if (!authLoading) {
-      fetchExploreData();
-    }
+    // Run auth check and data fetching concurrently
+    const loadAllData = async () => {
+      await Promise.all([
+        // This promise will resolve when auth is done
+        new Promise(resolve => {
+          const checkAuth = () => {
+            if (!authLoading) {
+              resolve(true);
+            } else {
+              setTimeout(checkAuth, 50); // check again shortly
+            }
+          };
+          checkAuth();
+        }),
+        fetchExploreData()
+      ]);
+      setLoading(false);
+    };
+
+    loadAllData();
   }, [authLoading]);
   
   const PageSkeleton = () => (
@@ -60,7 +74,7 @@ export default function DashboardPage() {
     </div>
   )
 
-  if (authLoading || loading) {
+  if (loading) {
     return <PageSkeleton />;
   }
 
