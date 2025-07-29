@@ -103,8 +103,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profileUpdate.photoURL = photoURL;
     }
     
-    if (profileUpdate.displayName || profileUpdate.photoURL) {
-        await updateProfile(user, profileUpdate);
+    if (profileUpdate.displayName && user.displayName !== profileUpdate.displayName) {
+        await updateProfile(user, { displayName: profileUpdate.displayName });
+    }
+    if (profileUpdate.photoURL && user.photoURL !== profileUpdate.photoURL) {
+        await updateProfile(user, { photoURL: profileUpdate.photoURL });
     }
     
     setUsername(displayName);
@@ -138,23 +141,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setLoading(true);
-      if (user) {
-        setUser(user);
-        const userExists = await fetchUserData(user);
-        if (!userExists) {
-          await initializeUserDocument(user);
+      try {
+        if (user) {
+          setUser(user);
+          const userExists = await fetchUserData(user);
+          if (!userExists) {
+            await initializeUserDocument(user);
+          }
+        } else {
+          setUser(null);
+          setUsername("Investor");
+          setProfilePic("");
+          setNotifications([]);
+          resetPortfolio();
+          resetGoals();
+          resetAutoInvest();
+          setTheme('light');
         }
-      } else {
+      } catch (error) {
+        console.error("Error during auth state change:", error);
         setUser(null);
-        setUsername("Investor");
-        setProfilePic("");
-        setNotifications([]);
-        resetPortfolio();
-        resetGoals();
-        resetAutoInvest();
-        setTheme('light');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
