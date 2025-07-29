@@ -49,10 +49,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   
-  // Zustand store setters
   const { setUsername, setProfilePic } = useUserStore();
   const { loadInitialData, resetPortfolio } = usePortfolioStore();
-  const { setNotifications, addNotification } = useNotificationStore();
+  const { setNotifications } = useNotificationStore();
   const { loadGoals, resetGoals } = useGoalStore();
   const { loadAutoInvestments, resetAutoInvest } = useAutoInvestStore();
   const { setTheme } = useThemeStore();
@@ -60,69 +59,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [hydrating, setHydrating] = useState(true);
 
-  const initializeUserDocument = useCallback(async (user: User, username?: string | null) => {
-    const userDocRef = doc(db, "users", user.uid);
-
-    const displayName = username || user.displayName || "Investor";
-    const photoURL = user.photoURL || "";
-
-    const welcomeNotification: Notification = {
-      id: `welcome-${Date.now()}`,
-      title: "Welcome to InvestWise!",
-      description: "We're glad to have you. Explore the app to start your journey.",
-      href: "/dashboard",
-      type: 'welcome',
-      read: false,
-      createdAt: new Date().toISOString(),
-    };
-    
-    const newUserDoc = {
-      uid: user.uid,
-      email: user.email,
-      username: displayName,
-      photoURL: photoURL,
-      theme: 'light',
-      createdAt: new Date(),
-      portfolio: { holdings: [], summary: { totalValue: 0, todaysChange: 0, totalGainLoss: 0, annualRatePercent: 0 } },
-      notifications: [welcomeNotification],
-      goals: [],
-      autoInvestments: [],
-    };
-
-    await setDoc(userDocRef, newUserDoc);
-    
-    if (user.displayName !== displayName || user.photoURL !== photoURL) {
-      await updateProfile(user, { displayName, photoURL });
-    }
-    
-    // Set initial state in stores
-    setUsername(displayName);
-    setProfilePic(photoURL);
-    loadInitialData([], null);
-    setNotifications([welcomeNotification]);
-    loadGoals([]);
-    loadAutoInvestments([]);
-    setTheme('light');
-  }, [setUsername, setProfilePic, loadInitialData, setNotifications, addNotification, loadGoals, loadAutoInvestments, setTheme]);
-
-  const fetchUserData = useCallback(async (user: User) => {
-    const userDocRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(userDocRef);
-
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      setUsername(userData.username || user.displayName || "Investor");
-      setProfilePic(userData.photoURL || "");
-      loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
-      setNotifications(userData.notifications || []);
-      loadGoals(userData.goals || []);
-      loadAutoInvestments(userData.autoInvestments || []);
-      setTheme(userData.theme || 'light');
-      return true;
-    }
-    return false;
-  }, [setUsername, setProfilePic, loadInitialData, setNotifications, loadGoals, loadAutoInvestments, setTheme]);
-  
   const resetAllStores = useCallback(() => {
     setUsername("Investor");
     setProfilePic("");
@@ -133,38 +69,94 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setTheme('light');
   }, [setUsername, setProfilePic, setNotifications, resetPortfolio, resetGoals, resetAutoInvest, setTheme]);
 
-
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setHydrating(true);
-      try {
-        if (user) {
-          const userExists = await fetchUserData(user);
-          if (!userExists) {
-            await initializeUserDocument(user);
+      if (currentUser) {
+        try {
+          const userDocRef = doc(db, "users", currentUser.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.exists()) {
+            // Existing user
+            const userData = userDoc.data();
+            setUsername(userData.username || currentUser.displayName || "Investor");
+            setProfilePic(userData.photoURL || "");
+            loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
+            setNotifications(userData.notifications || []);
+            loadGoals(userData.goals || []);
+            loadAutoInvestments(userData.autoInvestments || []);
+            setTheme(userData.theme || 'light');
+          } else {
+            // New user (social sign-in or email sign-up that didn't complete)
+            const displayName = currentUser.displayName || "Investor";
+            const photoURL = currentUser.photoURL || "";
+
+            const welcomeNotification: Notification = {
+              id: `welcome-${Date.now()}`,
+              title: "Welcome to InvestWise!",
+              description: "We're glad to have you. Explore the app to start your journey.",
+              href: "/dashboard",
+              type: 'welcome',
+              read: false,
+              createdAt: new Date().toISOString(),
+            };
+            
+            const newUserDoc = {
+              uid: currentUser.uid,
+              email: currentUser.email,
+              username: displayName,
+              photoURL: photoURL,
+              theme: 'light',
+              createdAt: new Date(),
+              portfolio: { holdings: [], summary: { totalValue: 0, todaysChange: 0, totalGainLoss: 0, annualRatePercent: 0 } },
+              notifications: [welcomeNotification],
+              goals: [],
+              autoInvestments: [],
+            };
+
+            await setDoc(userDocRef, newUserDoc);
+
+            if (currentUser.displayName !== displayName || currentUser.photoURL !== photoURL) {
+              await updateProfile(currentUser, { displayName, photoURL });
+            }
+
+            setUsername(displayName);
+            setProfilePic(photoURL);
+            loadInitialData([], null);
+            setNotifications([welcomeNotification]);
+            loadGoals([]);
+            loadAutoInvestments([]);
+            setTheme('light');
           }
-          setUser(user);
-        } else {
+          setUser(currentUser);
+        } catch (error) {
+          console.error("Error during auth state processing:", error);
           setUser(null);
           resetAllStores();
+        } finally {
+          setHydrating(false);
         }
-      } catch (error) {
-        console.error("Error during auth state change:", error);
+      } else {
         setUser(null);
         resetAllStores();
-      } finally {
         setHydrating(false);
       }
     });
 
     return () => unsubscribe();
-  }, [fetchUserData, initializeUserDocument, resetAllStores]);
+  }, [setUsername, setProfilePic, loadInitialData, setNotifications, loadGoals, loadAutoInvestments, setTheme, resetAllStores]);
+
 
   const signUp = async (email:string, pass: string, username: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
-    await initializeUserDocument(newUser, username);
-    setUser(newUser);
+    
+    // Manually set displayName for email sign-up
+    await updateProfile(newUser, { displayName: username, photoURL: "" });
+    
+    // We don't need to call initializeUserDocument here,
+    // the onAuthStateChanged listener will handle it.
   }
 
   const signIn = (email:string, pass: string) => {
@@ -173,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
     await signInWithPopup(auth, provider);
+    // onAuthStateChanged listener handles the rest.
   };
 
   const signInWithGoogle = async () => {
