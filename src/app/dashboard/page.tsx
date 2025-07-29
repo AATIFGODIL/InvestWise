@@ -12,6 +12,7 @@ import { recommendedBundles, specializedBundles } from "@/data/bundles";
 import AutoInvest from "@/components/dashboard/auto-invest";
 import GoalProgress from "@/components/dashboard/goal-progress";
 import CommunityLeaderboard from "@/components/dashboard/community-leaderboard";
+import CommunityTrends from "@/components/dashboard/community-trends";
 import RiskManagement from "@/components/dashboard/risk-management";
 import CongratulationsBanner from "@/components/dashboard/congratulations-banner";
 import Chatbot from "@/components/chatbot/chatbot";
@@ -143,13 +144,18 @@ export default function DashboardPage() {
         <main className="p-4 space-y-6 pb-40">
           <CongratulationsBanner />
           <PortfolioSummary />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <GoalProgress />
-            <CommunityLeaderboard />
-          </div>
-          <InvestmentBundles {...bundleProps} />
-          <RiskManagement videos={videoProps} />
           <AutoInvest />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+                <GoalProgress />
+                <InvestmentBundles {...bundleProps} />
+            </div>
+            <div className="space-y-6">
+                <CommunityLeaderboard />
+                <CommunityTrends />
+            </div>
+          </div>
+          <RiskManagement videos={videoProps} />
         </main>
         <Chatbot />
         <BottomNav />
