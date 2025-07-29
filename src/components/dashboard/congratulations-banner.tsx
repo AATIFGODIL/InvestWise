@@ -8,12 +8,13 @@ import { useToast } from "@/hooks/use-toast";
 
 interface CongratulationsBannerProps {
   show: boolean;
+  userProfile: string;
 }
 
-export default function CongratulationsBanner({ show }: CongratulationsBannerProps) {
+export default function CongratulationsBanner({ show, userProfile }: CongratulationsBannerProps) {
   const { toast } = useToast();
 
-  if (!show) {
+  if (!show || userProfile === "Experienced Investor" || userProfile === "New Investor") {
     return null;
   }
 

@@ -2,20 +2,35 @@
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
 import { Skeleton } from "@/components/ui/skeleton";
-import PortfolioSummary from "@/components/dashboard/portfolio-summary";
 import InvestmentBundles from "@/components/dashboard/investment-bundles";
 import { recommendedBundles, specializedBundles } from "@/data/bundles";
 import AutoInvest from "@/components/dashboard/auto-invest";
 import GoalProgress from "@/components/dashboard/goal-progress";
-import CommunityLeaderboard from "@/components/dashboard/community-leaderboard";
-import CommunityTrends from "@/components/dashboard/community-trends";
-import RiskManagement from "@/components/dashboard/risk-management";
 import CongratulationsBanner from "@/components/dashboard/congratulations-banner";
 import Chatbot from "@/components/chatbot/chatbot";
+
+const PortfolioSummary = dynamic(() => import("@/components/dashboard/portfolio-summary"), { 
+    ssr: false,
+    loading: () => <Skeleton className="h-96 w-full" /> 
+});
+const CommunityLeaderboard = dynamic(() => import("@/components/dashboard/community-leaderboard"), { 
+    ssr: false,
+    loading: () => <Skeleton className="h-48 w-full" />
+});
+const CommunityTrends = dynamic(() => import("@/components/dashboard/community-trends"), { 
+    ssr: false,
+    loading: () => <Skeleton className="h-96 w-full" />
+});
+const RiskManagement = dynamic(() => import("@/components/dashboard/risk-management"), { 
+    ssr: false,
+    loading: () => <Skeleton className="h-96 w-full" />
+});
+
 
 const beginnerVideos = [
     {
@@ -71,8 +86,8 @@ export default function DashboardPage() {
     if (typeof window !== 'undefined') {
       const profile = localStorage.getItem('userProfile');
       setUserProfile(profile);
+      setIsLoadingProfile(false);
     }
-    setIsLoadingProfile(false);
   }, []);
 
   const getBundlesForProfile = () => {
@@ -115,6 +130,9 @@ export default function DashboardPage() {
             return beginnerVideos;
     }
   }
+
+  const bundleProps = useMemo(() => getBundlesForProfile(), [userProfile]);
+  const videoProps = useMemo(() => getVideosForProfile(), [userProfile]);
   
   const PageSkeleton = () => (
      <div className="w-full bg-background font-body">
@@ -134,16 +152,14 @@ export default function DashboardPage() {
   if (authLoading || isLoadingProfile) {
     return <PageSkeleton />;
   }
-
-  const bundleProps = getBundlesForProfile();
-  const videoProps = getVideosForProfile();
+  
   const showCongrats = userProfile === "Student" || userProfile === "Beginner" || userProfile === "Amateur";
 
   return (
     <div className="w-full bg-background font-body">
         <Header />
         <main className="p-4 space-y-6 pb-40">
-          <CongratulationsBanner show={showCongrats} />
+          <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
           <PortfolioSummary />
           <AutoInvest />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
