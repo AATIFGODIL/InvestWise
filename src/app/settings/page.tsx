@@ -42,7 +42,7 @@ export default function SettingsPage() {
   const [quests, setQuests] = useState(true);
   const [parentalControl, setParentalControl] = useState(false);
   const { theme, setTheme } = useThemeStore();
-  const { updateUserTheme } = useAuth();
+  const { updateUserTheme, signOut: firebaseSignOut } = useAuth();
   
   const handleThemeChange = (newTheme: "light" | "dark") => {
     setTheme(newTheme);
@@ -60,7 +60,7 @@ export default function SettingsPage() {
                     </Button>
                     <h1 className="text-xl font-bold">Settings</h1>
                 </Link>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" onClick={firebaseSignOut}>
                     <LogOut className="h-5 w-5" />
                 </Button>
             </div>
@@ -214,5 +214,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    

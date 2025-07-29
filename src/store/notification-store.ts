@@ -17,8 +17,19 @@ interface NotificationState {
   notifications: Notification[];
   unreadCount: number;
   setNotifications: (notifications: Notification[]) => void;
+  addNotification: (notification: Notification) => void;
   removeNotification: (id: string) => void;
 }
+
+const updateNotificationsInFirestore = (notifications: Notification[]) => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    const userDocRef = doc(getFirestore(), "users", user.uid);
+    updateDoc(userDocRef, { notifications }).catch(error => {
+        console.error("Failed to update notifications in Firestore:", error);
+    });
+};
 
 const useNotificationStore = create<NotificationState>((set, get) => ({
   notifications: [],
@@ -31,29 +42,26 @@ const useNotificationStore = create<NotificationState>((set, get) => ({
       unreadCount: sortedNotifications.filter(n => !n.read).length
     });
   },
+  
+  addNotification: (notification) => {
+    const updatedNotifications = [notification, ...get().notifications];
+    set({
+      notifications: updatedNotifications,
+      unreadCount: updatedNotifications.filter(n => !n.read).length
+    });
+    updateNotificationsInFirestore(updatedNotifications);
+  },
 
   removeNotification: (id) => {
-    const user = auth.currentUser;
-    if (!user) return;
-
     const currentNotifications = get().notifications;
     const updatedNotifications = currentNotifications.filter(n => n.id !== id);
     
-    // Optimistically update the UI
     set({
       notifications: updatedNotifications,
       unreadCount: updatedNotifications.filter(n => !n.read).length
     });
 
-    // Update Firestore in the background
-    const userDocRef = doc(getFirestore(), "users", user.uid);
-    updateDoc(userDocRef, {
-      notifications: updatedNotifications
-    }).catch(error => {
-      console.error("Failed to remove notification from Firestore:", error);
-      // If the update fails, revert the state
-      set({ notifications: currentNotifications, unreadCount: currentNotifications.length });
-    });
+    updateNotificationsInFirestore(updatedNotifications);
   },
 }));
 
