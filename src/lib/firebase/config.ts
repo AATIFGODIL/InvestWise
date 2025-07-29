@@ -2,7 +2,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, enableIndexedDbPersistence, Firestore } from "firebase/firestore";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
@@ -20,18 +20,12 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const storage = getStorage(app);
 
-// Initialize Firestore with offline persistence
-const db: Firestore = getFirestore(app);
-
-if (typeof window !== "undefined") {
-  enableIndexedDbPersistence(db)
-    .catch((err) => {
-      if (err.code == 'failed-precondition') {
-        console.warn("Firestore offline persistence failed: Multiple tabs open. App will still work with network connection.");
-      } else if (err.code == 'unimplemented') {
-        console.warn("Firestore offline persistence failed: Browser not supported.");
-      }
-    });
-}
+// Fix for "client is offline" error
+const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentMultipleTabManager(),
+  }),
+  experimentalForceLongPolling: true,
+});
 
 export { app, auth, db, storage };
