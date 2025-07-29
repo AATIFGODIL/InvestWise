@@ -21,7 +21,7 @@ import {
   type AuthProvider as FirebaseAuthProvider,
   type User,
 } from "firebase/auth";
-import { auth, db, storage } from "@/lib/firebase/config";
+import { auth, db } from "@/lib/firebase/config";
 import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
@@ -31,6 +31,8 @@ import useNotificationStore, { type Notification } from "@/store/notification-st
 import useGoalStore from "@/store/goal-store";
 import useAutoInvestStore from "@/store/auto-invest-store";
 import useThemeStore from "@/store/theme-store";
+import { storage } from "@/lib/firebase/config";
+
 
 interface AuthContextType {
   user: User | null;
@@ -72,13 +74,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setHydrating(true);
-      if (currentUser) {
-        try {
+      try {
+        if (currentUser) {
           const userDocRef = doc(db, "users", currentUser.uid);
           const userDoc = await getDoc(userDocRef);
 
           if (userDoc.exists()) {
-            // Existing user
+            // Existing user: load their data
             const userData = userDoc.data();
             setUsername(userData.username || currentUser.displayName || "Investor");
             setProfilePic(userData.photoURL || "");
@@ -88,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             loadAutoInvestments(userData.autoInvestments || []);
             setTheme(userData.theme || 'light');
           } else {
-            // New user (social sign-in or email sign-up that didn't complete)
+            // New user (social sign-in or incomplete email sign-up): create their document
             const displayName = currentUser.displayName || "Investor";
             const photoURL = currentUser.photoURL || "";
 
@@ -116,11 +118,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             };
 
             await setDoc(userDocRef, newUserDoc);
-
-            if (currentUser.displayName !== displayName || currentUser.photoURL !== photoURL) {
-              await updateProfile(currentUser, { displayName, photoURL });
+            
+            // This is for email signup, where displayName isn't set automatically
+            if (auth.currentUser && auth.currentUser.displayName !== displayName) {
+                await updateProfile(auth.currentUser, { displayName, photoURL });
             }
 
+            // Set state for the new user
             setUsername(displayName);
             setProfilePic(photoURL);
             loadInitialData([], null);
@@ -130,16 +134,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setTheme('light');
           }
           setUser(currentUser);
-        } catch (error) {
-          console.error("Error during auth state processing:", error);
+        } else {
           setUser(null);
           resetAllStores();
-        } finally {
-          setHydrating(false);
         }
-      } else {
+      } catch (error) {
+        console.error("Error during auth state processing:", error);
         setUser(null);
         resetAllStores();
+      } finally {
         setHydrating(false);
       }
     });
@@ -154,9 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // Manually set displayName for email sign-up
     await updateProfile(newUser, { displayName: username, photoURL: "" });
-    
-    // We don't need to call initializeUserDocument here,
-    // the onAuthStateChanged listener will handle it.
+    // onAuthStateChanged will handle creating the user document
   }
 
   const signIn = (email:string, pass: string) => {
@@ -205,7 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       profileUpdate.photoURL = photoURL;
     }
 
-    if (Object.keys(profileUpdate).length > 0) {
+    if (user && Object.keys(profileUpdate).length > 0) {
         await updateProfile(user, profileUpdate);
     }
 

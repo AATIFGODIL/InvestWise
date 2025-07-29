@@ -61,9 +61,11 @@ export default function DashboardPage() {
   }, [user, authLoading, router]);
   
   useEffect(() => {
-    const profile = localStorage.getItem('userProfile');
-    setUserProfile(profile);
-  }, []);
+    if (user) {
+        const profile = localStorage.getItem('userProfile');
+        setUserProfile(profile);
+    }
+  }, [user]);
 
   if (authLoading || !user) {
     return (
@@ -82,7 +84,7 @@ export default function DashboardPage() {
     );
   }
 
-  const showBeginnerContent = userProfile === 'Beginner' || userProfile === 'Amateur';
+  const showBeginnerContent = userProfile === 'Beginner' || userProfile === 'Amateur' || userProfile === 'Student' || userProfile === 'New Investor';
   const bundlesToShow = showBeginnerContent ? [...recommendedBundles, ...specializedBundles] : recommendedBundles;
 
   return (
