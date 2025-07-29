@@ -23,17 +23,14 @@ const storage = getStorage(app);
 let db: Firestore;
 
 // Check if we are in a browser environment before enabling persistence
-if (typeof window !== 'undefined') {
+if (typeof window !== "undefined") {
   try {
     db = getFirestore(app);
     enableIndexedDbPersistence(db)
       .catch((err) => {
         if (err.code == 'failed-precondition') {
-          // This can happen if multiple tabs are open.
-          console.warn("Firestore offline persistence failed: Multiple tabs open.");
+          console.warn("Firestore offline persistence failed: Multiple tabs open. App will still work with network connection.");
         } else if (err.code == 'unimplemented') {
-          // The current browser does not support all of the
-          // features required to enable persistence
           console.warn("Firestore offline persistence failed: Browser not supported.");
         }
       });
