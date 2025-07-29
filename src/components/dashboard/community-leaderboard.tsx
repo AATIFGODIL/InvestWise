@@ -28,11 +28,11 @@ export default function CommunityLeaderboard() {
   const topInvestors = leaderboardData.slice(0, 3);
 
   return (
-    <Card>
+    <Card className="h-full flex flex-col">
       <CardHeader className="pb-2">
         <CardTitle className="text-base font-medium">Community Leaderboard</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 px-6 pt-2">
+      <CardContent className="space-y-3 px-4 pt-2 flex-grow">
         {topInvestors.map((investor) => {
           const isPositive = investor.gain >= 0;
           const formattedGain = `${isPositive ? '+' : '-'}$${Math.abs(investor.gain).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -40,7 +40,7 @@ export default function CommunityLeaderboard() {
           return (
             <div key={investor.rank} className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="font-semibold text-lg w-5">
+                <span className="font-semibold text-md w-5">
                   {investor.rank === 1 ? <Crown className="h-5 w-5 text-yellow-500" /> : investor.rank}
                 </span>
                 <Avatar className="h-8 w-8">
@@ -56,8 +56,8 @@ export default function CommunityLeaderboard() {
           )
         })}
       </CardContent>
-      <CardFooter className="pt-4 px-6">
-        <Button asChild className="w-full bg-primary hover:bg-primary/90">
+      <CardFooter className="pt-4 px-4">
+        <Button asChild className="w-full">
             <Link href="/community">View All</Link>
         </Button>
       </CardFooter>

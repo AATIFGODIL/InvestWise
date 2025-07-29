@@ -145,16 +145,12 @@ export default function DashboardPage() {
           <CongratulationsBanner />
           <PortfolioSummary />
           <AutoInvest />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-                <GoalProgress />
-                <InvestmentBundles {...bundleProps} />
-            </div>
-            <div className="space-y-6">
-                <CommunityLeaderboard />
-                <CommunityTrends />
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <GoalProgress />
+            <CommunityLeaderboard />
           </div>
+          <InvestmentBundles {...bundleProps} />
+          <CommunityTrends />
           <RiskManagement videos={videoProps} />
         </main>
         <Chatbot />

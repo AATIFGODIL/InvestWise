@@ -18,10 +18,10 @@ export default function GoalProgress() {
           <CardTitle className="text-base font-medium">Set a Financial Goal</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center text-muted-foreground">
-            <Target className="h-12 w-12 mx-auto mb-4 text-primary/30" />
+          <div className="text-center text-muted-foreground py-4">
+            <Target className="h-8 w-8 mx-auto mb-2 text-primary/30" />
             <p className="text-sm">
-              Setting goals helps you stay motivated on your investment journey.
+              Setting goals helps you stay motivated.
             </p>
           </div>
         </CardContent>
@@ -49,12 +49,12 @@ export default function GoalProgress() {
             <div className="flex items-center gap-2 pt-2">
                 <div className="flex-grow">
                   <p className="text-sm text-muted-foreground">{goal.name}</p>
-                  <p className="text-2xl font-bold">${goal.current.toLocaleString()}</p>
+                  <p className="text-xl font-bold">${goal.current.toLocaleString()}</p>
                   <p className="text-xs font-semibold text-muted-foreground">{goal.progress}% to target</p>
                   <Progress value={goal.progress} className="h-2 mt-2" />
                 </div>
                 <div className="p-2 rounded-lg bg-secondary flex items-center justify-center self-start">
-                    <div className="relative h-10 w-8 flex items-center justify-center">
+                    <div className="relative h-8 w-6 flex items-center justify-center">
                         {goal.icon}
                     </div>
                 </div>
