@@ -1,32 +1,40 @@
 
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { initialGoals } from "@/data/goals";
+import useGoalStore from "@/store/goal-store";
+import { Target } from "lucide-react";
 
 export default function GoalProgress() {
-  const goal = initialGoals[0];
+  const { goals } = useGoalStore();
 
-  if (!goal) {
+  if (goals.length === 0) {
     return (
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-base font-medium">Goal Progress</CardTitle>
-          <Button asChild variant="link" size="sm" className="text-primary">
-            <Link href="/goals">Set a Goal</Link>
-          </Button>
+      <Card className="h-full flex flex-col justify-between">
+        <CardHeader>
+          <CardTitle className="text-base font-medium">Set a Financial Goal</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground pt-2">
-            You don&apos;t have any goals yet. Set one to track your progress!
-          </p>
+          <div className="text-center text-muted-foreground">
+            <Target className="h-12 w-12 mx-auto mb-4 text-primary/30" />
+            <p className="text-sm">
+              Setting goals helps you stay motivated on your investment journey.
+            </p>
+          </div>
         </CardContent>
+        <CardFooter>
+            <Button asChild className="w-full">
+              <Link href="/goals">Create a Goal</Link>
+            </Button>
+        </CardFooter>
       </Card>
     );
   }
+  
+  const goal = goals[0];
 
   return (
     <Card className="h-full flex flex-col">
