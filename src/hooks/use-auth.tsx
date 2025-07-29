@@ -22,7 +22,7 @@ import {
   type User,
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/config";
-import { doc, setDoc, getDoc, updateDoc, onSnapshot } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/store/user-store";
@@ -47,6 +47,63 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const initializeUserDocument = async (user: User) => {
+    const userDocRef = doc(db, "users", user.uid);
+    const displayName = user.displayName || "Investor";
+    const photoURL = user.photoURL || "";
+    const welcomeNotification: Notification = {
+        id: `welcome-${Date.now()}`,
+        title: "Welcome to InvestWise!",
+        description: "We're glad to have you. Explore the app to start your journey.",
+        href: "/dashboard",
+        type: 'welcome',
+        read: false,
+        createdAt: new Date().toISOString(),
+    };
+    const newUserDoc = {
+        uid: user.uid,
+        email: user.email,
+        username: displayName,
+        photoURL: photoURL,
+        theme: 'light',
+        createdAt: new Date(),
+        portfolio: { holdings: [], summary: { totalValue: 0, todaysChange: 0, totalGainLoss: 0, annualRatePercent: 0 } },
+        notifications: [welcomeNotification],
+        goals: [],
+        autoInvestments: [],
+    };
+    await setDoc(userDocRef, newUserDoc);
+    if (auth.currentUser && auth.currentUser.displayName !== displayName) {
+        await updateProfile(auth.currentUser, { displayName, photoURL });
+    }
+    
+    // Return the initial data for setting stores
+    return {
+      username: displayName,
+      photoURL: photoURL,
+      notifications: [welcomeNotification],
+      theme: 'light',
+      portfolio: newUserDoc.portfolio,
+      goals: newUserDoc.goals,
+      autoInvestments: newUserDoc.autoInvestments,
+    };
+};
+
+const fetchUserData = async (user: User) => {
+  const userDocRef = doc(db, "users", user.uid);
+  try {
+      const userDoc = await getDoc(userDocRef);
+      if (userDoc.exists()) {
+          return userDoc.data();
+      } else {
+          return await initializeUserDocument(user);
+      }
+  } catch (error) {
+      console.error("Error fetching user data, initializing document as fallback:", error);
+      return await initializeUserDocument(user);
+  }
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   
@@ -59,60 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   const [user, setUser] = useState<User | null>(null);
   const [hydrating, setHydrating] = useState(true);
-
-  const fetchUserData = useCallback(async (user: User) => {
-    const userDocRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(userDocRef);
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      setUsername(userData.username || user.displayName || "Investor");
-      setProfilePic(userData.photoURL || "");
-      loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
-      setNotifications(userData.notifications || []);
-      loadGoals(userData.goals || []);
-      loadAutoInvestments(userData.autoInvestments || []);
-      setTheme(userData.theme || 'light');
-    }
-  }, [setUsername, setProfilePic, loadInitialData, setNotifications, loadGoals, loadAutoInvestments, setTheme]);
   
-  const initializeUserDocument = useCallback(async (user: User) => {
-      const userDocRef = doc(db, "users", user.uid);
-      const displayName = user.displayName || "Investor";
-      const photoURL = user.photoURL || "";
-      const welcomeNotification: Notification = {
-          id: `welcome-${Date.now()}`,
-          title: "Welcome to InvestWise!",
-          description: "We're glad to have you. Explore the app to start your journey.",
-          href: "/dashboard",
-          type: 'welcome',
-          read: false,
-          createdAt: new Date().toISOString(),
-      };
-      const newUserDoc = {
-          uid: user.uid,
-          email: user.email,
-          username: displayName,
-          photoURL: photoURL,
-          theme: 'light',
-          createdAt: new Date(),
-          portfolio: { holdings: [], summary: { totalValue: 0, todaysChange: 0, totalGainLoss: 0, annualRatePercent: 0 } },
-          notifications: [welcomeNotification],
-          goals: [],
-          autoInvestments: [],
-      };
-      await setDoc(userDocRef, newUserDoc);
-      if (auth.currentUser && auth.currentUser.displayName !== displayName) {
-          await updateProfile(auth.currentUser, { displayName, photoURL });
-      }
-      setUsername(displayName);
-      setProfilePic(photoURL);
-      loadInitialData([], null);
-      setNotifications([welcomeNotification]);
-      loadGoals([]);
-      loadAutoInvestments([]);
-      setTheme('light');
-  }, [setUsername, setProfilePic, loadInitialData, setNotifications, loadGoals, loadAutoInvestments, setTheme]);
-
   const resetAllStores = useCallback(() => {
     setUsername("Investor");
     setProfilePic("");
@@ -126,32 +130,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
-      try {
-        if (firebaseUser) {
-          setUser(firebaseUser);
-          const userDocRef = doc(db, 'users', firebaseUser.uid);
-          const userDoc = await getDoc(userDocRef);
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        
+        const userData = await fetchUserData(firebaseUser);
+        
+        await Promise.all([
+            Promise.resolve(setUsername(userData.username || firebaseUser.displayName || "Investor")),
+            Promise.resolve(setProfilePic(userData.photoURL || "")),
+            Promise.resolve(loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null)),
+            Promise.resolve(setNotifications(userData.notifications || [])),
+            Promise.resolve(loadGoals(userData.goals || [])),
+            Promise.resolve(loadAutoInvestments(userData.autoInvestments || [])),
+            Promise.resolve(setTheme(userData.theme || 'light')),
+        ]);
 
-          if (userDoc.exists()) {
-            await fetchUserData(firebaseUser);
-          } else {
-            await initializeUserDocument(firebaseUser);
-          }
-        } else {
-          setUser(null);
-          resetAllStores();
-        }
-      } catch (error) {
-        console.error("Error during auth state processing:", error);
-        setUser(null); // Go to a logged-out state on error
+      } else {
+        setUser(null);
         resetAllStores();
-      } finally {
-        setHydrating(false);
       }
+      setHydrating(false);
     });
 
     return () => unsubscribe();
-  }, [fetchUserData, initializeUserDocument, resetAllStores]);
+  }, [resetAllStores, setUsername, setProfilePic, loadInitialData, setNotifications, loadGoals, loadAutoInvestments, setTheme]);
 
 
   const signUp = async (email:string, pass: string, username: string) => {

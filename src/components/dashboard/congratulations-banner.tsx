@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card } from "@/components/ui/card";
@@ -5,8 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Trophy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
-export default function CongratulationsBanner() {
+interface CongratulationsBannerProps {
+  show: boolean;
+}
+
+export default function CongratulationsBanner({ show }: CongratulationsBannerProps) {
   const { toast } = useToast();
+
+  if (!show) {
+    return null;
+  }
 
   const handleButtonClick = () => {
     toast({

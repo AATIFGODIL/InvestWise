@@ -137,12 +137,13 @@ export default function DashboardPage() {
 
   const bundleProps = getBundlesForProfile();
   const videoProps = getVideosForProfile();
+  const showCongrats = userProfile === "Student" || userProfile === "Beginner" || userProfile === "Amateur";
 
   return (
     <div className="w-full bg-background font-body">
         <Header />
         <main className="p-4 space-y-6 pb-40">
-          <CongratulationsBanner />
+          <CongratulationsBanner show={showCongrats} />
           <PortfolioSummary />
           <AutoInvest />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
