@@ -67,8 +67,8 @@ export default function DashboardPage() {
     }
   }, [user]);
 
-  console.log('authLoading:', authLoading);
-  console.log('user:', user);
+  console.log('Dashboard user:', user);
+  console.log('Dashboard hydrating:', authLoading);
 
   if (authLoading || !user) {
     return (

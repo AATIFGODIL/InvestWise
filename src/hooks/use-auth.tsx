@@ -125,41 +125,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [setUsername, setProfilePic, setNotifications, resetPortfolio, resetGoals, resetAutoInvest, setTheme]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const processAuthState = async (currentUser: User | null) => {
       setHydrating(true);
       if (currentUser) {
-        console.log("Setting user:", currentUser);
-
-        // Add connectivity logging
-        const unsubscribeSnapshot = onSnapshot(doc(db, 'users', currentUser.uid), (snapshot) => {
-            console.log('Document data:', snapshot.data());
-        }, (error) => {
-            console.error('🔥 Firestore error:', error);
-        });
-        
         try {
-          const userDocRef = doc(db, "users", currentUser.uid);
+          const userDocRef = doc(db, 'users', currentUser.uid);
           const userDoc = await getDoc(userDocRef);
+
           if (userDoc.exists()) {
             await fetchUserData(currentUser);
           } else {
             await initializeUserDocument(currentUser);
           }
           setUser(currentUser);
-        } catch (error) {
-          console.error("Error during auth state processing:", error);
-          setUser(null);
-          resetAllStores();
+        } catch (err) {
+          console.error("Failed to fetch user doc:", err);
+          setUser(currentUser); // fallback: still consider signed in
         } finally {
-            // Unsubscribe from the snapshot listener when we're done with it to prevent memory leaks
-            unsubscribeSnapshot();
+          setHydrating(false);
         }
       } else {
         setUser(null);
         resetAllStores();
+        setHydrating(false);
       }
-      setHydrating(false);
-    });
+    };
+
+    const unsubscribe = onAuthStateChanged(auth, processAuthState);
 
     return () => unsubscribe();
   }, [fetchUserData, initializeUserDocument, resetAllStores]);
