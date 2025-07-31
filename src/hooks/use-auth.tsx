@@ -24,7 +24,7 @@ import {
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/config";
 import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/store/user-store";
 import usePortfolioStore from "@/store/portfolio-store";
@@ -42,7 +42,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signInWithApple: () => Promise<void>;
   signOut: () => void;
-  updateUserProfile: (data: { username?: string, photoDataUrl?: string | null }) => Promise<void>;
+  updateUserProfile: (data: { username?: string, imageFile?: File | null }) => Promise<void>;
   updateUserTheme: (theme: "light" | "dark") => Promise<void>;
   sendPasswordReset: () => Promise<void>;
 }
@@ -173,19 +173,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await handleSocialSignIn(provider);
   };
   
-  const updateUserProfile = async (data: { username?: string, photoDataUrl?: string | null }) => {
+  const updateUserProfile = async (data: { username?: string, imageFile?: File | null }) => {
     if (!user) throw new Error("User not authenticated");
 
     const userDocRef = doc(db, "users", user.uid);
     const updates: { [key: string]: any } = {};
     const authUpdates: { displayName?: string, photoURL?: string } = {};
 
-    let newPhotoURL = user.photoURL; // Start with current photo URL
+    let newPhotoURL = user.photoURL;
 
     // Step 1: Upload new photo if it exists
-    if (data.photoDataUrl && data.photoDataUrl.startsWith('data:image')) {
+    if (data.imageFile) {
         const storageRef = ref(storage, `profile_pictures/${user.uid}`);
-        await uploadString(storageRef, data.photoDataUrl, 'data_url');
+        await uploadBytes(storageRef, data.imageFile);
         newPhotoURL = await getDownloadURL(storageRef);
         updates.photoURL = newPhotoURL;
         authUpdates.photoURL = newPhotoURL;

@@ -26,10 +26,8 @@ export default function ProfilePage() {
   const { username, profilePic } = useUserStore();
   
   const [localUsername, setLocalUsername] = useState(username);
-  // State for the image shown in the avatar for preview
-  const [previewProfilePic, setPreviewProfilePic] = useState<string | null>(profilePic);
-  // State for the new file data (base64) to be uploaded
-  const [newProfilePicData, setNewProfilePicData] = useState<string | null>(null);
+  const [previewPhoto, setPreviewPhoto] = useState<string | null>(profilePic);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -38,7 +36,7 @@ export default function ProfilePage() {
   }, [username]);
 
   useEffect(() => {
-    setPreviewProfilePic(profilePic);
+    setPreviewPhoto(profilePic);
   }, [profilePic]);
 
 
@@ -51,14 +49,14 @@ export default function ProfilePage() {
     try {
         await updateUserProfile({
             username: localUsername,
-            photoDataUrl: newProfilePicData, 
+            imageFile: selectedImageFile, 
         });
         
         toast({
             title: "Success!",
             description: "Your profile has been updated.",
         });
-        setNewProfilePicData(null); // Clear the pending file change after successful save
+        setSelectedImageFile(null); // Clear pending file change
     } catch (error) {
         console.error("Error updating profile:", error);
         toast({ variant: "destructive", title: "Error", description: "Failed to update profile." });
@@ -94,13 +92,10 @@ export default function ProfilePage() {
   const handleProfilePicChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      setSelectedImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        const result = reader.result as string;
-        // Set the preview image immediately
-        setPreviewProfilePic(result); 
-        // Store the file data to be uploaded
-        setNewProfilePicData(result); 
+        setPreviewPhoto(reader.result as string); 
         toast({
           title: "Photo Ready",
           description: "Click 'Save Changes' to apply your new profile picture.",
@@ -144,7 +139,7 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-4">
                     <Label htmlFor="profile-pic-upload" className="cursor-pointer group relative">
                         <Avatar className="h-20 w-20 border-2 border-primary">
-                            <AvatarImage src={previewProfilePic ?? undefined} alt="@user" />
+                            <AvatarImage src={previewPhoto ?? undefined} alt="@user" />
                             <AvatarFallback>{localUsername?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
