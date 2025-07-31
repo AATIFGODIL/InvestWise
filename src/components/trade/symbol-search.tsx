@@ -12,36 +12,51 @@ interface SymbolSearchProps {
   onClear: () => void;
 }
 
-// Mock data for demonstration purposes
-const mockSymbols = [
-  { symbol: "AAPL", name: "Apple Inc.", price: 172.25 },
-  { symbol: "GOOGL", name: "Alphabet Inc.", price: 139.76 },
-  { symbol: "MSFT", name: "Microsoft Corp.", price: 370.95 },
-  { symbol: "AMZN", name: "Amazon.com, Inc.", price: 147.85 },
-  { symbol: "TSLA", name: "Tesla, Inc.", price: 235.84 },
-  { symbol: "NVDA", name: "NVIDIA Corp.", price: 476.90 },
-];
+// This is a placeholder for a real API call.
+const fetchSymbols = async (query: string) => {
+  const mockSymbols = [
+    { symbol: "AAPL", name: "Apple Inc." },
+    { symbol: "GOOGL", name: "Alphabet Inc." },
+    { symbol: "MSFT", name: "Microsoft Corp." },
+    { symbol: "AMZN", name: "Amazon.com, Inc." },
+    { symbol: "TSLA", name: "Tesla, Inc." },
+    { symbol: "NVDA", name: "NVIDIA Corp." },
+  ];
+
+  if (!query) return [];
+
+  const lowercasedQuery = query.toLowerCase();
+  const results = mockSymbols.filter(
+    s =>
+      s.symbol.toLowerCase().includes(lowercasedQuery) ||
+      s.name.toLowerCase().includes(lowercasedQuery)
+  );
+
+  // Simulate fetching a "live" price
+  return results.map(s => ({
+    ...s,
+    // Generate a pseudo-random price for demonstration
+    price: parseFloat((100 + Math.random() * 400).toFixed(2))
+  }));
+};
 
 export default function SymbolSearch({ onSymbolSelect, onClear }: SymbolSearchProps) {
   const [query, setQuery] = useState("");
-  const [filteredSymbols, setFilteredSymbols] = useState<typeof mockSymbols>([]);
+  const [results, setResults] = useState<{ symbol: string; name: string; price: number }[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
-
+  
   useEffect(() => {
-    if (query) {
-      const lowercasedQuery = query.toLowerCase();
-      setFilteredSymbols(
-        mockSymbols.filter(
-          s =>
-            s.symbol.toLowerCase().includes(lowercasedQuery) ||
-            s.name.toLowerCase().includes(lowercasedQuery)
-        )
-      );
-    } else {
-      setFilteredSymbols([]);
-      onClear();
+    const performSearch = async () => {
+        if (query) {
+            const symbols = await fetchSymbols(query);
+            setResults(symbols);
+        } else {
+            setResults([]);
+            onClear();
+        }
     }
+    performSearch();
   }, [query, onClear]);
 
   useEffect(() => {
@@ -56,10 +71,10 @@ export default function SymbolSearch({ onSymbolSelect, onClear }: SymbolSearchPr
     };
   }, []);
   
-  const handleSelectSymbol = (symbol: typeof mockSymbols[0]) => {
-    setQuery(`${symbol.symbol} ${symbol.name}`);
+  const handleSelectSymbol = (symbol: { symbol: string, name: string, price: number }) => {
+    setQuery(`${symbol.symbol} - ${symbol.name}`);
     onSymbolSelect(symbol.symbol, symbol.price);
-    setFilteredSymbols([]);
+    setResults([]);
     setIsFocused(false);
   };
   
@@ -95,10 +110,10 @@ export default function SymbolSearch({ onSymbolSelect, onClear }: SymbolSearchPr
               autoComplete="off"
             />
           </div>
-          {isFocused && filteredSymbols.length > 0 && (
+          {isFocused && results.length > 0 && (
             <div className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
               <ul>
-                {filteredSymbols.map(s => (
+                {results.map(s => (
                   <li
                     key={s.symbol}
                     className="px-4 py-2 hover:bg-accent cursor-pointer"
