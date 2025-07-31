@@ -29,8 +29,18 @@ const videos = [
 
 
 export default function TradePage() {
-  const [selectedSymbol, setSelectedSymbol] = useState<string | null>("AAPL");
+  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
   const [selectedPrice, setSelectedPrice] = useState<number | null>(null);
+
+  const handleSymbolSelect = (symbol: string, price: number) => {
+    setSelectedSymbol(symbol);
+    setSelectedPrice(price);
+  };
+
+  const handleClear = () => {
+    setSelectedSymbol(null);
+    setSelectedPrice(null);
+  }
 
   return (
     <div className="w-full bg-background font-body">
@@ -38,11 +48,13 @@ export default function TradePage() {
       <main className="p-4 space-y-6 pb-40">
         <h1 className="text-2xl font-bold">Trade</h1>
         
-        <SymbolSearch />
+        <SymbolSearch onSymbolSelect={handleSymbolSelect} onClear={handleClear} />
 
-        <div className="h-[500px] w-full">
-            <TradingViewWidget symbol={selectedSymbol || "AAPL"} />
-        </div>
+        {selectedSymbol && (
+          <div className="h-[500px] w-full">
+              <TradingViewWidget symbol={selectedSymbol} />
+          </div>
+        )}
 
         <TradeForm selectedSymbol={selectedSymbol} selectedPrice={selectedPrice} />
         <StockList />
