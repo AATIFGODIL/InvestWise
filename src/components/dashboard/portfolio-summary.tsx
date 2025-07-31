@@ -23,10 +23,10 @@ import { ArrowUp, ArrowDown, Info, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import usePortfolioStore from "@/store/portfolio-store";
 
-type TimeRange = '1W' | '1M' | '6M' | '1Y';
+type TimeRange = '1W' | '1M' | '6M' | '1Y' | 'All';
 
 function PortfolioSummary() {
-  const [timeRange, setTimeRange] = useState<TimeRange>('1W');
+  const [timeRange, setTimeRange] = useState<TimeRange>('All');
   const { portfolioSummary, chartData } = usePortfolioStore();
 
   const isTodaysChangePositive = portfolioSummary.todaysChange >= 0;

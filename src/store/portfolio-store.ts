@@ -26,6 +26,7 @@ interface ChartData {
     '1M': { date: string, value: number }[];
     '6M': { date: string, value: number }[];
     '1Y': { date: string, value: number }[];
+    'All': { date: string, value: number }[];
 }
 
 interface PortfolioState {
@@ -33,7 +34,7 @@ interface PortfolioState {
     portfolioSummary: PortfolioSummary;
     chartData: ChartData;
     executeTrade: (trade: { symbol: string, qty: number, price: number, description: string }) => { success: boolean, error?: string };
-    loadInitialData: (holdings: Holding[], summary: PortfolioSummary | null) => void;
+    loadInitialData: (holdings: Holding[], summary: PortfolioSummary | null, registrationDate: Date) => void;
     resetPortfolio: () => void;
 }
 
@@ -105,7 +106,7 @@ const calculatePortfolioSummary = (holdings: Holding[]): PortfolioSummary => {
     return summary;
 };
 
-const generateChartData = (totalValue: number): ChartData => {
+const generateChartData = (totalValue: number, registrationDate: Date): ChartData => {
     const generateDateLabel = (date: Date) => {
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
@@ -128,27 +129,44 @@ const generateChartData = (totalValue: number): ChartData => {
     }
     
     const today = new Date();
-    
-    return {
-        '1W': generateRandomWalk(5, totalValue, today),
-        '1M': generateRandomWalk(22, totalValue, today),
-        '6M': generateRandomWalk(126, totalValue, today),
-        '1Y': generateRandomWalk(252, totalValue, today),
+    const timeRanges = {
+        '1W': 5,
+        '1M': 22,
+        '6M': 126,
+        '1Y': 252,
     };
+
+    const generatedData: Partial<ChartData> = {};
+
+    for (const [range, defaultDays] of Object.entries(timeRanges)) {
+        const rangeStartDate = new Date(today);
+        rangeStartDate.setDate(rangeStartDate.getDate() - (defaultDays / 5) * 7); // Approximate calendar days
+
+        const chartStartDate = rangeStartDate > registrationDate ? rangeStartDate : registrationDate;
+        const daysToGenerate = Math.ceil((today.getTime() - chartStartDate.getTime()) / (1000 * 60 * 60 * 24) * (5/7)); // Estimate trading days
+        
+        generatedData[range as keyof typeof timeRanges] = generateRandomWalk(daysToGenerate, totalValue, today);
+    }
+    
+    const totalDaysSinceRegistration = Math.ceil((today.getTime() - registrationDate.getTime()) / (1000 * 60 * 60 * 24) * (5/7));
+    generatedData['All'] = generateRandomWalk(totalDaysSinceRegistration > 0 ? totalDaysSinceRegistration : 1, totalValue, today);
+
+
+    return generatedData as ChartData;
 };
 
 
 const usePortfolioStore = create<PortfolioState>((set, get) => ({
   holdings: [],
   portfolioSummary: { ...defaultSummary },
-  chartData: generateChartData(0),
+  chartData: generateChartData(0, new Date()),
   
-  loadInitialData: (holdings, summary) => {
+  loadInitialData: (holdings, summary, registrationDate) => {
     const newSummary = summary || calculatePortfolioSummary(holdings);
     set({
       holdings: holdings,
       portfolioSummary: newSummary,
-      chartData: generateChartData(newSummary.totalValue),
+      chartData: generateChartData(newSummary.totalValue, registrationDate),
     });
   },
 
@@ -156,7 +174,7 @@ const usePortfolioStore = create<PortfolioState>((set, get) => ({
     set({
       holdings: [],
       portfolioSummary: { ...defaultSummary },
-      chartData: generateChartData(0),
+      chartData: generateChartData(0, new Date()),
     });
   },
   
@@ -210,7 +228,11 @@ const usePortfolioStore = create<PortfolioState>((set, get) => ({
     }
     
     const newSummary = calculatePortfolioSummary(newHoldings);
-    const newChartData = generateChartData(newSummary.totalValue);
+    
+    // We don't need to regenerate chart data on every trade for this implementation
+    // as it's a random walk based on the *current* total value.
+    // If we had real historical data, we'd update it here.
+    const currentChartData = get().chartData;
 
     // Update Firestore
     const userDocRef = doc(getFirestore(), "users", user.uid);
@@ -222,7 +244,8 @@ const usePortfolioStore = create<PortfolioState>((set, get) => ({
     set({ 
         holdings: newHoldings,
         portfolioSummary: newSummary,
-        chartData: newChartData,
+        // Re-generate chart data with the new total value to keep it consistent
+        chartData: generateChartData(newSummary.totalValue, get().chartData['All'].length > 0 ? new Date(get().chartData['All'][0].date) : new Date())
     });
 
     return { success: true };

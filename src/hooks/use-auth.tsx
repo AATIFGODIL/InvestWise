@@ -23,7 +23,7 @@ import {
   type User,
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/config";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, type Timestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/store/user-store";
@@ -136,10 +136,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(firebaseUser);
         const userData = await fetchUserData(firebaseUser);
         if (userData) {
+          const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
+
           // Hydrate all stores with the fetched data
           setUsername(userData.username || firebaseUser.displayName || "Investor");
           setProfilePic(userData.photoURL || "");
-          loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
+          loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
           setNotifications(userData.notifications || []);
           loadGoals(userData.goals || []);
           loadAutoInvestments(userData.autoInvestments || []);

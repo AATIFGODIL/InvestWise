@@ -21,10 +21,10 @@ import { ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import usePortfolioStore from "@/store/portfolio-store";
 
-type TimeRange = '1W' | '1M' | '6M' | '1Y';
+type TimeRange = '1W' | '1M' | '6M' | '1Y' | 'All';
 
 function PortfolioValue() {
-  const [timeRange, setTimeRange] = useState<TimeRange>('1W');
+  const [timeRange, setTimeRange] = useState<TimeRange>('All');
   const { portfolioSummary, chartData } = usePortfolioStore();
 
 
