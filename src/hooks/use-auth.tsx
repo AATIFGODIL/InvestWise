@@ -214,10 +214,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUserTheme = async (theme: "light" | "dark") => {
+    setTheme(theme); // Optimistically update UI
     if (!user) return;
     const userDocRef = doc(db, "users", user.uid);
     await updateDoc(userDocRef, { theme });
-    setTheme(theme);
   }
 
   const sendPasswordReset = async () => {

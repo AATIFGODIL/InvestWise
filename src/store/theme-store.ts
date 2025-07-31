@@ -8,9 +8,28 @@ interface ThemeState {
   setTheme: (theme: Theme) => void;
 }
 
+const getInitialTheme = (): Theme => {
+  if (typeof window !== 'undefined') {
+    const storedTheme = localStorage.getItem('theme');
+    if (storedTheme === 'light' || storedTheme === 'dark') {
+      return storedTheme;
+    }
+  }
+  return 'light'; 
+};
+
+
 const useThemeStore = create<ThemeState>((set) => ({
-  theme: 'light',
-  setTheme: (theme) => set({ theme }),
+  theme: getInitialTheme(),
+  setTheme: (theme) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', theme);
+      const root = document.documentElement;
+      root.classList.remove('light', 'dark');
+      root.classList.add(theme);
+    }
+    set({ theme });
+  },
 }));
 
 export default useThemeStore;
