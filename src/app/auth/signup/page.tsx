@@ -111,7 +111,11 @@ export default function SignUpPage() {
       });
       router.push("/onboarding/id-verification");
     } catch (err: any) {
-      setError(err.message);
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Sign-in was cancelled.');
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
