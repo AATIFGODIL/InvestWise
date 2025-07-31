@@ -6,9 +6,10 @@ import { AuthProvider } from "@/hooks/use-auth";
 import ThemeProvider from "@/components/layout/theme-provider";
 import "./globals.css";
 
-if (typeof window !== 'undefined') {
-  require('../lib/firebase/clientConfig');
-}
+// This import will initialize Firebase on the client side.
+// The config file itself ensures client-only features run only in the browser.
+import '../lib/firebase/config';
+
 
 const poppins = Poppins({
   subsets: ["latin"],
