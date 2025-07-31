@@ -5,19 +5,19 @@ import React, { useEffect, useRef, memo } from 'react';
 
 interface TradingViewWidgetProps {
   symbol: string;
+  onSymbolChange: (symbol: string) => void;
 }
 
-const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }) => {
+const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL", onSymbolChange }) => {
   const container = useRef<HTMLDivElement>(null);
-  const scriptExists = useRef(false);
+  const widgetId = `tradingview_widget_${Math.random().toString(36).substr(2, 9)}`;
 
   useEffect(() => {
     if (!container.current || !symbol) return;
     
     const createWidget = () => {
         if (!container.current) return;
-        container.current.innerHTML = ""; // Clean up previous widget
-        scriptExists.current = false;
+        container.current.innerHTML = "";
 
         const script = document.createElement("script");
         script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
@@ -29,34 +29,75 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }
           "interval": "D",
           "timezone": "Etc/UTC",
           "theme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-          "style": "3", // Area chart style to match image
+          "style": "3",
           "locale": "en",
           "enable_publishing": false,
           "allow_symbol_change": true,
           "withdateranges": true,
-          "hide_side_toolbar": true, // Hide drawing tools
+          "hide_side_toolbar": false,
           "details": true,
           "hotlist": true,
           "calendar": true,
           "studies": [
             "Volume@tv-basicstudies"
           ],
-          "container_id": `tradingview-widget-container-${container.current.id}`
+          "container_id": widgetId,
         });
 
-        container.current.appendChild(script);
-        scriptExists.current = true;
-    }
-    
-    if (!container.current.id) {
-      container.current.id = `tv_widget_container_${Math.random().toString(36).substr(2, 9)}`;
+        script.onload = () => {
+          if (window.TradingView && container.current) {
+            try {
+              // @ts-ignore
+              const widget = new window.TradingView.widget({
+                "autosize": true,
+                "symbol": symbol,
+                "interval": "D",
+                "timezone": "Etc/UTC",
+                "theme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+                "style": "3",
+                "locale": "en",
+                "enable_publishing": false,
+                "allow_symbol_change": true,
+                "withdateranges": true,
+                "hide_side_toolbar": false,
+                "details": true,
+                "hotlist": true,
+                "calendar": true,
+                "studies": [
+                  "Volume@tv-basicstudies"
+                ],
+                "container_id": widgetId,
+              });
+
+              widget.onChartReady(() => {
+                widget.subscribe("symbol_change", (newSymbol: any) => {
+                   if(newSymbol?.name) {
+                       onSymbolChange(newSymbol.name);
+                   }
+                });
+              });
+
+            } catch (e) {
+                // Fallback to script injection if direct instantiation fails
+                container.current?.appendChild(script);
+            }
+          } else {
+             container.current?.appendChild(script);
+          }
+        }
+        
+        // Fallback in case onload does not fire correctly
+        if(!script.onload) {
+            container.current.appendChild(script);
+        }
+
     }
 
     createWidget();
 
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class' && mutation.target === document.documentElement) {
           createWidget();
         }
       }
@@ -66,7 +107,7 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }
 
     return () => observer.disconnect();
 
-  }, [symbol]);
+  }, [symbol, onSymbolChange, widgetId]);
 
   return (
     <div 
@@ -74,7 +115,7 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }
       ref={container}
     >
       <div 
-        id={`tradingview-widget-container-${container.current?.id}`} 
+        id={widgetId}
         className="tradingview-widget-container__widget h-full"
       ></div>
     </div>

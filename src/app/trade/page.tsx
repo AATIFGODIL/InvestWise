@@ -9,7 +9,6 @@ import AutoInvest from "@/components/dashboard/auto-invest";
 import InvestmentBundles from "@/components/dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
 import StockList from "@/components/trade/stock-list";
-import SymbolSearch from "@/components/shared/trading-view-search";
 import TradingViewWidget from "@/components/shared/trading-view-widget";
 
 const videos = [
@@ -28,8 +27,20 @@ const videos = [
 ]
 
 export default function TradePage() {
-  const [selectedSymbol, setSelectedSymbol] = useState<string | null>("AAPL");
-  const [selectedPrice, setSelectedPrice] = useState<number | null>(null);
+  const [selectedSymbol, setSelectedSymbol] = useState<string>("AAPL");
+  const [selectedPrice, setSelectedPrice] = useState<number | null>(150.00); // Example initial price
+
+  // In a real app, you'd have a mechanism to get the live price.
+  // For now, we simulate a price update when the symbol changes.
+  useEffect(() => {
+    // Simulate fetching price for the new symbol
+    if (selectedSymbol) {
+      // In a real scenario, this would be an API call.
+      // Here, we'll just set a new random price to simulate a change.
+      const newPrice = parseFloat((Math.random() * (500 - 50) + 50).toFixed(2));
+      setSelectedPrice(newPrice);
+    }
+  }, [selectedSymbol]);
 
   return (
     <div className="w-full bg-background font-body">
@@ -37,13 +48,9 @@ export default function TradePage() {
       <main className="p-4 space-y-6 pb-40">
         <h1 className="text-2xl font-bold">Trade</h1>
         
-        <SymbolSearch onSymbolSelect={setSelectedSymbol} />
-
-        {selectedSymbol && (
-          <div className="h-[500px] w-full">
-              <TradingViewWidget symbol={selectedSymbol} />
-          </div>
-        )}
+        <div className="h-[600px] w-full">
+            <TradingViewWidget symbol={selectedSymbol} onSymbolChange={setSelectedSymbol} />
+        </div>
 
         <TradeForm selectedSymbol={selectedSymbol} selectedPrice={selectedPrice} />
         <StockList />

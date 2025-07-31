@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -41,7 +41,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast";
 import usePortfolioStore from "@/store/portfolio-store";
-import { useState } from "react";
+
 
 const tradeSchema = z.object({
   symbol: z.string().min(1, "Symbol is required."),
@@ -83,10 +83,8 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
   useEffect(() => {
     if (selectedSymbol) {
       setValue("symbol", selectedSymbol, { shouldValidate: true });
-    } else {
-      reset(); // Reset form if symbol is cleared
     }
-  }, [selectedSymbol, setValue, reset]);
+  }, [selectedSymbol, setValue]);
   
   useEffect(() => {
     if (selectedPrice) {
@@ -97,8 +95,9 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
 
   const orderType = watch("orderType");
   const quantity = watch("quantity");
+  const limitPrice = watch("limitPrice");
   
-  const estimatedCost = selectedPrice && quantity > 0 ? selectedPrice * quantity : 0;
+  const estimatedCost = limitPrice && quantity > 0 ? limitPrice * quantity : 0;
 
   const handlePreview = (data: TradeFormValues) => {
     setPreviewData(data);
@@ -146,7 +145,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="symbol"
-                  placeholder="Select a symbol above"
+                  placeholder="Select a symbol from the chart above"
                   className="pl-10"
                   {...register("symbol")}
                   disabled
@@ -244,7 +243,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
                         <span className="font-medium">${estimatedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>{quantity} shares x ${selectedPrice?.toFixed(2)}/share</span>
+                        <span>{quantity} shares x ${limitPrice?.toFixed(2)}/share</span>
                     </div>
                 </div>
             )}
@@ -277,7 +276,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
                         <div className="flex justify-between"><strong>Duration:</strong> <span>{previewData.duration === 'gtc' ? "Good 'til Canceled" : "Day Only"}</span></div>
                         <div className="flex justify-between pt-2 border-t mt-2">
                             <strong>Estimated Total:</strong> 
-                            <strong className="text-primary">${(selectedPrice! * previewData.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                            <strong className="text-primary">${(previewData.limitPrice! * previewData.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                         </div>
                     </div>
                 )}
