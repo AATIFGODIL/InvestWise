@@ -29,7 +29,7 @@ const videos = [
 
 
 export default function TradePage() {
-  const [selectedSymbol, setSelectedSymbol] = useState<string | null>("AAPL");
+  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
 
   return (
     <div className="w-full bg-background font-body">

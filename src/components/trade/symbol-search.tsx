@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState, useRef } from 'react';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search } from 'lucide-react';
-import { Button } from '../ui/button';
 import { Label } from '@/components/ui/label';
 
 interface SymbolSearchProps {
-  onSymbolSelect: (symbol: string) => void;
+  onSymbolSelect: (symbol: string | null) => void;
 }
 
 const mockSymbols = [
@@ -23,10 +22,14 @@ const mockSymbols = [
 export default function SymbolSearch({ onSymbolSelect }: SymbolSearchProps) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<{ symbol: string; name: string; }[]>([]);
+  const [selectedSymbolInfo, setSelectedSymbolInfo] = useState<{ symbol: string; name: string; } | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
+    setSelectedSymbolInfo(null); 
+
     if (value.length > 0) {
       const filtered = mockSymbols.filter(
         (item) =>
@@ -36,13 +39,24 @@ export default function SymbolSearch({ onSymbolSelect }: SymbolSearchProps) {
       setResults(filtered);
     } else {
       setResults([]);
+      onSymbolSelect(null); // Hide graph when input is cleared
     }
   };
 
-  const handleSelect = (symbol: string) => {
-    onSymbolSelect(symbol);
-    setQuery('');
+  const handleSelect = (item: { symbol: string; name: string; }) => {
+    onSymbolSelect(item.symbol);
+    setSelectedSymbolInfo(item);
+    setQuery(`${item.symbol} ${item.name}`);
     setResults([]);
+    if (inputRef.current) {
+        inputRef.current.blur(); // Remove focus after selection
+    }
+  }
+
+  const handleInputClick = (e: React.MouseEvent<HTMLInputElement>) => {
+    if(selectedSymbolInfo) {
+      e.currentTarget.select();
+    }
   }
 
   return (
@@ -56,11 +70,13 @@ export default function SymbolSearch({ onSymbolSelect }: SymbolSearchProps) {
           <div className="relative mt-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
             <Input
+              ref={inputRef}
               id="symbol-search"
               placeholder="Look up Symbol/Company Name"
               className="pl-10"
               value={query}
               onChange={handleSearch}
+              onClick={handleInputClick}
               autoComplete="off"
             />
           </div>
@@ -71,7 +87,7 @@ export default function SymbolSearch({ onSymbolSelect }: SymbolSearchProps) {
                   <li 
                     key={item.symbol} 
                     className="px-3 py-2 cursor-pointer hover:bg-accent"
-                    onClick={() => handleSelect(item.symbol)}
+                    onClick={() => handleSelect(item)}
                   >
                     <p className="font-bold">{item.symbol}</p>
                     <p className="text-sm text-muted-foreground">{item.name}</p>
