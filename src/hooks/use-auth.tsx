@@ -18,6 +18,7 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   OAuthProvider,
+  sendPasswordResetEmail,
   type AuthProvider as FirebaseAuthProvider,
   type User,
 } from "firebase/auth";
@@ -41,8 +42,9 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signInWithApple: () => Promise<void>;
   signOut: () => void;
-  updateUserProfile: (data: { username?: string, photoDataUrl?: string }) => Promise<void>;
+  updateUserProfile: (data: { username?: string, photoDataUrl?: string | null }) => Promise<void>;
   updateUserTheme: (theme: "light" | "dark") => Promise<void>;
+  sendPasswordReset: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -73,7 +75,7 @@ const initializeUserDocument = async (user: User) => {
         autoInvestments: [],
     };
     await setDoc(userDocRef, newUserDoc);
-    if (auth.currentUser && auth.currentUser.displayName !== displayName) {
+    if (auth.currentUser && (auth.currentUser.displayName !== displayName || auth.currentUser.photoURL !== photoURL)) {
         await updateProfile(auth.currentUser, { displayName, photoURL });
     }
     
@@ -122,24 +124,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      // Immediately set user and hydration state to unblock UI
       setUser(firebaseUser);
       setHydrating(false);
 
       if (firebaseUser) {
-        // Fetch and hydrate stores in the background
-        fetchUserData(firebaseUser).then(userData => {
-            setUsername(userData.username || firebaseUser.displayName || "Investor");
-            setProfilePic(userData.photoURL || "");
-            loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
-            setNotifications(userData.notifications || []);
-            loadGoals(userData.goals || []);
-            loadAutoInvestments(userData.autoInvestments || []);
-            setTheme(userData.theme || 'light');
-        }).catch(error => {
-            console.error("Failed to load user data:", error);
-            resetAllStores();
-        });
+        const userData = await fetchUserData(firebaseUser);
+        setUsername(userData.username || firebaseUser.displayName || "Investor");
+        setProfilePic(userData.photoURL || "");
+        loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
+        setNotifications(userData.notifications || []);
+        loadGoals(userData.goals || []);
+        loadAutoInvestments(userData.autoInvestments || []);
+        setTheme(userData.theme || 'light');
       } else {
         resetAllStores();
       }
@@ -153,6 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
     await updateProfile(newUser, { displayName: username, photoURL: "" });
+    await initializeUserDocument(newUser);
   }
 
   const signIn = (email:string, pass: string) => {
@@ -173,42 +170,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await handleSocialSignIn(provider);
   };
   
-  const updateUserProfile = async (data: { username?: string, photoDataUrl?: string }) => {
+  const updateUserProfile = async (data: { username?: string, photoDataUrl?: string | null }) => {
     if (!user) throw new Error("User not authenticated");
 
     const userDocRef = doc(db, "users", user.uid);
-    let photoURL = user.photoURL || "";
+    let photoURL = useUserStore.getState().profilePic; // Start with current pic
+    let hasPhotoChanged = false;
 
-    if (data.photoDataUrl) {
+    // Check if a new photo data URL was provided and it's different from the current one
+    if (data.photoDataUrl && data.photoDataUrl.startsWith('data:image')) {
         const storageRef = ref(storage, `profile_pictures/${user.uid}`);
         await uploadString(storageRef, data.photoDataUrl, 'data_url');
         photoURL = await getDownloadURL(storageRef);
+        hasPhotoChanged = true;
     }
     
-    const updateData: { [key: string]: any } = {};
+    const firestoreUpdateData: { [key: string]: any } = {};
+    const authUpdateData: { displayName?: string; photoURL?: string } = {};
 
-    if (data.username) updateData.username = data.username;
-    if (data.photoDataUrl) updateData.photoURL = photoURL;
-
-    if (Object.keys(updateData).length > 0) {
-        await updateDoc(userDocRef, updateData);
+    if (data.username && data.username !== useUserStore.getState().username) {
+        firestoreUpdateData.username = data.username;
+        authUpdateData.displayName = data.username;
+    }
+    if (hasPhotoChanged) {
+        firestoreUpdateData.photoURL = photoURL;
+        authUpdateData.photoURL = photoURL;
     }
 
-    const profileUpdate: { displayName?: string; photoURL?: string } = {};
-    if (data.username) profileUpdate.displayName = data.username;
-    if (data.photoDataUrl && photoURL) {
-      profileUpdate.photoURL = photoURL;
+    if (Object.keys(firestoreUpdateData).length > 0) {
+        await updateDoc(userDocRef, firestoreUpdateData);
+    }
+    
+    if (Object.keys(authUpdateData).length > 0) {
+        await updateProfile(user, authUpdateData);
     }
 
-    if (user && Object.keys(profileUpdate).length > 0) {
-        await updateProfile(user, profileUpdate);
+    // Update global state from the source of truth
+    if (authUpdateData.displayName) {
+        setUsername(authUpdateData.displayName);
     }
-
-    if (data.username) {
-        setUsername(data.username);
-    }
-    if (data.photoDataUrl) {
-        setProfilePic(photoURL);
+    if (authUpdateData.photoURL) {
+        setProfilePic(authUpdateData.photoURL);
     }
   };
 
@@ -217,6 +219,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userDocRef = doc(db, "users", user.uid);
     await updateDoc(userDocRef, { theme });
     setTheme(theme);
+  }
+
+  const sendPasswordReset = async () => {
+    if (!user?.email) throw new Error("No email associated with user.");
+    await sendPasswordResetEmail(auth, user.email);
   }
 
   const signOut = async () => {
@@ -234,6 +241,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut,
     updateUserProfile,
     updateUserTheme,
+    sendPasswordReset,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
