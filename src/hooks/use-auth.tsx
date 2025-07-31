@@ -78,15 +78,7 @@ const initializeUserDocument = async (user: User) => {
     }
     
     // Return the initial data for setting stores
-    return {
-      username: displayName,
-      photoURL: photoURL,
-      notifications: [welcomeNotification],
-      theme: 'light',
-      portfolio: newUserDoc.portfolio,
-      goals: newUserDoc.goals,
-      autoInvestments: newUserDoc.autoInvestments,
-    };
+    return newUserDoc;
 };
 
 const fetchUserData = async (user: User) => {
@@ -96,6 +88,7 @@ const fetchUserData = async (user: User) => {
       if (userDoc.exists()) {
           return userDoc.data();
       } else {
+          console.log("User document not found, initializing new one.");
           return await initializeUserDocument(user);
       }
   } catch (error) {
@@ -131,11 +124,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
       if (firebaseUser) {
-        setUser(firebaseUser);
-        
-        const userData = await fetchUserData(firebaseUser);
-        
-        await Promise.all([
+        try {
+          const userData = await fetchUserData(firebaseUser);
+          
+          await Promise.all([
             Promise.resolve(setUsername(userData.username || firebaseUser.displayName || "Investor")),
             Promise.resolve(setProfilePic(userData.photoURL || "")),
             Promise.resolve(loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null)),
@@ -143,8 +135,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             Promise.resolve(loadGoals(userData.goals || [])),
             Promise.resolve(loadAutoInvestments(userData.autoInvestments || [])),
             Promise.resolve(setTheme(userData.theme || 'light')),
-        ]);
+          ]);
 
+          setUser(firebaseUser);
+
+        } catch (error) {
+            console.error("Failed to load user data:", error);
+            setUser(null); // Or handle error appropriately
+            resetAllStores();
+        }
       } else {
         setUser(null);
         resetAllStores();

@@ -80,15 +80,14 @@ const experiencedVideos = [
 export default function DashboardPage() {
   const { user, hydrating: authLoading } = useAuth();
   const [userProfile, setUserProfile] = useState<string | null>(null);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    // This effect runs only once on the client after auth is resolved.
+    if (!authLoading && typeof window !== 'undefined') {
       const profile = localStorage.getItem('userProfile');
       setUserProfile(profile);
-      setIsLoadingProfile(false);
     }
-  }, []);
+  }, [authLoading]);
 
   const getBundlesForProfile = () => {
     switch(userProfile) {
@@ -149,7 +148,7 @@ export default function DashboardPage() {
     </div>
   )
 
-  if (authLoading || isLoadingProfile) {
+  if (authLoading || userProfile === null) {
     return <PageSkeleton />;
   }
   
@@ -159,7 +158,7 @@ export default function DashboardPage() {
     <div className="w-full bg-background font-body">
         <Header />
         <main className="p-4 space-y-6 pb-40">
-          <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
+          <CongratulationsBanner show={showCongrats} userProfile={userProfile} />
           <PortfolioSummary />
           <AutoInvest />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
