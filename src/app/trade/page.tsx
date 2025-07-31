@@ -10,6 +10,7 @@ import InvestmentBundles from "@/components/dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
 import StockList from "@/components/trade/stock-list";
 import TradingViewWidget from "@/components/shared/trading-view-widget";
+import TradingViewSearch from "@/components/shared/trading-view-search";
 
 const videos = [
     {
@@ -28,25 +29,30 @@ const videos = [
 
 export default function TradePage() {
   const [selectedSymbol, setSelectedSymbol] = useState<string>("AAPL");
-  const [selectedPrice, setSelectedPrice] = useState<number | null>(150.00); // Example initial price
+  const [selectedPrice, setSelectedPrice] = useState<number | null>(150.00); 
 
-  // In a real app, you'd have a mechanism to get the live price.
-  // For now, we simulate a price update when the symbol changes.
   useEffect(() => {
-    // Simulate fetching price for the new symbol
     if (selectedSymbol) {
-      // In a real scenario, this would be an API call.
-      // Here, we'll just set a new random price to simulate a change.
       const newPrice = parseFloat((Math.random() * (500 - 50) + 50).toFixed(2));
       setSelectedPrice(newPrice);
     }
   }, [selectedSymbol]);
+
+  const handleSymbolChange = (symbol: string, price?: number) => {
+    setSelectedSymbol(symbol);
+    if (price) {
+        setSelectedPrice(price);
+    }
+  };
+
 
   return (
     <div className="w-full bg-background font-body">
       <Header />
       <main className="p-4 space-y-6 pb-40">
         <h1 className="text-2xl font-bold">Trade</h1>
+
+        <TradingViewSearch onSymbolChange={handleSymbolChange} />
         
         <div className="h-[600px] w-full">
             <TradingViewWidget symbol={selectedSymbol} onSymbolChange={setSelectedSymbol} />
@@ -73,3 +79,4 @@ export default function TradePage() {
     </div>
   );
 }
+
