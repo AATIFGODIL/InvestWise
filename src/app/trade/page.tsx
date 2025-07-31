@@ -28,15 +28,19 @@ const videos = [
 
 export default function TradePage() {
   const [selectedSymbol, setSelectedSymbol] = useState<string>("AAPL");
-  const [selectedPrice, setSelectedPrice] = useState<number | null>(150.00); 
+  const [selectedPrice, setSelectedPrice] = useState<number | null>(null); 
 
   useEffect(() => {
     // This is a placeholder for a real price fetching mechanism.
     // In a real app, you'd get this from the widget or an API.
-    if (selectedSymbol) {
-      const newPrice = parseFloat((Math.random() * (500 - 50) + 50).toFixed(2));
-      setSelectedPrice(newPrice);
-    }
+    const interval = setInterval(() => {
+        if (selectedSymbol) {
+            const newPrice = parseFloat((Math.random() * (500 - 50) + 50).toFixed(2));
+            setSelectedPrice(newPrice);
+        }
+    }, 2000); // Update price every 2 seconds
+
+    return () => clearInterval(interval);
   }, [selectedSymbol]);
 
   const handleSymbolChange = (symbol: string) => {
