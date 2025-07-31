@@ -6,6 +6,10 @@ import { AuthProvider } from "@/hooks/use-auth";
 import ThemeProvider from "@/components/layout/theme-provider";
 import "./globals.css";
 
+if (typeof window !== 'undefined') {
+  require('../lib/firebase/clientConfig');
+}
+
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
