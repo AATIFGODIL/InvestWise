@@ -55,11 +55,11 @@ const generateChartData = (totalValue: number, registrationDate: Date): ChartDat
         let currentDate = new Date(startDate);
 
         for (let i = 0; i < days; i++) {
-            data.push({ date: generateDateLabel(currentDate), value: Math.max(0, parseFloat(currentValue.toFixed(2))) });
-            currentDate.setDate(currentDate.getDate() - 1);
-            if (currentDate.getDay() === 0 || currentDate.getDay() === 6) { // Skip Sunday (0) and Saturday (6)
-                // Do not increment i, just continue to next day
+             // Only add data for weekdays
+            if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
+                 data.push({ date: generateDateLabel(currentDate), value: Math.max(0, parseFloat(currentValue.toFixed(2))) });
             }
+            currentDate.setDate(currentDate.getDate() - 1);
             currentValue += (Math.random() - 0.5) * (initialValue * 0.05);
         }
         return data.reverse();
@@ -79,11 +79,15 @@ const generateChartData = (totalValue: number, registrationDate: Date): ChartDat
         const rangeStartDate = new Date(today);
         rangeStartDate.setDate(rangeStartDate.getDate() - defaultDays);
 
-        const chartStartDate = rangeStartDate > registrationDate ? rangeStartDate : registrationDate;
-        const daysSinceChartStart = Math.ceil((today.getTime() - chartStartDate.getTime()) / (1000 * 60 * 60 * 24));
-        const daysToGenerate = Math.max(1, daysSinceChartStart);
+        // Determine the actual start date for the chart data
+        // It's the later of the registration date or the calculated range start date
+        const chartStartDate = registrationDate > rangeStartDate ? registrationDate : rangeStartDate;
         
-        generatedData[range as keyof typeof timeRanges] = generateRandomWalk(daysToGenerate, totalValue, today);
+        // Calculate the number of days between today and the chart start date
+        const daysToGenerate = Math.ceil((today.getTime() - chartStartDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        // Ensure we generate at least one data point if the date is today
+        generatedData[range as keyof typeof timeRanges] = generateRandomWalk(Math.max(1, daysToGenerate), totalValue, today);
     }
 
     return generatedData as ChartData;
@@ -96,15 +100,11 @@ const usePortfolioStore = create<PortfolioState>((set, get) => ({
   chartData: generateChartData(0, new Date()),
   
   loadInitialData: (holdings, summary, registrationDate) => {
-    // User specified a join date of July 29th. We will use this for their chart.
-    const hardcodedRegistrationDate = new Date('2024-07-29T12:00:00Z');
-    const actualRegistrationDate = registrationDate > hardcodedRegistrationDate ? hardcodedRegistrationDate : registrationDate;
-
     const newSummary = summary || calculatePortfolioSummary(holdings);
     set({
       holdings: holdings,
       portfolioSummary: newSummary,
-      chartData: generateChartData(newSummary.totalValue, actualRegistrationDate),
+      chartData: generateChartData(newSummary.totalValue, registrationDate),
     });
   },
 
