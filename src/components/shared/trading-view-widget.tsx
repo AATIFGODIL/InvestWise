@@ -29,7 +29,7 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }
       "style": "1",
       "locale": "en",
       "enable_publishing": false,
-      "allow_symbol_change": false, // Set to false to prevent internal changes
+      "allow_symbol_change": true, 
       "withdateranges": true,
       "hide_side_toolbar": false,
       "details": true,

@@ -129,6 +129,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
 
     setIsPreviewOpen(false);
     setPreviewData(null);
+    reset();
   };
 
   return (
@@ -145,10 +146,10 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="symbol"
-                  placeholder="Select a symbol from the chart above"
+                  placeholder="Select a symbol from the list above"
                   className="pl-10"
                   {...register("symbol")}
-                  disabled
+                  readOnly
                 />
               </div>
               {errors.symbol && <p className="text-sm text-destructive">{errors.symbol.message}</p>}
@@ -250,7 +251,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
 
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
-            <Button variant="outline" type="reset" onClick={() => reset()}>Clear</Button>
+            <Button variant="outline" type="button" onClick={() => reset()}>Clear</Button>
             <Button type="submit" disabled={!isValid || !selectedSymbol}>Preview Order</Button>
           </CardFooter>
         </form>
