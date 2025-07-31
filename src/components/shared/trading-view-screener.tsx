@@ -2,15 +2,15 @@
 "use client";
 
 import React, { useEffect, useRef, memo } from 'react';
+import useThemeStore from '@/store/theme-store';
 
 const TradingViewScreenerWidget: React.FC = () => {
   const container = useRef<HTMLDivElement>(null);
+  const { theme } = useThemeStore();
+  const hasRendered = useRef(false);
 
   useEffect(() => {
-    if (!container.current) return;
-
-    // Clear the container before appending a new script
-    container.current.innerHTML = '';
+    if (!container.current || (hasRendered.current && !theme)) return;
 
     const script = document.createElement("script");
     script.src = "https://s3.tradingview.com/external-embedding/embed-widget-screener.js";
@@ -22,45 +22,16 @@ const TradingViewScreenerWidget: React.FC = () => {
       "defaultColumn": "overview",
       "screener_type": "stock_mkt",
       "displayCurrency": "USD",
-      "colorTheme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+      "colorTheme": theme,
       "locale": "en",
       "isTransparent": false
     });
 
+    container.current.innerHTML = '';
     container.current.appendChild(script);
+    hasRendered.current = true;
 
-    const observer = new MutationObserver((mutations) => {
-        for (const mutation of mutations) {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                const newTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-                const newScript = document.createElement("script");
-                newScript.src = "https://s3.tradingview.com/external-embedding/embed-widget-screener.js";
-                newScript.type = "text/javascript";
-                newScript.async = true;
-                newScript.innerHTML = JSON.stringify({
-                  "width": "100%",
-                  "height": "100%",
-                  "defaultColumn": "overview",
-                  "screener_type": "stock_mkt",
-                  "displayCurrency": "USD",
-                  "colorTheme": newTheme,
-                  "locale": "en",
-                  "isTransparent": false
-                });
-
-                if (container.current) {
-                    container.current.innerHTML = '';
-                    container.current.appendChild(newScript);
-                }
-            }
-        }
-    });
-
-    observer.observe(document.documentElement, { attributes: true });
-
-    return () => observer.disconnect();
-
-  }, []);
+  }, [theme]);
 
   return (
     <div className="tradingview-widget-container h-full w-full">
