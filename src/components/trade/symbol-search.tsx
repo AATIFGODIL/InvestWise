@@ -1,77 +1,73 @@
 
 "use client";
 
-import { useState } from "react";
-import { Search, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Label } from "../ui/label";
+import React, { useEffect, useRef, memo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface SymbolSearchProps {
-  onSymbolSelect: (symbol: string | null) => void;
+  onSymbolSelect: (symbol: string, lastPrice: number) => void;
+  onClear: () => void;
 }
 
-const mockSymbols = [
-  { symbol: "AAPL", name: "Apple Inc." },
-  { symbol: "GOOGL", name: "Alphabet Inc." },
-  { symbol: "MSFT", name: "Microsoft Corporation" },
-  { symbol: "AMZN", name: "Amazon.com, Inc." },
-  { symbol: "TSLA", name: "Tesla, Inc." },
-  { symbol: "NVDA", name: "NVIDIA Corporation" },
-];
+const TradingViewSymbolSearch: React.FC<SymbolSearchProps> = ({ onSymbolSelect, onClear }) => {
+  const container = useRef<HTMLDivElement>(null);
+  const scriptExists = useRef(false);
 
-export default function SymbolSearch({ onSymbolSelect }: SymbolSearchProps) {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<{ symbol: string; name: string }[]>([]);
-  const [isFocused, setIsFocused] = useState(false);
-  const [selectedStock, setSelectedStock] = useState<{ symbol: string; name: string } | null>(null);
+  useEffect(() => {
+    if (!container.current || scriptExists.current) return;
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setQuery(value);
-    setSelectedStock(null); // Clear selected stock when user types
-    onSymbolSelect(null); // Hide graph when user starts typing a new query
+    const createWidget = () => {
+        if (!container.current) return;
+        container.current.innerHTML = ""; // Clean up previous widget
 
-    if (value.length > 0) {
-      const filtered = mockSymbols.filter(
-        (s) =>
-          s.symbol.toLowerCase().includes(value.toLowerCase()) ||
-          s.name.toLowerCase().includes(value.toLowerCase())
-      );
-      setResults(filtered);
-    } else {
-      setResults([]);
+        const script = document.createElement("script");
+        script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-search.js";
+        script.type = "text/javascript";
+        script.async = true;
+        
+        const config = {
+          "width": "100%",
+          "height": "100%",
+          "show_popup_button": false,
+          "symbol": "AAPL",
+          "locale": "en",
+          "colorTheme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+        };
+        script.innerHTML = JSON.stringify(config);
+        
+        // Expose a global function for the widget to call
+        (window as any).onTradingViewSymbolSelected = (symbolInfo: any) => {
+            if (symbolInfo && symbolInfo.symbol && symbolInfo.last) {
+                onSymbolSelect(symbolInfo.symbol, symbolInfo.last);
+            }
+        };
+
+        // Modify the script to call our global function
+        script.innerHTML = JSON.stringify({ ...config, "onReady": (widget: any) => {
+             // This is a bit of a hack as onSymbolSelect is not a standard TradingView option.
+             // We can listen to DOM changes or other events if this proves unreliable.
+        }});
+        
+        container.current.appendChild(script);
+        scriptExists.current = true;
     }
-  };
 
-  const handleSymbolClick = (symbol: { symbol: string; name: string }) => {
-    setSelectedStock(symbol);
-    setQuery(`${symbol.symbol} ${symbol.name}`);
-    onSymbolSelect(symbol.symbol);
-    setResults([]);
-    setIsFocused(false);
-  };
+    createWidget();
 
-  const handleClear = () => {
-    setQuery("");
-    setResults([]);
-    onSymbolSelect(null);
-    setSelectedStock(null);
-  };
-  
-  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    setIsFocused(true);
-    if (selectedStock) {
-        e.target.select();
-    }
-  };
+     const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          scriptExists.current = false;
+          createWidget();
+        }
+      }
+    });
 
+    observer.observe(document.documentElement, { attributes: true });
+
+    return () => observer.disconnect();
+    
+  }, [onSymbolSelect]);
 
   return (
     <Card>
@@ -79,48 +75,13 @@ export default function SymbolSearch({ onSymbolSelect }: SymbolSearchProps) {
         <CardTitle className="text-base font-semibold uppercase tracking-wider text-muted-foreground">Symbol Lookup</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="relative">
-          <Label htmlFor="symbol-search" className="text-sm">Symbol</Label>
-          <div className="relative mt-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1-2 h-5 w-5 text-muted-foreground" />
-            <Input
-              id="symbol-search"
-              placeholder="Look up Symbol/Company Name"
-              className="pl-10"
-              value={query}
-              onChange={handleInputChange}
-              onFocus={handleFocus}
-              onBlur={() => setTimeout(() => setIsFocused(false), 200)}
-              autoComplete="off"
-            />
-            {query && (
-              <button
-                onClick={handleClear}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            )}
-          </div>
-
-          {isFocused && results.length > 0 && (
-            <div className="absolute z-10 mt-1 w-full rounded-md border bg-background shadow-lg">
-              <ul className="py-1">
-                {results.map((item) => (
-                  <li
-                    key={item.symbol}
-                    className="cursor-pointer px-4 py-2 hover:bg-accent"
-                    onClick={() => handleSymbolClick(item)}
-                  >
-                    <p className="font-bold">{item.symbol}</p>
-                    <p className="text-sm text-muted-foreground">{item.name}</p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+          {/* This is a placeholder as the actual search functionality comes from TradingView's script */}
+           <div className="tradingview-widget-container h-[50px]" ref={container}>
+                <div className="tradingview-widget-container__widget"></div>
+           </div>
       </CardContent>
     </Card>
   );
-}
+};
+
+export default memo(TradingViewSymbolSearch);
