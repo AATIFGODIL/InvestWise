@@ -78,7 +78,7 @@ const TradingViewTickerTape: React.FC<TradingViewTickerTapeProps> = ({ onDataLoa
       "showSymbolLogo": false,
       "isTransparent": true,
       "displayMode": "regular",
-      "colorTheme": "light",
+      "colorTheme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
       "locale": "en"
     });
 

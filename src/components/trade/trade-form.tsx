@@ -251,7 +251,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
 
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
-            <Button variant="outline" type="reset">Clear</Button>
+            <Button variant="outline" type="reset" onClick={() => reset()}>Clear</Button>
             <Button type="submit" disabled={!isValid || !selectedSymbol}>Preview Order</Button>
           </CardFooter>
         </form>
