@@ -2,10 +2,9 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
-import { Label } from "../ui/label";
 
 interface StockData {
   symbol: string;
@@ -70,7 +69,7 @@ export default function SymbolSearch({ onSymbolSelect, onClear, stockData }: Sym
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base font-semibold uppercase tracking-wider text-muted-foreground">Symbol Lookup</CardTitle>
+        <div className="text-base font-semibold uppercase tracking-wider text-muted-foreground">Symbol Lookup</div>
       </CardHeader>
       <CardContent>
         <div className="relative" ref={searchRef}>
