@@ -1,8 +1,7 @@
-
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, enablePersistence } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
@@ -23,14 +22,16 @@ const storage = getStorage(app);
 
 // Enable Firestore offline persistence only on the client-side
 if (typeof window !== 'undefined') {
-    enablePersistence(db).catch((err) => {
-        if (err.code == 'failed-precondition') {
-            // Multiple tabs open, persistence can only be enabled in one tab at a time.
-            console.warn('Firestore persistence failed: multiple tabs open.');
-        } else if (err.code == 'unimplemented') {
-            // The current browser does not support all of the features required to enable persistence
-            console.warn('Firestore persistence not available in this browser.');
-        }
+    import("firebase/firestore").then(({ enablePersistence }) => {
+        enablePersistence(db).catch((err) => {
+            if (err.code == 'failed-precondition') {
+                // Multiple tabs open, persistence can only be enabled in one tab at a time.
+                console.warn('Firestore persistence failed: multiple tabs open.');
+            } else if (err.code == 'unimplemented') {
+                // The current browser does not support all of the features required to enable persistence
+                console.warn('Firestore persistence not available in this browser.');
+            }
+        });
     });
 }
 
