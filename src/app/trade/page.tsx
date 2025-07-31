@@ -36,15 +36,15 @@ export default function TradePage() {
       <main className="p-4 space-y-6 pb-40">
         <h1 className="text-2xl font-bold">Trade</h1>
         
-        <div className="h-[700px] w-full">
-            <TradingViewScreenerWidget />
-        </div>
-
         <div className="h-[600px] w-full">
             <TradingViewWidget symbol={selectedSymbol} />
         </div>
 
         <TradeForm selectedSymbol={selectedSymbol} selectedPrice={selectedPrice} />
+
+        <div className="h-[700px] w-full">
+            <TradingViewScreenerWidget />
+        </div>
         
         <InvestmentBundles 
           bundles={specializedBundles}
