@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from 'react';
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search } from 'lucide-react';
 import { Label } from '@/components/ui/label';
@@ -37,6 +37,7 @@ export default function SymbolSearch({ onSymbolSelect }: SymbolSearchProps) {
           item.name.toLowerCase().includes(value.toLowerCase())
       );
       setResults(filtered);
+      onSymbolSelect(null); // Hide graph when user is typing a new query
     } else {
       setResults([]);
       onSymbolSelect(null); // Hide graph when input is cleared
@@ -46,7 +47,7 @@ export default function SymbolSearch({ onSymbolSelect }: SymbolSearchProps) {
   const handleSelect = (item: { symbol: string; name: string; }) => {
     onSymbolSelect(item.symbol);
     setSelectedSymbolInfo(item);
-    setQuery(`${item.symbol} ${item.name}`);
+    setQuery(`${item.symbol} - ${item.name}`);
     setResults([]);
     if (inputRef.current) {
         inputRef.current.blur(); // Remove focus after selection
