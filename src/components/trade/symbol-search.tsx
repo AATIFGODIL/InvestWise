@@ -1,73 +1,79 @@
 
 "use client";
 
-import React, { useEffect, useRef, memo } from 'react';
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Search } from "lucide-react";
 
 interface SymbolSearchProps {
-  onSymbolSelect: (symbol: string, lastPrice: number) => void;
+  onSymbolSelect: (symbol: string, price: number) => void;
   onClear: () => void;
 }
 
-const TradingViewSymbolSearch: React.FC<SymbolSearchProps> = ({ onSymbolSelect, onClear }) => {
-  const container = useRef<HTMLDivElement>(null);
-  const scriptExists = useRef(false);
+// Mock data for demonstration purposes
+const mockSymbols = [
+  { symbol: "AAPL", name: "Apple Inc.", price: 172.25 },
+  { symbol: "GOOGL", name: "Alphabet Inc.", price: 139.76 },
+  { symbol: "MSFT", name: "Microsoft Corp.", price: 370.95 },
+  { symbol: "AMZN", name: "Amazon.com, Inc.", price: 147.85 },
+  { symbol: "TSLA", name: "Tesla, Inc.", price: 235.84 },
+  { symbol: "NVDA", name: "NVIDIA Corp.", price: 476.90 },
+];
+
+export default function SymbolSearch({ onSymbolSelect, onClear }: SymbolSearchProps) {
+  const [query, setQuery] = useState("");
+  const [filteredSymbols, setFilteredSymbols] = useState<typeof mockSymbols>([]);
+  const [isFocused, setIsFocused] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!container.current || scriptExists.current) return;
-
-    const createWidget = () => {
-        if (!container.current) return;
-        container.current.innerHTML = ""; // Clean up previous widget
-
-        const script = document.createElement("script");
-        script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-search.js";
-        script.type = "text/javascript";
-        script.async = true;
-        
-        const config = {
-          "width": "100%",
-          "height": "100%",
-          "show_popup_button": false,
-          "symbol": "AAPL",
-          "locale": "en",
-          "colorTheme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-        };
-        script.innerHTML = JSON.stringify(config);
-        
-        // Expose a global function for the widget to call
-        (window as any).onTradingViewSymbolSelected = (symbolInfo: any) => {
-            if (symbolInfo && symbolInfo.symbol && symbolInfo.last) {
-                onSymbolSelect(symbolInfo.symbol, symbolInfo.last);
-            }
-        };
-
-        // Modify the script to call our global function
-        script.innerHTML = JSON.stringify({ ...config, "onReady": (widget: any) => {
-             // This is a bit of a hack as onSymbolSelect is not a standard TradingView option.
-             // We can listen to DOM changes or other events if this proves unreliable.
-        }});
-        
-        container.current.appendChild(script);
-        scriptExists.current = true;
+    if (query) {
+      const lowercasedQuery = query.toLowerCase();
+      setFilteredSymbols(
+        mockSymbols.filter(
+          s =>
+            s.symbol.toLowerCase().includes(lowercasedQuery) ||
+            s.name.toLowerCase().includes(lowercasedQuery)
+        )
+      );
+    } else {
+      setFilteredSymbols([]);
+      onClear();
     }
+  }, [query, onClear]);
 
-    createWidget();
-
-     const observer = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-          scriptExists.current = false;
-          createWidget();
-        }
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setIsFocused(false);
       }
-    });
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  
+  const handleSelectSymbol = (symbol: typeof mockSymbols[0]) => {
+    setQuery(`${symbol.symbol} ${symbol.name}`);
+    onSymbolSelect(symbol.symbol, symbol.price);
+    setFilteredSymbols([]);
+    setIsFocused(false);
+  };
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setQuery(e.target.value)
+  };
 
-    observer.observe(document.documentElement, { attributes: true });
-
-    return () => observer.disconnect();
-    
-  }, [onSymbolSelect]);
+  const handleInputClick = () => {
+      setIsFocused(true);
+      const input = document.getElementById("symbol-search") as HTMLInputElement;
+      if (input) {
+          input.select();
+      }
+  }
 
   return (
     <Card>
@@ -75,13 +81,38 @@ const TradingViewSymbolSearch: React.FC<SymbolSearchProps> = ({ onSymbolSelect, 
         <CardTitle className="text-base font-semibold uppercase tracking-wider text-muted-foreground">Symbol Lookup</CardTitle>
       </CardHeader>
       <CardContent>
-          {/* This is a placeholder as the actual search functionality comes from TradingView's script */}
-           <div className="tradingview-widget-container h-[50px]" ref={container}>
-                <div className="tradingview-widget-container__widget"></div>
-           </div>
+        <div className="relative" ref={searchContainerRef}>
+          <div className="relative mt-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              id="symbol-search"
+              placeholder="Search for a stock..."
+              className="pl-10"
+              value={query}
+              onChange={handleInputChange}
+              onFocus={() => setIsFocused(true)}
+              onClick={handleInputClick}
+              autoComplete="off"
+            />
+          </div>
+          {isFocused && filteredSymbols.length > 0 && (
+            <div className="absolute z-10 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
+              <ul>
+                {filteredSymbols.map(s => (
+                  <li
+                    key={s.symbol}
+                    className="px-4 py-2 hover:bg-accent cursor-pointer"
+                    onClick={() => handleSelectSymbol(s)}
+                  >
+                    <div className="font-bold">{s.symbol}</div>
+                    <div className="text-sm text-muted-foreground">{s.name}</div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
-};
-
-export default memo(TradingViewSymbolSearch);
+}
