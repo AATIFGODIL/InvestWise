@@ -1,3 +1,4 @@
+
 "use client"
 import { useState } from "react";
 import Header from "@/components/layout/header";
@@ -8,12 +9,11 @@ import AutoInvest from "@/components/dashboard/auto-invest";
 import InvestmentBundles from "@/components/dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
 import TradingViewWidget from "@/components/shared/trading-view-widget";
-import TradingViewScreenerWidget from "@/components/shared/trading-view-screener";
 
 const videos = [
     {
         title: "What are Stocks and ETFs?",
-        description: "A beginner's guide to understanding the basics of stocks and exchange-traded funds.",
+        description: "A beginner's guide to understanding the basics of stocks and exchange-traded-funds.",
         image: "https://placehold.co/600x400.png",
         hint: "chart graph"
     },
@@ -42,7 +42,34 @@ export default function TradePage() {
         <TradeForm selectedSymbol={selectedSymbol} selectedPrice={selectedPrice} />
 
         <div className="h-[700px] w-full">
-            <TradingViewScreenerWidget />
+            <div className="tradingview-widget-container" style={{height: "100%", width: "100%"}}>
+              <div id="tradingview_123" style={{height: "calc(100% - 32px)", width: "100%"}}></div>
+              <div className="tradingview-widget-copyright">
+                  <a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank">
+                      <span className="blue-text">Track all markets on TradingView</span>
+                  </a>
+              </div>
+              <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+              <script type="text/javascript" dangerouslySetInnerHTML={{
+                __html: `
+                new TradingView.widget(
+                {
+                  "width": "100%",
+                  "height": "100%",
+                  "symbol": "NASDAQ:AAPL",
+                  "interval": "D",
+                  "timezone": "Etc/UTC",
+                  "theme": "light",
+                  "style": "1",
+                  "locale": "en",
+                  "enable_publishing": false,
+                  "allow_symbol_change": true,
+                  "container_id": "tradingview_123"
+                }
+                );
+                `
+              }} />
+            </div>
         </div>
         
         <InvestmentBundles 
