@@ -32,6 +32,7 @@ import useNotificationStore, { type Notification } from "@/store/notification-st
 import useGoalStore from "@/store/goal-store";
 import useAutoInvestStore from "@/store/auto-invest-store";
 import useThemeStore from "@/store/theme-store";
+import usePrivacyStore, { type PrivacyState } from "@/store/privacy-store";
 import { storage } from "@/lib/firebase/config";
 
 interface AuthContextType {
@@ -44,6 +45,7 @@ interface AuthContextType {
   signOut: () => void;
   updateUserProfile: (data: { username?: string, imageFile?: File | null }) => Promise<void>;
   updateUserTheme: (theme: "light" | "dark") => Promise<void>;
+  updatePrivacySettings: (settings: Partial<Omit<PrivacyState, 'setLeaderboardVisibility' | 'setShowQuests' | 'loadPrivacySettings' | 'resetPrivacySettings'>>) => Promise<void>;
   sendPasswordReset: () => Promise<void>;
 }
 
@@ -68,6 +70,8 @@ const initializeUserDocument = async (user: User) => {
         username: displayName,
         photoURL: photoURL,
         theme: 'light',
+        leaderboardVisibility: 'public',
+        showQuests: true,
         createdAt: new Date(),
         portfolio: { holdings: [], summary: { totalValue: 0, todaysChange: 0, totalGainLoss: 0, annualRatePercent: 0 } },
         notifications: [welcomeNotification],
@@ -108,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { loadGoals, resetGoals } = useGoalStore();
   const { loadAutoInvestments, resetAutoInvest } = useAutoInvestStore();
   const { setTheme } = useThemeStore();
+  const { loadPrivacySettings, resetPrivacySettings } = usePrivacyStore();
   
   const [user, setUser] = useState<User | null>(null);
   const [hydrating, setHydrating] = useState(true);
@@ -121,7 +126,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resetAutoInvest();
     setTheme('light');
     localStorage.setItem('theme', 'light');
-  }, [setUsername, setProfilePic, setNotifications, resetPortfolio, resetGoals, resetAutoInvest, setTheme]);
+    resetPrivacySettings();
+  }, [setUsername, setProfilePic, setNotifications, resetPortfolio, resetGoals, resetAutoInvest, setTheme, resetPrivacySettings]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -139,6 +145,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const theme = userData.theme || 'light';
           setTheme(theme);
           localStorage.setItem('theme', theme);
+          loadPrivacySettings({
+            leaderboardVisibility: userData.leaderboardVisibility || 'public',
+            showQuests: userData.showQuests === undefined ? true : userData.showQuests,
+          });
         }
       } else {
         setUser(null);
@@ -148,7 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [resetAllStores, setUsername, setProfilePic, loadInitialData, setNotifications, loadGoals, loadAutoInvestments, setTheme]);
+  }, [resetAllStores, setUsername, setProfilePic, loadInitialData, setNotifications, loadGoals, loadAutoInvestments, setTheme, loadPrivacySettings]);
 
 
   const signUp = async (email:string, pass: string, username: string) => {
@@ -185,7 +195,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     let photoURL = user.photoURL;
 
-    // Step 1: If a new image file is provided, upload it and get the URL.
     if (data.imageFile) {
         const storageRef = ref(storage, `profile_pictures/${user.uid}`);
         await uploadBytes(storageRef, data.imageFile);
@@ -194,13 +203,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updatesForAuth.photoURL = photoURL;
     }
     
-    // Step 2: If a new username is provided, prepare the update.
     if (data.username && data.username !== user.displayName) {
         updatesForFirestore.username = data.username;
         updatesForAuth.displayName = data.username;
     }
     
-    // Step 3: Perform Firestore and Auth updates only if there are changes.
     if (Object.keys(updatesForFirestore).length > 0) {
         await updateDoc(userDocRef, updatesForFirestore);
     }
@@ -209,7 +216,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await updateProfile(user, updatesForAuth);
     }
 
-    // Step 4: Sync global state after all async operations are complete.
     if (updatesForAuth.displayName) {
         setUsername(updatesForAuth.displayName);
     }
@@ -224,6 +230,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return;
     const userDocRef = doc(db, "users", user.uid);
     await updateDoc(userDocRef, { theme });
+  }
+  
+  const updatePrivacySettings = async (settings: Partial<Omit<PrivacyState, 'setLeaderboardVisibility' | 'setShowQuests' | 'loadPrivacySettings' | 'resetPrivacySettings'>>) => {
+      if (!user) return;
+      const userDocRef = doc(db, "users", user.uid);
+      await updateDoc(userDocRef, settings);
   }
 
   const sendPasswordReset = async () => {
@@ -246,6 +258,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signOut,
     updateUserProfile,
     updateUserTheme,
+    updatePrivacySettings,
     sendPasswordReset,
   };
 

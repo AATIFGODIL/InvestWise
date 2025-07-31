@@ -8,11 +8,11 @@ import Quests from "@/components/community/quests";
 import AskMentor from "@/components/community/ask-mentor";
 import PrivacySettings from "@/components/community/privacy-settings";
 import EducationalVideo from "@/components/shared/educational-video";
-import { useState } from "react";
 import { useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CommunityTrends from "@/components/dashboard/community-trends";
 import Chatbot from "@/components/chatbot/chatbot";
+import usePrivacyStore from "@/store/privacy-store";
 
 const videos = [
     {
@@ -29,13 +29,10 @@ const videos = [
     }
 ]
 
-export type LeaderboardVisibility = "public" | "anonymous" | "hidden";
-
 export default function CommunityPage() {
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get('tab') || 'feed';
-  const [leaderboardVisibility, setLeaderboardVisibility] = useState<LeaderboardVisibility>("public");
-  const [showQuests, setShowQuests] = useState(true);
+  const { leaderboardVisibility, showQuests } = usePrivacyStore();
 
   return (
     <div className="w-full bg-background font-body">
@@ -51,12 +48,7 @@ export default function CommunityPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2 space-y-6">
                         <Leaderboard visibility={leaderboardVisibility} />
-                        <PrivacySettings 
-                            leaderboardVisibility={leaderboardVisibility}
-                            setLeaderboardVisibility={setLeaderboardVisibility}
-                            showQuests={showQuests}
-                            setShowQuests={setShowQuests}
-                        />
+                        <PrivacySettings />
                         {showQuests && <Quests />}
                     </div>
                     <div className="space-y-6">

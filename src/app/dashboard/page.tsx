@@ -7,10 +7,7 @@ import dynamic from "next/dynamic";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
 import { Skeleton } from "@/components/ui/skeleton";
-import InvestmentBundles from "@/components/dashboard/investment-bundles";
 import { recommendedBundles, specializedBundles } from "@/data/bundles";
-import AutoInvest from "@/components/dashboard/auto-invest";
-import GoalProgress from "@/components/dashboard/goal-progress";
 import CongratulationsBanner from "@/components/dashboard/congratulations-banner";
 import Chatbot from "@/components/chatbot/chatbot";
 
@@ -27,6 +24,18 @@ const CommunityTrends = dynamic(() => import("@/components/dashboard/community-t
     loading: () => <Skeleton className="h-96 w-full" />
 });
 const RiskManagement = dynamic(() => import("@/components/dashboard/risk-management"), { 
+    ssr: false,
+    loading: () => <Skeleton className="h-96 w-full" />
+});
+const AutoInvest = dynamic(() => import("@/components/dashboard/auto-invest"), {
+    ssr: false,
+    loading: () => <Skeleton className="h-48 w-full" />
+});
+const GoalProgress = dynamic(() => import("@/components/dashboard/goal-progress"), {
+    ssr: false,
+    loading: () => <Skeleton className="h-48 w-full" />
+});
+const InvestmentBundles = dynamic(() => import("@/components/dashboard/investment-bundles"), {
     ssr: false,
     loading: () => <Skeleton className="h-96 w-full" />
 });

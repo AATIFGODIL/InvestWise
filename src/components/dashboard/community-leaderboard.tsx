@@ -5,25 +5,33 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Crown } from "lucide-react";
 import Link from "next/link";
-import { rawLeaderboardData } from "@/data/leaderboard";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import usePortfolioStore from "@/store/portfolio-store";
+import useUserStore from "@/store/user-store";
 import { cn } from "@/lib/utils";
+
+// Mock data for other users
+const mockInvestors = [
+  { rank: 1, name: "CryptoKing", avatar: "", gain: 5210.55 },
+  { rank: 2, name: "StockSurfer", avatar: "", gain: 4890.12 },
+];
+
 
 export default function CommunityLeaderboard() {
   const { portfolioSummary } = usePortfolioStore();
+  const { username, profilePic } = useUserStore();
 
-  const leaderboardData = rawLeaderboardData.map(investor => {
-    if (investor.isYou) {
-      return {
-        ...investor,
-        gain: portfolioSummary.totalGainLoss,
-      };
-    }
-    // The raw data gain is a string like "+$5,210.55", we need to convert it to a number
-    const numericGain = parseFloat(investor.gain.replace(/[+$,]/g, ''));
-    return {...investor, gain: numericGain};
-  });
+  const currentUserData = {
+    name: username,
+    avatar: profilePic,
+    gain: portfolioSummary.totalGainLoss,
+    isYou: true,
+  };
+
+  // Combine mock users with the current user and sort by gain
+  const leaderboardData = [...mockInvestors.map(u => ({...u, isYou: false})), currentUserData]
+    .sort((a, b) => b.gain - a.gain)
+    .map((user, index) => ({...user, rank: index + 1}));
 
   const topInvestors = leaderboardData.slice(0, 3);
 
@@ -47,7 +55,7 @@ export default function CommunityLeaderboard() {
                   <AvatarImage src={investor.avatar} alt={investor.name} />
                   <AvatarFallback>{investor.name.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <p className="text-sm font-medium">{investor.name}</p>
+                <p className="text-sm font-medium">{investor.isYou ? "You" : investor.name}</p>
               </div>
               <p className={cn("text-sm font-semibold", isPositive ? "text-green-500" : "text-red-500")}>
                 {formattedGain}

@@ -12,16 +12,10 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { EyeOff, ShieldBan, Users, UserCheck } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import { LeaderboardVisibility } from "@/app/community/page";
+import usePrivacyStore, { type LeaderboardVisibility } from "@/store/privacy-store";
 
-interface PrivacySettingsProps {
-    leaderboardVisibility: LeaderboardVisibility;
-    setLeaderboardVisibility: (vis: LeaderboardVisibility) => void;
-    showQuests: boolean;
-    setShowQuests: (show: boolean) => void;
-}
-
-export default function PrivacySettings({ leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests }: PrivacySettingsProps) {
+export default function PrivacySettings() {
+    const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
 
   return (
     <Card>

@@ -17,18 +17,42 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Crown, ArrowUp, ArrowDown } from "lucide-react";
 import { Badge } from "../ui/badge";
-import { type LeaderboardVisibility } from "@/app/community/page";
-import { rawLeaderboardData } from "@/data/leaderboard";
+import { type LeaderboardVisibility } from "@/store/privacy-store";
+import useUserStore from "@/store/user-store";
+import usePortfolioStore from "@/store/portfolio-store";
 
 interface LeaderboardProps {
     visibility: LeaderboardVisibility;
 }
 
+const mockInvestors = [
+  { rank: 1, name: "CryptoKing", avatar: "", change: 0, gain: 5210.55, isUp: true },
+  { rank: 2, name: "StockSurfer", avatar: "", change: 1, gain: 4890.12, isUp: true },
+  { rank: 4, name: "ETF_Master", avatar: "", change: 0, gain: 4200.00, isUp: true },
+  { rank: 5, name: "FutureFund", avatar: "", change: 2, gain: 3987.43, isUp: true },
+  { rank: 6, name: 'InvestorPro', avatar: '', change: 0, gain: 3800.00, isUp: true },
+];
+
 export default function Leaderboard({ visibility }: LeaderboardProps) {
+    const { username, profilePic } = useUserStore();
+    const { portfolioSummary } = usePortfolioStore();
+
+    const currentUserData = {
+        name: username,
+        avatar: profilePic,
+        gain: portfolioSummary.totalGainLoss,
+        isYou: true,
+        change: 0, // change calculation can be added if historical rank is stored
+    };
+
+    const combinedData = [...mockInvestors.map(u => ({...u, isYou: false})), currentUserData]
+        .sort((a, b) => b.gain - a.gain)
+        .map((user, index) => ({...user, rank: index + 1}));
+
     const leaderboardData = visibility === 'hidden'
-    ? rawLeaderboardData.filter(investor => !investor.isYou)
-    : rawLeaderboardData;
-    
+    ? combinedData.filter(investor => !investor.isYou)
+    : combinedData;
+
   return (
     <Card>
       <CardHeader>
@@ -48,7 +72,8 @@ export default function Leaderboard({ visibility }: LeaderboardProps) {
           </TableHeader>
           <TableBody>
             {leaderboardData.map((investor) => {
-              const displayName = (investor.isYou && visibility === 'anonymous') ? "Anonymous" : investor.name;
+              const displayName = (investor.isYou && visibility === 'anonymous') ? "Anonymous (You)" : (investor.isYou ? investor.name : investor.name);
+              const gainFormatted = `${investor.gain >= 0 ? '+' : '-'}$${Math.abs(investor.gain).toFixed(2)}`;
               
               return (
                 <TableRow key={investor.rank} className={investor.isYou ? "bg-accent" : ""}>
@@ -69,8 +94,8 @@ export default function Leaderboard({ visibility }: LeaderboardProps) {
                         {investor.isYou && <Badge>You</Badge>}
                     </div>
                     </TableCell>
-                    <TableCell className="text-right font-medium text-green-500">
-                    {investor.gain}
+                    <TableCell className={`text-right font-medium ${investor.gain >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {gainFormatted}
                     </TableCell>
                 </TableRow>
               );
