@@ -22,22 +22,22 @@ import { useAuth } from "@/hooks/use-auth";
 
 export default function ProfilePage() {
   const { toast } = useToast();
-  const { user, loading: authLoading, updateUserProfile, sendPasswordReset } = useAuth();
-  const { username, profilePic } = useUserStore();
+  const { user, hydrating: authLoading, updateUserProfile, sendPasswordReset } = useAuth();
+  const { username: globalUsername, profilePic: globalProfilePic } = useUserStore();
   
-  const [localUsername, setLocalUsername] = useState(username);
-  const [previewPhoto, setPreviewPhoto] = useState<string | null>(profilePic);
+  const [localUsername, setLocalUsername] = useState(globalUsername);
+  const [previewPhoto, setPreviewPhoto] = useState<string | null>(globalProfilePic);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    setLocalUsername(username);
-  }, [username]);
+    setLocalUsername(globalUsername);
+  }, [globalUsername]);
 
   useEffect(() => {
-    setPreviewPhoto(profilePic);
-  }, [profilePic]);
+    setPreviewPhoto(globalProfilePic);
+  }, [globalProfilePic]);
 
 
   const handleSaveChanges = async () => {
@@ -96,10 +96,6 @@ export default function ProfilePage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewPhoto(reader.result as string); 
-        toast({
-          title: "Photo Ready",
-          description: "Click 'Save Changes' to apply your new profile picture.",
-        });
       };
       reader.readAsDataURL(file);
     }
