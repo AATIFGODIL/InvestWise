@@ -26,7 +26,9 @@ export default function ProfilePage() {
   const { username, profilePic } = useUserStore();
   
   const [localUsername, setLocalUsername] = useState(username);
+  // State for the image shown in the avatar
   const [localProfilePic, setLocalProfilePic] = useState<string | null>(profilePic);
+  // State for the new file data to be uploaded
   const [newProfilePicFile, setNewProfilePicFile] = useState<string | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
@@ -36,8 +38,11 @@ export default function ProfilePage() {
   }, [username]);
 
   useEffect(() => {
-    setLocalProfilePic(profilePic);
-  }, [profilePic]);
+    // Only update the display picture from the store if the user is not in the middle of changing it.
+    if (!newProfilePicFile) {
+      setLocalProfilePic(profilePic);
+    }
+  }, [profilePic, newProfilePicFile]);
 
 
   const handleSaveChanges = async () => {
@@ -56,7 +61,7 @@ export default function ProfilePage() {
             title: "Success!",
             description: "Your profile has been updated.",
         });
-        setNewProfilePicFile(null); // Clear the pending file change
+        setNewProfilePicFile(null); // Clear the pending file change after successful save
     } catch (error) {
         console.error("Error updating profile:", error);
         toast({ variant: "destructive", title: "Error", description: "Failed to update profile." });
