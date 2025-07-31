@@ -10,7 +10,6 @@ import InvestmentBundles from "@/components/dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
 import StockList from "@/components/trade/stock-list";
 import TradingViewWidget from "@/components/shared/trading-view-widget";
-import TradingViewSearch from "@/components/shared/trading-view-search";
 
 const videos = [
     {
@@ -32,30 +31,26 @@ export default function TradePage() {
   const [selectedPrice, setSelectedPrice] = useState<number | null>(150.00); 
 
   useEffect(() => {
+    // This is a placeholder for a real price fetching mechanism.
+    // In a real app, you'd get this from the widget or an API.
     if (selectedSymbol) {
       const newPrice = parseFloat((Math.random() * (500 - 50) + 50).toFixed(2));
       setSelectedPrice(newPrice);
     }
   }, [selectedSymbol]);
 
-  const handleSymbolChange = (symbol: string, price?: number) => {
+  const handleSymbolChange = (symbol: string) => {
     setSelectedSymbol(symbol);
-    if (price) {
-        setSelectedPrice(price);
-    }
   };
-
 
   return (
     <div className="w-full bg-background font-body">
       <Header />
       <main className="p-4 space-y-6 pb-40">
         <h1 className="text-2xl font-bold">Trade</h1>
-
-        <TradingViewSearch onSymbolChange={handleSymbolChange} />
         
         <div className="h-[600px] w-full">
-            <TradingViewWidget symbol={selectedSymbol} onSymbolChange={setSelectedSymbol} />
+            <TradingViewWidget symbol={selectedSymbol} onSymbolChange={handleSymbolChange} />
         </div>
 
         <TradeForm selectedSymbol={selectedSymbol} selectedPrice={selectedPrice} />
@@ -79,4 +74,3 @@ export default function TradePage() {
     </div>
   );
 }
-
