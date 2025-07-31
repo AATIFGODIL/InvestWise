@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -21,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Info, Eye, Search, DollarSign } from "lucide-react";
+import { Info, Search, DollarSign } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -56,23 +57,18 @@ const tradeSchema = z.object({
 
 type TradeFormValues = z.infer<typeof tradeSchema>;
 
-const mockStockData = {
-    "AAPL": { price: 214.29, name: "Apple Inc." },
-    "TSLA": { price: 183.01, name: "Tesla, Inc." },
-    "AMZN": { price: 185.57, name: "Amazon.com, Inc." },
-    "GOOGL": { price: 179.22, name: "Alphabet Inc." },
-    "MSFT": { price: 447.67, name: "Microsoft Corp." },
-    "NKE": { price: 73.04, name: "Nike, Inc." },
-    "VOO": { price: 502.88, name: "Vanguard S&P 500 ETF" },
-};
+interface TradeFormProps {
+    selectedSymbol: string | null;
+    selectedPrice: number | null;
+}
 
-export default function TradeForm() {
+export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormProps) {
   const { toast } = useToast();
   const { executeTrade } = usePortfolioStore();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<TradeFormValues | null>(null);
 
-  const { register, handleSubmit, control, watch, formState: { errors, isValid } } = useForm<TradeFormValues>({
+  const { register, handleSubmit, control, watch, formState: { errors, isValid }, setValue, reset } = useForm<TradeFormValues>({
     resolver: zodResolver(tradeSchema),
     mode: "onChange",
     defaultValues: {
@@ -84,12 +80,19 @@ export default function TradeForm() {
     },
   });
 
+  useEffect(() => {
+    if (selectedSymbol) {
+      setValue("symbol", selectedSymbol, { shouldValidate: true });
+    } else {
+      reset(); // Reset form if symbol is cleared
+    }
+  }, [selectedSymbol, setValue, reset]);
+
+
   const orderType = watch("orderType");
-  const symbol = watch("symbol").toUpperCase();
   const quantity = watch("quantity");
   
-  const stockInfo = (mockStockData as any)[symbol];
-  const estimatedCost = stockInfo ? stockInfo.price * quantity : 0;
+  const estimatedCost = selectedPrice && quantity > 0 ? selectedPrice * quantity : 0;
 
   const handlePreview = (data: TradeFormValues) => {
     setPreviewData(data);
@@ -97,13 +100,13 @@ export default function TradeForm() {
   };
 
   const handleConfirmTrade = () => {
-    if (!previewData) return;
+    if (!previewData || !selectedPrice) return;
 
     const tradeResult = executeTrade({
       symbol: previewData.symbol.toUpperCase(),
       qty: previewData.action === 'buy' ? previewData.quantity : -previewData.quantity,
-      price: (mockStockData as any)[previewData.symbol.toUpperCase()]?.price || 0,
-      description: (mockStockData as any)[previewData.symbol.toUpperCase()]?.name || "Unknown Stock"
+      price: selectedPrice,
+      description: "Selected Stock" // Placeholder description
     });
 
     if (tradeResult.success) {
@@ -137,9 +140,10 @@ export default function TradeForm() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="symbol"
-                  placeholder="Enter a stock symbol (e.g., AAPL)"
+                  placeholder="Select a symbol above"
                   className="pl-10"
                   {...register("symbol")}
+                  disabled
                 />
               </div>
               {errors.symbol && <p className="text-sm text-destructive">{errors.symbol.message}</p>}
@@ -226,7 +230,7 @@ export default function TradeForm() {
                 />
             </div>
             
-            {stockInfo && quantity > 0 && (
+            {selectedSymbol && estimatedCost > 0 && (
                 <div className="p-4 bg-muted rounded-lg text-sm">
                     <h4 className="font-semibold mb-2">Order Summary</h4>
                     <div className="flex justify-between">
@@ -234,7 +238,7 @@ export default function TradeForm() {
                         <span className="font-medium">${estimatedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>{quantity} shares x ${stockInfo.price.toFixed(2)}/share</span>
+                        <span>{quantity} shares x ${selectedPrice?.toFixed(2)}/share</span>
                     </div>
                 </div>
             )}
@@ -242,7 +246,7 @@ export default function TradeForm() {
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
             <Button variant="outline" type="reset">Clear</Button>
-            <Button type="submit" disabled={!isValid}>Preview Order</Button>
+            <Button type="submit" disabled={!isValid || !selectedSymbol}>Preview Order</Button>
           </CardFooter>
         </form>
       </Card>
@@ -267,7 +271,7 @@ export default function TradeForm() {
                         <div className="flex justify-between"><strong>Duration:</strong> <span>{previewData.duration === 'gtc' ? "Good 'til Canceled" : "Day Only"}</span></div>
                         <div className="flex justify-between pt-2 border-t mt-2">
                             <strong>Estimated Total:</strong> 
-                            <strong className="text-primary">${((mockStockData as any)[previewData.symbol.toUpperCase()]?.price * previewData.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                            <strong className="text-primary">${(selectedPrice! * previewData.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                         </div>
                     </div>
                 )}

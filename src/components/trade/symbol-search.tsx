@@ -7,22 +7,22 @@ import { Search } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 
 interface SymbolSearchProps {
-  onSymbolSelect: (symbol: string | null) => void;
+  onSymbolSelect: (symbol: string | null, price: number | null) => void;
 }
 
 const mockSymbols = [
-  { symbol: 'AAPL', name: 'Apple Inc.' },
-  { symbol: 'GOOGL', name: 'Alphabet Inc.' },
-  { symbol: 'MSFT', name: 'Microsoft Corporation' },
-  { symbol: 'AMZN', name: 'Amazon.com, Inc.' },
-  { symbol: 'TSLA', name: 'Tesla, Inc.' },
-  { symbol: 'NVDA', name: 'NVIDIA Corporation' },
+  { symbol: 'AAPL', name: 'Apple Inc.', price: 214.29 },
+  { symbol: 'GOOGL', name: 'Alphabet Inc.', price: 179.22 },
+  { symbol: 'MSFT', name: 'Microsoft Corporation', price: 447.67 },
+  { symbol: 'AMZN', name: 'Amazon.com, Inc.', price: 185.57 },
+  { symbol: 'TSLA', name: 'Tesla, Inc.', price: 183.01 },
+  { symbol: 'NVDA', name: 'NVIDIA Corporation', price: 120.98 },
 ];
 
 export default function SymbolSearch({ onSymbolSelect }: SymbolSearchProps) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<{ symbol: string; name: string; }[]>([]);
-  const [selectedSymbolInfo, setSelectedSymbolInfo] = useState<{ symbol: string; name: string; } | null>(null);
+  const [results, setResults] = useState<{ symbol: string; name: string; price: number }[]>([]);
+  const [selectedSymbolInfo, setSelectedSymbolInfo] = useState<{ symbol: string; name: string; price: number } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,15 +37,15 @@ export default function SymbolSearch({ onSymbolSelect }: SymbolSearchProps) {
           item.name.toLowerCase().includes(value.toLowerCase())
       );
       setResults(filtered);
-      onSymbolSelect(null); // Hide graph when user is typing a new query
+      onSymbolSelect(null, null); // Hide graph when user is typing a new query
     } else {
       setResults([]);
-      onSymbolSelect(null); // Hide graph when input is cleared
+      onSymbolSelect(null, null); // Hide graph when input is cleared
     }
   };
 
-  const handleSelect = (item: { symbol: string; name: string; }) => {
-    onSymbolSelect(item.symbol);
+  const handleSelect = (item: { symbol: string; name: string; price: number }) => {
+    onSymbolSelect(item.symbol, item.price);
     setSelectedSymbolInfo(item);
     setQuery(`${item.symbol} - ${item.name}`);
     setResults([]);
