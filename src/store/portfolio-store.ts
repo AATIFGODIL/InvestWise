@@ -127,7 +127,7 @@ const generateChartData = (totalValue: number): ChartData => {
         return data.reverse();
     }
     
-    const today = new Date('2025-07-21T12:00:00Z'); // Use July 21st as "today"
+    const today = new Date();
     
     return {
         '1W': generateRandomWalk(5, totalValue, today),
