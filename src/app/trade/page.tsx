@@ -29,7 +29,7 @@ const videos = [
 
 
 export default function TradePage() {
-  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+  const [selectedSymbol, setSelectedSymbol] = useState<string | null>("AAPL");
 
   return (
     <div className="w-full bg-background font-body">
@@ -39,7 +39,7 @@ export default function TradePage() {
         <SymbolSearch onSymbolSelect={setSelectedSymbol} />
         
         {selectedSymbol && (
-          <div className="h-[400px] w-full">
+          <div className="h-[500px] w-full">
             <TradingViewWidget symbol={selectedSymbol} />
           </div>
         )}

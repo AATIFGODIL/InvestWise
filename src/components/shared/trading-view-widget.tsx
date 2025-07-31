@@ -29,12 +29,12 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }
           "interval": "D",
           "timezone": "Etc/UTC",
           "theme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-          "style": "1",
+          "style": "3", // Area chart style to match image
           "locale": "en",
           "enable_publishing": false,
-          "allow_symbol_change": false, // Keep it locked to the selected symbol
+          "allow_symbol_change": true,
           "withdateranges": true,
-          "hide_side_toolbar": false,
+          "hide_side_toolbar": true, // Hide drawing tools
           "details": true,
           "hotlist": true,
           "calendar": true,
