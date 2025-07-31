@@ -26,10 +26,10 @@ export default function ProfilePage() {
   const { username, profilePic } = useUserStore();
   
   const [localUsername, setLocalUsername] = useState(username);
-  // State for the image shown in the avatar
-  const [localProfilePic, setLocalProfilePic] = useState<string | null>(profilePic);
-  // State for the new file data to be uploaded
-  const [newProfilePicFile, setNewProfilePicFile] = useState<string | null>(null);
+  // State for the image shown in the avatar for preview
+  const [previewProfilePic, setPreviewProfilePic] = useState<string | null>(profilePic);
+  // State for the new file data (base64) to be uploaded
+  const [newProfilePicData, setNewProfilePicData] = useState<string | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -38,11 +38,8 @@ export default function ProfilePage() {
   }, [username]);
 
   useEffect(() => {
-    // Only update the display picture from the store if the user is not in the middle of changing it.
-    if (!newProfilePicFile) {
-      setLocalProfilePic(profilePic);
-    }
-  }, [profilePic, newProfilePicFile]);
+    setPreviewProfilePic(profilePic);
+  }, [profilePic]);
 
 
   const handleSaveChanges = async () => {
@@ -54,14 +51,14 @@ export default function ProfilePage() {
     try {
         await updateUserProfile({
             username: localUsername,
-            photoDataUrl: newProfilePicFile, 
+            photoDataUrl: newProfilePicData, 
         });
         
         toast({
             title: "Success!",
             description: "Your profile has been updated.",
         });
-        setNewProfilePicFile(null); // Clear the pending file change after successful save
+        setNewProfilePicData(null); // Clear the pending file change after successful save
     } catch (error) {
         console.error("Error updating profile:", error);
         toast({ variant: "destructive", title: "Error", description: "Failed to update profile." });
@@ -71,6 +68,14 @@ export default function ProfilePage() {
   };
 
   const handlePasswordReset = async () => {
+    if (!user?.email) {
+       toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No email address found for this account.",
+      });
+      return;
+    }
     try {
       await sendPasswordReset();
       toast({
@@ -93,9 +98,9 @@ export default function ProfilePage() {
       reader.onloadend = () => {
         const result = reader.result as string;
         // Set the preview image immediately
-        setLocalProfilePic(result); 
+        setPreviewProfilePic(result); 
         // Store the file data to be uploaded
-        setNewProfilePicFile(result); 
+        setNewProfilePicData(result); 
         toast({
           title: "Photo Ready",
           description: "Click 'Save Changes' to apply your new profile picture.",
@@ -139,7 +144,7 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-4">
                     <Label htmlFor="profile-pic-upload" className="cursor-pointer group relative">
                         <Avatar className="h-20 w-20 border-2 border-primary">
-                            <AvatarImage src={localProfilePic ?? undefined} alt="@user" />
+                            <AvatarImage src={previewProfilePic ?? undefined} alt="@user" />
                             <AvatarFallback>{localUsername?.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">

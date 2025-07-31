@@ -180,8 +180,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const updates: { [key: string]: any } = {};
     const authUpdates: { displayName?: string, photoURL?: string } = {};
 
-    let newPhotoURL = null;
+    let newPhotoURL = user.photoURL; // Start with current photo URL
 
+    // Step 1: Upload new photo if it exists
     if (data.photoDataUrl && data.photoDataUrl.startsWith('data:image')) {
         const storageRef = ref(storage, `profile_pictures/${user.uid}`);
         await uploadString(storageRef, data.photoDataUrl, 'data_url');
@@ -190,12 +191,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         authUpdates.photoURL = newPhotoURL;
     }
     
-    if (data.username && data.username !== useUserStore.getState().username) {
+    // Step 2: Prepare username update if it exists
+    if (data.username && data.username !== user.displayName) {
         updates.username = data.username;
         authUpdates.displayName = data.username;
     }
     
-    // Perform all updates if there are any changes
+    // Step 3: Perform Firestore and Auth updates if there are any changes
     if (Object.keys(updates).length > 0) {
         await updateDoc(userDocRef, updates);
     }
@@ -204,7 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await updateProfile(user, authUpdates);
     }
 
-    // Sync global state after all async operations are complete
+    // Step 4: Sync global state after all async operations are complete
     if (authUpdates.displayName) {
         setUsername(authUpdates.displayName);
     }
