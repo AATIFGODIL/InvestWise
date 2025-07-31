@@ -26,7 +26,9 @@ export default function ProfilePage() {
   const { username, profilePic } = useUserStore();
   
   const [localUsername, setLocalUsername] = useState(username);
-  const [localProfilePic, setLocalProfilePic] = useState<string | null>(null);
+  const [localProfilePic, setLocalProfilePic] = useState<string | null>(profilePic);
+  const [newProfilePicFile, setNewProfilePicFile] = useState<string | null>(null);
+
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -47,13 +49,14 @@ export default function ProfilePage() {
     try {
         await updateUserProfile({
             username: localUsername,
-            photoDataUrl: localProfilePic, 
+            photoDataUrl: newProfilePicFile, 
         });
         
         toast({
             title: "Success!",
             description: "Your profile has been updated.",
         });
+        setNewProfilePicFile(null); // Clear the pending file change
     } catch (error) {
         console.error("Error updating profile:", error);
         toast({ variant: "destructive", title: "Error", description: "Failed to update profile." });
@@ -84,7 +87,10 @@ export default function ProfilePage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
-        setLocalProfilePic(result);
+        // Set the preview image immediately
+        setLocalProfilePic(result); 
+        // Store the file data to be uploaded
+        setNewProfilePicFile(result); 
         toast({
           title: "Photo Ready",
           description: "Click 'Save Changes' to apply your new profile picture.",
@@ -136,7 +142,7 @@ export default function ProfilePage() {
                         </div>
                     </Label>
                     <Input id="profile-pic-upload" type="file" className="hidden" accept="image/*" onChange={handleProfilePicChange} />
-                    <Label htmlFor="profile-pic-upload">
+                    <Label htmlFor="profile-pic-upload" className="cursor-pointer">
                       <Button asChild variant="outline">
                         <span>Change Photo</span>
                       </Button>

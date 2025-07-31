@@ -124,21 +124,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      setHydrating(false);
-
+      setHydrating(true);
       if (firebaseUser) {
+        setUser(firebaseUser);
         const userData = await fetchUserData(firebaseUser);
-        setUsername(userData.username || firebaseUser.displayName || "Investor");
-        setProfilePic(userData.photoURL || "");
-        loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
-        setNotifications(userData.notifications || []);
-        loadGoals(userData.goals || []);
-        loadAutoInvestments(userData.autoInvestments || []);
-        setTheme(userData.theme || 'light');
+        if (userData) {
+          setUsername(userData.username || firebaseUser.displayName || "Investor");
+          setProfilePic(userData.photoURL || "");
+          loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
+          setNotifications(userData.notifications || []);
+          loadGoals(userData.goals || []);
+          loadAutoInvestments(userData.autoInvestments || []);
+          setTheme(userData.theme || 'light');
+        }
       } else {
+        setUser(null);
         resetAllStores();
       }
+      setHydrating(false);
     });
 
     return () => unsubscribe();
@@ -174,43 +177,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) throw new Error("User not authenticated");
 
     const userDocRef = doc(db, "users", user.uid);
-    let photoURL = useUserStore.getState().profilePic; // Start with current pic
-    let hasPhotoChanged = false;
+    const updates: { [key: string]: any } = {};
+    const authUpdates: { displayName?: string, photoURL?: string } = {};
 
-    // Check if a new photo data URL was provided and it's different from the current one
+    let newPhotoURL = null;
+
     if (data.photoDataUrl && data.photoDataUrl.startsWith('data:image')) {
         const storageRef = ref(storage, `profile_pictures/${user.uid}`);
         await uploadString(storageRef, data.photoDataUrl, 'data_url');
-        photoURL = await getDownloadURL(storageRef);
-        hasPhotoChanged = true;
+        newPhotoURL = await getDownloadURL(storageRef);
+        updates.photoURL = newPhotoURL;
+        authUpdates.photoURL = newPhotoURL;
     }
     
-    const firestoreUpdateData: { [key: string]: any } = {};
-    const authUpdateData: { displayName?: string; photoURL?: string } = {};
-
     if (data.username && data.username !== useUserStore.getState().username) {
-        firestoreUpdateData.username = data.username;
-        authUpdateData.displayName = data.username;
-    }
-    if (hasPhotoChanged) {
-        firestoreUpdateData.photoURL = photoURL;
-        authUpdateData.photoURL = photoURL;
-    }
-
-    if (Object.keys(firestoreUpdateData).length > 0) {
-        await updateDoc(userDocRef, firestoreUpdateData);
+        updates.username = data.username;
+        authUpdates.displayName = data.username;
     }
     
-    if (Object.keys(authUpdateData).length > 0) {
-        await updateProfile(user, authUpdateData);
+    // Perform all updates if there are any changes
+    if (Object.keys(updates).length > 0) {
+        await updateDoc(userDocRef, updates);
+    }
+    
+    if (Object.keys(authUpdates).length > 0) {
+        await updateProfile(user, authUpdates);
     }
 
-    // Update global state from the source of truth
-    if (authUpdateData.displayName) {
-        setUsername(authUpdateData.displayName);
+    // Sync global state after all async operations are complete
+    if (authUpdates.displayName) {
+        setUsername(authUpdates.displayName);
     }
-    if (authUpdateData.photoURL) {
-        setProfilePic(authUpdateData.photoURL);
+    if (authUpdates.photoURL) {
+        setProfilePic(authUpdates.photoURL);
     }
   };
 
