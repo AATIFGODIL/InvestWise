@@ -15,22 +15,18 @@ interface SymbolSearchProps {
 
 const SymbolSearch: React.FC<SymbolSearchProps> = ({ onSymbolSelect }) => {
   const container = useRef<HTMLDivElement>(null);
+  const isWidgetCreated = useRef(false);
 
   useEffect(() => {
-    if (!container.current) return;
+    if (!container.current || isWidgetCreated.current) return;
 
-    // Ensure the script is loaded only once
-    if (document.getElementById('tradingview-symbol-search-script')) {
-      return;
-    }
-    
-    const script = document.createElement("script");
-    script.id = 'tradingview-symbol-search-script';
-    script.src = "https://s3.tradingview.com/tv.js";
+    const script = document.createElement('script');
+    script.src = 'https://s3.tradingview.com/tv.js';
     script.async = true;
     script.onload = () => {
-      if (window.TradingView && container.current) {
-        new window.TradingView.widget({
+      if (window.TradingView && container.current && !isWidgetCreated.current) {
+        
+        const widgetOptions = {
           "container_id": container.current.id,
           "width": "100%",
           "height": 54,
@@ -40,55 +36,48 @@ const SymbolSearch: React.FC<SymbolSearchProps> = ({ onSymbolSelect }) => {
           "show_popup_button": false,
           "hideideas": true,
           "theme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-          "onSubmit": (symbolInfo: any) => {
-            if (symbolInfo && symbolInfo.pro_name) {
-              // The widget doesn't directly provide the price in the onSubmit callback.
-              // We'll pass the symbol up, and the parent will handle it.
-              // For now, we'll pass a null price. A more advanced implementation might fetch it.
-              onSymbolSelect(symbolInfo.pro_name, null); // We pass null for price for now
+        };
+
+        const widget = new window.TradingView.widget(widgetOptions);
+        isWidgetCreated.current = true;
+        
+        // This is a workaround to get the symbol and price since onSubmit is not available on this widget type
+        // We will listen for the symbol change on the widget's title
+        const checkSymbolChange = () => {
+          const iframe = container.current?.querySelector('iframe');
+          if (iframe?.contentWindow?.document?.body) {
+            const symbolElement = iframe.contentWindow.document.body.querySelector('.js-symbol-widget-symbol-name');
+            const priceElement = iframe.contentWindow.document.body.querySelector('.js-symbol-widget-last-price');
+            if(symbolElement && priceElement){
+                const symbol = symbolElement.textContent?.trim();
+                const price = parseFloat(priceElement.textContent?.trim() || '0');
+
+                if(symbol && price) {
+                    onSymbolSelect(symbol, price);
+                }
             }
           }
-        });
+        };
+        
+        // Polling to check for changes as a simple event listener is tricky with the iframe.
+        const intervalId = setInterval(checkSymbolChange, 1000);
 
-        // This is a workaround to get the price. We listen for symbol changes
-        // in the widget's internal iframe. This is not a standard API but works for this case.
-        const observer = new MutationObserver(mutations => {
-           for (const mutation of mutations) {
-                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-                    const node = mutation.addedNodes[0] as HTMLElement;
-                    if (node.querySelector) {
-                         const priceElement = node.querySelector('.js-symbol-last');
-                         const symbolElement = node.querySelector('.js-symbol-name');
-                         if (priceElement && symbolElement) {
-                            const price = parseFloat(priceElement.textContent || '0');
-                            const symbol = symbolElement.textContent || '';
-                            if (price && symbol) {
-                                onSymbolSelect(symbol, price);
-                            }
-                         }
-                    }
-                }
-           }
-        });
-
-        setTimeout(() => {
-            const iframe = container.current?.querySelector('iframe');
-            if(iframe?.contentWindow?.document?.body) {
-                 observer.observe(iframe.contentWindow.document.body, { childList: true, subtree: true });
-            }
-        }, 2000); // Wait for widget to load
+        return () => clearInterval(intervalId);
       }
     };
-    
     document.body.appendChild(script);
 
+    return () => {
+        document.body.removeChild(script);
+    }
   }, [onSymbolSelect]);
 
   return (
     <div 
-        id={`tradingview-symbol-search-container-${Math.random()}`}
+        id={`tradingview-symbol-search-container-${Math.random().toString(36).substr(2, 9)}`}
         ref={container}
         className="tradingview-widget-container"
+        style={{ height: '54px' }}
     >
         <div className="tradingview-widget-container__widget"></div>
     </div>
