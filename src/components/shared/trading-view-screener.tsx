@@ -17,21 +17,20 @@ const TradingViewScreenerWidget: React.FC = () => {
     script.type = "text/javascript";
     script.async = true;
     script.innerHTML = JSON.stringify({
-      "width": "100%",
-      "height": "100%",
-      "defaultColumn": "overview",
-      "screener_type": "stock_mkt",
-      "displayCurrency": "USD",
-      "colorTheme": theme,
-      "locale": "en",
-      "isTransparent": false
+      width: "100%",
+      height: "100%",
+      defaultColumn: "overview",
+      screener_type: "stock_mkt",
+      displayCurrency: "USD",
+      colorTheme: theme,
+      locale: "en",
+      isTransparent: false,
+      container_id: "tv-screener"
     });
-    
-    // Clear the container and append the new script
+
     currentContainer.innerHTML = '';
     currentContainer.appendChild(script);
 
-    // Clean up the script when the component unmounts
     return () => {
       if (currentContainer) {
         currentContainer.innerHTML = '';
@@ -41,7 +40,11 @@ const TradingViewScreenerWidget: React.FC = () => {
 
   return (
     <div className="tradingview-widget-container h-full w-full">
-      <div ref={container} className="tradingview-widget-container__widget h-full w-full"></div>
+      <div
+        id="tv-screener"
+        ref={container}
+        className="tradingview-widget-container__widget h-full w-full"
+      ></div>
     </div>
   );
 };
