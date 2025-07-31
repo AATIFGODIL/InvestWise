@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useRef, memo } from 'react';
@@ -7,10 +6,10 @@ import useThemeStore from '@/store/theme-store';
 const TradingViewScreenerWidget: React.FC = () => {
   const container = useRef<HTMLDivElement>(null);
   const { theme } = useThemeStore();
-  const hasRendered = useRef(false);
 
   useEffect(() => {
-    if (!container.current || (hasRendered.current && !theme)) return;
+    const currentContainer = container.current;
+    if (!currentContainer) return;
 
     const script = document.createElement("script");
     script.src = "https://s3.tradingview.com/external-embedding/embed-widget-screener.js";
@@ -26,11 +25,17 @@ const TradingViewScreenerWidget: React.FC = () => {
       "locale": "en",
       "isTransparent": false
     });
+    
+    // Clear the container and append the new script
+    currentContainer.innerHTML = '';
+    currentContainer.appendChild(script);
 
-    container.current.innerHTML = '';
-    container.current.appendChild(script);
-    hasRendered.current = true;
-
+    // Clean up the script when the component unmounts
+    return () => {
+      if (currentContainer) {
+        currentContainer.innerHTML = '';
+      }
+    };
   }, [theme]);
 
   return (
