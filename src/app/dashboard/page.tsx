@@ -78,10 +78,12 @@ const experiencedVideos = [
 ]
 
 export default function DashboardPage() {
-  const { user, hydrating: authLoading } = useAuth();
+  const { hydrating: authLoading } = useAuth();
   const [userProfile, setUserProfile] = useState<string | null>(null);
 
   useEffect(() => {
+    // This effect now correctly depends on the auth state.
+    // It runs after the initial, fast auth check is complete.
     if (!authLoading && typeof window !== 'undefined') {
       const profile = localStorage.getItem('userProfile');
       setUserProfile(profile);

@@ -77,7 +77,6 @@ const initializeUserDocument = async (user: User) => {
         await updateProfile(auth.currentUser, { displayName, photoURL });
     }
     
-    // Return the initial data for setting stores
     return newUserDoc;
 };
 
@@ -96,6 +95,7 @@ const fetchUserData = async (user: User) => {
       return await initializeUserDocument(user);
   }
 };
+
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -120,35 +120,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setTheme('light');
   }, [setUsername, setProfilePic, setNotifications, resetPortfolio, resetGoals, resetAutoInvest, setTheme]);
 
- useEffect(() => {
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setHydrating(true);
+      // Immediately set user and hydration state to unblock UI
+      setUser(firebaseUser);
+      setHydrating(false);
+
       if (firebaseUser) {
-        try {
-          const userData = await fetchUserData(firebaseUser);
-          
-          await Promise.all([
-            Promise.resolve(setUsername(userData.username || firebaseUser.displayName || "Investor")),
-            Promise.resolve(setProfilePic(userData.photoURL || "")),
-            Promise.resolve(loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null)),
-            Promise.resolve(setNotifications(userData.notifications || [])),
-            Promise.resolve(loadGoals(userData.goals || [])),
-            Promise.resolve(loadAutoInvestments(userData.autoInvestments || [])),
-            Promise.resolve(setTheme(userData.theme || 'light')),
-          ]);
-
-          setUser(firebaseUser);
-
-        } catch (error) {
+        // Fetch and hydrate stores in the background
+        fetchUserData(firebaseUser).then(userData => {
+            setUsername(userData.username || firebaseUser.displayName || "Investor");
+            setProfilePic(userData.photoURL || "");
+            loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
+            setNotifications(userData.notifications || []);
+            loadGoals(userData.goals || []);
+            loadAutoInvestments(userData.autoInvestments || []);
+            setTheme(userData.theme || 'light');
+        }).catch(error => {
             console.error("Failed to load user data:", error);
-            setUser(null); // Or handle error appropriately
             resetAllStores();
-        }
+        });
       } else {
-        setUser(null);
         resetAllStores();
       }
-      setHydrating(false);
     });
 
     return () => unsubscribe();
