@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -6,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Search } from 'lucide-react';
 import { Button } from '../ui/button';
+import { Label } from '@/components/ui/label';
 
 interface SymbolSearchProps {
   onSymbolSelect: (symbol: string) => void;
