@@ -9,9 +9,8 @@ import AutoInvest from "@/components/dashboard/auto-invest";
 import InvestmentBundles from "@/components/dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
 import StockList from "@/components/trade/stock-list";
-import SymbolSearch from "@/components/trade/symbol-search";
+import SymbolSearch from "@/components/shared/trading-view-search";
 import TradingViewWidget from "@/components/shared/trading-view-widget";
-import { TradingViewTickerTape } from "@/components/shared/trading-view-ticker-tape";
 
 const videos = [
     {
@@ -28,43 +27,17 @@ const videos = [
     }
 ]
 
-interface StockData {
-  symbol: string;
-  name: string;
-  price: number;
-}
-
 export default function TradePage() {
-  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+  const [selectedSymbol, setSelectedSymbol] = useState<string | null>("AAPL");
   const [selectedPrice, setSelectedPrice] = useState<number | null>(null);
-  const [liveStocks, setLiveStocks] = useState<StockData[]>([]);
-
-  const handleSymbolSelect = (symbol: string, price: number) => {
-    setSelectedSymbol(symbol);
-    setSelectedPrice(price);
-  };
-
-  const handleClear = () => {
-    setSelectedSymbol(null);
-    setSelectedPrice(null);
-  }
 
   return (
     <div className="w-full bg-background font-body">
       <Header />
-      {/* This component is hidden but provides the live data */}
-      <div className="hidden">
-        <TradingViewTickerTape onDataLoaded={setLiveStocks} />
-      </div>
-
       <main className="p-4 space-y-6 pb-40">
         <h1 className="text-2xl font-bold">Trade</h1>
         
-        <SymbolSearch 
-          onSymbolSelect={handleSymbolSelect} 
-          onClear={handleClear} 
-          stockData={liveStocks}
-        />
+        <SymbolSearch onSymbolSelect={setSelectedSymbol} />
 
         {selectedSymbol && (
           <div className="h-[500px] w-full">
