@@ -15,11 +15,11 @@ import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CreditCard, Shield, Sun, Moon, Eye, LogOut, ChevronLeft, ShieldBan, FileUp } from "lucide-react";
 import Link from "next/link";
-import { LeaderboardVisibility } from "../community/page";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import useThemeStore from "@/store/theme-store";
 import { useAuth } from "@/hooks/use-auth";
+import usePrivacyStore, { type LeaderboardVisibility } from "@/store/privacy-store";
 
 const VisaIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 38 24" fill="none">
@@ -38,16 +38,25 @@ const MasterCardIcon = () => (
 );
 
 export default function SettingsPage() {
-  const [leaderboardVisibility, setLeaderboardVisibility] = useState<LeaderboardVisibility>("public");
-  const [quests, setQuests] = useState(true);
   const [parentalControl, setParentalControl] = useState(false);
   const { theme, setTheme } = useThemeStore();
-  const { updateUserTheme, signOut: firebaseSignOut } = useAuth();
+  const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
+  const { updateUserTheme, signOut: firebaseSignOut, updatePrivacySettings } = useAuth();
   
   const handleThemeChange = (newTheme: "light" | "dark") => {
     setTheme(newTheme);
     updateUserTheme(newTheme);
   };
+
+  const handleLeaderboardChange = (visibility: LeaderboardVisibility) => {
+    setLeaderboardVisibility(visibility);
+    updatePrivacySettings({ leaderboardVisibility: visibility });
+  };
+  
+  const handleQuestsChange = (show: boolean) => {
+    setShowQuests(show);
+    updatePrivacySettings({ showQuests: show });
+  }
 
   return (
     <div className="bg-muted/40 min-h-screen">
@@ -149,7 +158,7 @@ export default function SettingsPage() {
               <Label className="font-medium flex items-center gap-2">
                 Leaderboard Visibility
               </Label>
-              <RadioGroup value={leaderboardVisibility} onValueChange={(value) => setLeaderboardVisibility(value as LeaderboardVisibility)}>
+              <RadioGroup value={leaderboardVisibility} onValueChange={(value) => handleLeaderboardChange(value as LeaderboardVisibility)}>
                   <div className="flex items-center space-x-2">
                       <RadioGroupItem value="public" id="vis-public" />
                       <Label htmlFor="vis-public">Public (Show rank and username)</Label>
@@ -171,8 +180,8 @@ export default function SettingsPage() {
                 </Label>
               <Switch 
                 id="quests-switch" 
-                checked={quests} 
-                onCheckedChange={setQuests}
+                checked={showQuests} 
+                onCheckedChange={handleQuestsChange}
               />
             </div>
           </CardContent>
