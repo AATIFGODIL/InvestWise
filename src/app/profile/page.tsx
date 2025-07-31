@@ -26,7 +26,7 @@ export default function ProfilePage() {
   const { username: globalUsername, profilePic: globalProfilePic } = useUserStore();
   
   const [localUsername, setLocalUsername] = useState(globalUsername);
-  const [previewPhoto, setPreviewPhoto] = useState<string | null>(globalProfilePic);
+  const [previewPhoto, setPreviewPhoto] = useState<string | undefined>(globalProfilePic);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
 
   const [isSaving, setIsSaving] = useState(false);
@@ -34,9 +34,10 @@ export default function ProfilePage() {
   useEffect(() => {
     setLocalUsername(globalUsername);
   }, [globalUsername]);
-
+  
   useEffect(() => {
-    // Only set the preview from global state if the user hasn't selected a new file
+    // This ensures that if the global profile pic changes (e.g., after a save),
+    // and there isn't a new file selected for preview, the avatar updates.
     if (!selectedImageFile) {
         setPreviewPhoto(globalProfilePic);
     }
@@ -48,6 +49,13 @@ export default function ProfilePage() {
         toast({ variant: "destructive", title: "Error", description: "You must be logged in to save changes." });
         return;
     }
+    
+    // Check if there are any actual changes to save
+    if (localUsername === globalUsername && !selectedImageFile) {
+        toast({ title: "No Changes", description: "You haven't made any changes to your profile." });
+        return;
+    }
+
     setIsSaving(true);
     try {
         await updateUserProfile({
@@ -59,10 +67,11 @@ export default function ProfilePage() {
             title: "Success!",
             description: "Your profile has been updated.",
         });
-        setSelectedImageFile(null); // Clear pending file change after successful save
-    } catch (error) {
+        // Clear pending file change after successful save
+        setSelectedImageFile(null); 
+    } catch (error: any) {
         console.error("Error updating profile:", error);
-        toast({ variant: "destructive", title: "Error", description: "Failed to update profile." });
+        toast({ variant: "destructive", title: "Error", description: error.message || "Failed to update profile." });
     } finally {
         setIsSaving(false);
     }
@@ -95,6 +104,7 @@ export default function ProfilePage() {
   const handleProfilePicChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      // Store the file object to be uploaded
       setSelectedImageFile(file);
       // Create a temporary URL for the selected file for instant preview
       setPreviewPhoto(URL.createObjectURL(file));
@@ -135,7 +145,7 @@ export default function ProfilePage() {
                 <div className="flex items-center gap-4">
                     <Label htmlFor="profile-pic-upload" className="cursor-pointer group relative">
                         <Avatar className="h-20 w-20 border-2 border-primary">
-                            <AvatarImage src={previewPhoto ?? undefined} alt="@user" />
+                            <AvatarImage src={previewPhoto} alt="@user" />
                             <AvatarFallback>{localUsername?.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
@@ -143,11 +153,11 @@ export default function ProfilePage() {
                         </div>
                     </Label>
                     <Input id="profile-pic-upload" type="file" className="hidden" accept="image/*" onChange={handleProfilePicChange} />
-                    <Label htmlFor="profile-pic-upload" className="cursor-pointer">
-                      <Button asChild variant="outline">
-                        <span>Change Photo</span>
-                      </Button>
-                    </Label>
+                    <Button asChild variant="outline">
+                        <Label htmlFor="profile-pic-upload" className="cursor-pointer">
+                            <span>Change Photo</span>
+                        </Label>
+                    </Button>
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="username">Username</Label>

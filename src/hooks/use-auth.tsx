@@ -177,47 +177,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
   
   const updateUserProfile = async (data: { username?: string, imageFile?: File | null }) => {
-    if (!user) throw new Error("User not authenticated");
+    if (!user) throw new Error("User not authenticated.");
 
     const userDocRef = doc(db, "users", user.uid);
-    const updates: { [key: string]: any } = {};
-    const authUpdates: { displayName?: string, photoURL?: string | null } = {};
+    const updatesForFirestore: { [key: string]: any } = {};
+    const updatesForAuth: { displayName?: string, photoURL?: string } = {};
 
-    let newPhotoURL = user.photoURL;
+    let photoURL = user.photoURL;
 
-    // Step 1: Upload new photo if it exists
+    // Step 1: If a new image file is provided, upload it and get the URL.
     if (data.imageFile) {
         const storageRef = ref(storage, `profile_pictures/${user.uid}`);
         await uploadBytes(storageRef, data.imageFile);
-        newPhotoURL = await getDownloadURL(storageRef);
-        updates.photoURL = newPhotoURL;
-        authUpdates.photoURL = newPhotoURL;
+        photoURL = await getDownloadURL(storageRef);
+        updatesForFirestore.photoURL = photoURL;
+        updatesForAuth.photoURL = photoURL;
     }
     
-    // Step 2: Prepare username update if it exists
+    // Step 2: If a new username is provided, prepare the update.
     if (data.username && data.username !== user.displayName) {
-        updates.username = data.username;
-        authUpdates.displayName = data.username;
+        updatesForFirestore.username = data.username;
+        updatesForAuth.displayName = data.username;
     }
     
-    // Step 3: Perform Firestore and Auth updates if there are any changes
-    if (Object.keys(updates).length > 0) {
-        await updateDoc(userDocRef, updates);
+    // Step 3: Perform Firestore and Auth updates only if there are changes.
+    if (Object.keys(updatesForFirestore).length > 0) {
+        await updateDoc(userDocRef, updatesForFirestore);
     }
     
-    if (Object.keys(authUpdates).length > 0) {
-        await updateProfile(user, {
-            displayName: authUpdates.displayName || user.displayName,
-            photoURL: authUpdates.photoURL || user.photoURL,
-        });
+    if (Object.keys(updatesForAuth).length > 0) {
+        await updateProfile(user, updatesForAuth);
     }
 
-    // Step 4: Sync global state after all async operations are complete
-    if (authUpdates.displayName) {
-        setUsername(authUpdates.displayName);
+    // Step 4: Sync global state after all async operations are complete.
+    if (updatesForAuth.displayName) {
+        setUsername(updatesForAuth.displayName);
     }
-    if (authUpdates.photoURL) {
-        setProfilePic(authUpdates.photoURL);
+    if (updatesForAuth.photoURL) {
+        setProfilePic(updatesForAuth.photoURL);
     }
   };
 
