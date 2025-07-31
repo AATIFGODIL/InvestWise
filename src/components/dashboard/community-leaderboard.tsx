@@ -10,12 +10,6 @@ import usePortfolioStore from "@/store/portfolio-store";
 import useUserStore from "@/store/user-store";
 import { cn } from "@/lib/utils";
 
-// Mock data for other users
-const mockInvestors = [
-  { rank: 1, name: "CryptoKing", avatar: "", gain: 5210.55 },
-  { rank: 2, name: "StockSurfer", avatar: "", gain: 4890.12 },
-];
-
 
 export default function CommunityLeaderboard() {
   const { portfolioSummary } = usePortfolioStore();
@@ -28,8 +22,8 @@ export default function CommunityLeaderboard() {
     isYou: true,
   };
 
-  // Combine mock users with the current user and sort by gain
-  const leaderboardData = [...mockInvestors.map(u => ({...u, isYou: false})), currentUserData]
+  // The leaderboard now only contains the current user.
+  const leaderboardData = [currentUserData]
     .sort((a, b) => b.gain - a.gain)
     .map((user, index) => ({...user, rank: index + 1}));
 

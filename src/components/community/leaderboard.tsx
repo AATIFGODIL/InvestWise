@@ -25,14 +25,6 @@ interface LeaderboardProps {
     visibility: LeaderboardVisibility;
 }
 
-const mockInvestors = [
-  { rank: 1, name: "CryptoKing", avatar: "", change: 0, gain: 5210.55, isUp: true },
-  { rank: 2, name: "StockSurfer", avatar: "", change: 1, gain: 4890.12, isUp: true },
-  { rank: 4, name: "ETF_Master", avatar: "", change: 0, gain: 4200.00, isUp: true },
-  { rank: 5, name: "FutureFund", avatar: "", change: 2, gain: 3987.43, isUp: true },
-  { rank: 6, name: 'InvestorPro', avatar: '', change: 0, gain: 3800.00, isUp: true },
-];
-
 export default function Leaderboard({ visibility }: LeaderboardProps) {
     const { username, profilePic } = useUserStore();
     const { portfolioSummary } = usePortfolioStore();
@@ -45,7 +37,7 @@ export default function Leaderboard({ visibility }: LeaderboardProps) {
         change: 0, // change calculation can be added if historical rank is stored
     };
 
-    const combinedData = [...mockInvestors.map(u => ({...u, isYou: false})), currentUserData]
+    const combinedData = [currentUserData]
         .sort((a, b) => b.gain - a.gain)
         .map((user, index) => ({...user, rank: index + 1}));
 
