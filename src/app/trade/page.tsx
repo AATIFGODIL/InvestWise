@@ -8,6 +8,7 @@ import AutoInvest from "@/components/dashboard/auto-invest";
 import InvestmentBundles from "@/components/dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
 import TradingViewSearch from "@/components/shared/trading-view-search";
+import StockList from "@/components/trade/stock-list";
 
 const videos = [
     {
@@ -33,6 +34,7 @@ export default function TradePage() {
         <h1 className="text-2xl font-bold">Trade</h1>
         <TradingViewSearch />
         <TradeForm />
+        <StockList />
         <InvestmentBundles 
           bundles={specializedBundles}
           title="Discover Specialized Bundles"
@@ -52,3 +54,4 @@ export default function TradePage() {
     </div>
   );
 }
+
