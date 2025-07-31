@@ -5,17 +5,17 @@ import React, { useEffect, useRef, memo } from 'react';
 
 interface TradingViewWidgetProps {
   symbol: string;
-  onSymbolChange: (symbol: string) => void;
 }
 
-const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL", onSymbolChange }) => {
+const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }) => {
   const container = useRef<HTMLDivElement>(null);
-  const isMounted = useRef(false);
 
   useEffect(() => {
-    if (isMounted.current && container.current?.querySelector('iframe')) return;
     if (!container.current) return;
     
+    // Clear the container before appending a new script
+    container.current.innerHTML = '';
+
     const script = document.createElement("script");
     script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
     script.type = "text/javascript";
@@ -29,7 +29,7 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL", 
       "style": "1",
       "locale": "en",
       "enable_publishing": false,
-      "allow_symbol_change": true,
+      "allow_symbol_change": false, // Set to false to prevent internal changes
       "withdateranges": true,
       "hide_side_toolbar": false,
       "details": true,
@@ -41,16 +41,26 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL", 
       "support_host": "https://www.tradingview.com"
     });
 
-    container.current.innerHTML = '';
     container.current.appendChild(script);
-    isMounted.current = true;
+
+    // Also handle theme changes
+    const observer = new MutationObserver((mutations) => {
+        for (const mutation of mutations) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                 // Re-create widget when theme changes
+                if (container.current) {
+                    container.current.innerHTML = '';
+                    container.current.appendChild(script.cloneNode(true));
+                }
+            }
+        }
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    return () => observer.disconnect();
 
   }, [symbol]);
-
-  // This effect will listen for changes in the 'symbol' prop from the parent
-  // and re-create the widget if necessary. The 'onSymbolChange' prop is for
-  // potential future use where a child component might need to notify the parent.
-  // For now, the parent controls the symbol.
 
   return (
     <div className="tradingview-widget-container h-full w-full">

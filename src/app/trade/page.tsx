@@ -10,6 +10,8 @@ import InvestmentBundles from "@/components/dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
 import StockList from "@/components/trade/stock-list";
 import TradingViewWidget from "@/components/shared/trading-view-widget";
+import { TradingViewTickerTape, type StockData } from "@/components/shared/trading-view-ticker-tape";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const videos = [
     {
@@ -29,23 +31,32 @@ const videos = [
 export default function TradePage() {
   const [selectedSymbol, setSelectedSymbol] = useState<string>("AAPL");
   const [selectedPrice, setSelectedPrice] = useState<number | null>(null); 
+  const [allStocks, setAllStocks] = useState<StockData[]>([]);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+  const handleDataLoaded = (data: StockData[]) => {
+    setAllStocks(data);
+    // Set initial price for default symbol
+    const initialStock = data.find(s => s.symbol === 'AAPL');
+    if (initialStock) {
+        setSelectedPrice(initialStock.price);
+    }
+    setIsDataLoaded(true);
+  };
+  
+  const handleSymbolChange = (symbol: string, price: number) => {
+    setSelectedSymbol(symbol);
+    setSelectedPrice(price);
+  };
 
   useEffect(() => {
-    // This is a placeholder for a real price fetching mechanism.
-    // In a real app, you'd get this from the widget or an API.
-    const interval = setInterval(() => {
-        if (selectedSymbol) {
-            const newPrice = parseFloat((Math.random() * (500 - 50) + 50).toFixed(2));
-            setSelectedPrice(newPrice);
-        }
-    }, 2000); // Update price every 2 seconds
+      if (!isDataLoaded || !selectedSymbol) return;
 
-    return () => clearInterval(interval);
-  }, [selectedSymbol]);
-
-  const handleSymbolChange = (symbol: string) => {
-    setSelectedSymbol(symbol);
-  };
+      const stock = allStocks.find(s => s.symbol === selectedSymbol);
+      if (stock) {
+          setSelectedPrice(stock.price);
+      }
+  }, [selectedSymbol, allStocks, isDataLoaded]);
 
   return (
     <div className="w-full bg-background font-body">
@@ -53,12 +64,23 @@ export default function TradePage() {
       <main className="p-4 space-y-6 pb-40">
         <h1 className="text-2xl font-bold">Trade</h1>
         
+        {/* Hidden Ticker Tape to fetch data */}
+        <div className="hidden">
+            <TradingViewTickerTape onDataLoaded={handleDataLoaded} />
+        </div>
+        
         <div className="h-[600px] w-full">
-            <TradingViewWidget symbol={selectedSymbol} onSymbolChange={handleSymbolChange} />
+            <TradingViewWidget symbol={selectedSymbol} />
         </div>
 
+        {isDataLoaded ? (
+            <StockList stocks={allStocks} onSymbolSelect={handleSymbolChange} />
+        ) : (
+            <Skeleton className="h-96 w-full" />
+        )}
+
         <TradeForm selectedSymbol={selectedSymbol} selectedPrice={selectedPrice} />
-        <StockList />
+        
         <InvestmentBundles 
           bundles={specializedBundles}
           title="Discover Specialized Bundles"
