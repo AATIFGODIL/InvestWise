@@ -41,6 +41,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import usePortfolioStore from "@/store/portfolio-store";
 import { useState } from "react";
+import TradingViewWidget from "@/components/shared/trading-view-widget";
 
 const tradeSchema = z.object({
   symbol: z.string().min(1, "Symbol is required."),
@@ -126,6 +127,9 @@ export default function TradeForm() {
 
   return (
     <TooltipProvider>
+      <div className="h-[400px]">
+        <TradingViewWidget symbol={symbol} />
+      </div>
       <Card>
         <form onSubmit={handleSubmit(handlePreview)}>
           <CardHeader>
