@@ -87,6 +87,12 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
       reset(); // Reset form if symbol is cleared
     }
   }, [selectedSymbol, setValue, reset]);
+  
+  useEffect(() => {
+    if (selectedPrice) {
+      setValue("limitPrice", selectedPrice, { shouldValidate: true });
+    }
+  }, [selectedPrice, setValue]);
 
 
   const orderType = watch("orderType");
