@@ -10,95 +10,78 @@ interface TradingViewWidgetProps {
 
 const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL", onSymbolChange }) => {
   const container = useRef<HTMLDivElement>(null);
-  const widgetId = `tradingview_widget_${Math.random().toString(36).substr(2, 9)}`;
 
   useEffect(() => {
-    if (!container.current || !symbol) return;
+    if (!container.current) return;
+
+    // Clear the container to prevent duplicate widgets
+    container.current.innerHTML = '';
     
-    const createWidget = () => {
-        if (!container.current) return;
-        container.current.innerHTML = "";
+    const script = document.createElement("script");
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+    script.type = "text/javascript";
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      "autosize": true,
+      "symbol": symbol,
+      "interval": "D",
+      "timezone": "Etc/UTC",
+      "theme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+      "style": "1",
+      "locale": "en",
+      "enable_publishing": false,
+      "allow_symbol_change": true,
+      "withdateranges": true,
+      "hide_side_toolbar": false,
+      "details": true,
+      "hotlist": true,
+      "calendar": true,
+      "studies": [
+        "Volume@tv-basicstudies"
+      ]
+    });
 
-        const script = document.createElement("script");
-        script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-        script.type = "text/javascript";
-        script.async = true;
-        script.innerHTML = JSON.stringify({
-          "autosize": true,
-          "symbol": symbol,
-          "interval": "D",
-          "timezone": "Etc/UTC",
-          "theme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-          "style": "3",
-          "locale": "en",
-          "enable_publishing": false,
-          "allow_symbol_change": true,
-          "withdateranges": true,
-          "hide_side_toolbar": false,
-          "details": true,
-          "hotlist": true,
-          "calendar": true,
-          "studies": [
-            "Volume@tv-basicstudies"
-          ],
-          "container_id": widgetId,
-        });
+    container.current.appendChild(script);
 
-        script.onload = () => {
-          if (window.TradingView && container.current) {
-            try {
-              // @ts-ignore
-              const widget = new window.TradingView.widget({
-                "autosize": true,
-                "symbol": symbol,
-                "interval": "D",
-                "timezone": "Etc/UTC",
-                "theme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-                "style": "3",
-                "locale": "en",
-                "enable_publishing": false,
-                "allow_symbol_change": true,
-                "withdateranges": true,
-                "hide_side_toolbar": false,
-                "details": true,
-                "hotlist": true,
-                "calendar": true,
-                "studies": [
-                  "Volume@tv-basicstudies"
-                ],
-                "container_id": widgetId,
-              });
+    // This is a simplified way to detect symbol changes from the chart.
+    // TradingView doesn't provide a direct API for this in the embed, 
+    // so we'll rely on user interaction with the form for now.
+    // A more robust solution might involve a more advanced integration.
 
-              widget.onChartReady(() => {
-                widget.subscribe("symbol_change", (newSymbol: any) => {
-                   if(newSymbol?.name) {
-                       onSymbolChange(newSymbol.name);
-                   }
-                });
-              });
+  }, [symbol]);
 
-            } catch (e) {
-                // Fallback to script injection if direct instantiation fails
-                container.current?.appendChild(script);
-            }
-          } else {
-             container.current?.appendChild(script);
-          }
-        }
-        
-        // Fallback in case onload does not fire correctly
-        if(!script.onload) {
-            container.current.appendChild(script);
-        }
-
-    }
-
-    createWidget();
-
+  // Handle theme changes
+  useEffect(() => {
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         if (mutation.type === 'attributes' && mutation.attributeName === 'class' && mutation.target === document.documentElement) {
-          createWidget();
+          if (container.current) {
+            container.current.innerHTML = ''; // Clear and re-append
+            const script = document.createElement("script");
+            script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+            script.type = "text/javascript";
+            script.async = true;
+            script.innerHTML = JSON.stringify({
+              "autosize": true,
+              "symbol": symbol,
+              "interval": "D",
+              "timezone": "Etc/UTC",
+              "theme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+              "style": "1",
+              "locale": "en",
+              "enable_publishing": false,
+              "allow_symbol_change": true,
+              "withdateranges": true,
+              "hide_side_toolbar": false,
+              "details": true,
+              "hotlist": true,
+              "calendar": true,
+              "studies": [
+                "Volume@tv-basicstudies"
+              ]
+            });
+            container.current.appendChild(script);
+          }
         }
       }
     });
@@ -106,18 +89,11 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL", 
     observer.observe(document.documentElement, { attributes: true });
 
     return () => observer.disconnect();
-
-  }, [symbol, onSymbolChange, widgetId]);
+  }, [symbol]);
 
   return (
-    <div 
-      className="tradingview-widget-container h-full w-full" 
-      ref={container}
-    >
-      <div 
-        id={widgetId}
-        className="tradingview-widget-container__widget h-full"
-      ></div>
+    <div className="tradingview-widget-container h-full w-full">
+      <div ref={container} className="tradingview-widget-container__widget h-full w-full"></div>
     </div>
   );
 };
