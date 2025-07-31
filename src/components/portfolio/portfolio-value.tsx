@@ -21,10 +21,10 @@ import { ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import usePortfolioStore from "@/store/portfolio-store";
 
-type TimeRange = '1W' | '1M' | '6M' | '1Y' | 'All';
+type TimeRange = '1W' | '1M' | '6M' | '1Y';
 
 function PortfolioValue() {
-  const [timeRange, setTimeRange] = useState<TimeRange>('All');
+  const [timeRange, setTimeRange] = useState<TimeRange>('1Y');
   const { portfolioSummary, chartData } = usePortfolioStore();
 
 
@@ -57,7 +57,7 @@ function PortfolioValue() {
                     </div>
                 </div>
                 <div className="flex gap-1">
-                    {(Object.keys(chartData) as TimeRange[]).map((range) => (
+                    {(Object.keys(chartData) as TimeRange[]).filter(r => r !== 'All').map((range) => (
                         <Button
                             key={range}
                             variant={timeRange === range ? "default" : "outline"}
