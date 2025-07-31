@@ -15,12 +15,67 @@ interface SymbolSearchProps {
 // This is a placeholder for a real API call.
 const fetchSymbols = async (query: string) => {
   const mockSymbols = [
+    // Tech
     { symbol: "AAPL", name: "Apple Inc." },
-    { symbol: "GOOGL", name: "Alphabet Inc." },
     { symbol: "MSFT", name: "Microsoft Corp." },
+    { symbol: "GOOGL", name: "Alphabet Inc. (Class A)" },
+    { symbol: "GOOG", name: "Alphabet Inc. (Class C)" },
     { symbol: "AMZN", name: "Amazon.com, Inc." },
-    { symbol: "TSLA", name: "Tesla, Inc." },
     { symbol: "NVDA", name: "NVIDIA Corp." },
+    { symbol: "META", name: "Meta Platforms, Inc." },
+    { symbol: "TSLA", name: "Tesla, Inc." },
+    { symbol: "AVGO", name: "Broadcom Inc." },
+    { symbol: "ASML", name: "ASML Holding N.V." },
+    { symbol: "ADBE", name: "Adobe Inc." },
+    { symbol: "CRM", name: "Salesforce, Inc." },
+    { symbol: "AMD", name: "Advanced Micro Devices, Inc." },
+    { symbol: "INTC", name: "Intel Corp." },
+    { symbol: "ORCL", name: "Oracle Corp." },
+    { symbol: "QCOM", name: "QUALCOMM Inc." },
+    { symbol: "CSCO", name: "Cisco Systems, Inc." },
+    { symbol: "IBM", name: "International Business Machines Corp." },
+    // Financials
+    { symbol: "JPM", name: "JPMorgan Chase & Co." },
+    { symbol: "V", name: "Visa Inc." },
+    { symbol: "MA", name: "Mastercard Inc." },
+    { symbol: "BAC", name: "Bank of America Corp." },
+    { symbol: "WFC", name: "Wells Fargo & Co." },
+    { symbol: "GS", name: "The Goldman Sachs Group, Inc." },
+    { symbol: "MS", name: "Morgan Stanley" },
+    { symbol: "BLK", name: "BlackRock, Inc." },
+    { symbol: "AXP", name: "American Express Co." },
+    // Healthcare
+    { symbol: "LLY", name: "Eli Lilly and Co." },
+    { symbol: "UNH", name: "UnitedHealth Group Inc." },
+    { symbol: "JNJ", name: "Johnson & Johnson" },
+    { symbol: "MRK", name: "Merck & Co., Inc." },
+    { symbol: "ABBV", name: "AbbVie Inc." },
+    { symbol: "PFE", name: "Pfizer Inc." },
+    { symbol: "TMO", name: "Thermo Fisher Scientific Inc." },
+    { symbol: "DHR", name: "Danaher Corp." },
+    // Consumer Discretionary & Staples
+    { symbol: "WMT", name: "Walmart Inc." },
+    { symbol: "PG", name: "The Procter & Gamble Co." },
+    { symbol: "COST", name: "Costco Wholesale Corp." },
+    { symbol: "KO", name: "The Coca-Cola Co." },
+    { symbol: "PEP", name: "PepsiCo, Inc." },
+    { symbol: "MCD", name: "McDonald's Corp." },
+    { symbol: "NKE", name: "NIKE, Inc." },
+    { symbol: "HD", name: "The Home Depot, Inc." },
+    { symbol: "SBUX", name: "Starbucks Corp." },
+    // Industrials & Energy
+    { symbol: "XOM", name: "Exxon Mobil Corp." },
+    { symbol: "CVX", name: "Chevron Corp." },
+    { symbol: "CAT", name: "Caterpillar Inc." },
+    { symbol: "BA", name: "The Boeing Co." },
+    { symbol: "GE", name: "General Electric Co." },
+    { symbol: "UPS", name: "United Parcel Service, Inc." },
+    // Other notable stocks
+    { symbol: "DIS", name: "The Walt Disney Co." },
+    { symbol: "NFLX", name: "Netflix, Inc." },
+    { symbol: "BABA", name: "Alibaba Group Holding Ltd." },
+    { symbol: "TM", name: "Toyota Motor Corp." },
+    { symbol: "SONY", name: "Sony Group Corp." },
   ];
 
   if (!query) return [];
@@ -131,3 +186,4 @@ export default function SymbolSearch({ onSymbolSelect, onClear }: SymbolSearchPr
     </Card>
   );
 }
+
