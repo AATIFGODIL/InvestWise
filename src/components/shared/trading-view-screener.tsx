@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useRef, memo } from 'react';
@@ -19,7 +20,7 @@ const TradingViewScreenerWidget: React.FC = () => {
       "width": "100%",
       "height": "100%",
       "defaultColumn": "overview",
-      "screener_type": "crypto_mkt",
+      "screener_type": "stock_mkt",
       "displayCurrency": "USD",
       "colorTheme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
       "locale": "en",
@@ -28,14 +29,28 @@ const TradingViewScreenerWidget: React.FC = () => {
 
     container.current.appendChild(script);
 
-    // Also handle theme changes
     const observer = new MutationObserver((mutations) => {
         for (const mutation of mutations) {
             if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                 // Re-create widget when theme changes
+                const newTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                const newScript = document.createElement("script");
+                newScript.src = "https://s3.tradingview.com/external-embedding/embed-widget-screener.js";
+                newScript.type = "text/javascript";
+                newScript.async = true;
+                newScript.innerHTML = JSON.stringify({
+                  "width": "100%",
+                  "height": "100%",
+                  "defaultColumn": "overview",
+                  "screener_type": "stock_mkt",
+                  "displayCurrency": "USD",
+                  "colorTheme": newTheme,
+                  "locale": "en",
+                  "isTransparent": false
+                });
+
                 if (container.current) {
                     container.current.innerHTML = '';
-                    container.current.appendChild(script.cloneNode(true));
+                    container.current.appendChild(newScript);
                 }
             }
         }

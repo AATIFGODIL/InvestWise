@@ -1,3 +1,4 @@
+
 "use client"
 import { useState } from "react";
 import Header from "@/components/layout/header";
@@ -8,6 +9,7 @@ import AutoInvest from "@/components/dashboard/auto-invest";
 import InvestmentBundles from "@/components/dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
 import TradingViewScreenerWidget from "@/components/shared/trading-view-screener";
+import TradingViewWidget from "@/components/shared/trading-view-widget";
 
 const videos = [
     {
@@ -26,7 +28,7 @@ const videos = [
 
 export default function TradePage() {
   const [selectedSymbol, setSelectedSymbol] = useState<string>("AAPL");
-  const [selectedPrice, setSelectedPrice] = useState<number | null>(null); 
+  const [selectedPrice, setSelectedPrice] = useState<number | null>(175.00); 
 
   return (
     <div className="w-full bg-background font-body">
@@ -36,6 +38,10 @@ export default function TradePage() {
         
         <div className="h-[700px] w-full">
             <TradingViewScreenerWidget />
+        </div>
+
+        <div className="h-[600px] w-full">
+            <TradingViewWidget symbol={selectedSymbol} />
         </div>
 
         <TradeForm selectedSymbol={selectedSymbol} selectedPrice={selectedPrice} />
