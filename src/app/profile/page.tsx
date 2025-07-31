@@ -52,7 +52,9 @@ export default function ProfilePage() {
         
         setGlobalUsername(localUsername);
         if (newProfilePicDataUrl) {
-            setProfilePic(localProfilePic);
+            // The user profile photo URL is now updated in the global store via the auth hook.
+            // We just need to reset the temporary data URL state.
+            setLocalProfilePic(useUserStore.getState().profilePic);
         }
 
         toast({
