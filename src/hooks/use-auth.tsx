@@ -136,6 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(firebaseUser);
         const userData = await fetchUserData(firebaseUser);
         if (userData) {
+          // Hydrate all stores with the fetched data
           setUsername(userData.username || firebaseUser.displayName || "Investor");
           setProfilePic(userData.photoURL || "");
           loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null);
@@ -144,7 +145,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           loadAutoInvestments(userData.autoInvestments || []);
           const theme = userData.theme || 'light';
           setTheme(theme);
-          localStorage.setItem('theme', theme);
           loadPrivacySettings({
             leaderboardVisibility: userData.leaderboardVisibility || 'public',
             showQuests: userData.showQuests === undefined ? true : userData.showQuests,
@@ -158,7 +158,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [resetAllStores, setUsername, setProfilePic, loadInitialData, setNotifications, loadGoals, loadAutoInvestments, setTheme, loadPrivacySettings]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
   const signUp = async (email:string, pass: string, username: string) => {
@@ -226,7 +227,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateUserTheme = async (theme: "light" | "dark") => {
     setTheme(theme); // Optimistically update UI
-    localStorage.setItem('theme', theme);
     if (!user) return;
     const userDocRef = doc(db, "users", user.uid);
     await updateDoc(userDocRef, { theme });
@@ -245,6 +245,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await firebaseSignOut(auth);
+    resetAllStores();
     router.push('/auth/signin');
   };
 

@@ -89,8 +89,10 @@ const experiencedVideos = [
 export default function DashboardPage() {
   const { hydrating: authLoading } = useAuth();
   const [userProfile, setUserProfile] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
     // This effect now correctly depends on the auth state.
     // It runs after the initial, fast auth check is complete.
     if (!authLoading && typeof window !== 'undefined') {
@@ -158,7 +160,7 @@ export default function DashboardPage() {
     </div>
   )
 
-  if (authLoading) {
+  if (authLoading || !isClient) {
     return <PageSkeleton />;
   }
   
