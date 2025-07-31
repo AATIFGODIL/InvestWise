@@ -26,7 +26,7 @@ import usePortfolioStore from "@/store/portfolio-store";
 type TimeRange = '1W' | '1M' | '6M' | '1Y';
 
 function PortfolioSummary() {
-  const [timeRange, setTimeRange] = useState<TimeRange>('1Y');
+  const [timeRange, setTimeRange] = useState<TimeRange>('1W');
   const { portfolioSummary, chartData } = usePortfolioStore();
 
   const isTodaysChangePositive = portfolioSummary.todaysChange >= 0;
@@ -69,7 +69,7 @@ function PortfolioSummary() {
                     </div>
                 </div>
                 <div className="flex gap-1">
-                    {(Object.keys(chartData) as TimeRange[]).filter(r => r !== 'All').map((range) => (
+                    {(Object.keys(chartData) as TimeRange[]).map((range) => (
                         <Button
                             key={range}
                             variant={timeRange === range ? "default" : "outline"}

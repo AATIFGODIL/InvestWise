@@ -96,11 +96,15 @@ const usePortfolioStore = create<PortfolioState>((set, get) => ({
   chartData: generateChartData(0, new Date()),
   
   loadInitialData: (holdings, summary, registrationDate) => {
+    // User specified a join date of July 29th. We will use this for their chart.
+    const hardcodedRegistrationDate = new Date('2024-07-29T12:00:00Z');
+    const actualRegistrationDate = registrationDate > hardcodedRegistrationDate ? hardcodedRegistrationDate : registrationDate;
+
     const newSummary = summary || calculatePortfolioSummary(holdings);
     set({
       holdings: holdings,
       portfolioSummary: newSummary,
-      chartData: generateChartData(newSummary.totalValue, registrationDate),
+      chartData: generateChartData(newSummary.totalValue, actualRegistrationDate),
     });
   },
 
