@@ -41,7 +41,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import usePortfolioStore from "@/store/portfolio-store";
 import { useState } from "react";
-import TradingViewWidget from "@/components/shared/trading-view-widget";
 
 const tradeSchema = z.object({
   symbol: z.string().min(1, "Symbol is required."),
@@ -77,7 +76,7 @@ export default function TradeForm() {
     resolver: zodResolver(tradeSchema),
     mode: "onChange",
     defaultValues: {
-      symbol: "AAPL",
+      symbol: "",
       action: "buy",
       quantity: 0,
       orderType: "market",
@@ -100,7 +99,6 @@ export default function TradeForm() {
   const handleConfirmTrade = () => {
     if (!previewData) return;
 
-    // This is where you would call the store action
     const tradeResult = executeTrade({
       symbol: previewData.symbol.toUpperCase(),
       qty: previewData.action === 'buy' ? previewData.quantity : -previewData.quantity,
@@ -127,9 +125,6 @@ export default function TradeForm() {
 
   return (
     <TooltipProvider>
-      <div className="h-[400px]">
-        <TradingViewWidget symbol={symbol} />
-      </div>
       <Card>
         <form onSubmit={handleSubmit(handlePreview)}>
           <CardHeader>
@@ -142,7 +137,7 @@ export default function TradeForm() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="symbol"
-                  placeholder="Look up Symbol/Company Name"
+                  placeholder="Enter a stock symbol (e.g., AAPL)"
                   className="pl-10"
                   {...register("symbol")}
                 />

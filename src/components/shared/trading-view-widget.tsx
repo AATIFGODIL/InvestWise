@@ -9,6 +9,7 @@ interface TradingViewWidgetProps {
 
 const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }) => {
   const container = useRef<HTMLDivElement>(null);
+  const scriptExists = useRef(false);
 
   useEffect(() => {
     if (!container.current || !symbol) return;
@@ -16,6 +17,8 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }
     const createWidget = () => {
         if (!container.current) return;
         container.current.innerHTML = ""; // Clean up previous widget
+        scriptExists.current = false;
+
         const script = document.createElement("script");
         script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
         script.type = "text/javascript";
@@ -29,7 +32,7 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }
           "style": "1",
           "locale": "en",
           "enable_publishing": false,
-          "allow_symbol_change": true,
+          "allow_symbol_change": false, // Keep it locked to the selected symbol
           "withdateranges": true,
           "hide_side_toolbar": false,
           "details": true,
@@ -42,16 +45,15 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }
         });
 
         container.current.appendChild(script);
+        scriptExists.current = true;
     }
     
-    // Set a unique ID for the container if it doesn't have one
     if (!container.current.id) {
       container.current.id = `tv_widget_container_${Math.random().toString(36).substr(2, 9)}`;
     }
 
     createWidget();
 
-    // Observe theme changes to re-render widget
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {

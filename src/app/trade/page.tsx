@@ -1,5 +1,6 @@
 
 "use client"
+import { useState } from "react";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
 import EducationalVideo from "@/components/shared/educational-video";
@@ -7,8 +8,9 @@ import TradeForm from "@/components/trade/trade-form";
 import AutoInvest from "@/components/dashboard/auto-invest";
 import InvestmentBundles from "@/components/dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
-import TradingViewSearch from "@/components/shared/trading-view-search";
 import StockList from "@/components/trade/stock-list";
+import SymbolSearch from "@/components/trade/symbol-search";
+import TradingViewWidget from "@/components/shared/trading-view-widget";
 
 const videos = [
     {
@@ -27,12 +29,21 @@ const videos = [
 
 
 export default function TradePage() {
+  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
+
   return (
     <div className="w-full bg-background font-body">
       <Header />
       <main className="p-4 space-y-6 pb-40">
         <h1 className="text-2xl font-bold">Trade</h1>
-        <TradingViewSearch />
+        <SymbolSearch onSymbolSelect={setSelectedSymbol} />
+        
+        {selectedSymbol && (
+          <div className="h-[400px] w-full">
+            <TradingViewWidget symbol={selectedSymbol} />
+          </div>
+        )}
+
         <TradeForm />
         <StockList />
         <InvestmentBundles 
@@ -54,4 +65,3 @@ export default function TradePage() {
     </div>
   );
 }
-
