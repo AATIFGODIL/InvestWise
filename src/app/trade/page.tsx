@@ -1,6 +1,6 @@
 
 "use client"
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
 import EducationalVideo from "@/components/shared/educational-video";
@@ -11,6 +11,7 @@ import { specializedBundles } from "@/data/bundles";
 import StockList from "@/components/trade/stock-list";
 import SymbolSearch from "@/components/trade/symbol-search";
 import TradingViewWidget from "@/components/shared/trading-view-widget";
+import { TradingViewTickerTape } from "@/components/shared/trading-view-ticker-tape";
 
 const videos = [
     {
@@ -27,10 +28,16 @@ const videos = [
     }
 ]
 
+interface StockData {
+  symbol: string;
+  name: string;
+  price: number;
+}
 
 export default function TradePage() {
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
   const [selectedPrice, setSelectedPrice] = useState<number | null>(null);
+  const [liveStocks, setLiveStocks] = useState<StockData[]>([]);
 
   const handleSymbolSelect = (symbol: string, price: number) => {
     setSelectedSymbol(symbol);
@@ -45,10 +52,19 @@ export default function TradePage() {
   return (
     <div className="w-full bg-background font-body">
       <Header />
+      {/* This component is hidden but provides the live data */}
+      <div className="hidden">
+        <TradingViewTickerTape onDataLoaded={setLiveStocks} />
+      </div>
+
       <main className="p-4 space-y-6 pb-40">
         <h1 className="text-2xl font-bold">Trade</h1>
         
-        <SymbolSearch onSymbolSelect={handleSymbolSelect} onClear={handleClear} />
+        <SymbolSearch 
+          onSymbolSelect={handleSymbolSelect} 
+          onClear={handleClear} 
+          stockData={liveStocks}
+        />
 
         {selectedSymbol && (
           <div className="h-[500px] w-full">
