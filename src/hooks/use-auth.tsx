@@ -120,6 +120,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resetGoals();
     resetAutoInvest();
     setTheme('light');
+    localStorage.setItem('theme', 'light');
   }, [setUsername, setProfilePic, setNotifications, resetPortfolio, resetGoals, resetAutoInvest, setTheme]);
 
   useEffect(() => {
@@ -135,7 +136,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setNotifications(userData.notifications || []);
           loadGoals(userData.goals || []);
           loadAutoInvestments(userData.autoInvestments || []);
-          setTheme(userData.theme || 'light');
+          const theme = userData.theme || 'light';
+          setTheme(theme);
+          localStorage.setItem('theme', theme);
         }
       } else {
         setUser(null);
@@ -178,7 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const userDocRef = doc(db, "users", user.uid);
     const updates: { [key: string]: any } = {};
-    const authUpdates: { displayName?: string, photoURL?: string } = {};
+    const authUpdates: { displayName?: string, photoURL?: string | null } = {};
 
     let newPhotoURL = user.photoURL;
 
@@ -203,7 +206,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     
     if (Object.keys(authUpdates).length > 0) {
-        await updateProfile(user, authUpdates);
+        await updateProfile(user, {
+            displayName: authUpdates.displayName || user.displayName,
+            photoURL: authUpdates.photoURL || user.photoURL,
+        });
     }
 
     // Step 4: Sync global state after all async operations are complete
@@ -217,6 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateUserTheme = async (theme: "light" | "dark") => {
     setTheme(theme); // Optimistically update UI
+    localStorage.setItem('theme', theme);
     if (!user) return;
     const userDocRef = doc(db, "users", user.uid);
     await updateDoc(userDocRef, { theme });

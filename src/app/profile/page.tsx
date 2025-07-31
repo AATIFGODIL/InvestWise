@@ -36,8 +36,11 @@ export default function ProfilePage() {
   }, [globalUsername]);
 
   useEffect(() => {
-    setPreviewPhoto(globalProfilePic);
-  }, [globalProfilePic]);
+    // Only set the preview from global state if the user hasn't selected a new file
+    if (!selectedImageFile) {
+        setPreviewPhoto(globalProfilePic);
+    }
+  }, [globalProfilePic, selectedImageFile]);
 
 
   const handleSaveChanges = async () => {
@@ -56,7 +59,7 @@ export default function ProfilePage() {
             title: "Success!",
             description: "Your profile has been updated.",
         });
-        setSelectedImageFile(null); // Clear pending file change
+        setSelectedImageFile(null); // Clear pending file change after successful save
     } catch (error) {
         console.error("Error updating profile:", error);
         toast({ variant: "destructive", title: "Error", description: "Failed to update profile." });
@@ -93,11 +96,8 @@ export default function ProfilePage() {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setSelectedImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewPhoto(reader.result as string); 
-      };
-      reader.readAsDataURL(file);
+      // Create a temporary URL for the selected file for instant preview
+      setPreviewPhoto(URL.createObjectURL(file));
     }
   };
 
@@ -136,7 +136,7 @@ export default function ProfilePage() {
                     <Label htmlFor="profile-pic-upload" className="cursor-pointer group relative">
                         <Avatar className="h-20 w-20 border-2 border-primary">
                             <AvatarImage src={previewPhoto ?? undefined} alt="@user" />
-                            <AvatarFallback>{localUsername?.charAt(0)}</AvatarFallback>
+                            <AvatarFallback>{localUsername?.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                             <Upload className="h-8 w-8 text-white" />
