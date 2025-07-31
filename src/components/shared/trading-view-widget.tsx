@@ -12,36 +12,38 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }
 
   useEffect(() => {
     if (!container.current || !symbol) return;
-
+    
     const createWidget = () => {
-      if (!container.current) return;
-      // Ensure the container is clean before appending a new script
-      container.current.innerHTML = "";
-      
-      const script = document.createElement("script");
-      script.src = "https://s3.tradingview.com/tv.js";
-      script.type = "text/javascript";
-      script.async = true;
-      script.onload = () => {
-        if (typeof (window as any).TradingView !== 'undefined') {
-          new (window as any).TradingView.widget({
-            "autosize": true,
-            "symbol": symbol,
-            "interval": "D",
-            "timezone": "Etc/UTC",
-            "theme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
-            "style": "1",
-            "locale": "en",
-            "enable_publishing": false,
-            "allow_symbol_change": false,
-            "container_id": `tradingview-widget-container-${container.current?.id}`
-          });
-        }
-      };
-      
-      container.current.appendChild(script);
-    };
+        if (!container.current) return;
+        container.current.innerHTML = ""; // Clean up previous widget
+        const script = document.createElement("script");
+        script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+        script.type = "text/javascript";
+        script.async = true;
+        script.innerHTML = JSON.stringify({
+          "autosize": true,
+          "symbol": symbol,
+          "interval": "D",
+          "timezone": "Etc/UTC",
+          "theme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+          "style": "1",
+          "locale": "en",
+          "enable_publishing": false,
+          "allow_symbol_change": true,
+          "withdateranges": true,
+          "hide_side_toolbar": false,
+          "details": true,
+          "hotlist": true,
+          "calendar": true,
+          "studies": [
+            "Volume@tv-basicstudies"
+          ],
+          "container_id": `tradingview-widget-container-${container.current.id}`
+        });
 
+        container.current.appendChild(script);
+    }
+    
     // Set a unique ID for the container if it doesn't have one
     if (!container.current.id) {
       container.current.id = `tv_widget_container_${Math.random().toString(36).substr(2, 9)}`;
@@ -49,7 +51,7 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }
 
     createWidget();
 
-    // Re-create widget if theme changes
+    // Observe theme changes to re-render widget
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
@@ -66,11 +68,13 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }
 
   return (
     <div 
-      id={`tradingview-widget-container-${container.current?.id}`} 
       className="tradingview-widget-container h-full w-full" 
       ref={container}
     >
-      <div className="tradingview-widget-container__widget h-full"></div>
+      <div 
+        id={`tradingview-widget-container-${container.current?.id}`} 
+        className="tradingview-widget-container__widget h-full"
+      ></div>
     </div>
   );
 };
