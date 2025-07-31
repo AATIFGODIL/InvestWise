@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useRef, memo } from 'react';
@@ -8,57 +9,51 @@ interface TradingViewWidgetProps {
 
 const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }) => {
   const container = useRef<HTMLDivElement>(null);
-  const isDark = typeof window !== 'undefined' ? document.documentElement.classList.contains('dark') : false;
-  const theme = isDark ? 'dark' : 'light';
 
   useEffect(() => {
     if (!container.current || !symbol) return;
 
-    const createWidget = (currentTheme: 'dark' | 'light') => {
+    const createWidget = () => {
       if (!container.current) return;
-      container.current.innerHTML = ""; // Clear previous widget
+      // Ensure the container is clean before appending a new script
+      container.current.innerHTML = "";
+      
       const script = document.createElement("script");
-      script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
+      script.src = "https://s3.tradingview.com/tv.js";
       script.type = "text/javascript";
       script.async = true;
-      script.innerHTML = JSON.stringify({
-        "symbols": [[symbol]],
-        "chartOnly": false,
-        "width": "100%",
-        "height": "100%",
-        "locale": "en",
-        "colorTheme": currentTheme,
-        "autosize": true,
-        "showVolume": false,
-        "showMA": false,
-        "hideDateRanges": false,
-        "hideMarketStatus": false,
-        "hideSymbolLogo": false,
-        "scalePosition": "right",
-        "scaleMode": "Normal",
-        "fontFamily": "inherit",
-        "fontSize": "12",
-        "noTimeScale": false,
-        "valuesTracking": "1",
-        "changeMode": "price-and-percent",
-        "chartType": "area",
-        "maLineColor": "#2962FF",
-        "maLineWidth": 1,
-        "maLength": 9,
-        "lineWidth": 2,
-        "lineType": 0,
-        "dateRanges": ["1d|1", "1m|30", "3m|60", "12m|1D", "60m|1W", "all|1M"]
-      });
+      script.onload = () => {
+        if (typeof (window as any).TradingView !== 'undefined') {
+          new (window as any).TradingView.widget({
+            "autosize": true,
+            "symbol": symbol,
+            "interval": "D",
+            "timezone": "Etc/UTC",
+            "theme": document.documentElement.classList.contains('dark') ? 'dark' : 'light',
+            "style": "1",
+            "locale": "en",
+            "enable_publishing": false,
+            "allow_symbol_change": false,
+            "container_id": `tradingview-widget-container-${container.current?.id}`
+          });
+        }
+      };
+      
       container.current.appendChild(script);
+    };
+
+    // Set a unique ID for the container if it doesn't have one
+    if (!container.current.id) {
+      container.current.id = `tv_widget_container_${Math.random().toString(36).substr(2, 9)}`;
     }
 
-    createWidget(theme);
+    createWidget();
 
+    // Re-create widget if theme changes
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-          const newIsDark = (mutation.target as HTMLElement).classList.contains('dark');
-          createWidget(newIsDark ? 'dark' : 'light');
+          createWidget();
         }
       }
     });
@@ -67,16 +62,15 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol = "AAPL" }
 
     return () => observer.disconnect();
 
-  }, [symbol, theme]);
+  }, [symbol]);
 
   return (
-    <div className="tradingview-widget-container h-full" ref={container}>
+    <div 
+      id={`tradingview-widget-container-${container.current?.id}`} 
+      className="tradingview-widget-container h-full w-full" 
+      ref={container}
+    >
       <div className="tradingview-widget-container__widget h-full"></div>
-      <div className="tradingview-widget-copyright">
-        <a href={`https://www.tradingview.com/symbols/${symbol}/`} rel="noopener" target="_blank">
-          <span className="blue-text">{symbol} stock chart</span>
-        </a> by TradingView
-      </div>
     </div>
   );
 };
