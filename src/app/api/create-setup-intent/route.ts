@@ -1,22 +1,24 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
 import Stripe from 'stripe';
-import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore';
-import { app } from '@/lib/firebase/config';
+import { getFirestore } from 'firebase-admin/firestore';
+import { initFirebaseAdminApp } from '@/lib/firebase/admin-config';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20',
 });
 
-const db = getFirestore(app);
+// Initialize Firebase Admin
+initFirebaseAdminApp();
+const db = getFirestore();
 
 // Function to get or create a Stripe customer
 async function getOrCreateStripeCustomer(userId: string, email?: string) {
-    const userDocRef = doc(db, 'users', userId);
-    const userDoc = await getDoc(userDocRef);
+    const userDocRef = db.collection('users').doc(userId);
+    const userDoc = await userDocRef.get();
 
-    if (userDoc.exists() && userDoc.data().stripeCustomerId) {
-        return userDoc.data().stripeCustomerId;
+    if (userDoc.exists && userDoc.data()?.stripeCustomerId) {
+        return userDoc.data()?.stripeCustomerId;
     }
 
     const customer = await stripe.customers.create({
@@ -26,7 +28,7 @@ async function getOrCreateStripeCustomer(userId: string, email?: string) {
         },
     });
 
-    await setDoc(userDocRef, { stripeCustomerId: customer.id }, { merge: true });
+    await userDocRef.set({ stripeCustomerId: customer.id }, { merge: true });
     return customer.id;
 }
 
