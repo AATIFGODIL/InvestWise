@@ -2,7 +2,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
@@ -89,10 +89,18 @@ const experiencedVideos = [
 
 export default function DashboardPage() {
   const { hydrating: authLoading } = useAuth();
-  const { username: userProfile } = useUserStore();
+  const [userProfile, setUserProfile] = useState<string | null>(null);
 
-  const getBundlesForProfile = () => {
-    switch(userProfile) {
+  useEffect(() => {
+    // This check ensures we are on the client side before accessing localStorage
+    if (typeof window !== 'undefined') {
+      const profile = localStorage.getItem('userProfile');
+      setUserProfile(profile);
+    }
+  }, []);
+
+  const getBundlesForProfile = (profile: string | null) => {
+    switch(profile) {
         case "Student":
         case "Beginner":
             return {
@@ -117,8 +125,8 @@ export default function DashboardPage() {
     }
   }
   
-  const getVideosForProfile = () => {
-    switch(userProfile) {
+  const getVideosForProfile = (profile: string | null) => {
+    switch(profile) {
         case "Student":
             return studentVideos;
         case "Beginner":
@@ -132,8 +140,8 @@ export default function DashboardPage() {
     }
   }
 
-  const bundleProps = useMemo(getBundlesForProfile, [userProfile]);
-  const videoProps = useMemo(getVideosForProfile, [userProfile]);
+  const bundleProps = useMemo(() => getBundlesForProfile(userProfile), [userProfile]);
+  const videoProps = useMemo(() => getVideosForProfile(userProfile), [userProfile]);
   
   const PageSkeleton = () => (
      <div className="w-full bg-background font-body">
@@ -150,7 +158,7 @@ export default function DashboardPage() {
     </div>
   )
 
-  if (authLoading) {
+  if (authLoading || userProfile === null) {
     return <PageSkeleton />;
   }
   
