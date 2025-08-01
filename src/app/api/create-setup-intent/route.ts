@@ -8,12 +8,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-06-20',
 });
 
+// Initialize Firebase Admin and Firestore once
+const adminApp = initFirebaseAdminApp();
+const db = getFirestore(adminApp);
+
 // Function to get or create a Stripe customer
 async function getOrCreateStripeCustomer(userId: string, email?: string) {
-    // Initialize Firebase Admin and Firestore inside the function
-    const adminApp = initFirebaseAdminApp();
-    const db = getFirestore(adminApp);
-
     const userDocRef = db.collection('users').doc(userId);
     const userDoc = await userDocRef.get();
 
