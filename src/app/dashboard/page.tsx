@@ -2,7 +2,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
-import { useEffect, useState, useMemo } from "react";
+import { useMemo } from "react";
 import dynamic from "next/dynamic";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { recommendedBundles, specializedBundles } from "@/data/bundles";
 import CongratulationsBanner from "@/components/dashboard/congratulations-banner";
 import Chatbot from "@/components/chatbot/chatbot";
+import useUserStore from "@/store/user-store";
 
 const PortfolioSummary = dynamic(() => import("@/components/dashboard/portfolio-summary"), { 
     ssr: false,
@@ -88,16 +89,7 @@ const experiencedVideos = [
 
 export default function DashboardPage() {
   const { hydrating: authLoading } = useAuth();
-  const [userProfile, setUserProfile] = useState<string | null>(null);
-
-  useEffect(() => {
-    // This effect now correctly depends on the auth state.
-    // It runs after the initial, fast auth check is complete.
-    if (!authLoading && typeof window !== 'undefined') {
-      const profile = localStorage.getItem('userProfile');
-      setUserProfile(profile);
-    }
-  }, [authLoading]);
+  const { username: userProfile } = useUserStore();
 
   const getBundlesForProfile = () => {
     switch(userProfile) {
