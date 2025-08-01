@@ -7,7 +7,7 @@ export function initializeAdminApp() {
     if (admin.apps.length > 0) {
         return admin.app();
     }
-    
+
     // In a Firebase or Google Cloud environment, the SDK automatically
     // discovers credentials, so no need to pass them explicitly.
     return admin.initializeApp();
