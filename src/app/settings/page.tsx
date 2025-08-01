@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,6 +30,11 @@ export default function SettingsPage() {
   const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
   const { updateUserTheme, signOut: firebaseSignOut, updatePrivacySettings } = useAuth();
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   
   const handleThemeChange = (newTheme: "light" | "dark") => {
     setTheme(newTheme);
@@ -113,7 +118,7 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {!theme ? (
+            {!isClient ? (
                 <div className="space-y-2">
                     <Skeleton className="h-12 w-full" />
                     <Skeleton className="h-12 w-full" />
