@@ -24,7 +24,7 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
             if (user && isTokenReady) {
                 setIsLoading(true);
                 try {
-                    const token = await user.getIdToken(true); // Force refresh the token
+                    const token = await user.getIdToken(true);
                     const response = await fetch('/api/create-setup-intent', {
                         method: 'POST',
                         headers: {
@@ -45,16 +45,28 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
                 }
             }
         };
-        createSetupIntent();
+
+        // Only run the effect if the user is authenticated and the token is ready.
+        if (user && isTokenReady) {
+          createSetupIntent();
+        } else if (!user) {
+          // If there's no user, stop loading.
+          setIsLoading(false);
+        }
     }, [user, isTokenReady]);
 
     if (isLoading || !clientSecret) {
         return (
             <div className="space-y-4 pt-4">
+                <p className="text-sm text-center text-muted-foreground">Initializing secure payment form...</p>
                 <Skeleton className="h-10 w-full" />
                 <Skeleton className="h-10 w-full" />
             </div>
         );
+    }
+    
+    if (!clientSecret) {
+        return <p className="text-destructive text-sm text-center">Could not initialize payment form. Please try again later.</p>
     }
 
     return (

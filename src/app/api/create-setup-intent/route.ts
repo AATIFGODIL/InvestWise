@@ -4,19 +4,16 @@ import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import admin from 'firebase-admin';
 
-// Initialize Stripe with the secret key from environment variables.
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-
-// Helper function to initialize Firebase Admin SDK
+// This helper function ensures Firebase Admin is initialized only once.
 function initializeFirebaseAdmin() {
   if (admin.apps.length > 0) {
     return admin.app();
   }
-  
-  // This will use the GOOGLE_APPLICATION_CREDENTIALS environment variable
-  // or the default service account when deployed to a Google Cloud environment.
-  // For local development, you must have the service account key file and
-  // GOOGLE_APPLICATION_CREDENTIALS set in your environment.
+
+  // When deployed to a Google Cloud environment (like Firebase),
+  // the SDK will automatically discover the service account credentials.
+  // For local development, you must have the GOOGLE_APPLICATION_CREDENTIALS
+  // environment variable set in your .env file.
   return admin.initializeApp();
 }
 
@@ -25,6 +22,11 @@ export async function POST(request: Request) {
     const app = initializeFirebaseAdmin();
     const auth = admin.auth(app);
     const db = admin.firestore(app);
+    
+    // Initialize Stripe with the secret key from environment variables.
+    // Ensure process.env.STRIPE_SECRET_KEY is set in your .env file.
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+
 
     const headersList = headers();
     const token = headersList.get('Authorization')?.split('Bearer ')[1];
