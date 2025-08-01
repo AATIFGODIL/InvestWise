@@ -9,7 +9,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 export async function POST(request: Request) {
   try {
-    // Ensure Firebase Admin is initialized
+    // Ensure Firebase Admin is initialized at the start of the request.
     initializeAdminApp();
 
     const headersList = headers();
@@ -22,14 +22,14 @@ export async function POST(request: Request) {
     let decodedToken;
     try {
         // Verify the user's token to get their UID.
-        decodedToken = await adminAuth.verifyIdToken(token);
+        decodedToken = await adminAuth().verifyIdToken(token);
     } catch (error) {
         console.error("Error verifying Firebase ID token:", error);
         return NextResponse.json({ error: 'Invalid authentication token.' }, { status: 403 });
     }
 
     const uid = decodedToken.uid;
-    const userRef = adminDb.collection('users').doc(uid);
+    const userRef = adminDb().collection('users').doc(uid);
     const userDoc = await userRef.get();
 
     if (!userDoc.exists) {

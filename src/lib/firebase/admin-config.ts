@@ -25,9 +25,8 @@ function initializeAdminApp() {
     });
 }
 
-// Initialize on load, but the function above ensures it only happens once.
-const adminApp = initializeAdminApp();
-const adminAuth = admin.auth(adminApp);
-const adminDb = admin.firestore(adminApp);
+// Do not initialize here directly. Let API routes call the function.
+const adminAuth = admin.auth;
+const adminDb = admin.firestore;
 
-export { initializeAdminApp, adminApp, adminAuth, adminDb };
+export { initializeAdminApp, adminAuth, adminDb };
