@@ -9,8 +9,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 // Initialize Firebase Admin
-initFirebaseAdminApp();
-const db = getFirestore();
+const adminApp = initFirebaseAdminApp();
+const db = getFirestore(adminApp);
 
 // Function to get or create a Stripe customer
 async function getOrCreateStripeCustomer(userId: string, email?: string) {

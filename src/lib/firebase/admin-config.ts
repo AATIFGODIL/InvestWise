@@ -8,21 +8,19 @@ const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
 
 const appName = 'firebase-admin-app';
 
-function getAdminApp(): App {
-  const a = getApps().find((app) => app.name === appName);
-  return a!;
-}
-
-export function initFirebaseAdminApp() {
-  if (getApps().some((app) => app.name === appName)) {
-    return;
+export function initFirebaseAdminApp(): App {
+  const existingApp = getApps().find((app) => app.name === appName);
+  if (existingApp) {
+    return existingApp;
   }
+
   if (!serviceAccount) {
     throw new Error(
       'Missing FIREBASE_SERVICE_ACCOUNT environment variable.'
     );
   }
-  initializeApp(
+
+  return initializeApp(
     {
       credential: cert(serviceAccount),
     },
