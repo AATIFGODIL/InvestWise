@@ -198,6 +198,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     let photoURL = user.photoURL;
 
+    // Handle image upload first, as per user's provided flow
     if (data.imageFile) {
         const storageRef = ref(storage, `profile_pictures/${user.uid}`);
         await uploadBytes(storageRef, data.imageFile);
@@ -211,14 +212,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updatesForAuth.displayName = data.username;
     }
     
+    // Update Firestore document if there are changes
     if (Object.keys(updatesForFirestore).length > 0) {
         await updateDoc(userDocRef, updatesForFirestore);
     }
     
+    // Update Firebase Auth profile if there are changes
     if (Object.keys(updatesForAuth).length > 0) {
         await updateProfile(user, updatesForAuth);
     }
 
+    // Update local state stores
     if (updatesForAuth.displayName) {
         setUsername(updatesForAuth.displayName);
     }
