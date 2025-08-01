@@ -17,15 +17,14 @@ function TradingViewScreener() {
       script.type = "text/javascript";
       script.async = true;
       script.innerHTML = JSON.stringify({
-          "market": "forex",
-          "showToolbar": true,
-          "defaultColumn": "overview",
-          "defaultScreen": "general",
-          "isTransparent": false,
-          "locale": "en",
-          "colorTheme": theme,
           "width": "100%",
-          "height": 550
+          "height": "100%",
+          "defaultColumn": "overview",
+          "defaultScreen": "most_capitalized",
+          "market": "us",
+          "showToolbar": true,
+          "locale": "en",
+          "colorTheme": theme
         });
       
       container.current.innerHTML = ''; // Clear previous widget
@@ -35,8 +34,8 @@ function TradingViewScreener() {
   );
 
   return (
-    <div className="tradingview-widget-container" ref={container}>
-      <div className="tradingview-widget-container__widget"></div>
+    <div className="tradingview-widget-container h-full" ref={container}>
+      <div className="tradingview-widget-container__widget h-full"></div>
     </div>
   );
 }

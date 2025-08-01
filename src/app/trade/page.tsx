@@ -43,7 +43,9 @@ export default function TradePage() {
 
         <div>
             <h2 className="text-xl font-bold mb-4">Market Screener</h2>
-            <TradingViewScreener />
+            <div className="h-[550px] w-full">
+                <TradingViewScreener />
+            </div>
         </div>
         
         <InvestmentBundles 
