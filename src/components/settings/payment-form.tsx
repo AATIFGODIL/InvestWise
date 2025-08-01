@@ -15,14 +15,16 @@ interface PaymentFormProps {
 }
 
 export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
-    const { user } = useAuth();
+    const { user, isTokenReady } = useAuth();
     const [clientSecret, setClientSecret] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const createSetupIntent = async () => {
-            if (user) {
+            if (user && isTokenReady) {
+                setIsLoading(true);
                 try {
-                    const token = await user.getIdToken();
+                    const token = await user.getIdToken(true); // Force refresh the token
                     const response = await fetch('/api/create-setup-intent', {
                         method: 'POST',
                         headers: {
@@ -38,15 +40,17 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
                     }
                 } catch (error) {
                     console.error('Error creating setup intent:', error);
+                } finally {
+                    setIsLoading(false);
                 }
             }
         };
         createSetupIntent();
-    }, [user]);
+    }, [user, isTokenReady]);
 
-    if (!clientSecret) {
+    if (isLoading || !clientSecret) {
         return (
-            <div className="space-y-4">
+            <div className="space-y-4 pt-4">
                 <Skeleton className="h-10 w-full" />
                 <Skeleton className="h-10 w-full" />
             </div>

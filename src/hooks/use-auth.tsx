@@ -38,6 +38,7 @@ import { storage } from "@/lib/firebase/config";
 interface AuthContextType {
   user: User | null;
   hydrating: boolean;
+  isTokenReady: boolean; // New state to indicate token readiness
   signUp: (email:string, pass: string, username: string) => Promise<any>;
   signIn: (email:string, pass: string) => Promise<any>;
   signInWithGoogle: () => Promise<void>;
@@ -154,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   const [user, setUser] = useState<User | null>(null);
   const [hydrating, setHydrating] = useState(true);
+  const [isTokenReady, setIsTokenReady] = useState(false);
   
   const resetAllStores = useCallback(() => {
     resetUserStore();
@@ -169,15 +171,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
+      setIsTokenReady(false);
       if (firebaseUser) {
         setUser(firebaseUser);
-        // Start hydration but don't wait for it to finish
-        fetchAndHydrateUserData(firebaseUser).finally(() => {
-            setHydrating(false);
-        });
+        await fetchAndHydrateUserData(firebaseUser);
+        setIsTokenReady(true);
+        setHydrating(false);
       } else {
         setUser(null);
         resetAllStores();
+        setIsTokenReady(false);
         setHydrating(false);
       }
     });
@@ -194,8 +197,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await fetchAndHydrateUserData(newUser);
   }
 
-  const signIn = (email:string, pass: string) => {
-    return signInWithEmailAndPassword(auth, email, pass);
+  const signIn = async (email:string, pass: string) => {
+    await signInWithEmailAndPassword(auth, email, pass);
   }
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
@@ -279,6 +282,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = {
     user,
     hydrating,
+    isTokenReady,
     signUp,
     signIn,
     signInWithGoogle,
