@@ -170,13 +170,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
       if (firebaseUser) {
-        await fetchAndHydrateUserData(firebaseUser);
         setUser(firebaseUser);
+        // Start hydration but don't wait for it to finish
+        fetchAndHydrateUserData(firebaseUser).finally(() => {
+            setHydrating(false);
+        });
       } else {
         setUser(null);
         resetAllStores();
+        setHydrating(false);
       }
-      setHydrating(false);
     });
 
     return () => unsubscribe();
