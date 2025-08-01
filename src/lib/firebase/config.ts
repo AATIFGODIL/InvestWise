@@ -6,13 +6,14 @@ import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
+// IMPORTANT: Replace these with your actual Firebase project credentials
 const firebaseConfig = {
-  apiKey: "AIzaSyAAdBMaAXBV2PSjJr3jzw9obDJcBB3fbhc",
-  authDomain: "investwise-f9rch.firebaseapp.com",
-  projectId: "investwise-f9rch",
-  storageBucket: "investwise-f9rch.appspot.com",
-  messagingSenderId: "509703968960",
-  appId: "1:509703968960:web:4920eb3cbfa5d86094f525",
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
 // Initialize Firebase
