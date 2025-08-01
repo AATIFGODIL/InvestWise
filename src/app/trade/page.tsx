@@ -8,6 +8,7 @@ import AutoInvest from "@/components/dashboard/auto-invest";
 import InvestmentBundles from "@/components/dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
 import TradingViewWidget from "@/components/shared/trading-view-widget";
+import TradingViewScreener from "@/components/shared/trading-view-screener";
 
 const videos = [
     {
@@ -39,6 +40,11 @@ export default function TradePage() {
         </div>
 
         <TradeForm selectedSymbol={selectedSymbol} selectedPrice={selectedPrice} />
+
+        <div>
+            <h2 className="text-xl font-bold mb-4">Market Screener</h2>
+            <TradingViewScreener />
+        </div>
         
         <InvestmentBundles 
           bundles={specializedBundles}
