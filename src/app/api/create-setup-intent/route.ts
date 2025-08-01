@@ -2,38 +2,52 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
-import { initializeAdminApp, adminAuth, adminDb } from '@/lib/firebase/admin-config';
+import admin from 'firebase-admin';
 
 // Initialize Stripe with the secret key from environment variables.
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
+// Helper function to initialize Firebase Admin SDK
+function initializeFirebaseAdmin() {
+  if (admin.apps.length > 0) {
+    return admin.app();
+  }
+  
+  // This will use the GOOGLE_APPLICATION_CREDENTIALS environment variable
+  // or the default service account when deployed to a Google Cloud environment.
+  // For local development, you must have the service account key file and
+  // GOOGLE_APPLICATION_CREDENTIALS set in your environment.
+  return admin.initializeApp();
+}
+
 export async function POST(request: Request) {
   try {
-    // Ensure Firebase Admin is initialized at the start of the request.
-    initializeAdminApp();
+    const app = initializeFirebaseAdmin();
+    const auth = admin.auth(app);
+    const db = admin.firestore(app);
 
     const headersList = headers();
     const token = headersList.get('Authorization')?.split('Bearer ')[1];
 
     if (!token) {
+      console.error("Authentication token not provided.");
       return NextResponse.json({ error: 'Authentication token not provided.' }, { status: 401 });
     }
 
     let decodedToken;
     try {
-        // Verify the user's token to get their UID.
-        decodedToken = await adminAuth().verifyIdToken(token);
+        decodedToken = await auth.verifyIdToken(token);
     } catch (error) {
         console.error("Error verifying Firebase ID token:", error);
         return NextResponse.json({ error: 'Invalid authentication token.' }, { status: 403 });
     }
 
     const uid = decodedToken.uid;
-    const userRef = adminDb().collection('users').doc(uid);
+    const userRef = db.collection('users').doc(uid);
     const userDoc = await userRef.get();
 
     if (!userDoc.exists) {
-      return NextResponse.json({ error: 'User not found.' }, { status: 404 });
+      return NextResponse.json({ error: 'User not found in Firestore.' }, { status: 404 });
     }
 
     const userData = userDoc.data();
@@ -61,7 +75,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ clientSecret: setupIntent.client_secret });
 
   } catch (error: any) {
-    console.error("Error creating setup intent:", error);
+    console.error("Error creating setup intent:", error.message);
     // Return a generic error message to the client.
     return NextResponse.json({ error: 'An internal server error occurred.' }, { status: 500 });
   }
