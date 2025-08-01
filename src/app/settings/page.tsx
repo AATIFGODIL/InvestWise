@@ -9,17 +9,20 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { CreditCard, Shield, Sun, Moon, Eye, LogOut, ChevronLeft, ShieldBan, FileUp } from "lucide-react";
+import { CreditCard, Shield, Sun, Moon, Eye, LogOut, ChevronLeft, ShieldBan, FileUp, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import useThemeStore from "@/store/theme-store";
 import { useAuth } from "@/hooks/use-auth";
 import usePrivacyStore, { type LeaderboardVisibility } from "@/store/privacy-store";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import PaymentForm from "@/components/settings/payment-form";
 
 export default function SettingsPage() {
   const [parentalControl, setParentalControl] = useState(false);
@@ -27,6 +30,7 @@ export default function SettingsPage() {
   const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
   const { updateUserTheme, signOut: firebaseSignOut, updatePrivacySettings } = useAuth();
   const [isClient, setIsClient] = useState(false);
+  const [isPaymentFormOpen, setIsPaymentFormOpen] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
@@ -66,6 +70,38 @@ export default function SettingsPage() {
       </header>
       
       <main className="container mx-auto p-4 space-y-8">
+        {/* Payment Methods Section */}
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><CreditCard className="text-primary"/>Payment Methods</CardTitle>
+                <CardDescription>
+                    Manage your saved payment methods for transactions.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <p className="text-sm text-muted-foreground">No payment methods saved.</p>
+            </CardContent>
+            <CardFooter>
+                 <Dialog open={isPaymentFormOpen} onOpenChange={setIsPaymentFormOpen}>
+                    <DialogTrigger asChild>
+                        <Button>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Add New Payment Method
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Add a new payment method</DialogTitle>
+                            <DialogDescription>
+                                Your card details are securely handled by Stripe.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <PaymentForm onPaymentSuccess={() => setIsPaymentFormOpen(false)} />
+                    </DialogContent>
+                </Dialog>
+            </CardFooter>
+        </Card>
+
         {/* Parental Controls Section */}
         <Card>
           <CardHeader>
