@@ -5,7 +5,6 @@ import HoldingsTable from "@/components/portfolio/holdings-table";
 import { Clock } from "lucide-react";
 import Chatbot from "@/components/chatbot/chatbot";
 import PortfolioValue from "@/components/portfolio/portfolio-value";
-import AddFunds from "@/components/portfolio/add-funds";
 
 export default function PortfolioPage() {
   return (
@@ -14,7 +13,6 @@ export default function PortfolioPage() {
       <main className="p-4 space-y-6 pb-40">
         <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Portfolio</h1>
-            <AddFunds />
         </div>
         <PortfolioValue />
         <div>

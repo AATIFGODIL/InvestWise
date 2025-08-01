@@ -20,16 +20,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import useThemeStore from "@/store/theme-store";
 import { useAuth } from "@/hooks/use-auth";
 import usePrivacyStore, { type LeaderboardVisibility } from "@/store/privacy-store";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import PaymentForm from "@/components/settings/payment-form";
-
 
 export default function SettingsPage() {
   const [parentalControl, setParentalControl] = useState(false);
   const { theme, setTheme } = useThemeStore();
   const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
   const { updateUserTheme, signOut: firebaseSignOut, updatePrivacySettings } = useAuth();
-  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -177,35 +173,6 @@ export default function SettingsPage() {
                 onCheckedChange={handleQuestsChange}
               />
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Payment Options Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><CreditCard className="text-primary"/>Payment Options</CardTitle>
-            <CardDescription>
-              Manage your saved payment methods for investments.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-             <div className="p-4 rounded-lg bg-muted/50 text-center">
-                <p className="text-sm text-muted-foreground">No payment methods saved.</p>
-             </div>
-            <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="w-full">Add New Payment Method</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add a new payment method</DialogTitle>
-                  <DialogDescription>
-                    Your card details will be securely saved with Stripe.
-                  </DialogDescription>
-                </DialogHeader>
-                <PaymentForm onPaymentSuccess={() => setIsPaymentDialogOpen(false)} />
-              </DialogContent>
-            </Dialog>
           </CardContent>
         </Card>
       </main>
