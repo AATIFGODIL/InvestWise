@@ -56,7 +56,6 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
     const userDoc = await getDoc(userDocRef);
 
     if (userDoc.exists()) {
-        // If doc exists, just return its data, maybe update fields if necessary
         const existingData = userDoc.data();
         const updates: any = {};
         if (additionalData.username && additionalData.username !== existingData.username) {
@@ -106,7 +105,12 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
 
 const fetchAndHydrateUserData = async (user: User) => {
     const userDocRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(userDocRef);
+    let userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+        await initializeUserDocument(user);
+        userDoc = await getDoc(userDocRef);
+    }
 
     if (userDoc.exists()) {
         const userData = userDoc.data();
@@ -166,12 +170,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
       if (firebaseUser) {
+        await fetchAndHydrateUserData(firebaseUser);
         setUser(firebaseUser);
-        const userDataExists = await fetchAndHydrateUserData(firebaseUser);
-        if (!userDataExists) {
-            await initializeUserDocument(firebaseUser);
-            await fetchAndHydrateUserData(firebaseUser);
-        }
       } else {
         setUser(null);
         resetAllStores();
@@ -180,8 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [resetAllStores]);
 
 
   const signUp = async (email:string, pass: string, username: string) => {
@@ -189,6 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const newUser = userCredential.user;
     await updateProfile(newUser, { displayName: username, photoURL: "" });
     await initializeUserDocument(newUser, { username });
+    await fetchAndHydrateUserData(newUser);
   }
 
   const signIn = (email:string, pass: string) => {
