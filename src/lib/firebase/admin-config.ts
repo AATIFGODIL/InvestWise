@@ -1,28 +1,18 @@
 
 import * as admin from 'firebase-admin';
 
-let app: admin.app.App;
-
+// This function initializes the Firebase Admin SDK.
+// It checks if the app is already initialized to prevent errors.
 export function initializeAdminApp() {
     if (admin.apps.length > 0) {
-        app = admin.app();
-        return;
+        return admin.app();
     }
     
-    if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-        throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set.');
-    }
-    try {
-        const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
-        app = admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-        });
-    } catch (e) {
-        console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT:', e);
-        throw new Error('Could not initialize Firebase Admin SDK. Please check your FIREBASE_SERVICE_ACCOUNT environment variable.');
-    }
+    // In a Firebase or Google Cloud environment, the SDK automatically
+    // discovers credentials, so no need to pass them explicitly.
+    return admin.initializeApp();
 }
 
-// These are now getters to ensure they are accessed after initialization.
+// Export firestore and auth instances for use in other server-side files.
 export const adminDb = admin.firestore();
 export const adminAuth = admin.auth();
