@@ -2,31 +2,15 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
-import admin from 'firebase-admin';
-
-// This function initializes the Firebase Admin SDK.
-// It checks if the app is already initialized to prevent errors.
-function initializeAdminApp() {
-    if (admin.apps.length > 0) {
-        return admin.app();
-    }
-
-    // In a Firebase or Google Cloud environment, the SDK automatically
-    // discovers credentials. No need to pass them explicitly if hosted on Firebase.
-    return admin.initializeApp();
-}
-
+import { initializeAdminApp, adminAuth, adminDb } from '@/lib/firebase/admin-config';
 
 // Initialize Stripe with the secret key from environment variables.
-// Ensure STRIPE_SECRET_KEY is set in your .env file.
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
 export async function POST(request: Request) {
   try {
-    // Initialize Firebase Admin SDK securely within the request handler.
-    const adminApp = initializeAdminApp();
-    const adminAuth = admin.auth(adminApp);
-    const adminDb = admin.firestore(adminApp);
+    // Ensure Firebase Admin is initialized
+    initializeAdminApp();
 
     const headersList = headers();
     const token = headersList.get('Authorization')?.split('Bearer ')[1];
