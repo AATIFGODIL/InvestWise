@@ -51,9 +51,24 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const initializeUserDocument = async (user: User) => {
+const initializeUserDocument = async (user: User, additionalData: { username?: string } = {}) => {
     const userDocRef = doc(db, "users", user.uid);
-    const displayName = user.displayName || "Investor";
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+        // If doc exists, just return its data, maybe update fields if necessary
+        const existingData = userDoc.data();
+        const updates: any = {};
+        if (additionalData.username && additionalData.username !== existingData.username) {
+            updates.username = additionalData.username;
+        }
+        if (Object.keys(updates).length > 0) {
+            await updateDoc(userDocRef, updates);
+        }
+        return { ...existingData, ...updates };
+    }
+
+    const displayName = additionalData.username || user.displayName || "Investor";
     const photoURL = user.photoURL || "";
     const welcomeNotification: Notification = {
         id: `welcome-${Date.now()}`,
@@ -78,7 +93,9 @@ const initializeUserDocument = async (user: User) => {
         goals: [],
         autoInvestments: [],
     };
+    
     await setDoc(userDocRef, newUserDoc);
+    
     if (auth.currentUser && (auth.currentUser.displayName !== displayName || auth.currentUser.photoURL !== photoURL)) {
         await updateProfile(auth.currentUser, { displayName, photoURL });
     }
@@ -86,71 +103,74 @@ const initializeUserDocument = async (user: User) => {
     return newUserDoc;
 };
 
-const fetchUserData = async (user: User) => {
-  const userDocRef = doc(db, "users", user.uid);
-  try {
-      const userDoc = await getDoc(userDocRef);
-      if (userDoc.exists()) {
-          return userDoc.data();
-      } else {
-          console.log("User document not found, initializing new one.");
-          return await initializeUserDocument(user);
-      }
-  } catch (error) {
-      console.error("Error fetching user data, initializing document as fallback:", error);
-      return await initializeUserDocument(user);
-  }
+
+const fetchAndHydrateUserData = async (user: User) => {
+    const userDocRef = doc(db, "users", user.uid);
+    const userDoc = await getDoc(userDocRef);
+
+    if (userDoc.exists()) {
+        const userData = userDoc.data();
+        const { setUsername, setProfilePic } = useUserStore.getState();
+        const { loadInitialData } = usePortfolioStore.getState();
+        const { setNotifications } = useNotificationStore.getState();
+        const { loadGoals } = useGoalStore.getState();
+        const { loadAutoInvestments } = useAutoInvestStore.getState();
+        const { setTheme } = useThemeStore.getState();
+        const { loadPrivacySettings } = usePrivacyStore.getState();
+        
+        const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
+        setUsername(userData.username || user.displayName || "Investor");
+        setProfilePic(userData.photoURL || "");
+        loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
+        setNotifications(userData.notifications || []);
+        loadGoals(userData.goals || []);
+        loadAutoInvestments(userData.autoInvestments || []);
+        const theme = userData.theme || 'light';
+        setTheme(theme);
+        loadPrivacySettings({
+            leaderboardVisibility: userData.leaderboardVisibility || 'public',
+            showQuests: userData.showQuests === undefined ? true : userData.showQuests,
+        });
+        return true;
+    }
+    return false;
 };
 
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   
-  const { setUsername, setProfilePic } = useUserStore();
-  const { loadInitialData, resetPortfolio } = usePortfolioStore();
-  const { setNotifications } = useNotificationStore();
-  const { loadGoals, resetGoals } = useGoalStore();
-  const { loadAutoInvestments, resetAutoInvest } = useAutoInvestStore();
-  const { setTheme } = useThemeStore();
-  const { loadPrivacySettings, resetPrivacySettings } = usePrivacyStore();
+  const { reset: resetUserStore } = useUserStore.getState();
+  const { resetPortfolio } = usePortfolioStore.getState();
+  const { setNotifications } = useNotificationStore.getState();
+  const { resetGoals } = useGoalStore.getState();
+  const { resetAutoInvest } = useAutoInvestStore.getState();
+  const { setTheme } = useThemeStore.getState();
+  const { resetPrivacySettings } = usePrivacyStore.getState();
   
   const [user, setUser] = useState<User | null>(null);
   const [hydrating, setHydrating] = useState(true);
   
   const resetAllStores = useCallback(() => {
-    setUsername("Investor");
-    setProfilePic("");
-    setNotifications([]);
+    resetUserStore();
     resetPortfolio();
+    setNotifications([]);
     resetGoals();
     resetAutoInvest();
     setTheme('light');
     localStorage.setItem('theme', 'light');
     resetPrivacySettings();
-  }, [setUsername, setProfilePic, setNotifications, resetPortfolio, resetGoals, resetAutoInvest, setTheme, resetPrivacySettings]);
+  }, [resetUserStore, resetPortfolio, setNotifications, resetGoals, resetAutoInvest, setTheme, resetPrivacySettings]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
       if (firebaseUser) {
         setUser(firebaseUser);
-        const userData = await fetchUserData(firebaseUser);
-        if (userData) {
-          const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
-
-          // Hydrate all stores with the fetched data
-          setUsername(userData.username || firebaseUser.displayName || "Investor");
-          setProfilePic(userData.photoURL || "");
-          loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
-          setNotifications(userData.notifications || []);
-          loadGoals(userData.goals || []);
-          loadAutoInvestments(userData.autoInvestments || []);
-          const theme = userData.theme || 'light';
-          setTheme(theme);
-          loadPrivacySettings({
-            leaderboardVisibility: userData.leaderboardVisibility || 'public',
-            showQuests: userData.showQuests === undefined ? true : userData.showQuests,
-          });
+        const userDataExists = await fetchAndHydrateUserData(firebaseUser);
+        if (!userDataExists) {
+            await initializeUserDocument(firebaseUser);
+            await fetchAndHydrateUserData(firebaseUser);
         }
       } else {
         setUser(null);
@@ -168,7 +188,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
     await updateProfile(newUser, { displayName: username, photoURL: "" });
-    await initializeUserDocument(newUser);
+    await initializeUserDocument(newUser, { username });
   }
 
   const signIn = (email:string, pass: string) => {
@@ -195,10 +215,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userDocRef = doc(db, "users", user.uid);
     const updatesForFirestore: { [key: string]: any } = {};
     const updatesForAuth: { displayName?: string, photoURL?: string } = {};
+    const { setUsername, setProfilePic } = useUserStore.getState();
 
     let photoURL = user.photoURL;
 
-    // Handle image upload first, as per user's provided flow
+    // Handle image upload first
     if (data.imageFile) {
         const storageRef = ref(storage, `profile_pictures/${user.uid}`);
         await uploadBytes(storageRef, data.imageFile);
@@ -212,17 +233,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updatesForAuth.displayName = data.username;
     }
     
-    // Update Firestore document if there are changes
     if (Object.keys(updatesForFirestore).length > 0) {
         await updateDoc(userDocRef, updatesForFirestore);
     }
     
-    // Update Firebase Auth profile if there are changes
     if (Object.keys(updatesForAuth).length > 0) {
         await updateProfile(user, updatesForAuth);
     }
 
-    // Update local state stores
     if (updatesForAuth.displayName) {
         setUsername(updatesForAuth.displayName);
     }
@@ -232,7 +250,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUserTheme = async (theme: "light" | "dark") => {
-    setTheme(theme); // Optimistically update UI
+    useThemeStore.getState().setTheme(theme);
     if (!user) return;
     const userDocRef = doc(db, "users", user.uid);
     await updateDoc(userDocRef, { theme });

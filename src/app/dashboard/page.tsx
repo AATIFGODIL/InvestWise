@@ -158,7 +158,7 @@ export default function DashboardPage() {
     </div>
   )
 
-  if (authLoading || userProfile === null) {
+  if (authLoading) {
     return <PageSkeleton />;
   }
   
