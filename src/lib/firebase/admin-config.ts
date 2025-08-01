@@ -6,10 +6,10 @@ const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT
   ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
   : undefined;
 
-const appName = 'firebase-admin-app';
+const appName = 'firebase-admin-app-' + new Date().getTime();
 
 export function initFirebaseAdminApp(): App {
-  const existingApp = getApps().find((app) => app.name === appName);
+  const existingApp = getApps().find((app) => app.name.startsWith('firebase-admin-app'));
   if (existingApp) {
     return existingApp;
   }
