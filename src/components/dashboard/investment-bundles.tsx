@@ -28,6 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { type Bundle } from "@/data/bundles";
 
@@ -113,10 +114,9 @@ export default function InvestmentBundles({ bundles, title, description, showDis
           <h4 className="font-semibold mb-2">Constituent Stocks</h4>
           <div className="space-y-2">
             {selectedBundle?.stocks.map((stock) => (
-              <DialogClose asChild>
+              <DialogClose asChild key={stock.symbol}>
                 <Link
                   href={`/trade?symbol=${stock.symbol}`}
-                  key={stock.symbol}
                   className="flex items-center justify-between p-2 rounded-md hover:bg-accent"
                   onClick={() => setSelectedBundle(null)}
                 >
@@ -134,4 +134,3 @@ export default function InvestmentBundles({ bundles, title, description, showDis
     </Dialog>
   );
 }
-
