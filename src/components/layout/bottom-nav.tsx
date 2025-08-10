@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import useLoadingStore from "@/store/loading-store";
 
 const navItems = [
   { href: "/dashboard", label: "Explore", icon: Home },
@@ -17,14 +18,28 @@ const navItems = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { showLoading } = useLoadingStore();
   
+  const handleNavClick = (href: string) => {
+    // Only show loading if navigating to a different page
+    if (pathname !== href) {
+      showLoading();
+    }
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-sm">
       <nav className="flex h-16 items-center justify-around px-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
-            <Link href={item.href} key={item.label} className="flex-1">
+            <Link 
+              href={item.href} 
+              key={item.label} 
+              className="flex-1"
+              onClick={() => handleNavClick(item.href)}
+              prefetch={true}
+            >
               <Button
                 variant="ghost"
                 className={cn(
