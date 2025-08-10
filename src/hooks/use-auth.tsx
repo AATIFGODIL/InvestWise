@@ -108,6 +108,7 @@ const fetchAndHydrateUserData = async (user: User) => {
     const userDocRef = doc(db, "users", user.uid);
     let userDoc = await getDoc(userDocRef);
 
+    // This handles a race condition where a user is created but their doc isn't ready.
     if (!userDoc.exists()) {
         await initializeUserDocument(user);
         userDoc = await getDoc(userDocRef);
@@ -131,7 +132,7 @@ const fetchAndHydrateUserData = async (user: User) => {
         loadGoals(userData.goals || []);
         loadAutoInvestments(userData.autoInvestments || []);
         const theme = userData.theme || 'light';
-        setTheme(theme);
+        setTheme(theme); // Apply theme immediately
         loadPrivacySettings({
             leaderboardVisibility: userData.leaderboardVisibility || 'public',
             showQuests: userData.showQuests === undefined ? true : userData.showQuests,
@@ -174,7 +175,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsTokenReady(false);
       if (firebaseUser) {
         setUser(firebaseUser);
-        // Do not block rendering. Fetch data in the background.
         fetchAndHydrateUserData(firebaseUser).then(() => {
             setIsTokenReady(true);
             setHydrating(false);
@@ -195,8 +195,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
     await updateProfile(newUser, { displayName: username, photoURL: "" });
-    // Don't await this so it doesn't block
-    initializeUserDocument(newUser, { username });
+    await initializeUserDocument(newUser, { username });
   }
 
   const signIn = async (email:string, pass: string) => {
