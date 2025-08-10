@@ -2,28 +2,10 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
-import admin from 'firebase-admin';
-
-// This helper function ensures Firebase Admin is initialized only once.
-function initializeFirebaseAdmin() {
-  // Check if the app is already initialized to prevent errors
-  if (admin.apps.length > 0) {
-    return admin.app();
-  }
-
-  // When deployed to a Google Cloud environment, the SDK will automatically
-  // discover the service account credentials. For local development,
-  // this relies on the GOOGLE_APPLICATION_CREDENTIALS environment variable.
-  return admin.initializeApp();
-}
+import { auth, db } from '@/lib/firebase/admin';
 
 export async function POST(request: Request) {
   try {
-    const app = initializeFirebaseAdmin();
-    const auth = admin.auth(app);
-    const db = admin.firestore(app);
-    
-    // Initialize Stripe with the secret key from environment variables.
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
     const headersList = headers();
@@ -76,7 +58,6 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error("Error creating setup intent:", error.message, error.stack);
-    // Return a generic error message to the client.
     return NextResponse.json({ error: 'An internal server error occurred.' }, { status: 500 });
   }
 }
