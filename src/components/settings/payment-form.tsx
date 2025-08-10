@@ -52,8 +52,10 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
 
         if (user && isTokenReady) {
           createSetupIntent();
-        } else if (!user && !isTokenReady) {
+        } else if (!isTokenReady && !user) {
+          // If the auth state is determined and there's no user, stop loading.
           setIsLoading(false);
+          setError("You must be logged in to add a payment method.")
         }
     }, [user, isTokenReady]);
 
