@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware';
 
 interface VideoProgressState {
   watchedVideos: Set<string>;
-  addWatchedVideo: (videoTitle: string) => void;
+  toggleWatchedVideo: (videoTitle: string) => void;
   resetVideoProgress: () => void;
 }
 
@@ -13,10 +13,16 @@ const useVideoProgressStore = create<VideoProgressState>()(
   persist(
     (set) => ({
       watchedVideos: new Set(),
-      addWatchedVideo: (videoTitle) =>
-        set((state) => ({
-          watchedVideos: new Set(state.watchedVideos).add(videoTitle),
-        })),
+      toggleWatchedVideo: (videoTitle) =>
+        set((state) => {
+          const newSet = new Set(state.watchedVideos);
+          if (newSet.has(videoTitle)) {
+            newSet.delete(videoTitle);
+          } else {
+            newSet.add(videoTitle);
+          }
+          return { watchedVideos: newSet };
+        }),
       resetVideoProgress: () => set({ watchedVideos: new Set() }),
     }),
     {

@@ -4,7 +4,7 @@
 import Image from "next/image";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { PlayCircle, CheckCircle } from "lucide-react";
+import { PlayCircle, CheckCircle, RotateCcw } from "lucide-react";
 import useVideoProgressStore from "@/store/video-progress-store";
 
 interface EducationalVideoProps {
@@ -15,13 +15,11 @@ interface EducationalVideoProps {
 }
 
 export default function EducationalVideo({ title, description, image, hint }: EducationalVideoProps) {
-    const { watchedVideos, addWatchedVideo } = useVideoProgressStore();
+    const { watchedVideos, toggleWatchedVideo } = useVideoProgressStore();
     const isWatched = watchedVideos.has(title);
 
-    const handleWatch = () => {
-        // Here you would typically integrate with a video player's onEnd event.
-        // For now, we'll use a button to simulate watching the video.
-        addWatchedVideo(title);
+    const handleToggleWatch = () => {
+        toggleWatchedVideo(title);
     };
 
     return (
@@ -41,11 +39,11 @@ export default function EducationalVideo({ title, description, image, hint }: Ed
                 <p className="text-sm text-muted-foreground mt-1">{description}</p>
             </CardContent>
             <CardFooter className="p-4 pt-0">
-                <Button variant="outline" className="w-full" onClick={handleWatch} disabled={isWatched}>
+                <Button variant="outline" className="w-full" onClick={handleToggleWatch}>
                     {isWatched ? (
                         <>
-                            <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
-                            Watched
+                            <RotateCcw className="mr-2 h-4 w-4 text-muted-foreground" />
+                            Mark as Unwatched
                         </>
                     ) : (
                         <>
