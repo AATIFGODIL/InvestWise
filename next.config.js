@@ -1,4 +1,6 @@
 
+require('dotenv').config({ path: './.env' });
+
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
@@ -24,6 +26,10 @@ const nextConfig = {
        {
         protocol: 'https',
         hostname: 'firebasestorage.googleapis.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
       }
     ],
   },
