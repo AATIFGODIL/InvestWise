@@ -1,18 +1,12 @@
 
 import admin from 'firebase-admin';
 
+// When deployed to a Google Cloud environment (like Firebase Hosting with server-side functions, Cloud Run, App Engine),
+// the SDK automatically discovers the service account credentials and initializes.
+// No need to pass any credentials manually.
 if (!admin.apps.length) {
   try {
-    const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT;
-    if (!serviceAccountString) {
-      throw new Error('FIREBASE_SERVICE_ACCOUNT environment variable is not set.');
-    }
-    
-    const serviceAccount = JSON.parse(serviceAccountString);
-
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
+    admin.initializeApp();
   } catch (error) {
     console.error('Firebase Admin Initialization Error:', error);
   }
