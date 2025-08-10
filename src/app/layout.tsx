@@ -38,8 +38,10 @@ export default function RootLayout({
   
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${poppins.variable} font-body antialiased`}>
+      <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitializationScript }} />
+      </head>
+      <body className={`${poppins.variable} font-body antialiased`}>
         <AuthProvider>
           <ThemeProvider>
             {children}
