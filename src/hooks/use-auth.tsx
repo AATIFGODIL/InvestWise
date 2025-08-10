@@ -38,7 +38,7 @@ import { storage } from "@/lib/firebase/config";
 interface AuthContextType {
   user: User | null;
   hydrating: boolean;
-  isTokenReady: boolean; // New state to indicate token readiness
+  isTokenReady: boolean;
   signUp: (email:string, pass: string, username: string) => Promise<any>;
   signIn: (email:string, pass: string) => Promise<any>;
   signInWithGoogle: () => Promise<void>;
@@ -169,14 +169,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [resetUserStore, resetPortfolio, setNotifications, resetGoals, resetAutoInvest, setTheme, resetPrivacySettings]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setHydrating(true);
       setIsTokenReady(false);
       if (firebaseUser) {
         setUser(firebaseUser);
-        await fetchAndHydrateUserData(firebaseUser);
-        setIsTokenReady(true);
-        setHydrating(false);
+        // Do not block rendering. Fetch data in the background.
+        fetchAndHydrateUserData(firebaseUser).then(() => {
+            setIsTokenReady(true);
+            setHydrating(false);
+        });
       } else {
         setUser(null);
         resetAllStores();
@@ -193,8 +195,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
     await updateProfile(newUser, { displayName: username, photoURL: "" });
-    await initializeUserDocument(newUser, { username });
-    await fetchAndHydrateUserData(newUser);
+    // Don't await this so it doesn't block
+    initializeUserDocument(newUser, { username });
   }
 
   const signIn = async (email:string, pass: string) => {

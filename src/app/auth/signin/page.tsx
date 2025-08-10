@@ -58,14 +58,15 @@ export default function SignInPage() {
     setLoading(true);
     try {
       await signIn(email, password);
+      // This toast provides immediate feedback
       toast({
         title: "Signed In Successfully",
         description: "Welcome back!",
       });
+      // Redirect immediately without waiting for data hydration
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -87,8 +88,7 @@ export default function SignInPage() {
       } else {
         setError(err.message);
       }
-    } finally {
-      setLoading(false);
+       setLoading(false);
     }
   };
 
