@@ -63,16 +63,18 @@ export default function InvestmentBundles({ bundles, title, description, showDis
                 <CarouselItem key={index} className="md:basis-1/2">
                   <div className="p-1 h-full">
                     <Card className="h-full flex flex-col">
-                      <CardHeader className="p-0">
-                        <Image
-                          src={bundle.image}
-                          alt={bundle.title}
-                          width={600}
-                          height={400}
-                          className="rounded-t-lg aspect-[16/9] object-cover"
-                          data-ai-hint={bundle.hint}
-                        />
-                      </CardHeader>
+                      {bundle.image && (
+                        <CardHeader className="p-0">
+                            <Image
+                            src={bundle.image}
+                            alt={bundle.title}
+                            width={600}
+                            height={400}
+                            className="rounded-t-lg aspect-[16/9] object-cover"
+                            data-ai-hint={bundle.hint}
+                            />
+                        </CardHeader>
+                      )}
                       <CardContent className="flex-1 p-4">
                         <h3 className="text-md font-semibold">{bundle.title}</h3>
                         <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{bundle.description}</p>

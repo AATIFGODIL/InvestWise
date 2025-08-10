@@ -2,7 +2,7 @@
 export interface Bundle {
   title: string;
   description: string;
-  image: string;
+  image?: string;
   hint: string;
   stocks: { name: string; symbol: string }[];
 }
@@ -69,7 +69,6 @@ export const specializedBundles: Bundle[] = [
   {
     title: "Dividend Champions",
     description: "A collection of companies with a long history of consistently paying and increasing their dividends.",
-    image: "https://images.unsplash.com/photo-1624953901718-e21e8735aa19?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     hint: "stock chart",
      stocks: [
         { name: "Realty Income", symbol: "O" },
