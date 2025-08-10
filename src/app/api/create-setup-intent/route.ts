@@ -5,25 +5,16 @@ import Stripe from 'stripe';
 import { auth, db } from '@/lib/firebase/admin';
 
 export async function POST(request: Request) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+  const headersList = headers();
+  const token = headersList.get('Authorization')?.split('Bearer ')[1];
+
+  if (!token) {
+    return NextResponse.json({ error: 'Authentication token not provided.' }, { status: 401 });
+  }
+
   try {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-
-    const headersList = headers();
-    const token = headersList.get('Authorization')?.split('Bearer ')[1];
-
-    if (!token) {
-      console.error("Authentication token not provided.");
-      return NextResponse.json({ error: 'Authentication token not provided.' }, { status: 401 });
-    }
-
-    let decodedToken;
-    try {
-        decodedToken = await auth.verifyIdToken(token);
-    } catch (error) {
-        console.error("Error verifying Firebase ID token:", error);
-        return NextResponse.json({ error: 'Invalid authentication token.' }, { status: 403 });
-    }
-
+    const decodedToken = await auth.verifyIdToken(token);
     const uid = decodedToken.uid;
     const userRef = db.collection('users').doc(uid);
     const userDoc = await userRef.get();
@@ -57,7 +48,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ clientSecret: setupIntent.client_secret });
 
   } catch (error: any) {
-    console.error("Error creating setup intent:", error.message, error.stack);
+    console.error("Error creating setup intent:", error.message);
+    // Check for specific auth error codes
+    if (error.code === 'auth/id-token-expired' || error.code === 'auth/argument-error') {
+        return NextResponse.json({ error: 'Invalid authentication token.' }, { status: 401 });
+    }
     return NextResponse.json({ error: 'An internal server error occurred.' }, { status: 500 });
   }
 }

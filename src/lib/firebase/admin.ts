@@ -7,8 +7,10 @@ import admin from 'firebase-admin';
 if (!admin.apps.length) {
   try {
     admin.initializeApp();
-  } catch (error) {
-    console.error('Firebase Admin Initialization Error:', error);
+  } catch (error: any) {
+    // In a local development environment, you may need to set up GOOGLE_APPLICATION_CREDENTIALS
+    // https://firebase.google.com/docs/admin/setup#initialize-sdk-with-application-default-credentials
+    console.error('Firebase Admin Initialization Error. If running locally, ensure GOOGLE_APPLICATION_CREDENTIALS is set.', error.stack);
   }
 }
 
