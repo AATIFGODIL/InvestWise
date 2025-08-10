@@ -4,16 +4,21 @@ import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import admin from 'firebase-admin';
 
-// This helper function ensures Firebase Admin is initialized only once.
+// This helper function ensures Firebase Admin is initialized only once per request.
 function initializeFirebaseAdmin() {
+  // Check if the app is already initialized
   if (admin.apps.length > 0) {
     return admin.app();
   }
 
-  // When deployed to a Google Cloud environment (like Firebase),
+  // When deployed to a Google Cloud environment (like Firebase App Hosting),
   // the SDK will automatically discover the service account credentials.
-  // For local development, you must have the GOOGLE_APPLICATION_CREDENTIALS
-  // environment variable set in your .env file.
+  // For local development, you MUST have the GOOGLE_APPLICATION_CREDENTIALS
+  // environment variable set in your .env.local file, pointing to your service account JSON file.
+  // Alternatively, you can use the Firebase Local Emulators.
+  
+  // A simpler method for some environments is to use application default credentials
+  // without needing the full service account JSON in an env var.
   return admin.initializeApp();
 }
 
@@ -24,9 +29,8 @@ export async function POST(request: Request) {
     const db = admin.firestore(app);
     
     // Initialize Stripe with the secret key from environment variables.
-    // Ensure process.env.STRIPE_SECRET_KEY is set in your .env file.
+    // Ensure process.env.STRIPE_SECRET_KEY is set in your .env or hosting environment.
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-
 
     const headersList = headers();
     const token = headersList.get('Authorization')?.split('Bearer ')[1];
@@ -77,7 +81,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ clientSecret: setupIntent.client_secret });
 
   } catch (error: any) {
-    console.error("Error creating setup intent:", error.message);
+    console.error("Error creating setup intent:", error.message, error.stack);
     // Return a generic error message to the client.
     return NextResponse.json({ error: 'An internal server error occurred.' }, { status: 500 });
   }

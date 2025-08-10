@@ -18,11 +18,13 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
     const { user, isTokenReady } = useAuth();
     const [clientSecret, setClientSecret] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const createSetupIntent = async () => {
             if (user && isTokenReady) {
                 setIsLoading(true);
+                setError(null);
                 try {
                     const token = await user.getIdToken(true);
                     const response = await fetch('/api/create-setup-intent', {
@@ -37,25 +39,25 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
                         setClientSecret(data.clientSecret);
                     } else {
                         console.error('Failed to create setup intent:', data.error);
+                        setError(data.error || 'An unexpected error occurred.');
                     }
                 } catch (error) {
                     console.error('Error creating setup intent:', error);
+                    setError('Could not connect to the server to initialize payments.');
                 } finally {
                     setIsLoading(false);
                 }
             }
         };
 
-        // Only run the effect if the user is authenticated and the token is ready.
         if (user && isTokenReady) {
           createSetupIntent();
-        } else if (!user) {
-          // If there's no user, stop loading.
+        } else if (!user && !isTokenReady) {
           setIsLoading(false);
         }
     }, [user, isTokenReady]);
 
-    if (isLoading || !clientSecret) {
+    if (isLoading) {
         return (
             <div className="space-y-4 pt-4">
                 <p className="text-sm text-center text-muted-foreground">Initializing secure payment form...</p>
@@ -65,8 +67,8 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
         );
     }
     
-    if (!clientSecret) {
-        return <p className="text-destructive text-sm text-center">Could not initialize payment form. Please try again later.</p>
+    if (error || !clientSecret) {
+        return <p className="text-destructive text-sm text-center p-4 bg-destructive/10 rounded-md">{error || 'Could not initialize payment form. Please try again later.'}</p>
     }
 
     return (
