@@ -125,14 +125,17 @@ const fetchAndHydrateUserData = async (user: User) => {
         const { loadPrivacySettings } = usePrivacyStore.getState();
         
         const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
+        const theme = userData.theme || 'light';
+        
+        // Apply theme first to prevent flash of default theme
+        setTheme(theme);
+        
         setUsername(userData.username || user.displayName || "Investor");
         setProfilePic(userData.photoURL || "");
         loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
         setNotifications(userData.notifications || []);
         loadGoals(userData.goals || []);
         loadAutoInvestments(userData.autoInvestments || []);
-        const theme = userData.theme || 'light';
-        setTheme(theme); // Apply theme immediately
         loadPrivacySettings({
             leaderboardVisibility: userData.leaderboardVisibility || 'public',
             showQuests: userData.showQuests === undefined ? true : userData.showQuests,
@@ -164,24 +167,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setNotifications([]);
     resetGoals();
     resetAutoInvest();
-    setTheme('light');
-    localStorage.setItem('theme', 'light');
+    setTheme('light'); // Reset theme to default
     resetPrivacySettings();
   }, [resetUserStore, resetPortfolio, setNotifications, resetGoals, resetAutoInvest, setTheme, resetPrivacySettings]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
       setIsTokenReady(false);
+      
       if (firebaseUser) {
         setUser(firebaseUser);
-        fetchAndHydrateUserData(firebaseUser).then(() => {
-            setIsTokenReady(true);
-            setHydrating(false);
-        });
+        await fetchAndHydrateUserData(firebaseUser);
+        // All data is hydrated, now we can finish loading and confirm token readiness
+        setIsTokenReady(true);
+        setHydrating(false);
       } else {
         setUser(null);
         resetAllStores();
+        // No user, so no token is ready, and we're done "hydrating" to the logged-out state.
         setIsTokenReady(false);
         setHydrating(false);
       }
