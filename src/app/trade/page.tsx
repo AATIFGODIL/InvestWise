@@ -1,5 +1,7 @@
+
 "use client"
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
 import EducationalVideo from "@/components/shared/educational-video";
@@ -25,9 +27,17 @@ const videos = [
     }
 ]
 
-export default function TradePage() {
-  const [selectedSymbol, setSelectedSymbol] = useState<string | null>("AAPL");
+function TradePageContent() {
+  const searchParams = useSearchParams();
+  const [selectedSymbol, setSelectedSymbol] = useState<string>("AAPL");
   const [selectedPrice, setSelectedPrice] = useState<number | null>(null); 
+
+  useEffect(() => {
+    const symbolFromUrl = searchParams.get('symbol');
+    if (symbolFromUrl) {
+      setSelectedSymbol(symbolFromUrl.toUpperCase());
+    }
+  }, [searchParams]);
 
   return (
     <div className="w-full bg-background font-body">
@@ -66,4 +76,12 @@ export default function TradePage() {
       <BottomNav />
     </div>
   );
+}
+
+export default function TradePage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <TradePageContent />
+        </Suspense>
+    )
 }
