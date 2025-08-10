@@ -27,20 +27,9 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const themeInitializationScript = `
-    (function() {
-      const theme = localStorage.getItem('theme') || 'light';
-      const root = document.documentElement;
-      root.classList.remove('light', 'dark');
-      root.classList.add(theme);
-    })();
-  `;
-  
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitializationScript }} />
-      </head>
+      <head />
       <body className={`${poppins.variable} font-body antialiased`}>
         <AuthProvider>
           <ThemeProvider>
