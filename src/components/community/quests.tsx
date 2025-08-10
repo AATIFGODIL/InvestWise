@@ -1,4 +1,6 @@
 
+"use client";
+
 import {
   Accordion,
   AccordionContent,
@@ -14,26 +16,17 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { BookOpen, Trophy, ShieldCheck } from "lucide-react";
-
-const questData = {
-  beginner: [
-    { title: "Complete your profile", progress: 100 },
-    { title: "Take the risk assessment quiz", progress: 100 },
-    { title: "Make your first investment", progress: 25 },
-  ],
-  intermediate: [
-    { title: "Diversify your portfolio with 3+ assets", progress: 0 },
-    { title: "Set up a recurring investment", progress: 0 },
-    { title: "Watch 5 educational videos", progress: 40 },
-  ],
-  pro: [
-    { title: "Reach a portfolio value of $10,000", progress: 15 },
-    { title: "Hold an investment for over 1 year", progress: 0 },
-    { title: "Successfully complete 50 trades", progress: 10 },
-  ],
-};
+import useQuestStore from "@/store/quest-store";
+import { useEffect } from "react";
 
 export default function Quests() {
+  const { questData, updateQuestProgress } = useQuestStore();
+
+  useEffect(() => {
+    // This will trigger a re-calculation of quest progress whenever a user visits the community page.
+    updateQuestProgress();
+  }, [updateQuestProgress]);
+
   return (
     <Card>
       <CardHeader>
