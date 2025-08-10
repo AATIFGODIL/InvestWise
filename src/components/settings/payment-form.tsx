@@ -33,6 +33,7 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${token}`
                         },
+                        credentials: 'include', // Ensure cookies/session are sent
                     });
                     const data = await response.json();
                     if (response.ok) {

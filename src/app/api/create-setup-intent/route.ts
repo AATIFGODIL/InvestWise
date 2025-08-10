@@ -4,18 +4,23 @@ import { headers } from 'next/headers';
 import Stripe from 'stripe';
 import { auth, db } from '@/lib/firebase/admin';
 
-export async function POST(request: Request) {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-  const headersList = headers();
-  const token = headersList.get('Authorization')?.split('Bearer ')[1];
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
-  if (!token) {
-    return NextResponse.json({ error: 'Authentication token not provided.' }, { status: 401 });
+export async function POST(request: Request) {
+  const headersList = headers();
+  const authHeader = headersList.get('Authorization');
+
+  if (!authHeader?.startsWith('Bearer ')) {
+    return NextResponse.json({ error: 'Invalid authentication token.' }, { status: 401 });
   }
 
+  const token = authHeader.split('Bearer ')[1];
+
   try {
+    // Verify the Firebase ID token.
     const decodedToken = await auth.verifyIdToken(token);
     const uid = decodedToken.uid;
+
     const userRef = db.collection('users').doc(uid);
     const userDoc = await userRef.get();
 
@@ -49,7 +54,7 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error("Error creating setup intent:", error.message);
-    // Check for specific auth error codes
+    // Check for specific auth error codes to give a more specific error.
     if (error.code === 'auth/id-token-expired' || error.code === 'auth/argument-error') {
         return NextResponse.json({ error: 'Invalid authentication token.' }, { status: 401 });
     }
