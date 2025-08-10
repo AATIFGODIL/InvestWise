@@ -42,7 +42,7 @@ export default function InvestmentBundles({ bundles, title, description, showDis
   const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null);
 
   return (
-    <>
+    <Dialog>
       <Card className="flex flex-col h-full">
         <CardHeader>
           <CardTitle>{title}</CardTitle>
@@ -102,18 +102,18 @@ export default function InvestmentBundles({ bundles, title, description, showDis
         )}
       </Card>
       
-      <Dialog open={!!selectedBundle} onOpenChange={(isOpen) => !isOpen && setSelectedBundle(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{selectedBundle?.title}</DialogTitle>
-            <DialogDescription>
-              {selectedBundle?.description}
-            </DialogDescription>
-          </DialogHeader>
-          <div>
-            <h4 className="font-semibold mb-2">Constituent Stocks</h4>
-            <div className="space-y-2">
-              {selectedBundle?.stocks.map((stock) => (
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{selectedBundle?.title}</DialogTitle>
+          <DialogDescription>
+            {selectedBundle?.description}
+          </DialogDescription>
+        </DialogHeader>
+        <div>
+          <h4 className="font-semibold mb-2">Constituent Stocks</h4>
+          <div className="space-y-2">
+            {selectedBundle?.stocks.map((stock) => (
+              <DialogClose asChild>
                 <Link
                   href={`/trade?symbol=${stock.symbol}`}
                   key={stock.symbol}
@@ -126,11 +126,12 @@ export default function InvestmentBundles({ bundles, title, description, showDis
                   </div>
                   <ExternalLink className="h-4 w-4 text-muted-foreground" />
                 </Link>
-              ))}
-            </div>
+              </DialogClose>
+            ))}
           </div>
-        </DialogContent>
-      </Dialog>
-    </>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
+
