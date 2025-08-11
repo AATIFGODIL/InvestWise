@@ -13,7 +13,7 @@ export interface AutoInvestment {
 interface AutoInvestState {
   autoInvestments: AutoInvestment[];
   loadAutoInvestments: (investments: AutoInvestment[]) => void;
-  addAutoInvestment: (investment: AutoInvestment) => void;
+  addAutoInvestment: (investment: Omit<AutoInvestment, 'nextDate'>) => void;
   updateAutoInvestment: (name: string, updatedInvestment: AutoInvestment) => void;
   removeAutoInvestment: (name: string) => void;
   resetAutoInvest: () => void;
@@ -32,10 +32,14 @@ const updateAutoInvestInFirestore = (investments: AutoInvestment[]) => {
 const useAutoInvestStore = create<AutoInvestState>((set, get) => ({
     autoInvestments: [],
 
-    loadAutoInvestments: (investments) => set({ autoInvestments: investments }),
+    loadAutoInvestments: (investments) => set({ autoInvestments: investments || [] }),
     
     addAutoInvestment: (investment) => {
-        const updatedInvestments = [...get().autoInvestments, investment];
+        const newInvestmentWithDate: AutoInvestment = {
+            ...investment,
+            nextDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        };
+        const updatedInvestments = [...get().autoInvestments, newInvestmentWithDate];
         set({ autoInvestments: updatedInvestments });
         updateAutoInvestInFirestore(updatedInvestments);
     },

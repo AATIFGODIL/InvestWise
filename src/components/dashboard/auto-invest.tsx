@@ -91,7 +91,6 @@ export default function AutoInvest() {
             name: newName,
             amount: Number(newAmount),
             frequency: newFrequency,
-            nextDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
         });
          toast({
             title: "Success!",
