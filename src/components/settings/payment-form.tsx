@@ -15,7 +15,7 @@ interface PaymentFormProps {
 }
 
 export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
-    const { user, isTokenReady } = useAuth(); // Use the new isTokenReady flag
+    const { user, isTokenReady } = useAuth();
     const [clientSecret, setClientSecret] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -36,8 +36,10 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
             setIsLoading(true);
             setError(null);
             try {
-                // By waiting for isTokenReady, we ensure the token is valid.
-                const token = await user.getIdToken(); 
+                // Force a token refresh to ensure it's not stale.
+                const token = await user.getIdToken(true); 
+                console.log("Client sending token:", token); // For debugging purposes
+
                 const response = await fetch('/api/create-setup-intent', {
                     method: 'POST',
                     headers: {
@@ -87,5 +89,3 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
         </Elements>
     );
 }
-
-    

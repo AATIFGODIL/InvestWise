@@ -82,8 +82,10 @@ export async function POST(request: Request) {
   const headersList = headers();
   const authHeader = headersList.get('Authorization');
 
+  console.log("Server received Auth header:", authHeader); // Debugging: Log the received header
+
   if (!authHeader?.startsWith('Bearer ')) {
-    return NextResponse.json({ error: 'Invalid authentication token.' }, { status: 401 });
+    return NextResponse.json({ error: 'Invalid or missing Authorization header.' }, { status: 401 });
   }
 
   const token = authHeader.split('Bearer ')[1];
@@ -105,10 +107,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ clientSecret: setupIntent.client_secret });
 
   } catch (error: any) {
-    console.error("Error creating setup intent:", error.message);
+    console.error("Firebase token verification failed:", error.message);
+    // Provide a clearer error message for token verification issues
     if (error.code === 'auth/id-token-expired' || error.code === 'auth/argument-error') {
-        return NextResponse.json({ error: 'Invalid authentication token.' }, { status: 401 });
+        return NextResponse.json({ error: `Invalid authentication token: ${error.message}` }, { status: 401 });
     }
-    return NextResponse.json({ error: 'An internal server error occurred.' }, { status: 500 });
+    return NextResponse.json({ error: 'An internal server error occurred during setup intent creation.' }, { status: 500 });
   }
 }
