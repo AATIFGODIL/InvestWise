@@ -15,15 +15,17 @@ interface PaymentFormProps {
 }
 
 export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
-    const { user, hydrating } = useAuth();
+    const { user, isTokenReady } = useAuth(); // Use the new isTokenReady flag
     const [clientSecret, setClientSecret] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (hydrating) {
-            return; // Wait until auth state is determined
+        // Wait until the auth state is fully resolved and token is ready
+        if (!isTokenReady) {
+            return; 
         }
+
         if (!user) {
             setError("You must be logged in to add a payment method.");
             setIsLoading(false);
@@ -34,7 +36,8 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
             setIsLoading(true);
             setError(null);
             try {
-                const token = await user.getIdToken(true);
+                // By waiting for isTokenReady, we ensure the token is valid.
+                const token = await user.getIdToken(); 
                 const response = await fetch('/api/create-setup-intent', {
                     method: 'POST',
                     headers: {
@@ -58,7 +61,7 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
         };
 
         createSetupIntent();
-    }, [user, hydrating]);
+    }, [user, isTokenReady]);
 
     if (isLoading) {
         return (
@@ -84,3 +87,5 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
         </Elements>
     );
 }
+
+    

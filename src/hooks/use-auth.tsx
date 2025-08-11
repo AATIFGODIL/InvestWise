@@ -39,6 +39,7 @@ import useLoadingStore from "@/store/loading-store";
 interface AuthContextType {
   user: User | null;
   hydrating: boolean;
+  isTokenReady: boolean; // New state to signal when auth is fully ready
   signUp: (email:string, pass: string, username: string) => Promise<any>;
   signIn: (email:string, pass: string) => Promise<any>;
   signInWithGoogle: () => Promise<void>;
@@ -110,6 +111,7 @@ const fetchAndHydrateUserData = async (user: User) => {
 
     // This handles a race condition where a user is created but their doc isn't ready.
     if (!userDoc.exists()) {
+        await new Promise(resolve => setTimeout(resolve, 1000)); // wait 1s and retry
         userDoc = await getDoc(userDocRef);
     }
     
@@ -163,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   const [user, setUser] = useState<User | null>(null);
   const [hydrating, setHydrating] = useState(true);
+  const [isTokenReady, setIsTokenReady] = useState(false);
   
   const resetAllStores = useCallback(() => {
     resetUserStore();
@@ -177,12 +180,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
+      setIsTokenReady(false); // Reset token readiness on auth change
       if (firebaseUser) {
         setUser(firebaseUser);
-        await fetchAndHydrateUserData(firebaseUser);
+        const hydrated = await fetchAndHydrateUserData(firebaseUser);
+        setIsTokenReady(hydrated); // Token is ready only after user data is loaded
       } else {
         setUser(null);
         resetAllStores();
+        setIsTokenReady(false); // No user, so no token
       }
       setHydrating(false);
       hideLoading();
@@ -285,6 +291,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = {
     user,
     hydrating,
+    isTokenReady,
     signUp,
     signIn,
     signInWithGoogle,
@@ -306,3 +313,5 @@ export function useAuth() {
   }
   return context;
 }
+
+    
