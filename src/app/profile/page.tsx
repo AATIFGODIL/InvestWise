@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type ChangeEvent, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,8 +14,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronLeft, KeyRound, User, Save, Mail, Upload, Repeat, BarChart, Briefcase, ChevronRight, Loader2 } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ChevronLeft, KeyRound, User, Save, Mail, Repeat, BarChart, Briefcase, ChevronRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import useUserStore from "@/store/user-store";
 import { useAuth } from "@/hooks/use-auth";
@@ -23,36 +23,23 @@ import { useAuth } from "@/hooks/use-auth";
 export default function ProfilePage() {
   const { toast } = useToast();
   const { user, hydrating: authLoading, updateUserProfile, sendPasswordReset } = useAuth();
-  const { username: globalUsername, profilePic: globalProfilePic } = useUserStore();
+  const { username: globalUsername } = useUserStore();
   
   const [localUsername, setLocalUsername] = useState(globalUsername);
-  const [previewPhoto, setPreviewPhoto] = useState<string | undefined>(globalProfilePic);
-  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
-
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setLocalUsername(globalUsername);
   }, [globalUsername]);
   
-  useEffect(() => {
-    // This ensures that if the global profile pic changes (e.g., after a save),
-    // and there isn't a new file selected for preview, the avatar updates.
-    if (!selectedImageFile) {
-        setPreviewPhoto(globalProfilePic);
-    }
-  }, [globalProfilePic, selectedImageFile]);
-
-
   const handleSaveChanges = async () => {
     if (!user) {
         toast({ variant: "destructive", title: "Error", description: "You must be logged in to save changes." });
         return;
     }
     
-    // Check if there are any actual changes to save
-    if (localUsername === globalUsername && !selectedImageFile) {
-        toast({ title: "No Changes", description: "You haven't made any changes to your profile." });
+    if (localUsername === globalUsername) {
+        toast({ title: "No Changes", description: "You haven't made any changes to your username." });
         return;
     }
 
@@ -60,15 +47,12 @@ export default function ProfilePage() {
     try {
         await updateUserProfile({
             username: localUsername,
-            imageFile: selectedImageFile, 
         });
         
         toast({
             title: "Success!",
             description: "Your profile has been updated.",
         });
-        // Clear pending file change after successful save
-        setSelectedImageFile(null); 
     } catch (error: any) {
         console.error("Error updating profile:", error);
         toast({ variant: "destructive", title: "Error", description: error.message || "Failed to update profile." });
@@ -101,17 +85,6 @@ export default function ProfilePage() {
     }
   };
 
-  const handleProfilePicChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      // Store the file object to be uploaded
-      setSelectedImageFile(file);
-      // Create a temporary URL for the selected file for instant preview
-      setPreviewPhoto(URL.createObjectURL(file));
-    }
-  };
-
-
   return (
     <div className="bg-muted/40 min-h-screen">
       <header className="bg-background border-b sticky top-0 z-10">
@@ -143,21 +116,13 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="flex items-center gap-4">
-                    <Label htmlFor="profile-pic-upload" className="cursor-pointer group relative">
-                        <Avatar className="h-20 w-20 border-2 border-primary">
-                            <AvatarImage src={previewPhoto} alt="@user" />
-                            <AvatarFallback>{localUsername?.charAt(0).toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Upload className="h-8 w-8 text-white" />
-                        </div>
-                    </Label>
-                    <Input id="profile-pic-upload" type="file" className="hidden" accept="image/*" onChange={handleProfilePicChange} />
-                    <Button asChild variant="outline">
-                        <Label htmlFor="profile-pic-upload" className="cursor-pointer">
-                            <span>Change Photo</span>
-                        </Label>
-                    </Button>
+                    <Avatar className="h-20 w-20 border-2 border-primary">
+                        <AvatarFallback>{localUsername?.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="font-semibold text-lg">{localUsername}</p>
+                        <p className="text-muted-foreground">{user?.email}</p>
+                    </div>
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="username">Username</Label>

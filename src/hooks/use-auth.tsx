@@ -24,7 +24,6 @@ import {
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/config";
 import { doc, setDoc, getDoc, updateDoc, type Timestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/store/user-store";
 import usePortfolioStore from "@/store/portfolio-store";
@@ -33,7 +32,6 @@ import useGoalStore from "@/store/goal-store";
 import useAutoInvestStore from "@/store/auto-invest-store";
 import useThemeStore from "@/store/theme-store";
 import usePrivacyStore, { type PrivacyState } from "@/store/privacy-store";
-import { storage } from "@/lib/firebase/config";
 import useLoadingStore from "@/store/loading-store";
 
 interface AuthContextType {
@@ -45,7 +43,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signInWithApple: () => Promise<void>;
   signOut: () => void;
-  updateUserProfile: (data: { username?: string, imageFile?: File | null }) => Promise<void>;
+  updateUserProfile: (data: { username?: string }) => Promise<void>;
   updateUserTheme: (theme: "light" | "dark") => Promise<void>;
   updatePrivacySettings: (settings: Partial<Omit<PrivacyState, 'setLeaderboardVisibility' | 'setShowQuests' | 'loadPrivacySettings' | 'resetPrivacySettings'>>) => Promise<void>;
   sendPasswordReset: () => Promise<void>;
@@ -70,7 +68,6 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
     }
 
     const displayName = additionalData.username || user.displayName || "Investor";
-    const photoURL = user.photoURL || "";
     const welcomeNotification: Notification = {
         id: `welcome-${Date.now()}`,
         title: "Welcome to InvestWise!",
@@ -84,7 +81,7 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
         uid: user.uid,
         email: user.email,
         username: displayName,
-        photoURL: photoURL,
+        photoURL: "",
         theme: 'light',
         leaderboardVisibility: 'public',
         showQuests: true,
@@ -97,8 +94,8 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
     
     await setDoc(userDocRef, newUserDoc);
     
-    if (auth.currentUser && (auth.currentUser.displayName !== displayName || auth.currentUser.photoURL !== photoURL)) {
-        await updateProfile(auth.currentUser, { displayName, photoURL });
+    if (auth.currentUser && (auth.currentUser.displayName !== displayName)) {
+        await updateProfile(auth.currentUser, { displayName });
     }
     
     return newUserDoc;
@@ -122,7 +119,7 @@ const fetchAndHydrateUserData = async (user: User) => {
     }
 
     // Batch all state updates for efficiency
-    const { setUsername, setProfilePic } = useUserStore.getState();
+    const { setUsername } = useUserStore.getState();
     const { loadInitialData } = usePortfolioStore.getState();
     const { setNotifications } = useNotificationStore.getState();
     const { loadGoals } = useGoalStore.getState();
@@ -137,7 +134,6 @@ const fetchAndHydrateUserData = async (user: User) => {
     setTheme(theme);
     
     setUsername(userData.username || user.displayName || "Investor");
-    setProfilePic(userData.photoURL || "");
     loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
     setNotifications(userData.notifications || []);
     loadGoals(userData.goals || []);
@@ -224,25 +220,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await handleSocialSignIn(provider);
   };
   
-  const updateUserProfile = async (data: { username?: string, imageFile?: File | null }) => {
+  const updateUserProfile = async (data: { username?: string }) => {
     if (!user) throw new Error("User not authenticated.");
 
     const userDocRef = doc(db, "users", user.uid);
     const updatesForFirestore: { [key: string]: any } = {};
-    const updatesForAuth: { displayName?: string, photoURL?: string } = {};
-    const { setUsername, setProfilePic } = useUserStore.getState();
+    const updatesForAuth: { displayName?: string } = {};
+    const { setUsername } = useUserStore.getState();
 
-    let photoURL = user.photoURL;
-
-    // Handle image upload first
-    if (data.imageFile) {
-        const storageRef = ref(storage, `profile_pictures/${user.uid}`);
-        await uploadBytes(storageRef, data.imageFile);
-        photoURL = await getDownloadURL(storageRef);
-        updatesForFirestore.photoURL = photoURL;
-        updatesForAuth.photoURL = photoURL;
-    }
-    
     if (data.username && data.username !== user.displayName) {
         updatesForFirestore.username = data.username;
         updatesForAuth.displayName = data.username;
@@ -258,9 +243,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (updatesForAuth.displayName) {
         setUsername(updatesForAuth.displayName);
-    }
-    if (updatesForAuth.photoURL) {
-        setProfilePic(updatesForAuth.photoURL);
     }
   };
 
@@ -313,5 +295,3 @@ export function useAuth() {
   }
   return context;
 }
-
-    

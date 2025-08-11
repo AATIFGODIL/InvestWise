@@ -14,7 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Crown, ArrowUp, ArrowDown } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { type LeaderboardVisibility } from "@/store/privacy-store";
@@ -26,12 +26,11 @@ interface LeaderboardProps {
 }
 
 export default function Leaderboard({ visibility }: LeaderboardProps) {
-    const { username, profilePic } = useUserStore();
+    const { username } = useUserStore();
     const { portfolioSummary } = usePortfolioStore();
 
     const currentUserData = {
         name: username,
-        avatar: profilePic,
         gain: portfolioSummary.totalGainLoss,
         isYou: true,
         change: 0, // change calculation can be added if historical rank is stored
@@ -79,7 +78,6 @@ export default function Leaderboard({ visibility }: LeaderboardProps) {
                     <TableCell>
                     <div className="flex items-center gap-3">
                         <Avatar>
-                        <AvatarImage src={investor.avatar} alt={displayName} />
                         <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
                         </Avatar>
                         <span className="font-medium">{displayName}</span>

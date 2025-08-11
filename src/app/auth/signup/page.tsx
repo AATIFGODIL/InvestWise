@@ -18,7 +18,7 @@ import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Eye, EyeOff, FileUp, Loader2, CheckCircle } from "lucide-react";
+import { AlertCircle, Eye, EyeOff } from "lucide-react";
 
 const GoogleIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-5 w-5 mr-2">
@@ -54,23 +54,6 @@ export default function SignUpPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-        const selectedFile = e.target.files[0];
-        setFile(selectedFile);
-        setUploadSuccess(false);
-        setIsUploading(true);
-        // Simulate upload
-        setTimeout(() => {
-            setIsUploading(false);
-            setUploadSuccess(true);
-        }, 1500);
-    }
-  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,28 +207,6 @@ export default function SignUpPage() {
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </Button>
               </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="id-proof">ID Proof</Label>
-              <Button asChild variant="outline" className="w-full justify-start text-muted-foreground font-normal">
-                  <Label htmlFor="id-proof" className="cursor-pointer flex items-center w-full">
-                      <FileUp className="h-4 w-4 mr-2" />
-                      Attach file or photo
-                  </Label>
-              </Button>
-              <Input id="id-proof" type="file" className="hidden" onChange={handleFileChange} accept="image/*,application/pdf" />
-              {isUploading && (
-                  <div className="flex items-center text-sm text-muted-foreground">
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Verifying upload...
-                  </div>
-              )}
-              {uploadSuccess && file && (
-                  <div className="flex items-center text-sm text-green-600">
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      {file.name} uploaded successfully.
-                  </div>
-              )}
             </div>
             <div className="text-xs text-muted-foreground">
                 By creating an account, you agree to our{" "}

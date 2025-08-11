@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Crown } from "lucide-react";
 import Link from "next/link";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { Avatar, AvatarFallback } from "../ui/avatar";
 import usePortfolioStore from "@/store/portfolio-store";
 import useUserStore from "@/store/user-store";
 import { cn } from "@/lib/utils";
@@ -13,11 +13,10 @@ import { cn } from "@/lib/utils";
 
 export default function CommunityLeaderboard() {
   const { portfolioSummary } = usePortfolioStore();
-  const { username, profilePic } = useUserStore();
+  const { username } = useUserStore();
 
   const currentUserData = {
     name: username,
-    avatar: profilePic,
     gain: portfolioSummary.totalGainLoss,
     isYou: true,
   };
@@ -46,7 +45,6 @@ export default function CommunityLeaderboard() {
                   {investor.rank === 1 ? <Crown className="h-5 w-5 text-yellow-500" /> : investor.rank}
                 </span>
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={investor.avatar} alt={investor.name} />
                   <AvatarFallback>{investor.name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <p className="text-sm font-medium">{investor.isYou ? "You" : investor.name}</p>
