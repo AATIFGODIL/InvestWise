@@ -6,7 +6,11 @@ import admin from 'firebase-admin';
 // No need to pass any credentials manually.
 if (!admin.apps.length) {
   try {
-    admin.initializeApp();
+    // Explicitly initialize with the project ID from the public environment variables
+    // to ensure client and admin SDKs are targeting the same project.
+    admin.initializeApp({
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    });
   } catch (error: any) {
     // In a local development environment, you may need to set up GOOGLE_APPLICATION_CREDENTIALS
     // https://firebase.google.com/docs/admin/setup#initialize-sdk-with-application-default-credentials
