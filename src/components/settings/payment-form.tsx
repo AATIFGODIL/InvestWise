@@ -15,14 +15,14 @@ interface PaymentFormProps {
 }
 
 export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
-    const { user, isTokenReady } = useAuth();
+    const { user, hydrating } = useAuth();
     const [clientSecret, setClientSecret] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const createSetupIntent = async () => {
-            if (user && isTokenReady) {
+            if (user) {
                 setIsLoading(true);
                 setError(null);
                 try {
@@ -51,16 +51,17 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
             }
         };
 
-        if (user && isTokenReady) {
-          createSetupIntent();
-        } else if (!isTokenReady && !user) {
-          // If the auth state is determined and there's no user, stop loading.
-          setIsLoading(false);
-          setError("You must be logged in to add a payment method.")
+        if (!hydrating) {
+            if (user) {
+                createSetupIntent();
+            } else {
+                setIsLoading(false);
+                setError("You must be logged in to add a payment method.")
+            }
         }
-    }, [user, isTokenReady]);
+    }, [user, hydrating]);
 
-    if (isLoading) {
+    if (isLoading || hydrating) {
         return (
             <div className="space-y-4 pt-4">
                 <p className="text-sm text-center text-muted-foreground">Initializing secure payment form...</p>
