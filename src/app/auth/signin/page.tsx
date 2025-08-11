@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
+import { AlertCircle, Eye, EyeOff } from "lucide-react";
 import useLoadingStore from "@/store/loading-store";
 
 const GoogleIcon = () => (
@@ -46,7 +46,7 @@ const AppleIcon = () => (
 export default function SignInPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const { signIn, signInWithGoogle, signInWithApple, hydrating } = useAuth();
+  const { signIn, signInWithGoogle, signInWithApple } = useAuth();
   const { showLoading } = useLoadingStore();
 
   const [email, setEmail] = useState('');
@@ -109,10 +109,10 @@ export default function SignInPage() {
               </Alert>
             )}
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" onClick={() => handleSocialSignIn('google')} disabled={hydrating}>
+              <Button variant="outline" onClick={() => handleSocialSignIn('google')}>
                   <GoogleIcon /> Google
               </Button>
-              <Button variant="outline" onClick={() => handleSocialSignIn('apple')} disabled={hydrating}>
+              <Button variant="outline" onClick={() => handleSocialSignIn('apple')}>
                   <AppleIcon /> Apple
               </Button>
             </div>
@@ -134,7 +134,6 @@ export default function SignInPage() {
                   required 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={hydrating}
                 />
               </div>
               <div className="grid gap-2">
@@ -147,7 +146,6 @@ export default function SignInPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pr-10"
-                    disabled={hydrating}
                   />
                   <Button 
                     type="button" 
@@ -160,7 +158,7 @@ export default function SignInPage() {
                   </Button>
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={hydrating}>
+              <Button type="submit" className="w-full">
                 Sign in with Email
               </Button>
             </form>
