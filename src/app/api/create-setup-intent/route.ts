@@ -6,24 +6,28 @@ import { auth, db } from '@/lib/firebase/admin';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 
+// Helper function to pause execution
 async function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function getOrCreateStripeCustomer(uid: string, email?: string, name?: string, retries = 3): Promise<string> {
+// Robust function to get or create a Stripe customer with retries
+async function getOrCreateStripeCustomer(uid: string, email?: string, name?: string): Promise<string> {
   const userRef = db.collection('users').doc(uid);
+  const maxRetries = 3;
   
-  for (let i = 0; i < retries; i++) {
+  for (let i = 0; i < maxRetries; i++) {
     try {
       const userDoc = await userRef.get();
       
       if (userDoc.exists()) {
         const userData = userDoc.data();
+        // If Stripe ID exists, return it
         if (userData?.stripeCustomerId) {
           return userData.stripeCustomerId;
         }
 
-        // User exists but no Stripe ID, so create one and update the doc.
+        // User exists but no Stripe ID, so create one, update the doc, and return the new ID.
         const customer = await stripe.customers.create({
           email: userData?.email || email,
           name: userData?.username || name,
@@ -32,7 +36,8 @@ async function getOrCreateStripeCustomer(uid: string, email?: string, name?: str
         await userRef.update({ stripeCustomerId: customer.id });
         return customer.id;
       } else {
-        // User doc doesn't exist, this might be a new user. Create everything.
+        // User doc doesn't exist. This could be a new user or a race condition.
+        // We will attempt to create the user doc along with the Stripe customer.
         const customer = await stripe.customers.create({
           email: email,
           name: name,
@@ -54,21 +59,24 @@ async function getOrCreateStripeCustomer(uid: string, email?: string, name?: str
           goals: [],
           autoInvestments: [],
         };
-        await userRef.set(newUserDoc);
+        // Use `set` with merge option just in case another process created it in the meantime.
+        await userRef.set(newUserDoc, { merge: true });
         return customer.id;
       }
     } catch (error: any) {
-      console.error(`Attempt ${i + 1} failed for getOrCreateStripeCustomer:`, error.message);
-      if (i === retries - 1) { // If it's the last retry, throw the error
-        throw error;
+      console.error(`Attempt ${i + 1} to get/create Stripe customer failed:`, error.message);
+      if (i === maxRetries - 1) { // If it's the last retry, re-throw the error
+        throw new Error("Failed to create or retrieve Stripe customer after multiple retries.");
       }
-      // Wait before retrying
+      // Wait for a short duration before the next retry
       await sleep(1000 * (i + 1));
     }
   }
 
-  throw new Error("Failed to create or retrieve Stripe customer after multiple retries.");
+  // This line should be unreachable if the loop logic is correct, but satisfies TypeScript.
+  throw new Error("Failed to get or create Stripe customer.");
 }
+
 
 export async function POST(request: Request) {
   const headersList = headers();

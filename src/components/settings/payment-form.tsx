@@ -43,14 +43,14 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
                     },
                 });
 
+                const data = await response.json();
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to create setup intent.');
+                    throw new Error(data.error || 'Failed to create setup intent.');
                 }
                 
-                const data = await response.json();
                 setClientSecret(data.clientSecret);
             } catch (err: any) {
+                console.error("Error fetching setup intent:", err);
                 setError(err.message || 'Could not connect to the server to initialize payments.');
             } finally {
                 setIsLoading(false);
@@ -70,8 +70,12 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
         );
     }
     
-    if (error || !clientSecret) {
-        return <p className="text-destructive text-sm text-center p-4 bg-destructive/10 rounded-md">{error || 'Could not initialize payment form. Please try again later.'}</p>
+    if (error) {
+        return <p className="text-destructive text-sm text-center p-4 bg-destructive/10 rounded-md">{error}</p>;
+    }
+
+    if (!clientSecret) {
+      return <p className="text-destructive text-sm text-center p-4 bg-destructive/10 rounded-md">Could not initialize payment form. Please try again later.</p>
     }
 
     return (
