@@ -161,12 +161,7 @@ export default function SignInPage() {
                 </div>
               </div>
               <Button type="submit" className="w-full" disabled={hydrating}>
-                {hydrating ? (
-                    <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing In...
-                    </>
-                ) : 'Sign in with Email'}
+                Sign in with Email
               </Button>
             </form>
           </CardContent>
