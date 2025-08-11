@@ -50,15 +50,17 @@ export default function CommunityTrends() {
           </TableHeader>
           <TableBody>
             {trends.map((trend) => (
-              <TableRow key={trend.name} className="cursor-pointer hover:bg-muted/50">
+              <TableRow key={trend.name} className="group hover:bg-muted/50">
                 <TableCell className="font-medium p-0">
-                  <Link href={`/trade?symbol=${trend.symbol}`} className="flex items-center justify-between p-4">
+                  <Link href={`/trade?symbol=${trend.symbol}`} className="flex items-center justify-between p-4 w-full h-full">
                     <span>{trend.name}</span>
                     <ExternalLink className="h-4 w-4 text-muted-foreground invisible group-hover:visible" />
                   </Link>
                 </TableCell>
-                <TableCell className="text-right p-4">
-                  <Badge variant="outline">{trend.category}</Badge>
+                <TableCell className="text-right p-0">
+                   <Link href={`/trade?symbol=${trend.symbol}`} className="flex items-center justify-end p-4 w-full h-full">
+                    <Badge variant="outline">{trend.category}</Badge>
+                   </Link>
                 </TableCell>
               </TableRow>
             ))}
