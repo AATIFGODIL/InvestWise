@@ -21,17 +21,18 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const createSetupIntent = async (retries = 1) => {
-            if (!user) {
-                if (retries > 0) {
-                    setTimeout(() => createSetupIntent(retries - 1), 1000); // Wait and retry
-                } else {
-                    setError("You must be logged in to add a payment method.");
-                    setIsLoading(false);
-                }
-                return;
-            }
+        if (hydrating) {
+            return; // Wait until auth state is determined
+        }
+        if (!user) {
+            setError("You must be logged in to add a payment method.");
+            setIsLoading(false);
+            return;
+        }
 
+        const createSetupIntent = async () => {
+            setIsLoading(true);
+            setError(null);
             try {
                 const token = await user.getIdToken(true);
                 const response = await fetch('/api/create-setup-intent', {
@@ -49,29 +50,17 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
                 
                 const data = await response.json();
                 setClientSecret(data.clientSecret);
-                setError(null);
-
             } catch (err: any) {
-                console.error(`Attempt failed: ${err.message}`);
-                if (retries > 0) {
-                    setTimeout(() => createSetupIntent(retries - 1), 1000); // Wait and retry
-                } else {
-                    setError(err.message || 'Could not connect to the server to initialize payments.');
-                }
+                setError(err.message || 'Could not connect to the server to initialize payments.');
             } finally {
-                 // Only stop loading if we are out of retries or successful
-                if (clientSecret || retries === 0) {
-                    setIsLoading(false);
-                }
+                setIsLoading(false);
             }
         };
 
-        if (!hydrating) {
-            createSetupIntent();
-        }
-    }, [user, hydrating, clientSecret]);
+        createSetupIntent();
+    }, [user, hydrating]);
 
-    if (isLoading || hydrating) {
+    if (isLoading) {
         return (
             <div className="space-y-4 pt-4">
                 <p className="text-sm text-center text-muted-foreground">Initializing secure payment form...</p>
