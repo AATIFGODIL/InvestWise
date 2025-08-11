@@ -3,32 +3,38 @@ import admin from 'firebase-admin';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 
-// Explicitly load environment variables from the root .env file
+// Force the loading of the .env file at the root of the project
+// This ensures the service account key is available before Firebase is initialized.
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
-// This function now exclusively uses the service account key from the environment variable.
-const getFirebaseCredentials = () => {
+function initializeFirebaseAdmin() {
+  // Check if the FIREBASE_SERVICE_ACCOUNT_KEY is present in the environment
   if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-    throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set. Please add it to your .env file.');
+    console.error('FIREBASE_SERVICE_ACCOUNT_KEY is not set. Please add it to your .env file.');
+    // We throw an error to make it clear that the app cannot function without it.
+    throw new Error('Firebase Admin SDK credentials are not set.');
   }
-  try {
-    return admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY));
-  } catch (error: any) {
-    throw new Error(`Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY: ${error.message}`);
-  }
-};
 
-// Initialize Firebase Admin SDK only once.
-if (!admin.apps.length) {
+  // Parse the service account key from the environment variable
   try {
-    const credential = getFirebaseCredentials();
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+    
+    // Initialize the app with the correct credentials
     admin.initializeApp({
-      credential,
+      credential: admin.credential.cert(serviceAccount),
     });
-    console.log("Firebase Admin SDK initialized successfully using the provided service account key.");
+
+    console.log("Firebase Admin SDK initialized successfully for project:", serviceAccount.project_id);
+  
   } catch (error: any) {
-    console.error('Firebase Admin Initialization Error:', error.stack);
+    console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY or initialize Firebase Admin SDK:', error.message);
+    throw new Error('Could not initialize Firebase Admin SDK. Please check your service account key.');
   }
+}
+
+// Ensure Firebase is initialized only once
+if (!admin.apps.length) {
+  initializeFirebaseAdmin();
 }
 
 const auth = admin.auth();
