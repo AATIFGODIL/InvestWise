@@ -21,45 +21,55 @@ export default function PaymentForm({ onPaymentSuccess }: PaymentFormProps) {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const createSetupIntent = async () => {
-            if (user) {
-                setIsLoading(true);
+        const createSetupIntent = async (retries = 1) => {
+            if (!user) {
+                if (retries > 0) {
+                    setTimeout(() => createSetupIntent(retries - 1), 1000); // Wait and retry
+                } else {
+                    setError("You must be logged in to add a payment method.");
+                    setIsLoading(false);
+                }
+                return;
+            }
+
+            try {
+                const token = await user.getIdToken(true);
+                const response = await fetch('/api/create-setup-intent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to create setup intent.');
+                }
+                
+                const data = await response.json();
+                setClientSecret(data.clientSecret);
                 setError(null);
-                try {
-                    const token = await user.getIdToken(true);
-                    const response = await fetch('/api/create-setup-intent', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        credentials: 'include', // Ensure cookies/session are sent
-                    });
-                    const data = await response.json();
-                    if (response.ok) {
-                        setClientSecret(data.clientSecret);
-                    } else {
-                        console.error('Failed to create setup intent:', data.error);
-                        setError(data.error || 'An unexpected error occurred.');
-                    }
-                } catch (error) {
-                    console.error('Error creating setup intent:', error);
-                    setError('Could not connect to the server to initialize payments.');
-                } finally {
+
+            } catch (err: any) {
+                console.error(`Attempt failed: ${err.message}`);
+                if (retries > 0) {
+                    setTimeout(() => createSetupIntent(retries - 1), 1000); // Wait and retry
+                } else {
+                    setError(err.message || 'Could not connect to the server to initialize payments.');
+                }
+            } finally {
+                 // Only stop loading if we are out of retries or successful
+                if (clientSecret || retries === 0) {
                     setIsLoading(false);
                 }
             }
         };
 
         if (!hydrating) {
-            if (user) {
-                createSetupIntent();
-            } else {
-                setIsLoading(false);
-                setError("You must be logged in to add a payment method.")
-            }
+            createSetupIntent();
         }
-    }, [user, hydrating]);
+    }, [user, hydrating, clientSecret]);
 
     if (isLoading || hydrating) {
         return (
