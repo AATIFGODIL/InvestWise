@@ -18,7 +18,8 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
+import useLoadingStore from "@/store/loading-store";
 
 const GoogleIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-5 w-5 mr-2">
@@ -45,35 +46,33 @@ const AppleIcon = () => (
 export default function SignInPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const { signIn, signInWithGoogle, signInWithApple } = useAuth();
+  const { signIn, signInWithGoogle, signInWithApple, hydrating } = useAuth();
+  const { showLoading } = useLoadingStore();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
+  
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setLoading(true);
+    showLoading();
     try {
       await signIn(email, password);
-      // This toast provides immediate feedback
       toast({
         title: "Signed In Successfully",
         description: "Welcome back!",
       });
-      // Redirect immediately without waiting for data hydration
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.message);
-      setLoading(false);
     }
   };
 
   const handleSocialSignIn = async (provider: 'google' | 'apple') => {
-    setLoading(true);
     setError(null);
+    showLoading();
     try {
       const signInMethod = provider === 'google' ? signInWithGoogle : signInWithApple;
       await signInMethod();
@@ -88,7 +87,6 @@ export default function SignInPage() {
       } else {
         setError(err.message);
       }
-       setLoading(false);
     }
   };
 
@@ -111,10 +109,10 @@ export default function SignInPage() {
               </Alert>
             )}
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" onClick={() => handleSocialSignIn('google')} disabled={loading}>
+              <Button variant="outline" onClick={() => handleSocialSignIn('google')} disabled={hydrating}>
                   <GoogleIcon /> Google
               </Button>
-              <Button variant="outline" onClick={() => handleSocialSignIn('apple')} disabled={loading}>
+              <Button variant="outline" onClick={() => handleSocialSignIn('apple')} disabled={hydrating}>
                   <AppleIcon /> Apple
               </Button>
             </div>
@@ -136,7 +134,7 @@ export default function SignInPage() {
                   required 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={loading}
+                  disabled={hydrating}
                 />
               </div>
               <div className="grid gap-2">
@@ -149,7 +147,7 @@ export default function SignInPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pr-10"
-                    disabled={loading}
+                    disabled={hydrating}
                   />
                   <Button 
                     type="button" 
@@ -162,8 +160,13 @@ export default function SignInPage() {
                   </Button>
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Signing In...' : 'Sign in with Email'}
+              <Button type="submit" className="w-full" disabled={hydrating}>
+                {hydrating ? (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Signing In...
+                    </>
+                ) : 'Sign in with Email'}
               </Button>
             </form>
           </CardContent>

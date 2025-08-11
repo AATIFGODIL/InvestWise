@@ -34,11 +34,11 @@ import useAutoInvestStore from "@/store/auto-invest-store";
 import useThemeStore from "@/store/theme-store";
 import usePrivacyStore, { type PrivacyState } from "@/store/privacy-store";
 import { storage } from "@/lib/firebase/config";
+import useLoadingStore from "@/store/loading-store";
 
 interface AuthContextType {
   user: User | null;
   hydrating: boolean;
-  isTokenReady: boolean;
   signUp: (email:string, pass: string, username: string) => Promise<any>;
   signIn: (email:string, pass: string) => Promise<any>;
   signInWithGoogle: () => Promise<void>;
@@ -110,44 +110,48 @@ const fetchAndHydrateUserData = async (user: User) => {
 
     // This handles a race condition where a user is created but their doc isn't ready.
     if (!userDoc.exists()) {
-        await initializeUserDocument(user);
         userDoc = await getDoc(userDocRef);
     }
-
-    if (userDoc.exists()) {
-        const userData = userDoc.data();
-        const { setUsername, setProfilePic } = useUserStore.getState();
-        const { loadInitialData } = usePortfolioStore.getState();
-        const { setNotifications } = useNotificationStore.getState();
-        const { loadGoals } = useGoalStore.getState();
-        const { loadAutoInvestments } = useAutoInvestStore.getState();
-        const { setTheme } = useThemeStore.getState();
-        const { loadPrivacySettings } = usePrivacyStore.getState();
-        
-        const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
-        const theme = userData.theme || 'light';
-        
-        // Apply theme first to prevent flash of default theme
-        setTheme(theme);
-        
-        setUsername(userData.username || user.displayName || "Investor");
-        setProfilePic(userData.photoURL || "");
-        loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
-        setNotifications(userData.notifications || []);
-        loadGoals(userData.goals || []);
-        loadAutoInvestments(userData.autoInvestments || []);
-        loadPrivacySettings({
-            leaderboardVisibility: userData.leaderboardVisibility || 'public',
-            showQuests: userData.showQuests === undefined ? true : userData.showQuests,
-        });
-        return true;
+    
+    const userData = userDoc.data();
+    if (!userData) {
+        console.error("Failed to fetch user data for hydration.");
+        return false;
     }
-    return false;
+
+    // Batch all state updates for efficiency
+    const { setUsername, setProfilePic } = useUserStore.getState();
+    const { loadInitialData } = usePortfolioStore.getState();
+    const { setNotifications } = useNotificationStore.getState();
+    const { loadGoals } = useGoalStore.getState();
+    const { loadAutoInvestments } = useAutoInvestStore.getState();
+    const { setTheme } = useThemeStore.getState();
+    const { loadPrivacySettings } = usePrivacyStore.getState();
+    
+    const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
+    const theme = userData.theme || 'light';
+    
+    // Apply theme first to prevent flash of default theme
+    setTheme(theme);
+    
+    setUsername(userData.username || user.displayName || "Investor");
+    setProfilePic(userData.photoURL || "");
+    loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
+    setNotifications(userData.notifications || []);
+    loadGoals(userData.goals || []);
+    loadAutoInvestments(userData.autoInvestments || []);
+    loadPrivacySettings({
+        leaderboardVisibility: userData.leaderboardVisibility || 'public',
+        showQuests: userData.showQuests === undefined ? true : userData.showQuests,
+    });
+    
+    return true;
 };
 
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const { showLoading, hideLoading } = useLoadingStore();
   
   const { reset: resetUserStore } = useUserStore.getState();
   const { resetPortfolio } = usePortfolioStore.getState();
@@ -159,7 +163,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   
   const [user, setUser] = useState<User | null>(null);
   const [hydrating, setHydrating] = useState(true);
-  const [isTokenReady, setIsTokenReady] = useState(false);
   
   const resetAllStores = useCallback(() => {
     resetUserStore();
@@ -167,32 +170,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setNotifications([]);
     resetGoals();
     resetAutoInvest();
-    setTheme('light'); // Reset theme to default
+    setTheme('light');
     resetPrivacySettings();
   }, [resetUserStore, resetPortfolio, setNotifications, resetGoals, resetAutoInvest, setTheme, resetPrivacySettings]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
-      setIsTokenReady(false);
-      
       if (firebaseUser) {
         setUser(firebaseUser);
         await fetchAndHydrateUserData(firebaseUser);
-        // All data is hydrated, now we can finish loading and confirm token readiness
-        setIsTokenReady(true);
-        setHydrating(false);
       } else {
         setUser(null);
         resetAllStores();
-        // No user, so no token is ready, and we're done "hydrating" to the logged-out state.
-        setIsTokenReady(false);
-        setHydrating(false);
       }
+      setHydrating(false);
+      hideLoading();
     });
 
     return () => unsubscribe();
-  }, [resetAllStores]);
+  }, [resetAllStores, hideLoading]);
 
 
   const signUp = async (email:string, pass: string, username: string) => {
@@ -207,7 +204,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
-    await signInWithPopup(auth, provider);
+    const result = await signInWithPopup(auth, provider);
+    await initializeUserDocument(result.user);
   };
 
   const signInWithGoogle = async () => {
@@ -279,15 +277,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signOut = async () => {
+    showLoading();
     await firebaseSignOut(auth);
-    resetAllStores();
     router.push('/auth/signin');
   };
 
   const value = {
     user,
     hydrating,
-    isTokenReady,
     signUp,
     signIn,
     signInWithGoogle,
