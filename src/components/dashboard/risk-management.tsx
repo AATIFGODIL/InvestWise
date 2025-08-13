@@ -1,18 +1,15 @@
 
 "use client";
 
-import { BrainCircuit, PlayCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { BrainCircuit } from "lucide-react";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import EducationalVideo from "../shared/educational-video";
-import useChatbotStore from "@/store/chatbot-store";
 
 interface RiskManagementProps {
     videos: {
@@ -24,12 +21,6 @@ interface RiskManagementProps {
 }
 
 export default function RiskManagement({ videos }: RiskManagementProps) {
-  const { openChatbot } = useChatbotStore();
-
-  const handleAskAboutRisk = () => {
-    openChatbot("Hi! How can I help you with Risk Management today?");
-  };
-
   return (
     <Card>
       <CardHeader>
@@ -49,12 +40,6 @@ export default function RiskManagement({ videos }: RiskManagementProps) {
             ))}
         </div>
       </CardContent>
-      <CardFooter>
-          <Button className="w-full" onClick={handleAskAboutRisk}>
-                <BrainCircuit className="mr-2 h-4 w-4" />
-                Ask AI About Risk
-            </Button>
-      </CardFooter>
     </Card>
   );
 }

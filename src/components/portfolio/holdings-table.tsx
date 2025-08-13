@@ -18,6 +18,7 @@ import { ArrowUp, ArrowDown, PlusCircle, MinusCircle, History, Percent } from "l
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import usePortfolioStore from "@/store/portfolio-store";
+import AiPrediction from "../ai/ai-prediction";
 
 export default function HoldingsTable() {
   const { holdings, portfolioSummary } = usePortfolioStore();
@@ -40,10 +41,10 @@ export default function HoldingsTable() {
       <CardContent className="p-0">
         <Tabs defaultValue="stocks">
           <TabsList className="p-2 m-2 bg-muted dark:bg-card">
-            <TabsTrigger value="stocks">Stocks & ETFs</TabsTrigger>
-            <TabsTrigger value="options" disabled>Options</TabsTrigger>
-            <TabsTrigger value="shorts" disabled>Shorts</TabsTrigger>
+            <TabsTrigger value="stocks">Holdings</TabsTrigger>
+            <TabsTrigger value="ai-prediction">AI Prediction</TabsTrigger>
           </TabsList>
+          
           <TabsContent value="stocks">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 border-b">
                 <div>
@@ -136,6 +137,10 @@ export default function HoldingsTable() {
                     Trade History
                 </Button>
             </div>
+          </TabsContent>
+
+          <TabsContent value="ai-prediction">
+            <AiPrediction />
           </TabsContent>
         </Tabs>
       </CardContent>
