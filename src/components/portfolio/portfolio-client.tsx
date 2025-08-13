@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import PaymentForm from "@/components/settings/payment-form";
 import { useState } from "react";
+import AiPrediction from "../ai/ai-prediction";
 
 export default function PortfolioClient() {
   const [isAddFundsOpen, setIsAddFundsOpen] = useState(false);
@@ -57,6 +58,7 @@ export default function PortfolioClient() {
           </div>
           <HoldingsTable />
         </div>
+         <AiPrediction />
       </main>
       <Chatbot />
       <BottomNav />

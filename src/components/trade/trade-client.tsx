@@ -11,7 +11,6 @@ import InvestmentBundles from "@/components/dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
 import TradingViewWidget from "@/components/shared/trading-view-widget";
 import TradingViewScreener from "@/components/shared/trading-view-screener";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AiPredictionTrade from "../ai/ai-prediction-trade";
 
 const videos = [
@@ -53,20 +52,11 @@ export default function TradePageContent() {
 
         <TradeForm selectedSymbol={selectedSymbol} selectedPrice={selectedPrice} />
 
-        <Tabs defaultValue="market-screener" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="market-screener">Market Screener</TabsTrigger>
-                <TabsTrigger value="ai-prediction">AI Prediction</TabsTrigger>
-            </TabsList>
-            <TabsContent value="market-screener" className="mt-6">
-                <div className="h-[550px] w-full">
-                    <TradingViewScreener />
-                </div>
-            </TabsContent>
-             <TabsContent value="ai-prediction" className="mt-6">
-                <AiPredictionTrade initialSymbol={selectedSymbol} />
-            </TabsContent>
-        </Tabs>
+        <AiPredictionTrade initialSymbol={selectedSymbol} />
+        
+        <div className="h-[550px] w-full">
+            <TradingViewScreener />
+        </div>
         
         <InvestmentBundles 
           bundles={specializedBundles}

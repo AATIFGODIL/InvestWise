@@ -46,7 +46,7 @@ export default function AiPrediction() {
   }
 
   return (
-    <Card className="border-0 shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
             <BrainCircuit className="h-5 w-5 text-primary" />

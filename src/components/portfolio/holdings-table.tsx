@@ -13,12 +13,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowUp, ArrowDown, PlusCircle, MinusCircle, History, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import usePortfolioStore from "@/store/portfolio-store";
-import AiPrediction from "../ai/ai-prediction";
 
 export default function HoldingsTable() {
   const { holdings, portfolioSummary } = usePortfolioStore();
@@ -39,13 +37,6 @@ export default function HoldingsTable() {
   return (
     <Card>
       <CardContent className="p-0">
-        <Tabs defaultValue="stocks">
-          <TabsList className="p-2 m-2 bg-muted dark:bg-card">
-            <TabsTrigger value="stocks">Holdings</TabsTrigger>
-            <TabsTrigger value="ai-prediction">AI Prediction</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="stocks">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 border-b">
                 <div>
                     <p className="text-xs text-muted-foreground">TOTAL VALUE</p>
@@ -137,12 +128,6 @@ export default function HoldingsTable() {
                     Trade History
                 </Button>
             </div>
-          </TabsContent>
-
-          <TabsContent value="ai-prediction">
-            <AiPrediction />
-          </TabsContent>
-        </Tabs>
       </CardContent>
     </Card>
   );
