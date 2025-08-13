@@ -23,7 +23,7 @@ import { useAuth } from "@/hooks/use-auth";
 export default function ProfilePage() {
   const { toast } = useToast();
   const { user, hydrating: authLoading, updateUserProfile, sendPasswordReset } = useAuth();
-  const { username: globalUsername } = useUserStore();
+  const { username: globalUsername, setUsername: setGlobalUsername } = useUserStore();
   
   const [localUsername, setLocalUsername] = useState(globalUsername);
   const [isSaving, setIsSaving] = useState(false);
@@ -49,6 +49,10 @@ export default function ProfilePage() {
             username: localUsername,
         });
         
+        // This will now be handled by the onAuthStateChanged listener in useAuth
+        // but we can optimistically update it here for a faster UI response.
+        setGlobalUsername(localUsername);
+
         toast({
             title: "Success!",
             description: "Your profile has been updated.",
