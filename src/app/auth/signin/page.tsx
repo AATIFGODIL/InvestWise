@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +19,7 @@ import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import useLoadingStore from "@/store/loading-store";
+import appleLogo from "./applio.webp";
 
 const GoogleIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-5 w-5 mr-2">
@@ -35,10 +37,13 @@ const GoogleIcon = () => (
 );
 
 const AppleIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-        <title>Apple</title>
-        <path d="M12.01,1.98C10.15,1.96,8.13,3.04,7.21,4.89C5.46,8.26,6.96,12.33,8.71,13.78C9.64,14.54,10.74,15,12,15C12.05,15,12.1,15,12.15,15C13.25,15,14.35,14.54,15.28,13.78C16.65,12.71,17.25,11.23,17.3,9.58C17.31,9.53,17.31,9.48,17.31,9.43C17.31,9.39,17.31,9.35,17.31,9.32C17.3,7.74,16.41,6.34,15.13,5.43C14.2,4.81,13.11,4.42,12.01,4.42C12.01,4.42,12.01,4.42,12.01,4.42C12,2.95,11.84,2.35,12.01,1.98M11.16,0C9.42,0.04,7,1.54,5.82,4.35C4.09,8.42,5.47,13.26,7.57,15.11C8.79,16.21,10.27,16.88,12,16.88C13.73,16.88,15.21,16.21,16.43,15.11C17.58,14.09,18.3,12.6,18.35,10.87H18.36C18.36,10.83,18.36,10.79,18.36,10.75C18.37,10.6,18.38,10.45,18.38,10.3C19.88,10.11,21.22,8.96,21.58,7.39C20.15,6.59,18.42,6.48,17.7,7.86C16.59,6.04,14.53,4.92,12.44,4.92C12.44,4.92,12.44,4.92,12.44,4.92C12.44,3.22,12.1,0.86,11.16,0Z" />
-    </svg>
+  <Image
+    src={appleLogo}
+    alt="Apple"
+    width={20}
+    height={20}
+    className="mr-2 rounded-sm"
+  />
 );
 
 export default function SignInPage() {
