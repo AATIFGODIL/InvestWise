@@ -89,6 +89,7 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
     
     await setDoc(userDocRef, newUserDoc);
     
+    // Ensure the auth profile display name is consistent with our database.
     if (auth.currentUser && (auth.currentUser.displayName !== displayName)) {
         await updateProfile(auth.currentUser, { displayName });
     }
@@ -99,13 +100,7 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
 
 const fetchAndHydrateUserData = async (user: User) => {
     const userDocRef = doc(db, "users", user.uid);
-    let userDoc = await getDoc(userDocRef);
-
-    if (!userDoc.exists()) {
-        // This is a new user from a social sign-in, create their document now.
-        await initializeUserDocument(user);
-        userDoc = await getDoc(userDocRef); // Re-fetch the document
-    }
+    const userDoc = await getDoc(userDocRef);
     
     const userData = userDoc.data();
     if (!userData) {
@@ -173,26 +168,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // This effect handles the result of a social sign-in redirect.
     // It runs once when the component mounts.
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          // User has successfully signed in via redirect.
-          // The onAuthStateChanged listener below will handle document creation and hydration.
-          toast({
-            title: "Signed In Successfully",
-            description: "Welcome back!",
-          });
-          router.push("/dashboard");
+    const processRedirectResult = async () => {
+        try {
+            const result = await getRedirectResult(auth);
+            if (result && result.user) {
+                // User has successfully signed in via redirect.
+                // We MUST ensure their document exists *before* onAuthStateChanged hydrates.
+                await initializeUserDocument(result.user);
+                toast({
+                    title: "Signed In Successfully",
+                    description: "Welcome back!",
+                });
+                router.push("/dashboard");
+            }
+        } catch (error: any) {
+            console.error("Error during redirect sign-in:", error);
+            toast({
+                variant: "destructive",
+                title: "Sign In Failed",
+                description: error.message,
+            });
         }
-      })
-      .catch((error) => {
-        console.error("Error during redirect sign-in:", error);
-        toast({
-          variant: "destructive",
-          title: "Sign In Failed",
-          description: error.message,
-        });
-      })
+    };
+    processRedirectResult();
   }, [router, toast]);
 
 
@@ -319,5 +317,3 @@ export function useAuth() {
   }
   return context;
 }
-
-    
