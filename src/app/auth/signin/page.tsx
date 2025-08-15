@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import useLoadingStore from "@/store/loading-store";
 
 const GoogleIcon = () => (
@@ -46,7 +46,7 @@ const AppleIcon = () => (
 export default function SignInPage() {
   const { toast } = useToast();
   const router = useRouter();
-  const { signIn, signInWithGoogle, signInWithApple } = useAuth();
+  const { signIn, signInWithGoogle, signInWithApple, hydrating } = useAuth();
   const { showLoading } = useLoadingStore();
 
   const [email, setEmail] = useState('');
@@ -64,7 +64,7 @@ export default function SignInPage() {
         title: "Signed In Successfully",
         description: "Welcome back!",
       });
-      router.push("/dashboard");
+      // Redirect is handled by onAuthStateChanged in useAuth hook
     } catch (err: any) {
       setError(err.message);
     }
@@ -74,15 +74,21 @@ export default function SignInPage() {
     setError(null);
     try {
       const signInMethod = provider === 'google' ? signInWithGoogle : signInWithApple;
-      // This will now trigger a redirect, and the result will be handled in the useAuth hook.
       await signInMethod();
+      // The redirect will happen now. The rest of the flow is in useAuth.
     } catch (err: any) {
-      // This catch block might only catch errors if the redirect itself fails,
-      // which is rare. Most errors will be caught by getRedirectResult.
       setError(err.message);
     }
   };
 
+  if (hydrating) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background">
+        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+        <p className="text-muted-foreground">Finalizing your sign-in...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">

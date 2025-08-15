@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -39,109 +38,107 @@ import { useToast } from "./use-toast";
 interface AuthContextType {
   user: User | null;
   hydrating: boolean;
-  isTokenReady: boolean; // New state to signal when auth is fully ready
-  signUp: (email:string, pass: string, username: string) => Promise<any>;
-  signIn: (email:string, pass: string) => Promise<any>;
+  isTokenReady: boolean;
+  signUp: (email: string, pass: string, username: string) => Promise<any>;
+  signIn: (email: string, pass: string) => Promise<any>;
   signInWithGoogle: () => Promise<void>;
   signInWithApple: () => Promise<void>;
   signOut: () => void;
   updateUserProfile: (data: { username?: string }) => Promise<void>;
   updateUserTheme: (theme: "light" | "dark") => Promise<void>;
-  updatePrivacySettings: (settings: Partial<Omit<PrivacyState, 'setLeaderboardVisibility' | 'setShowQuests' | 'loadPrivacySettings' | 'resetPrivacySettings'>>) => Promise<void>;
+  updatePrivacySettings: (settings: Partial<Omit<PrivacyState, any>>) => Promise<void>;
   sendPasswordReset: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const initializeUserDocument = async (user: User, additionalData: { username?: string } = {}) => {
-    const userDocRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(userDocRef);
+  const userDocRef = doc(db, "users", user.uid);
+  const userDoc = await getDoc(userDocRef);
 
-    if (userDoc.exists()) {
-        const existingData = userDoc.data();
-        return existingData;
-    }
+  if (userDoc.exists()) {
+    return userDoc.data();
+  }
 
-    const displayName = additionalData.username || user.displayName || "Investor";
-    const welcomeNotification: Notification = {
-        id: `welcome-${Date.now()}`,
-        title: "Welcome to InvestWise!",
-        description: "We're glad to have you. Explore the app to start your journey.",
-        href: "/dashboard",
-        type: 'welcome',
-        read: false,
-        createdAt: new Date().toISOString(),
-    };
-    const newUserDoc = {
-        uid: user.uid,
-        email: user.email,
-        username: displayName,
-        photoURL: "",
-        theme: 'light',
-        leaderboardVisibility: 'public',
-        showQuests: true,
-        createdAt: new Date(),
-        portfolio: { holdings: [], summary: { totalValue: 0, todaysChange: 0, totalGainLoss: 0, annualRatePercent: 0 } },
-        notifications: [welcomeNotification],
-        goals: [],
-        autoInvestments: [],
-    };
-    
-    await setDoc(userDocRef, newUserDoc);
-    
-    // Ensure the auth profile display name is consistent with our database.
-    if (auth.currentUser && (auth.currentUser.displayName !== displayName)) {
-        await updateProfile(auth.currentUser, { displayName });
-    }
-    
-    return newUserDoc;
+  const displayName = additionalData.username || user.displayName || "Investor";
+  const welcomeNotification: Notification = {
+    id: `welcome-${Date.now()}`,
+    title: "Welcome to InvestWise!",
+    description: "We're glad to have you. Explore the app to start your journey.",
+    href: "/dashboard",
+    type: "welcome",
+    read: false,
+    createdAt: new Date().toISOString(),
+  };
+
+  const newUserDoc = {
+    uid: user.uid,
+    email: user.email,
+    username: displayName,
+    photoURL: "",
+    theme: "light",
+    leaderboardVisibility: "public",
+    showQuests: true,
+    createdAt: new Date(),
+    portfolio: {
+      holdings: [],
+      summary: {
+        totalValue: 0,
+        todaysChange: 0,
+        totalGainLoss: 0,
+        annualRatePercent: 0,
+      },
+    },
+    notifications: [welcomeNotification],
+    goals: [],
+    autoInvestments: [],
+  };
+
+  await setDoc(userDocRef, newUserDoc);
+
+  if (auth.currentUser && auth.currentUser.displayName !== displayName) {
+    await updateProfile(auth.currentUser, { displayName });
+  }
+
+  return newUserDoc;
 };
-
 
 const fetchAndHydrateUserData = async (user: User) => {
-    const userDocRef = doc(db, "users", user.uid);
-    const userDoc = await getDoc(userDocRef);
-    
-    const userData = userDoc.data();
-    if (!userData) {
-        console.error("Failed to fetch user data for hydration.");
-        return false;
-    }
+  const userDocRef = doc(db, "users", user.uid);
+  const userDoc = await getDoc(userDocRef);
+  const userData = userDoc.data();
+  if (!userData) return false;
 
-    // Batch all state updates for efficiency
-    const { setUsername } = useUserStore.getState();
-    const { loadInitialData } = usePortfolioStore.getState();
-    const { setNotifications } = useNotificationStore.getState();
-    const { loadGoals } = useGoalStore.getState();
-    const { loadAutoInvestments } = useAutoInvestStore.getState();
-    const { setTheme } = useThemeStore.getState();
-    const { loadPrivacySettings } = usePrivacyStore.getState();
-    
-    const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
-    const theme = userData.theme || 'light';
-    
-    // Apply theme first to prevent flash of default theme
-    setTheme(theme);
-    
-    setUsername(userData.username || user.displayName || "Investor");
-    loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
-    setNotifications(userData.notifications || []);
-    loadGoals(userData.goals || []);
-    loadAutoInvestments(userData.autoInvestments || []);
-    loadPrivacySettings({
-        leaderboardVisibility: userData.leaderboardVisibility || 'public',
-        showQuests: userData.showQuests === undefined ? true : userData.showQuests,
-    });
-    
-    return true;
+  const { setUsername } = useUserStore.getState();
+  const { loadInitialData } = usePortfolioStore.getState();
+  const { setNotifications } = useNotificationStore.getState();
+  const { loadGoals } = useGoalStore.getState();
+  const { loadAutoInvestments } = useAutoInvestStore.getState();
+  const { setTheme } = useThemeStore.getState();
+  const { loadPrivacySettings } = usePrivacyStore.getState();
+
+  const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
+  const theme = userData.theme || "light";
+
+  setTheme(theme);
+  setUsername(userData.username || user.displayName || "Investor");
+  loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
+  setNotifications(userData.notifications || []);
+  loadGoals(userData.goals || []);
+  loadAutoInvestments(userData.autoInvestments || []);
+  loadPrivacySettings({
+    leaderboardVisibility: userData.leaderboardVisibility || "public",
+    showQuests: userData.showQuests === undefined ? true : userData.showQuests,
+  });
+
+  return true;
 };
-
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { toast } = useToast();
   const { showLoading, hideLoading } = useLoadingStore();
-  
+
   const { reset: resetUserStore } = useUserStore.getState();
   const { resetPortfolio } = usePortfolioStore.getState();
   const { setNotifications } = useNotificationStore.getState();
@@ -149,86 +146,76 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { resetAutoInvest } = useAutoInvestStore.getState();
   const { setTheme } = useThemeStore.getState();
   const { resetPrivacySettings } = usePrivacyStore.getState();
-  
+
   const [user, setUser] = useState<User | null>(null);
   const [hydrating, setHydrating] = useState(true);
   const [isTokenReady, setIsTokenReady] = useState(false);
-  
+
   const resetAllStores = useCallback(() => {
     resetUserStore();
     resetPortfolio();
     setNotifications([]);
     resetGoals();
     resetAutoInvest();
-    setTheme('light');
+    setTheme("light");
     resetPrivacySettings();
   }, [resetUserStore, resetPortfolio, setNotifications, resetGoals, resetAutoInvest, setTheme, resetPrivacySettings]);
 
-
+  // Catch any redirect errors
   useEffect(() => {
-    // This effect handles the result of a social sign-in redirect.
-    // It runs once when the component mounts.
-    const processRedirectResult = async () => {
-        try {
-            const result = await getRedirectResult(auth);
-            if (result && result.user) {
-                // User has successfully signed in via redirect.
-                // We MUST ensure their document exists *before* onAuthStateChanged hydrates.
-                await initializeUserDocument(result.user);
-                toast({
-                    title: "Signed In Successfully",
-                    description: "Welcome back!",
-                });
-                router.push("/dashboard");
-            }
-        } catch (error: any) {
-            console.error("Error during redirect sign-in:", error);
-            toast({
-                variant: "destructive",
-                title: "Sign In Failed",
-                description: error.message,
-            });
-        }
-    };
-    processRedirectResult();
-  }, [router, toast]);
+    getRedirectResult(auth).catch((error) => {
+      console.error("Google redirect failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Sign In Failed",
+        description: error.message,
+      });
+    });
+  }, [toast]);
 
-
+  // Main auth listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
-      setIsTokenReady(false); // Reset token readiness on auth change
+      setIsTokenReady(false);
+
       if (firebaseUser) {
         setUser(firebaseUser);
+        await initializeUserDocument(firebaseUser);
         const hydrated = await fetchAndHydrateUserData(firebaseUser);
-        setIsTokenReady(hydrated); // Token is ready only after user data is loaded
+        setIsTokenReady(hydrated);
+        hideLoading();
+        // Only redirect if not already on a protected route to avoid loops
+        if (window.location.pathname.startsWith('/auth')) {
+          router.push("/dashboard");
+        }
       } else {
         setUser(null);
         resetAllStores();
-        setIsTokenReady(false); // No user, so no token
+        setIsTokenReady(false);
+        // Ensure loading is hidden for logged-out users as well
+        hideLoading();
       }
+
       setHydrating(false);
-      hideLoading();
     });
 
     return () => unsubscribe();
-  }, [resetAllStores, hideLoading]);
+  }, [resetAllStores, hideLoading, router]);
 
-
-  const signUp = async (email:string, pass: string, username: string) => {
+  const signUp = async (email: string, pass: string, username: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
-    // We update the auth profile first so the displayName is available for initializeUserDocument
     await updateProfile(newUser, { displayName: username });
     await initializeUserDocument(newUser, { username });
-  }
+  };
 
-  const signIn = async (email:string, pass: string) => {
+  const signIn = async (email: string, pass: string) => {
     await signInWithEmailAndPassword(auth, email, pass);
-  }
+  };
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
-    showLoading(); // Show loading indicator before redirecting
+    showLoading();
     await signInWithRedirect(auth, provider);
   };
 
@@ -241,30 +228,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const provider = new OAuthProvider("apple.com");
     await handleSocialSignIn(provider);
   };
-  
+
   const updateUserProfile = async (data: { username?: string }) => {
     if (!user) throw new Error("User not authenticated.");
-
     const userDocRef = doc(db, "users", user.uid);
     const updatesForFirestore: { [key: string]: any } = {};
     const updatesForAuth: { displayName?: string } = {};
-    const { setUsername } = useUserStore.getState();
 
     if (data.username && data.username !== user.displayName) {
-        updatesForFirestore.username = data.username;
-        updatesForAuth.displayName = data.username;
-    }
-    
-    if (Object.keys(updatesForFirestore).length > 0) {
-        await updateDoc(userDocRef, updatesForFirestore);
-    }
-    
-    if (Object.keys(updatesForAuth).length > 0) {
-        await updateProfile(user, updatesForAuth);
+      updatesForFirestore.username = data.username;
+      updatesForAuth.displayName = data.username;
     }
 
-    if (updatesForAuth.displayName) {
-        setUsername(updatesForAuth.displayName);
+    if (Object.keys(updatesForFirestore).length > 0) {
+      await updateDoc(userDocRef, updatesForFirestore);
+    }
+    if (Object.keys(updatesForAuth).length > 0) {
+      await updateProfile(user, updatesForAuth);
+      useUserStore.getState().setUsername(updatesForAuth.displayName!);
     }
   };
 
@@ -273,47 +254,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return;
     const userDocRef = doc(db, "users", user.uid);
     await updateDoc(userDocRef, { theme });
-  }
-  
-  const updatePrivacySettings = async (settings: Partial<Omit<PrivacyState, 'setLeaderboardVisibility' | 'setShowQuests' | 'loadPrivacySettings' | 'resetPrivacySettings'>>) => {
-      if (!user) return;
-      const userDocRef = doc(db, "users", user.uid);
-      await updateDoc(userDocRef, settings);
-  }
+  };
+
+  const updatePrivacySettings = async (settings: Partial<Omit<PrivacyState, any>>) => {
+    if (!user) return;
+    const userDocRef = doc(db, "users", user.uid);
+    await updateDoc(userDocRef, settings);
+  };
 
   const sendPasswordReset = async () => {
     if (!user?.email) throw new Error("No email associated with user.");
     await sendPasswordResetEmail(auth, user.email);
-  }
+  };
 
   const signOut = async () => {
     showLoading();
     await firebaseSignOut(auth);
-    router.push('/auth/signin');
+    router.push("/auth/signin");
   };
 
-  const value = {
-    user,
-    hydrating,
-    isTokenReady,
-    signUp,
-    signIn,
-    signInWithGoogle,
-    signInWithApple,
-    signOut,
-    updateUserProfile,
-    updateUserTheme,
-    updatePrivacySettings,
-    sendPasswordReset,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        hydrating,
+        isTokenReady,
+        signUp,
+        signIn,
+        signInWithGoogle,
+        signInWithApple,
+        signOut,
+        updateUserProfile,
+        updateUserTheme,
+        updatePrivacySettings,
+        sendPasswordReset,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }
