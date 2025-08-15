@@ -87,18 +87,12 @@ export default function SignUpPage() {
     setError(null);
     try {
       const signInMethod = provider === 'google' ? signInWithGoogle : signInWithApple;
+      // This will now trigger a redirect. The result is handled in the useAuth hook.
       await signInMethod();
-      toast({
-        title: "Signed In Successfully",
-        description: `Welcome! Please complete your profile.`,
-      });
-      router.push("/onboarding/id-verification");
+      // The code below will not be reached due to the redirect.
     } catch (err: any) {
-      if (err.code === 'auth/popup-closed-by-user') {
-        setError('Sign-in was cancelled.');
-      } else {
-        setError(err.message);
-      }
+      // This catch block is unlikely to be hit unless the redirect itself fails.
+      setError(err.message);
     } finally {
       setLoading(false);
     }

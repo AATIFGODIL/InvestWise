@@ -15,7 +15,8 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   updateProfile,
-  signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   OAuthProvider,
   sendPasswordResetEmail,
@@ -33,6 +34,7 @@ import useAutoInvestStore from "@/store/auto-invest-store";
 import useThemeStore from "@/store/theme-store";
 import usePrivacyStore, { type PrivacyState } from "@/store/privacy-store";
 import useLoadingStore from "@/store/loading-store";
+import { useToast } from "./use-toast";
 
 interface AuthContextType {
   user: User | null;
@@ -57,14 +59,9 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
 
     if (userDoc.exists()) {
         const existingData = userDoc.data();
-        const updates: any = {};
-        if (additionalData.username && additionalData.username !== existingData.username) {
-            updates.username = additionalData.username;
-        }
-        if (Object.keys(updates).length > 0) {
-            await updateDoc(userDocRef, updates);
-        }
-        return { ...existingData, ...updates };
+        // If the user already exists, just return their data.
+        // We only create a new document if it's their very first sign-in.
+        return existingData;
     }
 
     const displayName = additionalData.username || user.displayName || "Investor";
@@ -149,6 +146,7 @@ const fetchAndHydrateUserData = async (user: User) => {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const { toast } = useToast();
   const { showLoading, hideLoading } = useLoadingStore();
   
   const { reset: resetUserStore } = useUserStore.getState();
@@ -172,6 +170,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setTheme('light');
     resetPrivacySettings();
   }, [resetUserStore, resetPortfolio, setNotifications, resetGoals, resetAutoInvest, setTheme, resetPrivacySettings]);
+
+
+  useEffect(() => {
+    // This effect handles the result of a social sign-in redirect.
+    // It runs once when the component mounts.
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result) {
+          // User has successfully signed in via redirect.
+          // Initialize their document if they are a new user.
+          await initializeUserDocument(result.user);
+          toast({
+            title: "Signed In Successfully",
+            description: "Welcome back!",
+          });
+          router.push("/dashboard");
+        }
+      })
+      .catch((error) => {
+        console.error("Error during redirect sign-in:", error);
+        toast({
+          variant: "destructive",
+          title: "Sign In Failed",
+          description: error.message,
+        });
+      })
+      .finally(() => {
+        // This is a good place to hide any global loading indicator
+        // that might have been shown before the redirect.
+      });
+  }, [router, toast]);
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -197,7 +227,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email:string, pass: string, username: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
-    await updateProfile(newUser, { displayName: username, photoURL: "" });
+    await updateProfile(newUser, { displayName: username });
     await initializeUserDocument(newUser, { username });
   }
 
@@ -206,8 +236,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
-    const result = await signInWithPopup(auth, provider);
-    await initializeUserDocument(result.user);
+    showLoading(); // Show loading indicator before redirecting
+    await signInWithRedirect(auth, provider);
   };
 
   const signInWithGoogle = async () => {

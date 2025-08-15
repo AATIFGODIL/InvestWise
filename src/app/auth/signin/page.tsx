@@ -72,21 +72,14 @@ export default function SignInPage() {
 
   const handleSocialSignIn = async (provider: 'google' | 'apple') => {
     setError(null);
-    showLoading();
     try {
       const signInMethod = provider === 'google' ? signInWithGoogle : signInWithApple;
+      // This will now trigger a redirect, and the result will be handled in the useAuth hook.
       await signInMethod();
-      toast({
-        title: "Signed In Successfully",
-        description: "Welcome back!",
-      });
-      router.push("/dashboard");
     } catch (err: any) {
-      if (err.code === 'auth/popup-closed-by-user') {
-        setError('Sign-in was cancelled.');
-      } else {
-        setError(err.message);
-      }
+      // This catch block might only catch errors if the redirect itself fails,
+      // which is rare. Most errors will be caught by getRedirectResult.
+      setError(err.message);
     }
   };
 
