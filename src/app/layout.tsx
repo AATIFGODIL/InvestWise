@@ -33,11 +33,11 @@ export default function RootLayout({
       <head />
       <body className={`${poppins.variable} font-body antialiased`}>
         <AuthProvider>
-          <ThemeProvider>
-            <GlobalLoadingIndicator />
-            {children}
-            <Toaster />
-          </ThemeProvider>
+            <ThemeProvider>
+              <GlobalLoadingIndicator />
+              {children}
+              <Toaster />
+            </ThemeProvider>
         </AuthProvider>
       </body>
     </html>

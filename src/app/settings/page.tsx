@@ -23,8 +23,9 @@ import { useAuth } from "@/hooks/use-auth";
 import usePrivacyStore, { type LeaderboardVisibility } from "@/store/privacy-store";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import PaymentForm from "@/components/settings/payment-form";
+import AppLayout from "@/components/layout/app-layout";
 
-export default function SettingsPage() {
+function SettingsClient() {
   const [parentalControl, setParentalControl] = useState(false);
   const { theme, setTheme } = useThemeStore();
   const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
@@ -214,4 +215,13 @@ export default function SettingsPage() {
       </main>
     </div>
   );
+}
+
+
+export default function SettingsPage() {
+    return (
+        <AppLayout>
+            <SettingsClient />
+        </AppLayout>
+    )
 }

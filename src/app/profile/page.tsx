@@ -19,8 +19,9 @@ import { ChevronLeft, KeyRound, User, Save, Mail, Repeat, BarChart, Briefcase, C
 import Link from "next/link";
 import useUserStore from "@/store/user-store";
 import { useAuth } from "@/hooks/use-auth";
+import AppLayout from "@/components/layout/app-layout";
 
-export default function ProfilePage() {
+function ProfileClient() {
   const { toast } = useToast();
   const { user, hydrating: authLoading, updateUserProfile, sendPasswordReset } = useAuth();
   const { username: globalUsername, setUsername: setGlobalUsername } = useUserStore();
@@ -201,4 +202,13 @@ export default function ProfilePage() {
       </main>
     </div>
   );
+}
+
+
+export default function ProfilePage() {
+    return (
+        <AppLayout>
+            <ProfileClient />
+        </AppLayout>
+    )
 }
