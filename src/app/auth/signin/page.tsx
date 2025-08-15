@@ -60,10 +60,6 @@ export default function SignInPage() {
     showLoading();
     try {
       await signIn(email, password);
-      toast({
-        title: "Signed In Successfully",
-        description: "Welcome back!",
-      });
       // Redirect is handled by onAuthStateChanged in useAuth hook
     } catch (err: any) {
       setError(err.message);
@@ -72,6 +68,7 @@ export default function SignInPage() {
 
   const handleSocialSignIn = async (provider: 'google' | 'apple') => {
     setError(null);
+    showLoading();
     try {
       const signInMethod = provider === 'google' ? signInWithGoogle : signInWithApple;
       await signInMethod();

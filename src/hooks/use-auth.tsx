@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -46,7 +47,7 @@ interface AuthContextType {
   signOut: () => void;
   updateUserProfile: (data: { username?: string }) => Promise<void>;
   updateUserTheme: (theme: "light" | "dark") => Promise<void>;
-  updatePrivacySettings: (settings: Partial<Omit<PrivacyState, any>>) => Promise<void>;
+  updatePrivacySettings: (settings: Partial<Omit<PrivacyState, 'setLeaderboardVisibility' | 'setShowQuests' | 'loadPrivacySettings' | 'resetPrivacySettings'>>) => Promise<void>;
   sendPasswordReset: () => Promise<void>;
 }
 
@@ -57,7 +58,7 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
   const userDoc = await getDoc(userDocRef);
 
   if (userDoc.exists()) {
-    return userDoc.data();
+    return { data: userDoc.data(), isNew: false };
   }
 
   const displayName = additionalData.username || user.displayName || "Investor";
@@ -100,7 +101,7 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
     await updateProfile(auth.currentUser, { displayName });
   }
 
-  return newUserDoc;
+  return { data: newUserDoc, isNew: true };
 };
 
 const fetchAndHydrateUserData = async (user: User) => {
@@ -137,7 +138,7 @@ const fetchAndHydrateUserData = async (user: User) => {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { toast } = useToast();
-  const { showLoading, hideLoading } = useLoadingStore();
+  const { hideLoading } = useLoadingStore();
 
   const { reset: resetUserStore } = useUserStore.getState();
   const { resetPortfolio } = usePortfolioStore.getState();
@@ -161,20 +162,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     resetPrivacySettings();
   }, [resetUserStore, resetPortfolio, setNotifications, resetGoals, resetAutoInvest, setTheme, resetPrivacySettings]);
 
-  // Catch any redirect errors
-  useEffect(() => {
-    getRedirectResult(auth).catch((error) => {
-      console.error("Google redirect failed:", error);
-      toast({
-        variant: "destructive",
-        title: "Sign In Failed",
-        description: error.message,
-      });
-    });
-  }, [toast]);
 
-  // Main auth listener
   useEffect(() => {
+    const handleRedirectResult = async () => {
+        setHydrating(true);
+        try {
+            const result = await getRedirectResult(auth);
+            if (result) {
+                // This means a user has just signed in via redirect.
+                // onAuthStateChanged will handle the user creation and data hydration.
+                // We show the toast here because this hook only runs on the redirect return.
+                 toast({
+                    title: "Signed In Successfully",
+                    description: "Welcome back!",
+                });
+            }
+        } catch (error: any) {
+            console.error("Redirect sign-in failed:", error);
+            toast({
+                variant: "destructive",
+                title: "Sign In Failed",
+                description: error.message || "An unknown error occurred during sign-in.",
+            });
+        }
+        // This is set to false here, but onAuthStateChanged will continue
+        // and might set it to true again briefly, which is fine.
+        setHydrating(false);
+    };
+
+    handleRedirectResult();
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
       setIsTokenReady(false);
@@ -184,38 +201,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await initializeUserDocument(firebaseUser);
         const hydrated = await fetchAndHydrateUserData(firebaseUser);
         setIsTokenReady(hydrated);
-        hideLoading();
-        // Only redirect if not already on a protected route to avoid loops
-        if (window.location.pathname.startsWith('/auth')) {
+        
+        // Only redirect if hydration is successful and we're not already there
+        if (hydrated && window.location.pathname !== "/dashboard") {
           router.push("/dashboard");
         }
       } else {
         setUser(null);
         resetAllStores();
-        setIsTokenReady(false);
-        // Ensure loading is hidden for logged-out users as well
-        hideLoading();
       }
-
+      
+      hideLoading();
       setHydrating(false);
     });
 
     return () => unsubscribe();
-  }, [resetAllStores, hideLoading, router]);
+  }, [router, toast, resetAllStores, hideLoading]);
 
   const signUp = async (email: string, pass: string, username: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-    const newUser = userCredential.user;
-    await updateProfile(newUser, { displayName: username });
-    await initializeUserDocument(newUser, { username });
+    const { isNew } = await initializeUserDocument(userCredential.user, { username });
+    if(isNew) {
+      toast({
+        title: "Account Created!",
+        description: "Welcome to InvestWise!",
+      });
+    }
   };
 
   const signIn = async (email: string, pass: string) => {
     await signInWithEmailAndPassword(auth, email, pass);
+    toast({
+        title: "Signed In Successfully",
+        description: "Welcome back!",
+    });
   };
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
-    showLoading();
     await signInWithRedirect(auth, provider);
   };
 
@@ -268,7 +290,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    showLoading();
     await firebaseSignOut(auth);
     router.push("/auth/signin");
   };
