@@ -14,9 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import useLoadingStore from "@/store/loading-store";
@@ -44,8 +42,6 @@ const AppleIcon = () => (
 );
 
 export default function SignInPage() {
-  const { toast } = useToast();
-  const router = useRouter();
   const { signIn, signInWithGoogle, signInWithApple, hydrating } = useAuth();
   const { showLoading } = useLoadingStore();
 

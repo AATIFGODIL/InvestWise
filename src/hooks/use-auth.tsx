@@ -164,17 +164,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
   useEffect(() => {
+    // This effect runs once on mount to check for a redirect result.
+    // It's crucial for capturing the user after they return from Google/Apple.
     const handleRedirectResult = async () => {
         setHydrating(true);
         try {
             const result = await getRedirectResult(auth);
             if (result) {
-                // This means a user has just signed in via redirect.
-                // onAuthStateChanged will handle the user creation and data hydration.
-                // We show the toast here because this hook only runs on the redirect return.
-                 toast({
+                // User has just signed in via redirect.
+                // onAuthStateChanged will now fire and handle the rest of the logic.
+                toast({
                     title: "Signed In Successfully",
-                    description: "Welcome back!",
+                    description: "Welcome!",
                 });
             }
         } catch (error: any) {
@@ -182,28 +183,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             toast({
                 variant: "destructive",
                 title: "Sign In Failed",
-                description: error.message || "An unknown error occurred during sign-in.",
+                description: error.message || "An unknown error occurred.",
             });
         }
-        // This is set to false here, but onAuthStateChanged will continue
-        // and might set it to true again briefly, which is fine.
+        // Even if there's no result, we stop hydrating from this check.
+        // onAuthStateChanged will take over.
         setHydrating(false);
     };
 
     handleRedirectResult();
 
+    // This is the primary listener for auth changes.
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
       setIsTokenReady(false);
 
       if (firebaseUser) {
         setUser(firebaseUser);
+        // Ensure user document exists and then load all their data.
         await initializeUserDocument(firebaseUser);
         const hydrated = await fetchAndHydrateUserData(firebaseUser);
         setIsTokenReady(hydrated);
         
-        // Only redirect if hydration is successful and we're not already there
-        if (hydrated && window.location.pathname !== "/dashboard") {
+        // Only redirect if hydration is successful.
+        if (hydrated) {
           router.push("/dashboard");
         }
       } else {
@@ -211,6 +214,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         resetAllStores();
       }
       
+      // We always stop loading/hydrating after the check is complete.
       hideLoading();
       setHydrating(false);
     });
@@ -220,13 +224,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, pass: string, username: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-    const { isNew } = await initializeUserDocument(userCredential.user, { username });
-    if(isNew) {
-      toast({
-        title: "Account Created!",
-        description: "Welcome to InvestWise!",
-      });
-    }
+    await initializeUserDocument(userCredential.user, { username });
   };
 
   const signIn = async (email: string, pass: string) => {
@@ -238,6 +236,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
+    // This will navigate the user away. `handleRedirectResult` will catch them on return.
     await signInWithRedirect(auth, provider);
   };
 
