@@ -59,8 +59,6 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
 
     if (userDoc.exists()) {
         const existingData = userDoc.data();
-        // If the user already exists, just return their data.
-        // We only create a new document if it's their very first sign-in.
         return existingData;
     }
 
@@ -103,10 +101,10 @@ const fetchAndHydrateUserData = async (user: User) => {
     const userDocRef = doc(db, "users", user.uid);
     let userDoc = await getDoc(userDocRef);
 
-    // This handles a race condition where a user is created but their doc isn't ready.
     if (!userDoc.exists()) {
-        await new Promise(resolve => setTimeout(resolve, 1000)); // wait 1s and retry
-        userDoc = await getDoc(userDocRef);
+        // This is a new user from a social sign-in, create their document now.
+        await initializeUserDocument(user);
+        userDoc = await getDoc(userDocRef); // Re-fetch the document
     }
     
     const userData = userDoc.data();
@@ -176,11 +174,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // This effect handles the result of a social sign-in redirect.
     // It runs once when the component mounts.
     getRedirectResult(auth)
-      .then(async (result) => {
+      .then((result) => {
         if (result) {
           // User has successfully signed in via redirect.
-          // Initialize their document if they are a new user.
-          await initializeUserDocument(result.user);
+          // The onAuthStateChanged listener below will handle document creation and hydration.
           toast({
             title: "Signed In Successfully",
             description: "Welcome back!",
@@ -196,10 +193,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           description: error.message,
         });
       })
-      .finally(() => {
-        // This is a good place to hide any global loading indicator
-        // that might have been shown before the redirect.
-      });
   }, [router, toast]);
 
 
@@ -227,6 +220,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email:string, pass: string, username: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const newUser = userCredential.user;
+    // We update the auth profile first so the displayName is available for initializeUserDocument
     await updateProfile(newUser, { displayName: username });
     await initializeUserDocument(newUser, { username });
   }
@@ -325,3 +319,5 @@ export function useAuth() {
   }
   return context;
 }
+
+    
