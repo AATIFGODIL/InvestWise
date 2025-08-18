@@ -167,15 +167,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      setHydrating(true);
       if (firebaseUser) {
           setUser(firebaseUser);
           await initializeUserDocument(firebaseUser);
-          await fetchAndHydrateUserData(firebaseUser.uid); // Hydrate stores here
+          await fetchAndHydrateUserData(firebaseUser.uid);
           setIsTokenReady(true);
       } else {
         setUser(null);
         resetAllStores();
         setIsTokenReady(false);
+        if (
+          !window.location.pathname.startsWith('/auth')
+        ) {
+          router.push('/auth/signin');
+        }
       }
       setHydrating(false);
       hideLoading();
@@ -214,7 +220,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
         await signInWithPopup(auth, provider);
-        // onAuthStateChanged will handle user state, but we can redirect and toast here
         toast({ title: "Signed In Successfully", description: "Welcome!" });
         router.push("/dashboard");
     } catch (error: any) {

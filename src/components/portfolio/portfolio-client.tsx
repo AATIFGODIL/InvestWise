@@ -8,20 +8,18 @@ import { Clock, PlusCircle } from "lucide-react";
 import Chatbot from "@/components/chatbot/chatbot";
 import PortfolioValue from "@/components/portfolio/portfolio-value";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import PaymentForm from "@/components/settings/payment-form";
-import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 import AiPrediction from "../ai/ai-prediction";
 
 export default function PortfolioClient() {
-  const [isAddFundsOpen, setIsAddFundsOpen] = useState(false);
+  const { toast } = useToast();
+
+  const handleAddFunds = () => {
+    toast({
+      title: "Feature Coming Soon",
+      description: "Adding funds directly is not yet enabled.",
+    });
+  }
 
   return (
     <div className="w-full bg-background font-body">
@@ -29,23 +27,10 @@ export default function PortfolioClient() {
       <main className="p-4 space-y-6 pb-40">
         <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold">Portfolio</h1>
-            <Dialog open={isAddFundsOpen} onOpenChange={setIsAddFundsOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Add Funds
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add Funds to Your Account</DialogTitle>
-                  <DialogDescription>
-                    Add a payment method to fund your account. Your card details are securely handled by Stripe.
-                  </DialogDescription>
-                </DialogHeader>
-                <PaymentForm onPaymentSuccess={() => setIsAddFundsOpen(false)} />
-              </DialogContent>
-            </Dialog>
+            <Button onClick={handleAddFunds}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Funds
+            </Button>
         </div>
         <PortfolioValue />
         <div>
