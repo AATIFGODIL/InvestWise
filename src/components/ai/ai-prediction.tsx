@@ -12,7 +12,6 @@ import { type StockPredictionOutput } from "@/ai/types/stock-prediction-types";
 import usePortfolioStore from "@/store/portfolio-store";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export default function AiPrediction() {
   const { holdings } = usePortfolioStore();
@@ -74,25 +73,16 @@ export default function AiPrediction() {
               </SelectContent>
             </Select>
           </div>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="self-end">
-                  <Button onClick={handleGetPrediction} disabled={true} className="w-full">
-                    {isLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <BrainCircuit className="mr-2 h-4 w-4" />
-                    )}
-                    Get Prediction
-                  </Button>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Prediction feature coming soon.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <div className="self-end">
+            <Button onClick={handleGetPrediction} disabled={isLoading || !selectedSymbol} className="w-full">
+              {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <BrainCircuit className="mr-2 h-4 w-4" />
+              )}
+              Get Prediction
+            </Button>
+          </div>
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}

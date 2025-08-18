@@ -11,7 +11,6 @@ import { handleStockPrediction } from "@/app/actions";
 import { type StockPredictionOutput } from "@/ai/types/stock-prediction-types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
 
 interface AiPredictionTradeProps {
     initialSymbol: string;
@@ -76,25 +75,16 @@ export default function AiPredictionTrade({ initialSymbol }: AiPredictionTradePr
                 onChange={(e) => setSymbol(e.target.value.toUpperCase())}
             />
           </div>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="self-end">
-                  <Button onClick={handleGetPrediction} disabled={true} className="w-full">
-                    {isLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <BrainCircuit className="mr-2 h-4 w-4" />
-                    )}
-                    Get Prediction
-                  </Button>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Prediction feature coming soon.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <div className="self-end">
+            <Button onClick={handleGetPrediction} disabled={isLoading || !symbol} className="w-full">
+              {isLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <BrainCircuit className="mr-2 h-4 w-4" />
+              )}
+              Get Prediction
+            </Button>
+          </div>
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
