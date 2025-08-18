@@ -15,7 +15,7 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   updateProfile,
-  signInWithRedirect, 
+  signInWithPopup,
   GoogleAuthProvider,
   OAuthProvider,
   sendPasswordResetEmail,
@@ -75,7 +75,7 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
     uid: user.uid,
     email: user.email,
     username: displayName,
-    photoURL: "",
+    photoURL: user.photoURL || "",
     theme: "light",
     leaderboardVisibility: "public",
     showQuests: true,
@@ -97,7 +97,7 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
   await setDoc(userDocRef, newUserDoc);
 
   if (auth.currentUser && auth.currentUser.displayName !== displayName) {
-    await updateProfile(auth.currentUser, { displayName });
+    await updateProfile(auth.currentUser, { displayName, photoURL: user.photoURL });
   }
 
   return { data: newUserDoc, isNew: true };
@@ -168,24 +168,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsTokenReady(false);
 
       if (firebaseUser) {
-        const isInitialLogin = !user; 
-        
-        const { isNew } = await initializeUserDocument(firebaseUser);
-        await fetchAndHydrateUserData(firebaseUser);
-        
-        setUser(firebaseUser);
-        setIsTokenReady(true);
-        
-        if (isInitialLogin) {
-            toast({
-                title: "Signed In Successfully",
-                description: isNew ? "Welcome!" : "Welcome back!",
-            });
-            router.push("/dashboard");
+        // This check prevents re-triggering logic for an already logged-in user on hot-reloads
+        if (user?.uid !== firebaseUser.uid) {
+          const { isNew } = await initializeUserDocument(firebaseUser);
+          await fetchAndHydrateUserData(firebaseUser);
+          
+          setUser(firebaseUser);
+          setIsTokenReady(true);
+          
+          toast({
+              title: "Signed In Successfully",
+              description: isNew ? "Welcome!" : "Welcome back!",
+          });
+          
+          router.push("/dashboard");
         }
       } else {
-        setUser(null);
-        resetAllStores();
+        if (user !== null) { // Only reset if there was a user before
+           setUser(null);
+           resetAllStores();
+        }
       }
       
       hideLoading();
@@ -193,27 +195,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [router, toast, resetAllStores, hideLoading, user]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router, toast, resetAllStores, hideLoading]);
 
   const signUp = async (email: string, pass: string, username: string) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-    await initializeUserDocument(userCredential.user, { username });
+    showLoading();
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+      // onAuthStateChanged will handle the rest
+    } catch (error: any) {
+      hideLoading();
+      throw error;
+    }
   };
 
   const signIn = async (email: string, pass: string) => {
-    await signInWithEmailAndPassword(auth, email, pass);
+    showLoading();
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+      // onAuthStateChanged will handle the rest
+    } catch(error: any) {
+      hideLoading();
+      throw error;
+    }
   };
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
     showLoading();
     try {
-        await signInWithRedirect(auth, provider);
+        await signInWithPopup(auth, provider);
+        // onAuthStateChanged will handle the success case.
     } catch (error: any) {
-        console.error("Redirect sign-in failed:", error);
+        console.error("Popup sign-in failed:", error);
         toast({
             variant: "destructive",
             title: "Sign In Failed",
-            description: error.message || "An unknown error occurred.",
+            description: error.code === 'auth/popup-closed-by-user' 
+              ? "The sign-in window was closed. Please try again."
+              : error.message || "An unknown error occurred.",
         });
         hideLoading();
     }
@@ -299,3 +318,5 @@ export function useAuth() {
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }
+
+    

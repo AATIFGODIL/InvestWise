@@ -16,7 +16,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
@@ -25,16 +24,7 @@ import appleLogo from "../signin/applio.webp";
 
 const GoogleIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-5 w-5 mr-2">
-        <title>Google</title>
-        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12
-	c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24
-	s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
-        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657
-	C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
-        <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36
-	c-5.222,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"></path>
-        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.089,5.571
-	c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
+        <path fill="#4285F4" d="M24 9.8c3.2 0 6.1 1.1 8.4 3.2l6.3-6.3C34.9 2.8 29.9 1 24 1 14.3 1 6.1 6.6 2.7 14.8l7.7 6C12.1 14.2 17.6 9.8 24 9.8z"></path><path fill="#34A853" d="M24 47c5.9 0 11-1.9 14.9-5.2l-7.2-5.6c-2.1 1.4-4.8 2.2-7.7 2.2-6.4 0-11.9-4.4-13.8-10.3l-7.7 6C6.1 40.4 14.3 47 24 47z"></path><path fill="#FBBC05" d="M10.2 28.9c-.6-1.8-.9-3.7-.9-5.6s.3-3.8.9-5.6l-7.7-6C1 14.7 0 19.2 0 24s1 9.3 2.5 12.6l7.7-6z"></path><path fill="#EA4335" d="M24 18.7c-3.1 0-5.7 1-7.7 2.8l-7.2-5.6C13 10.7 18.1 7 24 7c9.7 0 17.9 5.6 21.3 13.8l-7.7 6c-1.7-5.9-7.2-10.3-13.6-10.3z"></path><path fill="none" d="M0 0h48v48H0z"></path>
     </svg>
 );
 
@@ -50,7 +40,6 @@ const AppleIcon = () => (
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { toast } = useToast();
   const { signUp, signInWithGoogle, signInWithApple } = useAuth();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -65,22 +54,13 @@ export default function SignUpPage() {
     e.preventDefault();
     if (password !== confirmPassword) {
         setError("Passwords do not match!");
-        toast({
-            variant: "destructive",
-            title: "Passwords do not match!",
-            description: "Please re-enter your passwords.",
-        });
         return;
     }
     setError(null);
     setLoading(true);
     try {
       await signUp(email, password, username);
-      toast({
-          title: "Success!",
-          description: "Your account has been created.",
-        });
-      router.push("/onboarding/quiz");
+      // Redirect is now handled by onAuthStateChanged
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -88,21 +68,6 @@ export default function SignUpPage() {
     }
   };
 
-  const handleSocialSignIn = async (provider: 'google' | 'apple') => {
-    setLoading(true);
-    setError(null);
-    try {
-      const signInMethod = provider === 'google' ? signInWithGoogle : signInWithApple;
-      // This will now trigger a redirect. The result is handled in the useAuth hook.
-      await signInMethod();
-      // The code below will not be reached due to the redirect.
-    } catch (err: any) {
-      // This catch block is unlikely to be hit unless the redirect itself fails.
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
@@ -122,10 +87,10 @@ export default function SignUpPage() {
               </Alert>
           )}
           <div className="grid grid-cols-2 gap-2">
-            <Button variant="outline" onClick={() => handleSocialSignIn('google')} disabled={loading}>
+            <Button variant="outline" onClick={signInWithGoogle} disabled={loading}>
                 <GoogleIcon /> Google
             </Button>
-            <Button variant="outline" onClick={() => handleSocialSignIn('apple')} disabled={loading}>
+            <Button variant="outline" onClick={signInWithApple} disabled={loading}>
                 <AppleIcon /> Apple
             </Button>
           </div>
@@ -237,3 +202,5 @@ export default function SignUpPage() {
     </div>
   );
 }
+
+    
