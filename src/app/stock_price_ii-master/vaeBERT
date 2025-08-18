@@ -1,0 +1,422 @@
+
+import pandas as pd  
+import numpy as np  
+from sklearn.ensemble import GradientBoostingRegressor  
+from sklearn.neighbors import KNeighborsRegressor  
+from sklearn.model_selection import train_test_split  
+from sklearn.preprocessing import StandardScaler  
+from sklearn.metrics import r2_score  
+from sklearn.preprocessing import MinMaxScaler  
+from sklearn.preprocessing import StandardScaler
+from yahoofinancials import YahooFinancials  
+from datetime import datetime, timedelta   
+from tensorflow import keras 
+from tensorflow.keras import layers, losses, models, Model, optimizers
+from tensorflow.keras.models import Sequential  
+from tensorflow.keras.layers import Dense  
+from tensorflow.keras import backend as K
+import matplotlib.pyplot as plt
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+from transformers import BertTokenizer, BertModel, pipeline
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+  
+class PortfolioForecastService:  
+    def __init__(self, portfolio):  
+        self.yahoo_financials = YahooFinancials(portfolio)
+        self.end_date = None
+        self.start_date = None
+        self.historical_data = None
+        
+    def update(self, yahoo):
+        self.end_date = datetime.now().strftime('%Y-%m-%d')  
+        self.start_date = (datetime.now() - timedelta(days=5*365)).strftime('%Y-%m-%d')  
+        self.historical_data = yahoo.get_historical_price_data(self.start_date, self.end_date, 'monthly')
+  
+    def get_historical_data(self,  symbol):  
+        end_date = datetime.now().strftime('%Y-%m-%d')  
+        start_date = (datetime.now() - timedelta(days=5*365)).strftime('%Y-%m-%d')  
+        historical_data = self.yahoo_financials.get_historical_price_data(start_date, end_date, 'monthly')[symbol]['prices']
+        return pd.DataFrame(self.historical_data[symbol]['prices']) 
+  
+    def get_forecast_data(self, symbol, historical_data):    
+        #normalizing historical
+        scaler_historical = StandardScaler()  
+        historical_data_scaled = scaler_historical.fit_transform(historical_data)  
+      
+        close_scaler = StandardScaler()  
+        close_prices = historical_data.iloc[:, 4].values.reshape(-1, 1)
+        close_scaler.fit(close_prices)  
+                
+        vae = self.VAE(historical_data_scaled)    
+        latent_representations = vae.predict(historical_data_scaled)    
+                   
+        gan = self.GAN(latent_representations)    
+        synthetic_data = gan.predict(latent_representations)    
+      
+        scaler_synthetic = StandardScaler()  
+        synthetic_data_scaled = scaler_synthetic.fit_transform(synthetic_data)  
+      
+        print("Synthetic data:", synthetic_data_scaled)   
+                
+        #latent + synthetic data 
+        enriched_data = np.concatenate((latent_representations, synthetic_data_scaled), axis=1)    
+      
+        print("Enriched data:", enriched_data)   
+
+        print("Historical data:", historical_data_scaled)   
+        
+        X = enriched_data    
+        y = historical_data_scaled[:, 4]
+        
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)      
+      
+        model = Sequential()      
+        model.add(layers.Input(shape=(X_train.shape[1],)))  
+        model.add(Dense(64, activation='relu'))      
+        model.add(Dense(32, activation='relu'))      
+        model.add(Dense(1))  
+
+
+    
+      
+        model.compile(optimizer='adam', loss='mean_squared_error')    
+        model.fit(X_train, y_train, epochs=200, batch_size=32)  
+      
+        y_pred = model.predict(X_test)      
+          
+        y_pred_rescaled = close_scaler.inverse_transform(y_pred.reshape(-1, 1))      
+      
+        y_test_rescaled = close_scaler.inverse_transform(y_test.reshape(-1, 1))  
+      
+        #real vs predicted vals
+        plt.figure(figsize=(10, 6))  
+        plt.plot(y_test_rescaled, color='blue', label='Actual')  
+        plt.plot(y_pred_rescaled, color='red', label='Predicted')  
+        plt.title('Actual vs Predicted Close Prices')  
+        plt.xlabel('Time')  
+        plt.ylabel('Price')  
+        plt.legend()  
+        plt.show()  
+      
+        score = r2_score(y_test, y_pred)        
+      
+        return y_pred_rescaled, score 
+  
+    def get_portfolio_forecast(self, portfolio):
+        forecast_data = {}  
+        accuracy_scores = {}
+        yahoo = YahooFinancials(portfolio)
+        self.update(yahoo)
+        for symbol in portfolio:  
+            historical_data = self.get_historical_data(symbol).drop("formatted_date", axis = 'columns')
+            
+            forecast, score = self.get_forecast_data(symbol, historical_data)  
+            forecast_data[symbol] = forecast  
+            accuracy_scores[symbol] = score  
+        return forecast_data, accuracy_scores  
+  
+    def VAE(self, data):  
+        latent_dim = data.shape[1] 
+  
+        class Encoder(Model):    
+          def __init__(self, latent_dim):    
+            super(Encoder, self).__init__()    
+            self.dense = layers.Dense(latent_dim)  
+            self.z_mean = layers.Dense(latent_dim)  
+            self.z_log_var = layers.Dense(latent_dim)  
+          
+          def call(self, x):    
+            x = self.dense(x)  
+            z_mean = self.z_mean(x)  
+            z_log_var = self.z_log_var(x)  
+            return z_mean, z_log_var  
+  
+  
+        class Decoder(Model):  
+          def __init__(self, original_dim):  
+            super(Decoder, self).__init__()   
+            self.decoder = layers.Dense(data.shape[1], activation='sigmoid', activity_regularizer=keras.regularizers.l1(10e-5))  
+  
+          def call(self, x):  
+            decoded = self.decoder(x)  
+            return decoded  
+  
+        class VAE(Model):    
+          def __init__(self, encoder, decoder, beta=0.1):    
+            super(VAE, self).__init__()    
+            self.encoder = encoder    
+            self.decoder = decoder    
+            self.beta = beta  
+          
+          def call(self, x):    
+            self.z_mean, self.z_log_var = self.encoder(x)    
+            z = self.z_mean + K.exp(0.5 * self.z_log_var) * K.random_normal(shape=(K.shape(x)[0], latent_dim))  
+            decoded = self.decoder(z)  
+            return decoded    
+          
+          def vae_loss(self, x, decoded):  
+            self.z_mean, self.z_log_var = self.encoder(x)    
+            reconstruction_loss = losses.MeanSquaredError()(x, decoded)  
+            kl_loss = - 0.5 * K.sum(1 + self.z_log_var - K.square(self.z_mean) - K.exp(self.z_log_var), axis=-1)  
+            return K.mean(reconstruction_loss + self.beta * kl_loss)  
+
+        encoder = Encoder(latent_dim)      
+        decoder = Decoder(data.shape[1]) 
+
+        vae = VAE(encoder, decoder)  
+        vae.compile(optimizer=optimizers.Adam(learning_rate=0.001), loss=vae.vae_loss)  
+  
+        vae.fit(data, data, epochs=200, batch_size=32)    
+      
+        return vae  
+  
+    def GAN(self, data):    
+        latent_dim = data.shape[1]   
+        
+        class Generator(keras.Model):      
+            def __init__(self, latent_dim):          
+                super(Generator, self).__init__()          
+                self.generator = keras.Sequential([            
+                layers.Input(shape=(latent_dim,)),       
+                layers.Dense(128),       
+                layers.LeakyReLU(negative_slope=0.2),            
+                layers.BatchNormalization(momentum=0.8),            
+                layers.Dense(256),            
+                layers.LeakyReLU(negative_slope=0.2),            
+                layers.BatchNormalization(momentum=0.8),            
+                layers.Dense(512),            
+                layers.LeakyReLU(negative_slope=0.2),            
+                layers.BatchNormalization(momentum=0.8),  
+                layers.Dense(512),            
+                layers.LeakyReLU(negative_slope=0.2),            
+                layers.BatchNormalization(momentum=0.8),  
+                layers.Dense(512),            
+                layers.LeakyReLU(negative_slope=0.2),            
+                layers.BatchNormalization(momentum=0.8),  
+                layers.Dense(1024),      
+                layers.LeakyReLU(negative_slope=0.2),            
+                layers.BatchNormalization(momentum=0.8),  
+                layers.Dense(1024),  
+                layers.LeakyReLU(negative_slope=0.2),            
+                layers.BatchNormalization(momentum=0.8),  
+                layers.Dense(512),      
+                layers.LeakyReLU(negative_slope=0.2),   
+                layers.BatchNormalization(momentum=0.8),  
+                layers.Dense(latent_dim, activation='tanh'),
+                layers.Dropout(0.2)
+                ])   
+      
+            def call(self, x):    
+                generated = self.generator(x)    
+                return generated  
+          
+        class Discriminator(keras.Model):        
+            def __init__(self, latent_dim):        
+                super(Discriminator, self).__init__()        
+                self.discriminator = keras.Sequential([      
+                    layers.Input(shape=(latent_dim,)),  
+                    layers.Dense(128),    
+                    layers.LeakyReLU(negative_slope=0.2),      
+                    layers.Dense(256),      
+                    layers.LeakyReLU(negative_slope=0.2),   
+                    layers.Dense(256),      
+                    layers.LeakyReLU(negative_slope=0.2),   
+                    layers.Dense(512),     
+                    layers.LeakyReLU(negative_slope=0.2),   
+                    layers.Dense(512),      
+                    layers.LeakyReLU(negative_slope=0.2),   
+                    layers.Dense(1),  
+                    layers.Dropout(0.2)  
+                ])    
+
+          
+            def call(self, x):    
+                validity = self.discriminator(x)    
+                return validity  
+            
+        class GAN(keras.Model):    
+            def __init__(self, generator, discriminator):    
+                super(GAN, self).__init__()    
+                self.generator = generator    
+                self.discriminator = discriminator    
+          
+            def call(self, x):    
+                generated = self.generator(x)    
+                validity = self.discriminator(generated)    
+                return validity    
+          
+        generator = Generator(latent_dim)    
+        discriminator = Discriminator(latent_dim)    
+        gan = GAN(generator, discriminator)    
+          
+        gan.compile(optimizer=optimizers.Adam(learning_rate=0.001), loss=losses.BinaryCrossentropy(from_logits=True))
+        gan.fit(data, np.ones((data.shape[0], 1)), epochs=200, batch_size=32)   
+          
+        return gan  
+        
+x = PortfolioForecastService(["AAPL"])
+print(x.get_portfolio_forecast(["AAPL"]))
+
+tokenizer = BertTokenizer.from_pretrained('yiyanghkust/finbert-tone')
+model = BertModel.from_pretrained('yiyanghkust/finbert-tone')
+
+# 2. Sentiment Analysis Pipeline using FinBERT
+nlp = pipeline("sentiment-analysis", model=model, tokenizer=tokenizer)
+
+# Example financial news text data
+text_data = [
+    "The company's profits have significantly increased over the last quarter.",
+    "The market is expecting a downturn due to recent policy changes."
+]
+
+# 3. Function to process text data through FinBERT and extract sentiment features
+def extract_sentiment_features(texts):
+    sentiment_features = []
+    for text in texts:
+        result = nlp(text)
+        # Extracting sentiment score from FinBERT output (positive = 1, negative = -1)
+        score = result[0]['score'] if result[0]['label'] == 'positive' else -result[0]['score']
+        sentiment_features.append([score])  # Wrapping the score into a list for compatibility with the data format
+    return sentiment_features
+
+# 4. Extract sentiment features from the example text data
+sentiment_features = extract_sentiment_features(text_data)
+
+# 5. Standardize the sentiment features for input into the model (important for numerical stability)
+scaler = StandardScaler()
+sentiment_features = scaler.fit_transform(sentiment_features)
+
+# Placeholder function to simulate stock data fetching
+# In practice, this would be replaced with actual historical stock data retrieval
+def get_stock_data():
+    # Simulating a 2D array with random stock data (each row is a stock data point with multiple features)
+    return np.random.rand(len(text_data), 10)  # 10 features representing price, volume, etc.
+
+# 6. Fetch historical stock price data
+historical_data = get_stock_data()
+
+# 7. Combine sentiment features with historical stock price data
+# Concatenating sentiment features and historical stock price data horizontally (axis=1)
+combined_data = np.concatenate((historical_data, sentiment_features), axis=1)
+
+# Convert combined data to a tensor for the model
+combined_data_tensor = torch.tensor(combined_data, dtype=torch.float32)
+
+# 8. Define the data loader for the combined data (assuming batch_size of 64)
+batch_size = 64
+dataset = TensorDataset(combined_data_tensor)
+dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+# 9. Example VAE-GAN model classes (assuming these have been defined before)
+class VAE(nn.Module):
+    def __init__(self, input_dim, hidden_dim, latent_dim):
+        super(VAE, self).__init__()
+        self.encoder = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, latent_dim * 2)  # Latent space has 2x dimensions (mean and log variance)
+        )
+        self.decoder = nn.Sequential(
+            nn.Linear(latent_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, input_dim),
+            nn.Sigmoid()  # To output values between 0 and 1
+        )
+
+    def reparameterize(self, mu, logvar):
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return mu + eps * std
+
+    def forward(self, x):
+        enc_out = self.encoder(x)
+        mu, logvar = torch.chunk(enc_out, 2, dim=1)
+        z = self.reparameterize(mu, logvar)
+        reconstructed = self.decoder(z)
+        return reconstructed, mu, logvar
+
+class GAN_Discriminator(nn.Module):
+    def __init__(self, input_dim, hidden_dim):
+        super(GAN_Discriminator, self).__init__()
+        self.model = nn.Sequential(
+            nn.Linear(input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, 1),
+            nn.Sigmoid()  #val output(real vs fake)
+        )
+    
+    def forward(self, x):
+        return self.model(x)
+
+class GAN_Generator(nn.Module):
+    def __init__(self, latent_dim, hidden_dim, output_dim):
+        super(GAN_Generator, self).__init__()
+        self.model = nn.Sequential(
+            nn.Linear(latent_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, output_dim),
+            nn.Sigmoid()  # Output generated data(between 0 and 1)
+        )
+    
+    def forward(self, z):
+        return self.model(z)
+
+# Instantiate models
+input_dim = combined_data.shape[1]  # Number of combined features (historical + sentiment)
+hidden_dim = 128
+latent_dim = 20
+
+vae = VAE(input_dim, hidden_dim, latent_dim)
+discriminator = GAN_Discriminator(input_dim, hidden_dim)
+generator = GAN_Generator(latent_dim, hidden_dim, input_dim)
+
+#optimizers
+vae_optimizer = optim.Adam(vae.parameters(), lr=0.001)
+disc_optimizer = optim.Adam(discriminator.parameters(), lr=0.001)
+gen_optimizer = optim.Adam(generator.parameters(), lr=0.001)
+
+#Loss stuff
+reconstruction_loss_fn = nn.BCELoss() 
+adversarial_loss_fn = nn.BCELoss()
+
+
+num_epochs = 50
+
+for epoch in range(num_epochs):
+    for batch_data in dataloader:
+        real_data = batch_data[0]  #historical +_ sentiment stuff
+
+        # VAE training
+        vae_optimizer.zero_grad()
+        reconstructed_data, mu, logvar = vae(real_data)
+        # VAE loss
+        kl_divergence = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        reconstruction_loss = reconstruction_loss_fn(reconstructed_data, real_data)
+        vae_loss = reconstruction_loss + kl_divergence
+        vae_loss.backward()
+        vae_optimizer.step()
+
+        #GAN training(discriminator)
+        disc_optimizer.zero_grad()
+        z = torch.randn(real_data.size(0), latent_dim)
+        generated_data = generator(z)
+        real_validity = discriminator(real_data)
+        fake_validity = discriminator(generated_data.detach())
+        real_loss = adversarial_loss_fn(real_validity, torch.ones_like(real_validity))#real data(1)
+        fake_loss = adversarial_loss_fn(fake_validity, torch.zeros_like(fake_validity))#fake data(0)
+        disc_loss = (real_loss + fake_loss) / 2
+        disc_loss.backward()
+        disc_optimizer.step()
+
+        #GAN training(generator)
+        gen_optimizer.zero_grad()
+        fake_validity = discriminator(generated_data)
+        gen_loss = adversarial_loss_fn(fake_validity, torch.ones_like(fake_validity))#classifying fake data as real with GAN
+        gen_loss.backward()
+        gen_optimizer.step()
+
+    print(f"Epoch {epoch + 1}/{num_epochs}, VAE Loss: {vae_loss.item()}, Discriminator Loss: {disc_loss.item()}, Generator Loss: {gen_loss.item()}")

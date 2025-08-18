@@ -1,0 +1,87 @@
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import r2_score, mean_squared_error
+from yahoofinancials import YahooFinancials
+from datetime import datetime, timedelta
+import matplotlib.pyplot as plt
+
+class PortfolioForecastService:
+    def __init__(self):
+        self.end_date = None
+        self.start_date = None
+        self.historical_data = None
+        
+    def update(self, yahoo):
+        self.end_date = datetime.now().strftime('%Y-%m-%d')
+        self.start_date = (datetime.now() - timedelta(days=5*365)).strftime('%Y-%m-%d')
+        self.historical_data = yahoo.get_historical_price_data(self.start_date, self.end_date, 'monthly')
+  
+    def get_historical_data(self, symbol):
+        df = pd.DataFrame(self.historical_data[symbol]['prices'])
+        df['date'] = pd.to_datetime(df['formatted_date'])
+        df = df.sort_values('date')
+        df['returns'] = df['close'].pct_change()
+        df = df.dropna()
+        return df
+
+    def get_forecast_data(self, symbol, historical_data):
+        features = ['open', 'high', 'low', 'close', 'volume', 'returns']
+        X = historical_data[features]
+        y = historical_data['close'].shift(-1)  # Predicting next month's close price
+        X = X[:-1]  # Remove last row
+        y = y[:-1]  # Remove last row
+
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+        
+        X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+        model = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=3, random_state=42)
+        model.fit(X_train, y_train)
+      
+        y_pred = model.predict(X_test)
+          
+        mse = mean_squared_error(y_test, y_pred)
+        r2 = r2_score(y_test, y_pred)
+
+        plt.figure(figsize=(10, 6))
+        plt.plot(y_test.values, color='blue', label='Actual')
+        plt.plot(y_pred, color='red', label='Predicted')
+        plt.title(f'{symbol} Stock Price Prediction')
+        plt.xlabel('Time')
+        plt.ylabel('Price')
+        plt.legend()
+        plt.show()
+      
+        # Predict the next month's price
+        last_data_point = scaler.transform(X.iloc[-1].values.reshape(1, -1))
+        next_month_prediction = model.predict(last_data_point)[0]
+
+        return next_month_prediction, mse, r2
+
+    def get_portfolio_forecast(self, portfolio):
+        forecast_data = {}
+        mse_scores = {}
+        r2_scores = {}
+        yahoo = YahooFinancials(portfolio)
+        self.update(yahoo)
+        for symbol in portfolio:
+            historical_data = self.get_historical_data(symbol)
+            forecast, mse, r2 = self.get_forecast_data(symbol, historical_data)
+            forecast_data[symbol] = forecast
+            mse_scores[symbol] = mse
+            r2_scores[symbol] = r2
+        return forecast_data, mse_scores, r2_scores
+
+# Example usage
+x = PortfolioForecastService()
+forecasts, mse_scores, r2_scores = x.get_portfolio_forecast(["MSFT"])
+
+for symbol in forecasts:
+    print(f"\nResults for {symbol}:")
+    print(f"Mean Squared Error: {mse_scores[symbol]:.2f}")
+    print(f"R2 Score: {r2_scores[symbol]:.2f}")
+    print(f"Next month's predicted close price: ${forecasts[symbol]:.2f}")
