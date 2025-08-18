@@ -1,11 +1,7 @@
 
 import admin from 'firebase-admin';
-import * as dotenv from 'dotenv';
-import * as path from 'path';
 
-// Force the loading of the .env file at the root of the project
-// This ensures the service account key is available before Firebase is initialized.
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+// NOTE: dotenv.config() is removed. Next.js handles .env file loading automatically.
 
 let auth: admin.auth.Auth;
 let db: admin.firestore.Firestore;
