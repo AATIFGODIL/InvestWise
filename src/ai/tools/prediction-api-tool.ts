@@ -14,11 +14,17 @@ export const getPredictionFromApi = ai.defineTool(
     outputSchema: z.any(),
   },
   async (input) => {
-    console.log(`Calling prediction API for symbol: ${input.symbol}`);
-    const url = 'http://localhost:8000/predict'; // The user-provided API endpoint
+    const apiUrl = process.env.NEXT_PUBLIC_PREDICTION_API_URL;
+
+    if (!apiUrl) {
+      console.error("Prediction API URL is not configured. Please set NEXT_PUBLIC_PREDICTION_API_URL in your .env file.");
+      return { error: 'The prediction service is not configured. Please contact support.' };
+    }
+    
+    console.log(`Calling prediction API for symbol: ${input.symbol} at ${apiUrl}`);
 
     try {
-      const response = await fetch(url, {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
