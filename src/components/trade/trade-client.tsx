@@ -12,6 +12,7 @@ import { specializedBundles } from "@/data/bundles";
 import TradingViewWidget from "@/components/shared/trading-view-widget";
 import TradingViewScreener from "@/components/shared/trading-view-screener";
 import AiPredictionTrade from "../ai/ai-prediction-trade";
+import { fetchPrice } from "@/lib/alphaVantage";
 
 const videos = [
     {
@@ -32,7 +33,9 @@ export default function TradePageContent() {
   const searchParams = useSearchParams();
   const [selectedSymbol, setSelectedSymbol] = useState<string>("AAPL");
   const [selectedPrice, setSelectedPrice] = useState<number | null>(null); 
+  const [loadingPrice, setLoadingPrice] = useState(false);
 
+  // update symbol from URL
   useEffect(() => {
     const symbolFromUrl = searchParams.get('symbol');
     if (symbolFromUrl) {
@@ -40,8 +43,20 @@ export default function TradePageContent() {
     }
   }, [searchParams]);
 
+  // fetch price whenever symbol changes
+  useEffect(() => {
+    async function getPrice() {
+      setLoadingPrice(true);
+      const price = await fetchPrice(selectedSymbol);
+      setSelectedPrice(price);
+      setLoadingPrice(false);
+    }
+    if (selectedSymbol) {
+      getPrice();
+    }
+  }, [selectedSymbol]);
+
   const handleSymbolChange = useCallback((newSymbol: string) => {
-    // Prevent unnecessary re-renders if symbol is the same
     if (newSymbol !== selectedSymbol) {
       setSelectedSymbol(newSymbol);
     }
@@ -57,7 +72,11 @@ export default function TradePageContent() {
             <TradingViewWidget symbol={selectedSymbol} onSymbolChange={handleSymbolChange} />
         </div>
 
-        <TradeForm selectedSymbol={selectedSymbol} selectedPrice={selectedPrice} />
+        <TradeForm 
+          selectedSymbol={selectedSymbol} 
+          selectedPrice={selectedPrice} 
+          loadingPrice={loadingPrice}
+        />
 
         <AiPredictionTrade initialSymbol={selectedSymbol} />
         

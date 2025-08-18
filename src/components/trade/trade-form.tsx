@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Info, Search, DollarSign } from "lucide-react";
+import { Info, Search, DollarSign, Loader2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -60,9 +60,10 @@ type TradeFormValues = z.infer<typeof tradeSchema>;
 interface TradeFormProps {
     selectedSymbol: string | null;
     selectedPrice: number | null;
+    loadingPrice: boolean;
 }
 
-export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormProps) {
+export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice }: TradeFormProps) {
   const { toast } = useToast();
   const { executeTrade } = usePortfolioStore();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -88,6 +89,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
   
   useEffect(() => {
     if (selectedPrice) {
+      // Set limitPrice when orderType is 'limit', or when it's market to have a price for cost estimation
       setValue("limitPrice", selectedPrice, { shouldValidate: true });
     }
   }, [selectedPrice, setValue]);
@@ -97,7 +99,9 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
   const quantity = watch("quantity");
   const limitPrice = watch("limitPrice");
   
-  const estimatedCost = limitPrice && quantity > 0 ? limitPrice * quantity : 0;
+  const estimatedCost = (orderType === 'limit' ? limitPrice : selectedPrice) && quantity > 0 
+    ? (orderType === 'limit' ? limitPrice! : selectedPrice!) * quantity 
+    : 0;
 
   const handlePreview = (data: TradeFormValues) => {
     setPreviewData(data);
@@ -107,10 +111,12 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
   const handleConfirmTrade = () => {
     if (!previewData || !selectedPrice) return;
 
+    const tradePrice = previewData.orderType === 'limit' && previewData.limitPrice ? previewData.limitPrice : selectedPrice;
+
     const tradeResult = executeTrade({
       symbol: previewData.symbol.toUpperCase(),
       qty: previewData.action === 'buy' ? previewData.quantity : -previewData.quantity,
-      price: selectedPrice,
+      price: tradePrice,
       description: "Selected Stock" // Placeholder description
     });
 
@@ -140,19 +146,36 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
             <CardTitle>Place an Order</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="symbol">Symbol</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="symbol"
-                  placeholder="Select a symbol from the list above"
-                  className="pl-10"
-                  {...register("symbol")}
-                  readOnly
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="symbol">Symbol</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="symbol"
+                    placeholder="Select a symbol from the list above"
+                    className="pl-10"
+                    {...register("symbol")}
+                    readOnly
+                  />
+                </div>
+                {errors.symbol && <p className="text-sm text-destructive">{errors.symbol.message}</p>}
               </div>
-              {errors.symbol && <p className="text-sm text-destructive">{errors.symbol.message}</p>}
+               <div className="space-y-2">
+                  <Label htmlFor="market-price">Market Price</Label>
+                  <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 py-2 text-sm">
+                    {loadingPrice ? (
+                      <div className="flex items-center text-muted-foreground">
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Fetching price...
+                      </div>
+                    ) : selectedPrice ? (
+                      <span className="font-mono">${selectedPrice.toFixed(2)}</span>
+                    ) : (
+                      <span className="text-muted-foreground">Price unavailable</span>
+                    )}
+                  </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -244,7 +267,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
                         <span className="font-medium">${estimatedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                      <div className="flex justify-between text-xs text-muted-foreground">
-                        <span>{quantity} shares x ${limitPrice?.toFixed(2)}/share</span>
+                        <span>{quantity} shares x ${(orderType === 'limit' ? limitPrice : selectedPrice)?.toFixed(2)}/share</span>
                     </div>
                 </div>
             )}
@@ -252,7 +275,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
             <Button variant="outline" type="button" onClick={() => reset()}>Clear</Button>
-            <Button type="submit" disabled={!isValid || !selectedSymbol}>Preview Order</Button>
+            <Button type="submit" disabled={!isValid || !selectedSymbol || loadingPrice}>Preview Order</Button>
           </CardFooter>
         </form>
       </Card>
@@ -277,7 +300,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice }: TradeFormPr
                         <div className="flex justify-between"><strong>Duration:</strong> <span>{previewData.duration === 'gtc' ? "Good 'til Canceled" : "Day Only"}</span></div>
                         <div className="flex justify-between pt-2 border-t mt-2">
                             <strong>Estimated Total:</strong> 
-                            <strong className="text-primary">${(previewData.limitPrice! * previewData.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                            <strong className="text-primary">${(previewData.orderType === 'limit' ? previewData.limitPrice! * previewData.quantity : selectedPrice! * previewData.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
                         </div>
                     </div>
                 )}
