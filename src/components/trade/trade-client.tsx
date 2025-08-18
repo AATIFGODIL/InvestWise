@@ -1,4 +1,3 @@
-
 "use client"
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -42,7 +41,7 @@ export default function TradePageContent() {
     if (symbolFromUrl) {
       setSelectedSymbol(symbolFromUrl.toUpperCase());
     }
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, [searchParams]);
 
   // fetch price whenever symbol changes
   useEffect(() => {
