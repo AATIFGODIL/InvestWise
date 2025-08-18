@@ -23,7 +23,7 @@ import {
   type User,
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/config";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, type Timestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/store/user-store";
 import usePortfolioStore from "@/store/portfolio-store";
@@ -51,6 +51,40 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const fetchAndHydrateUserData = async (uid: string) => {
+  const userDocRef = doc(db, "users", uid);
+  const userDoc = await getDoc(userDocRef);
+  if (!userDoc.exists()) {
+    console.error("User document not found for hydration!");
+    return false;
+  }
+  const userData = userDoc.data();
+
+  const { setUsername } = useUserStore.getState();
+  const { loadInitialData } = usePortfolioStore.getState();
+  const { setNotifications } = useNotificationStore.getState();
+  const { loadGoals } = useGoalStore.getState();
+  const { loadAutoInvestments } = useAutoInvestStore.getState();
+  const { setTheme } = useThemeStore.getState();
+  const { loadPrivacySettings } = usePrivacyStore.getState();
+
+  const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
+  const theme = userData.theme || "light";
+
+  setTheme(theme);
+  setUsername(userData.username || "Investor");
+  loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
+  setNotifications(userData.notifications || []);
+  loadGoals(userData.goals || []);
+  loadAutoInvestments(userData.autoInvestments || []);
+  loadPrivacySettings({
+    leaderboardVisibility: userData.leaderboardVisibility || "public",
+    showQuests: userData.showQuests === undefined ? true : userData.showQuests,
+  });
+  return true;
+};
+
 
 const initializeUserDocument = async (user: User, additionalData: { username?: string } = {}) => {
   const userDocRef = doc(db, "users", user.uid);
@@ -134,11 +168,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        if (!user || user.uid !== firebaseUser.uid) { // Prevent re-running for the same user
           setUser(firebaseUser);
           await initializeUserDocument(firebaseUser);
+          await fetchAndHydrateUserData(firebaseUser.uid); // Hydrate stores here
           setIsTokenReady(true);
-        }
       } else {
         setUser(null);
         resetAllStores();
