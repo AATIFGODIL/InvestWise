@@ -47,23 +47,26 @@ const AppleIcon = () => (
 );
 
 export default function SignInPage() {
-  const { signIn, signInWithGoogle, signInWithApple, hydrating } = useAuth();
+  const { signIn, signInWithGoogle, signInWithApple } = useAuth();
   const { showLoading } = useLoadingStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isEmailLoading, setIsEmailLoading] = useState(false);
   
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    showLoading();
+    setIsEmailLoading(true);
     try {
       await signIn(email, password);
       // Redirect is handled by onAuthStateChanged in useAuth hook
     } catch (err: any) {
       setError(err.message);
+    } finally {
+      setIsEmailLoading(false);
     }
   };
 
@@ -78,15 +81,6 @@ export default function SignInPage() {
       setError(err.message);
     }
   };
-
-  if (hydrating) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-background">
-        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground">Finalizing your sign-in...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
@@ -131,6 +125,7 @@ export default function SignInPage() {
                   required 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isEmailLoading}
                 />
               </div>
               <div className="grid gap-2">
@@ -143,6 +138,7 @@ export default function SignInPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pr-10"
+                    disabled={isEmailLoading}
                   />
                   <Button 
                     type="button" 
@@ -150,13 +146,21 @@ export default function SignInPage() {
                     size="icon" 
                     className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
                     onClick={() => setShowPassword(prev => !prev)}
+                    disabled={isEmailLoading}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
-              <Button type="submit" className="w-full">
-                Sign in with Email
+              <Button type="submit" className="w-full" disabled={isEmailLoading}>
+                {isEmailLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  'Sign in with Email'
+                )}
               </Button>
             </form>
           </CardContent>
