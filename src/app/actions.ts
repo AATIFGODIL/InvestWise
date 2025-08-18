@@ -2,7 +2,8 @@
 "use server";
 
 import { investmentChatbot } from "@/ai/flows/investment-chatbot";
-import { stockPrediction, type StockPredictionOutput } from "@/ai/flows/stock-prediction";
+import { stockPrediction } from "@/ai/flows/stock-prediction";
+import type { StockPredictionOutput } from "@/ai/types/stock-prediction-types";
 import { gateway } from "@/lib/braintree";
 import { db } from "@/lib/firebase/admin";
 

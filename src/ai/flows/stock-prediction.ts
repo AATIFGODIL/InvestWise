@@ -5,23 +5,11 @@
  * @fileOverview A stock prediction AI agent.
  *
  * - stockPrediction - A function that handles the stock prediction interactions.
- * - StockPredictionInput - The input type for the stockPrediction function.
- * - StockPredictionOutput - The return type for the stockPrediction function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { StockPredictionInputSchema, StockPredictionOutputSchema, type StockPredictionInput, type StockPredictionOutput } from '@/ai/types/stock-prediction-types';
 
-export const StockPredictionInputSchema = z.object({
-  symbol: z.string().describe('The stock symbol to predict.'),
-});
-export type StockPredictionInput = z.infer<typeof StockPredictionInputSchema>;
-
-export const StockPredictionOutputSchema = z.object({
-  prediction: z.string().describe('The AI-generated prediction for the stock.'),
-  confidence: z.enum(["High", "Medium", "Low"]).describe('The confidence level of the prediction.'),
-});
-export type StockPredictionOutput = z.infer<typeof StockPredictionOutputSchema>;
 
 export async function stockPrediction(input: StockPredictionInput): Promise<StockPredictionOutput> {
   return stockPredictionFlow(input);

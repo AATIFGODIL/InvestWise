@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrainCircuit, Loader2 } from "lucide-react";
 import { handleStockPrediction } from "@/app/actions";
-import { type StockPredictionOutput } from "@/ai/flows/stock-prediction";
+import { type StockPredictionOutput } from "@/ai/types/stock-prediction-types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip";
