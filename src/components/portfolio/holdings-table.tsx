@@ -1,6 +1,7 @@
 
 "use client";
 
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -108,11 +109,15 @@ export default function HoldingsTable() {
                                 </TableCell>
                                 <TableCell className="text-center">
                                     <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                                        <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 h-auto p-1">
-                                            <PlusCircle className="h-4 w-4 mr-1"/> Buy
+                                        <Button asChild variant="ghost" size="sm" className="text-primary hover:bg-primary/10 h-auto p-1">
+                                            <Link href={`/trade?symbol=${holding.symbol}`}>
+                                                <PlusCircle className="h-4 w-4 mr-1"/> Buy
+                                            </Link>
                                         </Button>
-                                        <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 h-auto p-1">
-                                            <MinusCircle className="h-4 w-4 mr-1"/> Sell
+                                        <Button asChild variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 h-auto p-1">
+                                            <Link href={`/trade?symbol=${holding.symbol}`}>
+                                                <MinusCircle className="h-4 w-4 mr-1"/> Sell
+                                            </Link>
                                         </Button>
                                     </div>
                                 </TableCell>
