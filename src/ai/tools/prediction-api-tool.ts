@@ -46,8 +46,9 @@ export const getPredictionFromApi = ai.defineTool(
       return data;
 
     } catch (error: any) {
-      console.error(`Failed to call prediction API for "${input.symbol}":`, error.message);
-      return { error: 'An error occurred while communicating with the prediction service.' };
+      console.error(`Failed to call prediction API for "${input.symbol}":`, error);
+      // Provide a more specific error message back to the flow.
+      return { error: `An error occurred while communicating with the prediction service: ${error.message}` };
     }
   }
 );
