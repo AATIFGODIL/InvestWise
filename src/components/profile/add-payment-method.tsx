@@ -13,28 +13,56 @@ export default function AddPaymentMethod({ userId, onCardSaved }: { userId: stri
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
+    // A flag to track if the component is still mounted
+    let isMounted = true;
+
     async function setup() {
+      if (dropinRef.current) {
+        // If Drop-in is already initialized, do nothing.
+        setIsLoading(false);
+        return;
+      }
       try {
         const token = await getClientToken();
+        if (!isMounted) return; // Don't proceed if component unmounted
 
         const dropin = await (await import("braintree-web-drop-in")).create({
           authorization: token,
           container: "#dropin-container",
         });
-        dropinRef.current = dropin;
+
+        if (isMounted) {
+          dropinRef.current = dropin;
+        }
       } catch (error) {
         console.error("Failed to initialize Braintree Drop-in:", error);
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Could not initialize payment form. Please refresh and try again.",
-        });
+         if (isMounted) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not initialize payment form. Please refresh and try again.",
+            });
+         }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
     setup();
-  }, [toast]);
+
+    return () => {
+        isMounted = false;
+        // Clean up the Drop-in instance when the component unmounts
+        if (dropinRef.current) {
+            dropinRef.current.teardown().catch((err: any) => {
+                console.error("Error tearing down Braintree Drop-in:", err);
+            });
+            dropinRef.current = null;
+        }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   async function handleSave() {
     if (!dropinRef.current) {
