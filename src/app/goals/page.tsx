@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic';
 import PageSkeleton from '@/components/layout/page-skeleton';
 
 const GoalsClient = dynamic(() => import('@/components/goals/goals-client'), {
-  ssr: false,
   loading: () => <PageSkeleton />,
 });
 

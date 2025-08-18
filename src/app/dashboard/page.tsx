@@ -4,7 +4,6 @@ import dynamic from 'next/dynamic';
 import PageSkeleton from '@/components/layout/page-skeleton';
 
 const DashboardClient = dynamic(() => import('@/components/dashboard/dashboard-client'), {
-  ssr: false,
   loading: () => <PageSkeleton />,
 });
 
