@@ -22,6 +22,7 @@ import {
   sendPasswordResetEmail,
   type AuthProvider as FirebaseAuthProvider,
   type User,
+  signInWithPopup,
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/config";
 import { doc, setDoc, getDoc, updateDoc, type Timestamp } from "firebase/firestore";
@@ -236,8 +237,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
-    // This will navigate the user away. `handleRedirectResult` will catch them on return.
-    await signInWithRedirect(auth, provider);
+    const isInIframe = () => {
+      try {
+        return window.self !== window.top;
+      } catch (e) {
+        return true;
+      }
+    };
+    
+    if (isInIframe()) {
+      await signInWithRedirect(auth, provider);
+    } else {
+      await signInWithPopup(auth, provider);
+    }
   };
 
   const signInWithGoogle = async () => {
