@@ -6,6 +6,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import ThemeProvider from "@/components/layout/theme-provider";
 import "./globals.css";
 import GlobalLoadingIndicator from "@/components/layout/global-loading-indicator";
+import Head from "next/head";
 
 // This import will initialize Firebase on the client side.
 // The config file itself ensures client-only features run only in the browser.
@@ -30,7 +31,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head />
+      <Head>
+        <script type="text/javascript" src="https://s3.tradingview.com/tv.js" async></script>
+      </Head>
       <body className={`${poppins.variable} font-body antialiased`}>
         <AuthProvider>
             <ThemeProvider>

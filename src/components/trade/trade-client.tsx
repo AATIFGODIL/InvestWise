@@ -1,6 +1,6 @@
 
 "use client"
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
@@ -40,6 +40,13 @@ export default function TradePageContent() {
     }
   }, [searchParams]);
 
+  const handleSymbolChange = useCallback((newSymbol: string) => {
+    // Prevent unnecessary re-renders if symbol is the same
+    if (newSymbol !== selectedSymbol) {
+      setSelectedSymbol(newSymbol);
+    }
+  }, [selectedSymbol]);
+
   return (
     <div className="w-full bg-background font-body">
       <Header />
@@ -47,7 +54,7 @@ export default function TradePageContent() {
         <h1 className="text-2xl font-bold">Trade</h1>
         
         <div className="h-[600px] w-full">
-            <TradingViewWidget symbol={selectedSymbol} />
+            <TradingViewWidget symbol={selectedSymbol} onSymbolChange={handleSymbolChange} />
         </div>
 
         <TradeForm selectedSymbol={selectedSymbol} selectedPrice={selectedPrice} />

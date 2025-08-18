@@ -6,23 +6,23 @@ import useThemeStore from '@/store/theme-store';
 
 interface TradingViewWidgetProps {
   symbol: string | null;
+  onSymbolChange: (symbol: string) => void;
 }
 
-const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol }) => {
+const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolChange }) => {
   const container = useRef<HTMLDivElement>(null);
   const { theme } = useThemeStore();
+  const widgetRef = useRef<any>(null);
 
   useEffect(() => {
     if (!symbol || !container.current) return;
-
-    // Clear the container before appending a new script
-    container.current.innerHTML = '';
 
     const script = document.createElement("script");
     script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
     script.type = "text/javascript";
     script.async = true;
-    script.innerHTML = JSON.stringify({
+    
+    const widgetOptions = {
       "autosize": true,
       "symbol": symbol,
       "interval": "D",
@@ -33,15 +33,35 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol }) => {
       "enable_publishing": false,
       "allow_symbol_change": true,
       "support_host": "https://www.tradingview.com"
-    });
+    };
+
+    script.innerHTML = JSON.stringify(widgetOptions);
+
+    script.onload = () => {
+      if (window.TradingView && container.current) {
+        widgetRef.current = new window.TradingView.widget({
+          ...widgetOptions,
+          container_id: container.current.id,
+          "onSymbolChange": (newSymbol: { ticker: string }) => {
+            if (newSymbol.ticker) {
+              onSymbolChange(newSymbol.ticker);
+            }
+          }
+        });
+      }
+    };
     
+    container.current.innerHTML = '';
     container.current.appendChild(script);
 
-    // No cleanup function needed if we are clearing innerHTML on each run
-  }, [symbol, theme]);
+  }, [symbol, theme, onSymbolChange]);
 
   return (
-    <div className="tradingview-widget-container h-full w-full" ref={container}>
+    <div 
+      id="tradingview-widget-container-advanced" 
+      className="tradingview-widget-container h-full w-full" 
+      ref={container}
+    >
       <div className="tradingview-widget-container__widget h-full w-full"></div>
     </div>
   );
