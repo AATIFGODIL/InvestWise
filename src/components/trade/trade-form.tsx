@@ -275,7 +275,10 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice 
           </CardContent>
           <CardFooter className="flex justify-end gap-2">
             <Button variant="outline" type="button" onClick={() => reset()}>Clear</Button>
-            <Button type="submit" disabled={!isValid || !selectedSymbol || loadingPrice}>Preview Order</Button>
+            <Button type="submit" disabled={!isValid || !selectedSymbol || loadingPrice}>
+              {loadingPrice ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Preview Order
+            </Button>
           </CardFooter>
         </form>
       </Card>
