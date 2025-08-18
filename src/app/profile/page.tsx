@@ -21,11 +21,15 @@ import useUserStore from "@/store/user-store";
 import { useAuth } from "@/hooks/use-auth";
 import AppLayout from "@/components/layout/app-layout";
 import PaymentMethods from "@/components/profile/payment-methods";
+import { useRouter } from "next/navigation";
+import useLoadingStore from "@/store/loading-store";
 
 function ProfileClient() {
   const { toast } = useToast();
   const { user, hydrating: authLoading, updateUserProfile, sendPasswordReset } = useAuth();
   const { username: globalUsername, setUsername: setGlobalUsername } = useUserStore();
+  const router = useRouter();
+  const { showLoading } = useLoadingStore();
   
   const [localUsername, setLocalUsername] = useState(globalUsername);
   const [isSaving, setIsSaving] = useState(false);
@@ -33,6 +37,11 @@ function ProfileClient() {
   useEffect(() => {
     setLocalUsername(globalUsername);
   }, [globalUsername]);
+
+  const handleBackClick = () => {
+    showLoading();
+    router.back();
+  };
   
   const handleSaveChanges = async () => {
     if (!user) {
@@ -96,12 +105,12 @@ function ProfileClient() {
       <header className="bg-background border-b sticky top-0 z-10">
         <div className="container mx-auto px-4">
             <div className="flex items-center justify-between h-16">
-                <Link href="/dashboard" className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={handleBackClick}>
                         <ChevronLeft className="h-5 w-5" />
                     </Button>
                     <h1 className="text-xl font-bold">Profile</h1>
-                </Link>
+                </div>
                  <Button variant="default" size="sm" onClick={handleSaveChanges} disabled={isSaving || authLoading}>
                     {isSaving ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />

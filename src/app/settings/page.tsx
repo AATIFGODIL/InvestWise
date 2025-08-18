@@ -14,7 +14,6 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Shield, Sun, Moon, Eye, LogOut, ChevronLeft, ShieldBan, FileUp, CreditCard } from "lucide-react";
-import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import useThemeStore from "@/store/theme-store";
@@ -22,6 +21,8 @@ import { useAuth } from "@/hooks/use-auth";
 import usePrivacyStore, { type LeaderboardVisibility } from "@/store/privacy-store";
 import AppLayout from "@/components/layout/app-layout";
 import PaymentMethods from "@/components/profile/payment-methods";
+import { useRouter } from "next/navigation";
+import useLoadingStore from "@/store/loading-store";
 
 function SettingsClient() {
   const [parentalControl, setParentalControl] = useState(false);
@@ -29,10 +30,17 @@ function SettingsClient() {
   const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
   const { user, updateUserTheme, signOut: firebaseSignOut, updatePrivacySettings } = useAuth();
   const [isClient, setIsClient] = useState(false);
+  const router = useRouter();
+  const { showLoading } = useLoadingStore();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const handleBackClick = () => {
+    showLoading();
+    router.back();
+  };
   
   const handleThemeChange = (newTheme: "light" | "dark") => {
     setTheme(newTheme);
@@ -54,12 +62,12 @@ function SettingsClient() {
       <header className="bg-background border-b sticky top-0 z-10">
         <div className="container mx-auto px-4">
             <div className="flex items-center justify-between h-16">
-                <Link href="/dashboard" className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon">
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={handleBackClick}>
                         <ChevronLeft className="h-5 w-5" />
                     </Button>
                     <h1 className="text-xl font-bold">Settings</h1>
-                </Link>
+                </div>
                 <Button variant="ghost" size="icon" onClick={firebaseSignOut}>
                     <LogOut className="h-5 w-5" />
                 </Button>
