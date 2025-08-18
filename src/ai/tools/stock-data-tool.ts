@@ -2,7 +2,6 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import yahooFinance from 'yahoo-finance2';
 
 export const getStockData = ai.defineTool(
   {
@@ -14,29 +13,47 @@ export const getStockData = ai.defineTool(
     outputSchema: z.any(),
   },
   async (input) => {
-    console.log(`Fetching stock data for ${input.symbol}`);
+    console.log(`Fetching stock data for ${input.symbol} from Alpha Vantage`);
+    const apiKey = process.env.NEXT_PUBLIC_ALPHA_VANTAGE_KEY;
+    if (!apiKey) {
+        console.error("Alpha Vantage API key is not set.");
+        return { error: "API key for financial data is not configured." };
+    }
+    
+    const url = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${input.symbol}&apikey=${apiKey}&outputsize=compact`;
+
     try {
-      const today = new Date();
-      const oneMonthAgo = new Date();
-      oneMonthAgo.setMonth(today.getMonth() - 1);
+      const response = await fetch(url);
+      const data = await response.json();
 
-      const queryOptions = {
-        period1: oneMonthAgo.toISOString().split('T')[0],
-        period2: today.toISOString().split('T')[0],
-        interval: '1d' as const,
-      };
-
-      const results = await yahooFinance.historical(input.symbol, queryOptions);
+      if (data['Error Message']) {
+        throw new Error(data['Error Message']);
+      }
       
-      // Limit to the last 10 trading days to keep the data concise for the prompt
-      const recentResults = results.slice(-10);
+      const timeSeries = data['Time Series (Daily)'];
+      if (!timeSeries) {
+          throw new Error('No time series data found for the symbol.');
+      }
+
+      // Get the last 10 trading days
+      const recentDates = Object.keys(timeSeries).slice(0, 10);
+      const recentResults = recentDates.map(date => {
+        return {
+          date: date,
+          open: parseFloat(timeSeries[date]['1. open']),
+          high: parseFloat(timeSeries[date]['2. high']),
+          low: parseFloat(timeSeries[date]['3. low']),
+          close: parseFloat(timeSeries[date]['4. close']),
+          volume: parseInt(timeSeries[date]['5. volume']),
+        };
+      });
 
       console.log(`Successfully fetched ${recentResults.length} data points for ${input.symbol}`);
       return recentResults;
-    } catch (error) {
-      console.error(`Failed to fetch data for ${input.symbol}:`, error);
+    } catch (error: any) {
+      console.error(`Failed to fetch data for ${input.symbol} from Alpha Vantage:`, error.message);
       return {
-        error: `Could not retrieve stock data for ${input.symbol}. It may be an invalid symbol.`,
+        error: `Could not retrieve stock data for ${input.symbol}. It may be an invalid symbol or an API issue.`,
       };
     }
   }
