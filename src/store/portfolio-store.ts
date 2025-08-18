@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { doc, updateDoc, getFirestore } from "firebase/firestore";
 import { auth } from '@/lib/firebase/config';
 
-interface Holding {
+export interface Holding {
     symbol: string;
     description: string;
     currentPrice: number;

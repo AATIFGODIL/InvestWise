@@ -1,7 +1,6 @@
-
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -18,9 +17,20 @@ import { ArrowUp, ArrowDown, PlusCircle, MinusCircle, History, Percent } from "l
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import usePortfolioStore from "@/store/portfolio-store";
+import TradeDialog from "../trade/trade-dialog";
+import { type Holding } from "@/store/portfolio-store";
 
 export default function HoldingsTable() {
   const { holdings, portfolioSummary } = usePortfolioStore();
+  const [isTradeDialogOpen, setIsTradeDialogOpen] = useState(false);
+  const [selectedHolding, setSelectedHolding] = useState<Holding | null>(null);
+  const [tradeAction, setTradeAction] = useState<"buy" | "sell">("buy");
+
+  const handleTradeClick = (holding: Holding, action: "buy" | "sell") => {
+    setSelectedHolding(holding);
+    setTradeAction(action);
+    setIsTradeDialogOpen(true);
+  };
 
   const calculateTotalValue = (qty: number, price: number) => qty * price;
   const calculateGainLoss = (qty: number, currentPrice: number, purchasePrice: number) => (currentPrice - purchasePrice) * qty;
@@ -36,6 +46,7 @@ export default function HoldingsTable() {
 
 
   return (
+    <>
     <Card>
       <CardContent className="p-0">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-4 border-b">
@@ -109,15 +120,11 @@ export default function HoldingsTable() {
                                 </TableCell>
                                 <TableCell className="text-center">
                                     <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                                        <Button asChild variant="ghost" size="sm" className="text-primary hover:bg-primary/10 h-auto p-1">
-                                            <Link href={`/trade?symbol=${holding.symbol}`}>
-                                                <PlusCircle className="h-4 w-4 mr-1"/> Buy
-                                            </Link>
+                                        <Button variant="ghost" size="sm" className="text-primary hover:bg-primary/10 h-auto p-1" onClick={() => handleTradeClick(holding, 'buy')}>
+                                            <PlusCircle className="h-4 w-4 mr-1"/> Buy
                                         </Button>
-                                        <Button asChild variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 h-auto p-1">
-                                            <Link href={`/trade?symbol=${holding.symbol}`}>
-                                                <MinusCircle className="h-4 w-4 mr-1"/> Sell
-                                            </Link>
+                                        <Button variant="ghost" size="sm" className="text-destructive hover:bg-destructive/10 h-auto p-1" onClick={() => handleTradeClick(holding, 'sell')}>
+                                            <MinusCircle className="h-4 w-4 mr-1"/> Sell
                                         </Button>
                                     </div>
                                 </TableCell>
@@ -135,5 +142,15 @@ export default function HoldingsTable() {
             </div>
       </CardContent>
     </Card>
+    {selectedHolding && (
+         <TradeDialog
+            isOpen={isTradeDialogOpen}
+            onOpenChange={setIsTradeDialogOpen}
+            symbol={selectedHolding.symbol}
+            price={selectedHolding.currentPrice}
+            action={tradeAction}
+        />
+    )}
+    </>
   );
 }

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -22,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Info, Search, DollarSign, Loader2 } from "lucide-react";
+import { Search, DollarSign, Loader2 } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -61,9 +60,11 @@ interface TradeFormProps {
     selectedSymbol: string | null;
     selectedPrice: number | null;
     loadingPrice: boolean;
+    initialAction?: "buy" | "sell";
+    onTradeSuccess?: () => void;
 }
 
-export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice }: TradeFormProps) {
+export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice, initialAction, onTradeSuccess }: TradeFormProps) {
   const { toast } = useToast();
   const { executeTrade } = usePortfolioStore();
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -73,8 +74,8 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice 
     resolver: zodResolver(tradeSchema),
     mode: "onChange",
     defaultValues: {
-      symbol: "",
-      action: "buy",
+      symbol: selectedSymbol || "",
+      action: initialAction || "buy",
       quantity: 0,
       orderType: "market",
       duration: "day-only",
@@ -93,6 +94,12 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice 
       setValue("limitPrice", selectedPrice, { shouldValidate: true });
     }
   }, [selectedPrice, setValue]);
+  
+  useEffect(() => {
+    if (initialAction) {
+      setValue("action", initialAction, { shouldValidate: true });
+    }
+  }, [initialAction, setValue]);
 
 
   const orderType = watch("orderType");
@@ -125,6 +132,9 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice 
         title: "Trade Executed!",
         description: `Successfully ${previewData.action === 'buy' ? 'bought' : 'sold'} ${previewData.quantity} shares of ${previewData.symbol.toUpperCase()}.`,
       });
+      if (onTradeSuccess) {
+        onTradeSuccess();
+      }
     } else {
         toast({
             variant: "destructive",
@@ -187,7 +197,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice 
                     name="action"
                     control={control}
                     render={({ field }) => (
-                         <Select onValueChange={field.onChange} defaultValue={field.value}>
+                         <Select onValueChange={field.onChange} value={field.value} disabled={!!initialAction}>
                             <SelectTrigger id="action">
                                 <SelectValue placeholder="Select action" />
                             </SelectTrigger>
