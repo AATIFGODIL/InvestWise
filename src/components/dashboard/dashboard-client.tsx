@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { recommendedBundles, specializedBundles } from "@/data/bundles";
 import CongratulationsBanner from "@/components/dashboard/congratulations-banner";
 import Chatbot from "@/components/chatbot/chatbot";
+import AppLayout from "@/components/layout/app-layout";
 
 const PortfolioSummary = dynamic(() => import("@/components/dashboard/portfolio-summary"), { 
     ssr: false,
@@ -86,29 +87,10 @@ const experiencedVideos = [
     }
 ]
 
-const DashboardSkeleton = () => (
-    <div className="w-full bg-background font-body">
-        <Header />
-        <main className="p-4 space-y-6 pb-40">
-            <Skeleton className="h-96 w-full" />
-            <Skeleton className="h-48 w-full" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Skeleton className="h-48 w-full" />
-                <Skeleton className="h-48 w-full" />
-            </div>
-            <Skeleton className="h-96 w-full" />
-        </main>
-        <BottomNav />
-    </div>
-);
-
-
-export default function DashboardClient() {
-  const { hydrating: authLoading } = useAuth();
+function DashboardClientContent() {
   const [userProfile, setUserProfile] = useState<string | null>(null);
 
   useEffect(() => {
-    // This check ensures we are on the client side before accessing localStorage
     if (typeof window !== 'undefined') {
       const profile = localStorage.getItem('userProfile');
       setUserProfile(profile);
@@ -159,10 +141,6 @@ export default function DashboardClient() {
   const bundleProps = useMemo(() => getBundlesForProfile(userProfile), [userProfile]);
   const videoProps = useMemo(() => getVideosForProfile(userProfile), [userProfile]);
 
-  if (authLoading) {
-    return <DashboardSkeleton />;
-  }
-  
   const showCongrats = userProfile === "Student" || userProfile === "Beginner" || userProfile === "Amateur";
 
   return (
@@ -184,4 +162,12 @@ export default function DashboardClient() {
         <BottomNav />
     </div>
   );
+}
+
+export default function DashboardClient() {
+  return (
+    <AppLayout>
+      <DashboardClientContent />
+    </AppLayout>
+  )
 }

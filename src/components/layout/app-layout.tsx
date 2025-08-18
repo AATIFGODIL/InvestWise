@@ -11,8 +11,6 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const { hydrating } = useAuth();
 
-  // Only show the full-screen loader during the initial auth check.
-  // Page-specific skeletons will handle the data-loading state.
   if (hydrating) {
     return <Loading />;
   }
