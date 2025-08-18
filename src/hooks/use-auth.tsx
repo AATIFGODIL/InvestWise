@@ -139,7 +139,7 @@ const fetchAndHydrateUserData = async (user: User) => {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { toast } = useToast();
-  const { hideLoading } = useLoadingStore();
+  const { showLoading, hideLoading } = useLoadingStore();
 
   const { reset: resetUserStore } = useUserStore.getState();
   const { resetPortfolio } = usePortfolioStore.getState();
@@ -165,35 +165,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
   useEffect(() => {
-    // This effect runs once on mount to check for a redirect result.
-    const handleRedirectResult = async () => {
-        setHydrating(true);
-        try {
-            const result = await getRedirectResult(auth);
-            if (result) {
-                // User has just signed in via redirect.
-                // onAuthStateChanged will now fire and handle the rest of the logic.
-                // We show the toast here because this is the only place we know it was a redirect.
-                toast({
-                    title: "Signed In Successfully",
-                    description: "Welcome!",
-                });
-            }
-        } catch (error: any) {
-            console.error("Redirect sign-in failed:", error);
-            toast({
-                variant: "destructive",
-                title: "Sign In Failed",
-                description: error.message || "An unknown error occurred.",
-            });
-        }
-        // Even if there's no result, we stop hydrating from this check.
-        // onAuthStateChanged will take over.
-        setHydrating(false);
-    };
-
-    handleRedirectResult();
-
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
       setIsTokenReady(false);
@@ -233,7 +204,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
-    await signInWithPopup(auth, provider);
+    showLoading();
+    try {
+        await signInWithPopup(auth, provider);
+        toast({
+            title: "Signed In Successfully",
+            description: "Welcome!",
+        });
+    } catch (error: any) {
+        console.error("Popup sign-in failed:", error);
+        toast({
+            variant: "destructive",
+            title: "Sign In Failed",
+            description: error.message || "An unknown error occurred.",
+        });
+        hideLoading(); // Ensure loading is hidden on error
+    }
   };
 
   const signInWithGoogle = async () => {
