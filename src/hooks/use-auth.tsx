@@ -233,7 +233,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
-    await signInWithRedirect(auth, provider);
+    await signInWithPopup(auth, provider);
   };
 
   const signInWithGoogle = async () => {
