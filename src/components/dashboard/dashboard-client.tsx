@@ -86,6 +86,23 @@ const experiencedVideos = [
     }
 ]
 
+const DashboardSkeleton = () => (
+    <div className="w-full bg-background font-body">
+        <Header />
+        <main className="p-4 space-y-6 pb-40">
+            <Skeleton className="h-96 w-full" />
+            <Skeleton className="h-48 w-full" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
+            </div>
+            <Skeleton className="h-96 w-full" />
+        </main>
+        <BottomNav />
+    </div>
+);
+
+
 export default function DashboardClient() {
   const { hydrating: authLoading } = useAuth();
   const [userProfile, setUserProfile] = useState<string | null>(null);
@@ -141,24 +158,9 @@ export default function DashboardClient() {
 
   const bundleProps = useMemo(() => getBundlesForProfile(userProfile), [userProfile]);
   const videoProps = useMemo(() => getVideosForProfile(userProfile), [userProfile]);
-  
-  const PageSkeleton = () => (
-     <div className="w-full bg-background font-body">
-      <Header />
-      <main className="p-4 space-y-6 pb-40">
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-96 w-full" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Skeleton className="h-48 w-full" />
-            <Skeleton className="h-48 w-full" />
-        </div>
-      </main>
-      <BottomNav />
-    </div>
-  )
 
   if (authLoading) {
-    return <PageSkeleton />;
+    return <DashboardSkeleton />;
   }
   
   const showCongrats = userProfile === "Student" || userProfile === "Beginner" || userProfile === "Amateur";

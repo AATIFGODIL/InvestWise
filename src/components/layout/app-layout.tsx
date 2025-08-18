@@ -2,7 +2,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/use-auth";
-import { Loader2 } from "lucide-react";
+import Loading from "@/app/loading";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -11,12 +11,10 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const { hydrating } = useAuth();
 
+  // Only show the full-screen loader during the initial auth check.
+  // Page-specific skeletons will handle the data-loading state.
   if (hydrating) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-      </div>
-    );
+    return <Loading />;
   }
 
   return <>{children}</>;
