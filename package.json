@@ -37,6 +37,8 @@
     "@radix-ui/react-tabs": "^1.1.0",
     "@radix-ui/react-toast": "^1.2.1",
     "@radix-ui/react-tooltip": "^1.1.2",
+    "braintree": "^3.23.0",
+    "braintree-web-drop-in": "^1.42.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
@@ -59,6 +61,7 @@
     "zustand": "^4.5.4"
   },
   "devDependencies": {
+    "@types/braintree": "^3.3.10",
     "@types/node": "^20",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",

@@ -20,6 +20,7 @@ import Link from "next/link";
 import useUserStore from "@/store/user-store";
 import { useAuth } from "@/hooks/use-auth";
 import AppLayout from "@/components/layout/app-layout";
+import PaymentMethods from "@/components/profile/payment-methods";
 
 function ProfileClient() {
   const { toast } = useToast();
@@ -145,6 +146,8 @@ function ProfileClient() {
             </CardContent>
         </Card>
         
+        {user && <PaymentMethods userId={user.uid} />}
+
         <Card>
             <CardHeader>
                 <CardTitle className="flex items-center gap-2"><KeyRound className="text-primary"/>Security</CardTitle>
