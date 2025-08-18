@@ -13,7 +13,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Shield, Sun, Moon, Eye, LogOut, ChevronLeft, ShieldBan, FileUp } from "lucide-react";
+import { Shield, Sun, Moon, Eye, LogOut, ChevronLeft, ShieldBan, FileUp, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,12 +21,13 @@ import useThemeStore from "@/store/theme-store";
 import { useAuth } from "@/hooks/use-auth";
 import usePrivacyStore, { type LeaderboardVisibility } from "@/store/privacy-store";
 import AppLayout from "@/components/layout/app-layout";
+import PaymentMethods from "@/components/profile/payment-methods";
 
 function SettingsClient() {
   const [parentalControl, setParentalControl] = useState(false);
   const { theme, setTheme } = useThemeStore();
   const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
-  const { updateUserTheme, signOut: firebaseSignOut, updatePrivacySettings } = useAuth();
+  const { user, updateUserTheme, signOut: firebaseSignOut, updatePrivacySettings } = useAuth();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -67,6 +68,10 @@ function SettingsClient() {
       </header>
       
       <main className="container mx-auto p-4 space-y-8">
+        
+        {/* Payment Methods Section */}
+        {user && <PaymentMethods userId={user.uid} />}
+
         {/* Parental Controls Section */}
         <Card>
           <CardHeader>
