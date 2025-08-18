@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useEffect, useRef, memo } from 'react';
+import React, { useEffect, useRef, memo, useCallback } from 'react';
 import useThemeStore from '@/store/theme-store';
 
 interface TradingViewWidgetProps {
