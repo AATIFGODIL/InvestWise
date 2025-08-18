@@ -233,31 +233,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
-    const isInIframe = () => {
-      try {
-        return window.self !== window.top;
-      } catch (e) {
-        return true;
-      }
-    };
-    
-    if (isInIframe()) {
-      await signInWithRedirect(auth, provider);
-    } else {
-      try {
-        await signInWithPopup(auth, provider);
-         toast({
-            title: "Signed In Successfully",
-            description: "Welcome!",
-        });
-      } catch(error: any) {
-         toast({
-            variant: "destructive",
-            title: "Sign In Failed",
-            description: error.message || "An unknown error occurred.",
-        });
-      }
-    }
+    await signInWithRedirect(auth, provider);
   };
 
   const signInWithGoogle = async () => {
