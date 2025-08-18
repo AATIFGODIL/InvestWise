@@ -15,7 +15,7 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   updateProfile,
-  signInWithPopup,
+  signInWithRedirect, 
   GoogleAuthProvider,
   OAuthProvider,
   sendPasswordResetEmail,
@@ -168,23 +168,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsTokenReady(false);
 
       if (firebaseUser) {
-        if (!user) { // This condition checks if it's a new login session
-            const { isNew } = await initializeUserDocument(firebaseUser);
-            await fetchAndHydrateUserData(firebaseUser);
-
+        const isInitialLogin = !user; 
+        
+        const { isNew } = await initializeUserDocument(firebaseUser);
+        await fetchAndHydrateUserData(firebaseUser);
+        
+        setUser(firebaseUser);
+        setIsTokenReady(true);
+        
+        if (isInitialLogin) {
             toast({
                 title: "Signed In Successfully",
                 description: isNew ? "Welcome!" : "Welcome back!",
             });
-            
             router.push("/dashboard");
         }
-        setUser(firebaseUser);
-        setIsTokenReady(true);
       } else {
         setUser(null);
         resetAllStores();
-        // Do not redirect here, let pages handle their own auth protection
       }
       
       hideLoading();
@@ -201,22 +202,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, pass: string) => {
     await signInWithEmailAndPassword(auth, email, pass);
-    // onAuthStateChanged will handle the rest
   };
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
-    showLoading(); // Show loading indicator immediately
+    showLoading();
     try {
-        await signInWithPopup(auth, provider);
-        // onAuthStateChanged will handle the success toast and redirection
+        await signInWithRedirect(auth, provider);
     } catch (error: any) {
-        console.error("Popup sign-in failed:", error);
+        console.error("Redirect sign-in failed:", error);
         toast({
             variant: "destructive",
             title: "Sign In Failed",
             description: error.message || "An unknown error occurred.",
         });
-        hideLoading(); // Ensure loading is hidden on error
+        hideLoading();
     }
   };
 
