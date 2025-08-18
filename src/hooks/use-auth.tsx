@@ -23,7 +23,7 @@ import {
   type User,
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/config";
-import { doc, setDoc, getDoc, updateDoc, type Timestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/store/user-store";
 import usePortfolioStore from "@/store/portfolio-store";
@@ -57,7 +57,7 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
   const userDoc = await getDoc(userDocRef);
 
   if (userDoc.exists()) {
-    return { data: userDoc.data(), isNew: false };
+    return { isNew: false };
   }
 
   const displayName = additionalData.username || user.displayName || "Investor";
@@ -100,38 +100,7 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
     await updateProfile(auth.currentUser, { displayName, photoURL: user.photoURL });
   }
 
-  return { data: newUserDoc, isNew: true };
-};
-
-const fetchAndHydrateUserData = async (user: User) => {
-  const userDocRef = doc(db, "users", user.uid);
-  const userDoc = await getDoc(userDocRef);
-  const userData = userDoc.data();
-  if (!userData) return false;
-
-  const { setUsername } = useUserStore.getState();
-  const { loadInitialData } = usePortfolioStore.getState();
-  const { setNotifications } = useNotificationStore.getState();
-  const { loadGoals } = useGoalStore.getState();
-  const { loadAutoInvestments } = useAutoInvestStore.getState();
-  const { setTheme } = useThemeStore.getState();
-  const { loadPrivacySettings } = usePrivacyStore.getState();
-
-  const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
-  const theme = userData.theme || "light";
-
-  setTheme(theme);
-  setUsername(userData.username || user.displayName || "Investor");
-  loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
-  setNotifications(userData.notifications || []);
-  loadGoals(userData.goals || []);
-  loadAutoInvestments(userData.autoInvestments || []);
-  loadPrivacySettings({
-    leaderboardVisibility: userData.leaderboardVisibility || "public",
-    showQuests: userData.showQuests === undefined ? true : userData.showQuests,
-  });
-
-  return true;
+  return { isNew: true };
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -164,45 +133,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setHydrating(true);
-      setIsTokenReady(false);
-
       if (firebaseUser) {
-        // This check prevents re-triggering logic for an already logged-in user on hot-reloads
-        if (user?.uid !== firebaseUser.uid) {
-          const { isNew } = await initializeUserDocument(firebaseUser);
-          await fetchAndHydrateUserData(firebaseUser);
-          
+        if (!user || user.uid !== firebaseUser.uid) { // Prevent re-running for the same user
           setUser(firebaseUser);
+          await initializeUserDocument(firebaseUser);
           setIsTokenReady(true);
-          
-          toast({
-              title: "Signed In Successfully",
-              description: isNew ? "Welcome!" : "Welcome back!",
-          });
-          
-          router.push("/dashboard");
         }
       } else {
-        if (user !== null) { // Only reset if there was a user before
-           setUser(null);
-           resetAllStores();
-        }
+        setUser(null);
+        resetAllStores();
+        setIsTokenReady(false);
       }
-      
-      hideLoading();
       setHydrating(false);
+      hideLoading();
     });
 
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router, toast, resetAllStores, hideLoading]);
+  }, []);
 
   const signUp = async (email: string, pass: string, username: string) => {
     showLoading();
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-      // onAuthStateChanged will handle the rest
+      await initializeUserDocument(userCredential.user, { username });
+      toast({ title: "Account Created!", description: "Welcome to InvestWise." });
+      router.push("/dashboard");
     } catch (error: any) {
       hideLoading();
       throw error;
@@ -213,7 +169,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
       await signInWithEmailAndPassword(auth, email, pass);
-      // onAuthStateChanged will handle the rest
+      toast({ title: "Signed In Successfully", description: "Welcome back!" });
+      router.push("/dashboard");
     } catch(error: any) {
       hideLoading();
       throw error;
@@ -224,7 +181,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
         await signInWithPopup(auth, provider);
-        // onAuthStateChanged will handle the success case.
+        // onAuthStateChanged will handle user state, but we can redirect and toast here
+        toast({ title: "Signed In Successfully", description: "Welcome!" });
+        router.push("/dashboard");
     } catch (error: any) {
         console.error("Popup sign-in failed:", error);
         toast({
@@ -318,5 +277,3 @@ export function useAuth() {
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }
-
-    

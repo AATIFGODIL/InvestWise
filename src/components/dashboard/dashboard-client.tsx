@@ -14,31 +14,24 @@ import AppLayout from "@/components/layout/app-layout";
 
 const PortfolioSummary = dynamic(() => import("@/components/dashboard/portfolio-summary"), { 
     ssr: false,
-    loading: () => <Skeleton className="h-96 w-full" /> 
 });
 const CommunityLeaderboard = dynamic(() => import("@/components/dashboard/community-leaderboard"), { 
     ssr: false,
-    loading: () => <Skeleton className="h-48 w-full" />
 });
 const CommunityTrends = dynamic(() => import("@/components/dashboard/community-trends"), { 
     ssr: false,
-    loading: () => <Skeleton className="h-96 w-full" />
 });
 const RiskManagement = dynamic(() => import("@/components/dashboard/risk-management"), { 
     ssr: false,
-    loading: () => <Skeleton className="h-96 w-full" />
 });
 const AutoInvest = dynamic(() => import("@/components/dashboard/auto-invest"), {
     ssr: false,
-    loading: () => <Skeleton className="h-48 w-full" />
 });
 const GoalProgress = dynamic(() => import("@/components/dashboard/goal-progress"), {
     ssr: false,
-    loading: () => <Skeleton className="h-48 w-full" />
 });
 const InvestmentBundles = dynamic(() => import("@/components/dashboard/investment-bundles"), {
     ssr: false,
-    loading: () => <Skeleton className="h-96 w-full" />
 });
 
 
