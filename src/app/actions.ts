@@ -6,6 +6,7 @@ import { stockPrediction } from "@/ai/flows/stock-prediction";
 import type { StockPredictionOutput } from "@/ai/types/stock-prediction-types";
 import { gateway } from "@/lib/braintree";
 import { db } from "@/lib/firebase/admin";
+import { type BraintreeGateway, type Customer } from "braintree";
 
 type ActionResult = {
   success: boolean;
@@ -73,17 +74,43 @@ export async function vaultPaymentMethod(data: { nonce: string; userId: string }
     }
 
     try {
-        const customer = await gateway.customer.create({
-            id: userId,
-            paymentMethodNonce: nonce,
-        });
+        let braintreeCustomer: Customer;
+        
+        try {
+            // Try to find an existing customer
+            braintreeCustomer = await gateway.customer.find(userId);
+            // If found, update their payment method
+            const updateResult = await gateway.paymentMethod.create({
+                customerId: userId,
+                paymentMethodNonce: nonce,
+                options: {
+                    makeDefault: true
+                }
+            });
 
-        if (!customer.success) {
-            console.error("Braintree customer creation failed:", customer.message);
-            throw new Error(customer.message);
+            if (!updateResult.success) {
+                console.error("Braintree payment method update failed:", updateResult.message);
+                throw new Error(updateResult.message);
+            }
+             braintreeCustomer = await gateway.customer.find(userId);
+
+        } catch (error) {
+            // If customer not found, create a new one
+            const customerResult = await gateway.customer.create({
+                id: userId,
+                paymentMethodNonce: nonce,
+            });
+
+            if (!customerResult.success) {
+                console.error("Braintree customer creation failed:", customerResult.message);
+                throw new Error(customerResult.message);
+            }
+            braintreeCustomer = customerResult.customer;
         }
 
-        const token = customer.customer?.paymentMethods?.[0]?.token;
+        const defaultPaymentMethod = braintreeCustomer.paymentMethods?.find(pm => pm.default);
+        const token = defaultPaymentMethod?.token;
+
         if (!token) {
             throw new Error("No payment method token returned from Braintree.");
         }
