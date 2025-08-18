@@ -7,6 +7,9 @@ import * as path from 'path';
 // This ensures the service account key is available before Firebase is initialized.
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
+let auth: admin.auth.Auth;
+let db: admin.firestore.Firestore;
+
 function initializeFirebaseAdmin() {
   // Check if the FIREBASE_SERVICE_ACCOUNT_KEY is present in the environment
   if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
@@ -23,6 +26,10 @@ function initializeFirebaseAdmin() {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
+    
+    // Initialize Firestore and Auth after app initialization
+    auth = admin.auth();
+    db = admin.firestore();
 
     console.log("Firebase Admin SDK initialized successfully for project:", serviceAccount.project_id);
   
@@ -35,9 +42,11 @@ function initializeFirebaseAdmin() {
 // Ensure Firebase is initialized only once
 if (!admin.apps.length) {
   initializeFirebaseAdmin();
+} else {
+  // If already initialized (e.g., due to hot-reloading), just get the instances
+  auth = admin.auth();
+  db = admin.firestore();
 }
 
-const auth = admin.auth();
-const db = admin.firestore();
 
 export { auth, db };
