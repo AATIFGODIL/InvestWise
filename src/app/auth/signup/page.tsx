@@ -19,7 +19,7 @@ import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import appleLogo from "../signin/applio.webp";
 
 
@@ -216,7 +216,14 @@ export default function SignUpPage() {
                 .
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creating Account...' : 'Create account'}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                'Create account'
+              )}
             </Button>
           </form>
         </CardContent>
