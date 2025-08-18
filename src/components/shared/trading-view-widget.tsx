@@ -20,38 +20,6 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
   const isMounted = useRef(false);
   const { theme } = useThemeStore();
 
-  useEffect(() => {
-    isMounted.current = true;
-    const script = document.createElement("script");
-    script.src = "https://s3.tradingview.com/tv.js";
-    script.async = true;
-    script.onload = createWidget;
-    document.body.appendChild(script);
-
-    return () => {
-        isMounted.current = false;
-        document.body.removeChild(script);
-        if (widgetRef.current) {
-            widgetRef.current.remove();
-            widgetRef.current = null;
-        }
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run only once on mount
-
-  useEffect(() => {
-    if (widgetRef.current && symbol) {
-        widgetRef.current.setSymbol(symbol, 'D', () => {});
-    }
-  }, [symbol]);
-
-   useEffect(() => {
-    if (widgetRef.current) {
-      widgetRef.current.changeTheme(theme);
-    }
-  }, [theme]);
-
-
   const createWidget = () => {
     if (!container.current || !isMounted.current || typeof window.TradingView === 'undefined' || widgetRef.current) {
       return;
@@ -72,9 +40,10 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
 
     widgetRef.current = new window.TradingView.widget(widgetOptions);
 
-    widgetRef.current.onChartReady(() => {
+    widgetRef.current.ready().then(() => {
         if(widgetRef.current) {
-            widgetRef.current.subscribe('symbol_change', (newSymbol: { ticker: string }) => {
+            const chart = widgetRef.current.chart();
+            chart.onSymbolChanged().subscribe(null, (newSymbol: { ticker: string }) => {
                 const cleanSymbol = newSymbol.ticker ? newSymbol.ticker.split(':').pop() : newSymbol.ticker;
                 if (cleanSymbol) {
                     onSymbolChange(cleanSymbol);
@@ -83,6 +52,44 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
         }
     });
   };
+
+  useEffect(() => {
+    isMounted.current = true;
+    if (window.TradingView) {
+      createWidget();
+    } else {
+      const script = document.createElement("script");
+      script.src = "https://s3.tradingview.com/tv.js";
+      script.async = true;
+      script.onload = createWidget;
+      document.body.appendChild(script);
+
+      return () => {
+          document.body.removeChild(script);
+      };
+    }
+    
+    return () => {
+        isMounted.current = false;
+        if (widgetRef.current) {
+            widgetRef.current.remove();
+            widgetRef.current = null;
+        }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
+
+  useEffect(() => {
+    if (widgetRef.current && widgetRef.current.chart && symbol) {
+        widgetRef.current.chart().setSymbol(symbol, () => {});
+    }
+  }, [symbol]);
+
+   useEffect(() => {
+    if (widgetRef.current && widgetRef.current.changeTheme) {
+      widgetRef.current.changeTheme(theme);
+    }
+  }, [theme]);
 
   return (
     <div 
