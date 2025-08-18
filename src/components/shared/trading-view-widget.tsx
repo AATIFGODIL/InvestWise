@@ -9,18 +9,42 @@ interface TradingViewWidgetProps {
   onSymbolChange: (symbol: string) => void;
 }
 
+declare global {
+  interface Window {
+    TradingView: any;
+  }
+}
+
 const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolChange }) => {
   const container = useRef<HTMLDivElement>(null);
   const { theme } = useThemeStore();
   const widgetRef = useRef<any>(null);
 
   useEffect(() => {
-    if (!symbol || !container.current) return;
+    if (!symbol || !container.current || typeof window.TradingView === 'undefined') {
+      const script = document.createElement("script");
+      script.src = "https://s3.tradingview.com/tv.js";
+      script.async = true;
+      document.body.appendChild(script);
 
-    const script = document.createElement("script");
-    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-    script.type = "text/javascript";
-    script.async = true;
+      script.onload = () => {
+        createWidget();
+      };
+
+      return () => {
+        document.body.removeChild(script);
+      };
+    } else {
+        createWidget();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [symbol, theme]);
+
+  const createWidget = () => {
+    if (!container.current || !symbol || typeof window.TradingView === 'undefined') return;
+    
+    // Clear any previous widget
+    container.current.innerHTML = '';
     
     const widgetOptions = {
       "autosize": true,
@@ -32,29 +56,20 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
       "locale": "en",
       "enable_publishing": false,
       "allow_symbol_change": true,
-      "support_host": "https://www.tradingview.com"
+      "support_host": "https://www.tradingview.com",
+      "container_id": container.current.id,
     };
 
-    script.innerHTML = JSON.stringify(widgetOptions);
+    widgetRef.current = new window.TradingView.widget(widgetOptions);
 
-    script.onload = () => {
-      if (window.TradingView && container.current) {
-        widgetRef.current = new window.TradingView.widget({
-          ...widgetOptions,
-          container_id: container.current.id,
-          "onSymbolChange": (newSymbol: { ticker: string }) => {
+    widgetRef.current.onChartReady(() => {
+        widgetRef.current.subscribe('symbol_change', (newSymbol: { ticker: string }) => {
             if (newSymbol.ticker) {
-              onSymbolChange(newSymbol.ticker);
+              onSymbolChange(newSymbol.ticker.split(':')[1] || newSymbol.ticker);
             }
-          }
         });
-      }
-    };
-    
-    container.current.innerHTML = '';
-    container.current.appendChild(script);
-
-  }, [symbol, theme, onSymbolChange]);
+    });
+  };
 
   return (
     <div 

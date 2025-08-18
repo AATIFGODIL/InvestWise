@@ -1,7 +1,7 @@
 
 "use client"
 import { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
 import EducationalVideo from "@/components/shared/educational-video";
@@ -31,17 +31,18 @@ const videos = [
 
 export default function TradePageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [selectedSymbol, setSelectedSymbol] = useState<string>("AAPL");
   const [selectedPrice, setSelectedPrice] = useState<number | null>(null); 
   const [loadingPrice, setLoadingPrice] = useState(false);
 
-  // update symbol from URL
+  // update symbol from URL on initial load
   useEffect(() => {
     const symbolFromUrl = searchParams.get('symbol');
     if (symbolFromUrl) {
       setSelectedSymbol(symbolFromUrl.toUpperCase());
     }
-  }, [searchParams]);
+  }, []); // Empty dependency array ensures this runs only once on mount
 
   // fetch price whenever symbol changes
   useEffect(() => {
@@ -57,10 +58,12 @@ export default function TradePageContent() {
   }, [selectedSymbol]);
 
   const handleSymbolChange = useCallback((newSymbol: string) => {
-    if (newSymbol !== selectedSymbol) {
+    if (newSymbol && newSymbol !== selectedSymbol) {
       setSelectedSymbol(newSymbol);
+      // Update the URL without reloading the page
+      router.replace(`/trade?symbol=${newSymbol}`, { scroll: false });
     }
-  }, [selectedSymbol]);
+  }, [selectedSymbol, router]);
 
   return (
     <div className="w-full bg-background font-body">

@@ -7,7 +7,7 @@ export interface AutoInvestment {
     name: string;
     amount: number;
     frequency: string;
-    nextDate: string;
+    nextDate?: string;
 }
 
 interface AutoInvestState {

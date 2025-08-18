@@ -1,3 +1,4 @@
+
 import type { ReactNode } from "react";
 import { Laptop, Car, Plane, Check } from "lucide-react";
 
@@ -10,32 +11,7 @@ export interface Goal {
     progress: number;
 }
 
-export const initialGoals: Goal[] = [
-    {
-        id: "laptop",
-        name: "New Laptop",
-        icon: <Laptop className="h-8 w-8 text-primary"/>,
-        current: 3200,
-        target: 5000,
-        progress: 64
-    },
-    {
-        id: "car",
-        name: "First Car",
-        icon: <Car className="h-8 w-8 text-primary"/>,
-        current: 8000,
-        target: 20000,
-        progress: 40
-    },
-    {
-        id: "trip",
-        name: "Trip to Japan",
-        icon: <Plane className="h-8 w-8 text-primary"/>,
-        current: 1500,
-        target: 12000,
-        progress: 12.5
-    },
-];
+export const initialGoals: Goal[] = [];
 
 export const goalIcons: { [key: string]: ReactNode } = {
     laptop: <Laptop className="h-8 w-8 text-primary"/>,
