@@ -30,14 +30,13 @@ export const getPredictionFromApi = ai.defineTool(
       if (!response.ok) {
         const errorBody = await response.text();
         console.error(`API call failed with status ${response.status}:`, errorBody);
-        throw new Error(`The prediction API returned an error: ${response.statusText}`);
+        return { error: `The prediction API returned an error: ${response.statusText}` };
       }
 
       const data = await response.json();
       console.log(`Received prediction from API:`, data);
       
       // Assuming the API returns a structure like { prediction: "...", confidence: "..." }
-      // We will return the whole object to be formatted by the main AI
       return data;
 
     } catch (error: any) {

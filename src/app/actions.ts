@@ -46,11 +46,11 @@ export async function handleStockPrediction(symbol: string): Promise<StockPredic
     try {
         const result = await stockPrediction({ symbol });
         return { success: true, prediction: result };
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error calling stock prediction flow:", error);
         return {
             success: false,
-            error: "An unexpected error occurred while generating the prediction.",
+            error: error.message || "An unexpected error occurred while generating the prediction.",
         };
     }
 }
