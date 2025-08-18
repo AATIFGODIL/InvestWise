@@ -18,7 +18,6 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
-import useLoadingStore from "@/store/loading-store";
 import appleLogo from "./applio.webp";
 
 const GoogleIcon = () => (
@@ -48,7 +47,6 @@ const AppleIcon = () => (
 
 export default function SignInPage() {
   const { signIn, signInWithGoogle, signInWithApple } = useAuth();
-  const { showLoading } = useLoadingStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -70,18 +68,6 @@ export default function SignInPage() {
     }
   };
 
-  const handleSocialSignIn = async (provider: 'google' | 'apple') => {
-    setError(null);
-    showLoading();
-    try {
-      const signInMethod = provider === 'google' ? signInWithGoogle : signInWithApple;
-      await signInMethod();
-      // The redirect will happen now. The rest of the flow is in useAuth.
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-sm">
@@ -100,10 +86,10 @@ export default function SignInPage() {
               </Alert>
             )}
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" onClick={() => handleSocialSignIn('google')}>
+              <Button variant="outline" onClick={signInWithGoogle}>
                   <GoogleIcon /> Google
               </Button>
-              <Button variant="outline" onClick={() => handleSocialSignIn('apple')}>
+              <Button variant="outline" onClick={signInWithApple}>
                   <AppleIcon /> Apple
               </Button>
             </div>

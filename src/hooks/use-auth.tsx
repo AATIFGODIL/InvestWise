@@ -15,14 +15,12 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   updateProfile,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   GoogleAuthProvider,
   OAuthProvider,
   sendPasswordResetEmail,
   type AuthProvider as FirebaseAuthProvider,
   type User,
-  signInWithPopup,
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/config";
 import { doc, setDoc, getDoc, updateDoc, type Timestamp } from "firebase/firestore";
@@ -170,17 +168,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsTokenReady(false);
 
       if (firebaseUser) {
-        setUser(firebaseUser);
-        await initializeUserDocument(firebaseUser);
-        const hydrated = await fetchAndHydrateUserData(firebaseUser);
-        setIsTokenReady(hydrated);
-        
-        if (hydrated) {
-          router.push("/dashboard");
+        if (!user) { // This condition checks if it's a new login session
+            const { isNew } = await initializeUserDocument(firebaseUser);
+            await fetchAndHydrateUserData(firebaseUser);
+
+            toast({
+                title: "Signed In Successfully",
+                description: isNew ? "Welcome!" : "Welcome back!",
+            });
+            
+            router.push("/dashboard");
         }
+        setUser(firebaseUser);
+        setIsTokenReady(true);
       } else {
         setUser(null);
         resetAllStores();
+        // Do not redirect here, let pages handle their own auth protection
       }
       
       hideLoading();
@@ -188,7 +192,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [router, toast, resetAllStores, hideLoading]);
+  }, [router, toast, resetAllStores, hideLoading, user]);
 
   const signUp = async (email: string, pass: string, username: string) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
@@ -197,20 +201,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, pass: string) => {
     await signInWithEmailAndPassword(auth, email, pass);
-    toast({
-        title: "Signed In Successfully",
-        description: "Welcome back!",
-    });
+    // onAuthStateChanged will handle the rest
   };
 
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
-    showLoading();
+    showLoading(); // Show loading indicator immediately
     try {
         await signInWithPopup(auth, provider);
-        toast({
-            title: "Signed In Successfully",
-            description: "Welcome!",
-        });
+        // onAuthStateChanged will handle the success toast and redirection
     } catch (error: any) {
         console.error("Popup sign-in failed:", error);
         toast({
