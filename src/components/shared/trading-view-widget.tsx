@@ -20,11 +20,17 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
   const isMounted = useRef(false);
   const { theme } = useThemeStore();
 
-  const createWidget = () => {
-    if (!container.current || !isMounted.current || typeof window.TradingView === 'undefined' || widgetRef.current) {
+  const createWidget = useCallback(() => {
+    if (!container.current || !isMounted.current || typeof window.TradingView === 'undefined') {
       return;
     }
     
+    // If a widget already exists, remove it before creating a new one
+    if (widgetRef.current) {
+      widgetRef.current.remove();
+      widgetRef.current = null;
+    }
+
     const widgetOptions = {
       "autosize": true,
       "symbol": symbol || "AAPL",
@@ -35,61 +41,70 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
       "locale": "en",
       "enable_publishing": false,
       "allow_symbol_change": true,
-      "container_id": "tradingview-widget-container-advanced",
+      "container_id": container.current.id,
+      "onChartReady": () => {
+        const widget = widgetRef.current;
+        if (widget) {
+          const chart = widget.chart();
+          chart.onSymbolChanged().subscribe(null, (newSymbol: { ticker: string }) => {
+            const cleanSymbol = newSymbol.ticker ? newSymbol.ticker.split(':').pop() : newSymbol.ticker;
+            if (cleanSymbol) {
+              onSymbolChange(cleanSymbol);
+            }
+          });
+        }
+      }
     };
 
     widgetRef.current = new window.TradingView.widget(widgetOptions);
-
-    widgetRef.current.ready().then(() => {
-        if(widgetRef.current) {
-            const chart = widgetRef.current.chart();
-            chart.onSymbolChanged().subscribe(null, (newSymbol: { ticker: string }) => {
-                const cleanSymbol = newSymbol.ticker ? newSymbol.ticker.split(':').pop() : newSymbol.ticker;
-                if (cleanSymbol) {
-                    onSymbolChange(cleanSymbol);
-                }
-            });
-        }
-    });
-  };
+  }, [symbol, theme, onSymbolChange]);
 
   useEffect(() => {
     isMounted.current = true;
-    if (window.TradingView) {
-      createWidget();
-    } else {
-      const script = document.createElement("script");
-      script.src = "https://s3.tradingview.com/tv.js";
-      script.async = true;
-      script.onload = createWidget;
-      document.body.appendChild(script);
 
-      return () => {
-          document.body.removeChild(script);
-      };
-    }
+    const initialize = () => {
+        if (window.TradingView) {
+            createWidget();
+        } else {
+            const script = document.createElement("script");
+            script.src = "https://s3.tradingview.com/tv.js";
+            script.async = true;
+            script.onload = createWidget;
+            document.body.appendChild(script);
+
+            return () => {
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+            };
+        }
+    };
     
+    const cleanup = initialize();
+
     return () => {
         isMounted.current = false;
         if (widgetRef.current) {
             widgetRef.current.remove();
             widgetRef.current = null;
         }
+        if (cleanup) {
+            cleanup();
+        }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run only once on mount
-
-  useEffect(() => {
-    if (widgetRef.current && widgetRef.current.chart && symbol) {
-        widgetRef.current.chart().setSymbol(symbol, () => {});
-    }
-  }, [symbol]);
-
+  }, [createWidget]);
+  
    useEffect(() => {
     if (widgetRef.current && widgetRef.current.changeTheme) {
       widgetRef.current.changeTheme(theme);
     }
   }, [theme]);
+
+   useEffect(() => {
+    if (widgetRef.current && widgetRef.current.chart && symbol && widgetRef.current.chart().symbol() !== symbol) {
+        widgetRef.current.chart().setSymbol(symbol, () => {});
+    }
+   }, [symbol]);
 
   return (
     <div 
