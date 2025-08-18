@@ -166,7 +166,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // This effect runs once on mount to check for a redirect result.
-    // It's crucial for capturing the user after they return from Google/Apple.
     const handleRedirectResult = async () => {
         setHydrating(true);
         try {
@@ -174,6 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (result) {
                 // User has just signed in via redirect.
                 // onAuthStateChanged will now fire and handle the rest of the logic.
+                // We show the toast here because this is the only place we know it was a redirect.
                 toast({
                     title: "Signed In Successfully",
                     description: "Welcome!",
@@ -194,19 +194,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     handleRedirectResult();
 
-    // This is the primary listener for auth changes.
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
       setIsTokenReady(false);
 
       if (firebaseUser) {
         setUser(firebaseUser);
-        // Ensure user document exists and then load all their data.
         await initializeUserDocument(firebaseUser);
         const hydrated = await fetchAndHydrateUserData(firebaseUser);
         setIsTokenReady(hydrated);
         
-        // Only redirect if hydration is successful.
         if (hydrated) {
           router.push("/dashboard");
         }
@@ -215,7 +212,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         resetAllStores();
       }
       
-      // We always stop loading/hydrating after the check is complete.
       hideLoading();
       setHydrating(false);
     });
@@ -248,7 +244,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (isInIframe()) {
       await signInWithRedirect(auth, provider);
     } else {
-      await signInWithPopup(auth, provider);
+      try {
+        await signInWithPopup(auth, provider);
+         toast({
+            title: "Signed In Successfully",
+            description: "Welcome!",
+        });
+      } catch(error: any) {
+         toast({
+            variant: "destructive",
+            title: "Sign In Failed",
+            description: error.message || "An unknown error occurred.",
+        });
+      }
     }
   };
 
