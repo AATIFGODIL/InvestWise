@@ -170,29 +170,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
       if (firebaseUser) {
-          setUser(firebaseUser);
-          const { isNew } = await initializeUserDocument(firebaseUser);
-          await fetchAndHydrateUserData(firebaseUser.uid);
-          setIsTokenReady(true);
-
-          if (isNew) {
-            router.push('/onboarding/quiz');
-          } else {
-             if (window.location.pathname.startsWith('/auth')) {
-               router.push('/dashboard');
-             }
+        // First, check if the user document exists, and create it if not.
+        const { isNew } = await initializeUserDocument(firebaseUser);
+        
+        // Now that we're sure the document exists, fetch all user data.
+        await fetchAndHydrateUserData(firebaseUser.uid);
+        
+        // Set the user state and readiness flags.
+        setUser(firebaseUser);
+        setIsTokenReady(true);
+        
+        // Finally, handle redirection.
+        if (isNew) {
+          router.push('/onboarding/quiz');
+        } else {
+          const isAuthPage = window.location.pathname.startsWith('/auth');
+          if (isAuthPage) {
+            router.push('/dashboard');
           }
-
+        }
       } else {
         setUser(null);
         resetAllStores();
         setIsTokenReady(false);
-        if (
-          !window.location.pathname.startsWith('/auth')
-        ) {
+        const isProtectedPage = !window.location.pathname.startsWith('/auth');
+        if (isProtectedPage) {
           router.push('/auth/signin');
         }
       }
+      // Only stop hydrating once all auth-related async operations are complete.
       setHydrating(false);
       hideLoading();
     });
@@ -205,9 +211,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-      // Manually update the profile here because onAuthStateChanged might fire before this completes.
       await updateProfile(userCredential.user, { displayName: username });
-      // onAuthStateChanged will handle document creation and redirection.
+      // onAuthStateChanged will handle document creation, data hydration, and redirection.
       toast({ title: "Account Created!", description: "Let's get you started." });
     } catch (error: any) {
       hideLoading();
@@ -231,17 +236,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
         await signInWithPopup(auth, provider);
-        // onAuthStateChanged will handle document creation, hydration, and redirection.
+        // onAuthStateChanged will handle everything else.
     } catch (error: any) {
       hideLoading();
       console.error("Popup sign-in failed:", error);
-        toast({
-            variant: "destructive",
-            title: "Sign In Failed",
-            description: error.code === 'auth/popup-closed-by-user' 
-              ? "The sign-in window was closed. Please try again."
-              : error.message || "An unknown error occurred.",
-        });
+      toast({
+          variant: "destructive",
+          title: "Sign In Failed",
+          description: error.code === 'auth/popup-closed-by-user' 
+            ? "The sign-in window was closed. Please try again."
+            : error.message || "An unknown error occurred.",
+      });
     }
   };
 
@@ -294,8 +299,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    showLoading();
     await firebaseSignOut(auth);
-    router.push("/auth/signin");
+    // onAuthStateChanged will handle resetting stores and redirection.
   };
 
   return (
