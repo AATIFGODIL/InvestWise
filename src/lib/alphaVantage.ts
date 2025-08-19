@@ -1,15 +1,24 @@
 
 export async function fetchPrice(symbol: string): Promise<number | null> {
-  const API_KEY = process.env.NEXT_PUBLIC_ALPHA_VANTAGE_KEY!;
-  const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${API_KEY}`;
-
   try {
-    const res = await fetch(url);
+    const res = await fetch(`/api/price?symbol=${symbol}`);
+    
+    if (!res.ok) {
+        const errorData = await res.json();
+        console.error(`Error fetching price for ${symbol}:`, errorData.error);
+        return null;
+    }
+    
     const data = await res.json();
-    const price = parseFloat(data["Global Quote"]["05. price"]);
-    return isNaN(price) ? null : price;
-  } catch (err) {
-    console.error("Failed to fetch price:", err);
+
+    if (data.error) {
+      console.error(`API returned an error for ${symbol}:`, data.error);
+      return null;
+    }
+
+    return parseFloat(data.price);
+  } catch (error) {
+    console.error(`Failed to fetch price for ${symbol}:`, error);
     return null;
   }
 }
