@@ -44,7 +44,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   signInWithApple: () => Promise<void>;
   signOut: () => void;
-  updateUserProfile: (data: { username?: string }) => Promise<void>;
+  updateUserProfile: (data: { username?: string, photoURL?: string }) => Promise<void>;
   updateUserTheme: (theme: "light" | "dark") => Promise<void>;
   updatePrivacySettings: (settings: Partial<Omit<PrivacyState, 'setLeaderboardVisibility' | 'setShowQuests' | 'loadPrivacySettings' | 'resetPrivacySettings'>>) => Promise<void>;
   sendPasswordReset: () => Promise<void>;
@@ -97,8 +97,8 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
 
   await setDoc(userDocRef, newUserDoc);
 
-  if (auth.currentUser && auth.currentUser.displayName !== displayName) {
-    await updateProfile(auth.currentUser, { displayName, photoURL: user.photoURL });
+  if (auth.currentUser && (auth.currentUser.displayName !== displayName || auth.currentUser.photoURL !== user.photoURL)) {
+    await updateProfile(auth.currentUser, { displayName, photoURL: user.photoURL || "" });
   }
 
   return { isNew: true };
@@ -211,23 +211,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await handleSocialSignIn(provider);
   };
 
-  const updateUserProfile = async (data: { username?: string }) => {
+  const updateUserProfile = async (data: { username?: string, photoURL?: string }) => {
     if (!user) throw new Error("User not authenticated.");
     const userDocRef = doc(db, "users", user.uid);
     const updatesForFirestore: { [key: string]: any } = {};
-    const updatesForAuth: { displayName?: string } = {};
+    const updatesForAuth: { displayName?: string, photoURL?: string } = {};
 
     if (data.username && data.username !== user.displayName) {
       updatesForFirestore.username = data.username;
       updatesForAuth.displayName = data.username;
     }
+    
+    if (data.photoURL && data.photoURL !== user.photoURL) {
+      updatesForFirestore.photoURL = data.photoURL;
+      updatesForAuth.photoURL = data.photoURL;
+    }
+
 
     if (Object.keys(updatesForFirestore).length > 0) {
       await updateDoc(userDocRef, updatesForFirestore);
     }
     if (Object.keys(updatesForAuth).length > 0) {
       await updateProfile(user, updatesForAuth);
-      useUserStore.getState().setUsername(updatesForAuth.displayName!);
+      // Manually update the user object in state to reflect changes immediately
+      setUser({ ...user, ...updatesForAuth });
+      if (updatesForAuth.displayName) {
+        useUserStore.getState().setUsername(updatesForAuth.displayName);
+      }
+      if (updatesForAuth.photoURL) {
+        useUserStore.getState().setPhotoURL(updatesForAuth.photoURL);
+      }
     }
   };
 

@@ -5,15 +5,18 @@ import { db } from '@/lib/firebase/config';
 
 interface UserState {
   username: string;
+  photoURL: string | null;
   paymentMethodToken: string | null;
   loading: boolean;
   setUsername: (username: string) => void;
+  setPhotoURL: (photoURL: string) => void;
   fetchPaymentMethodToken: (userId: string) => Promise<void>;
   reset: () => void;
 }
 
 const initialState = {
   username: 'Investor',
+  photoURL: null,
   paymentMethodToken: null,
   loading: true,
 }
@@ -21,6 +24,7 @@ const initialState = {
 const useUserStore = create<UserState>((set) => ({
   ...initialState,
   setUsername: (username) => set({ username }),
+  setPhotoURL: (photoURL) => set({ photoURL }),
   
   fetchPaymentMethodToken: async (userId: string) => {
     set({ loading: true });

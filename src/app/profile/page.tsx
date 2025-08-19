@@ -17,6 +17,7 @@ async function getUserData(uid: string) {
       username: data?.username || "Investor",
       email: data?.email || "",
       uid: data?.uid || uid,
+      photoURL: data?.photoURL || "",
     };
   } catch (error) {
     console.error("Error fetching user data from Firestore:", error);

@@ -41,7 +41,7 @@ export default function useUserData(user: User | null) {
           const userData = userDoc.data();
 
           // Get the update functions from each store
-          const { setUsername } = useUserStore.getState();
+          const { setUsername, setPhotoURL } = useUserStore.getState();
           const { loadInitialData } = usePortfolioStore.getState();
           const { setNotifications } = useNotificationStore.getState();
           const { loadGoals } = useGoalStore.getState();
@@ -54,6 +54,7 @@ export default function useUserData(user: User | null) {
           // Hydrate all stores with the fetched data
           setTheme(userData.theme || "light");
           setUsername(userData.username || "Investor");
+          setPhotoURL(userData.photoURL || "");
           loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
           setNotifications(userData.notifications || []);
           loadGoals(userData.goals || []);
