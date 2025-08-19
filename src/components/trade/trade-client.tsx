@@ -44,28 +44,17 @@ export default function TradePageContent() {
     }
   }, [searchParams]);
 
-  // fetch price whenever symbol changes and set up a refresh interval
+  // fetch price whenever symbol changes
   useEffect(() => {
-    async function getPrice(isInitialLoad: boolean) {
-      if (isInitialLoad) {
-        setLoadingPrice(true);
-      }
+    async function getPrice() {
+      setLoadingPrice(true);
       const price = await fetchPrice(selectedSymbol);
       setSelectedPrice(price);
-      if (isInitialLoad) {
-        setLoadingPrice(false);
-      }
+      setLoadingPrice(false);
     }
 
     if (selectedSymbol) {
-      getPrice(true); // Initial fetch with loading indicator
-
-      const intervalId = setInterval(() => {
-        getPrice(false); // Subsequent fetches without loading indicator
-      }, 30000); // 30000 ms = 30 seconds
-
-      // Clean up the interval when the component unmounts or the symbol changes
-      return () => clearInterval(intervalId);
+      getPrice();
     }
   }, [selectedSymbol]);
 
