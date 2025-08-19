@@ -24,6 +24,12 @@ export async function GET(req: Request) {
       }
     });
     const data = await res.json();
+    
+    // Alpha Vantage returns a "Note" property if the API limit is reached.
+    if (data.Note) {
+      console.error("Alpha Vantage API limit reached or invalid response:", data.Note);
+      return NextResponse.json({ error: "Could not retrieve data from the external service at this time. Please try again later." }, { status: 503 });
+    }
 
     const quote = data["Global Quote"];
     if (!quote || Object.keys(quote).length === 0) {
