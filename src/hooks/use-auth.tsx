@@ -52,37 +52,47 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const fetchAndHydrateUserData = async (uid: string) => {
-  const userDocRef = doc(db, "users", uid);
-  const userDoc = await getDoc(userDocRef);
-  if (!userDoc.exists()) {
-    console.error("User document not found for hydration!");
-    return false;
-  }
-  const userData = userDoc.data();
+const fetchAndHydrateUserData = async (uid: string): Promise<boolean> => {
+    const userDocRef = doc(db, "users", uid);
+    
+    // Retry mechanism to wait for the document to be created
+    let userDoc;
+    for (let i = 0; i < 5; i++) {
+        userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+            break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 300)); // wait 300ms before retrying
+    }
 
-  const { setUsername } = useUserStore.getState();
-  const { loadInitialData } = usePortfolioStore.getState();
-  const { setNotifications } = useNotificationStore.getState();
-  const { loadGoals } = useGoalStore.getState();
-  const { loadAutoInvestments } = useAutoInvestStore.getState();
-  const { setTheme } = useThemeStore.getState();
-  const { loadPrivacySettings } = usePrivacyStore.getState();
+    if (!userDoc || !userDoc.exists()) {
+        console.error("User document not found for hydration after retries!");
+        return false;
+    }
+    const userData = userDoc.data();
 
-  const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
-  const theme = userData.theme || "light";
+    const { setUsername } = useUserStore.getState();
+    const { loadInitialData } = usePortfolioStore.getState();
+    const { setNotifications } = useNotificationStore.getState();
+    const { loadGoals } = useGoalStore.getState();
+    const { loadAutoInvestments } = useAutoInvestStore.getState();
+    const { setTheme } = useThemeStore.getState();
+    const { loadPrivacySettings } = usePrivacyStore.getState();
 
-  setTheme(theme);
-  setUsername(userData.username || "Investor");
-  loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
-  setNotifications(userData.notifications || []);
-  loadGoals(userData.goals || []);
-  loadAutoInvestments(userData.autoInvestments || []);
-  loadPrivacySettings({
-    leaderboardVisibility: userData.leaderboardVisibility || "public",
-    showQuests: userData.showQuests === undefined ? true : userData.showQuests,
-  });
-  return true;
+    const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
+    const theme = userData.theme || "light";
+
+    setTheme(theme);
+    setUsername(userData.username || "Investor");
+    loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
+    setNotifications(userData.notifications || []);
+    loadGoals(userData.goals || []);
+    loadAutoInvestments(userData.autoInvestments || []);
+    loadPrivacySettings({
+        leaderboardVisibility: userData.leaderboardVisibility || "public",
+        showQuests: userData.showQuests === undefined ? true : userData.showQuests,
+    });
+    return true;
 };
 
 
@@ -170,13 +180,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setHydrating(true);
       if (firebaseUser) {
           setUser(firebaseUser);
-          const { isNew } = await initializeUserDocument(firebaseUser);
           await fetchAndHydrateUserData(firebaseUser.uid);
           setIsTokenReady(true);
-          // This logic will run for existing users on page load/refresh
-          if (!isNew && window.location.pathname.startsWith('/onboarding')) {
-             router.push('/dashboard');
-          }
       } else {
         setUser(null);
         resetAllStores();
@@ -200,6 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       await initializeUserDocument(userCredential.user, { username });
+      // onAuthStateChanged will handle hydration and final state updates.
       toast({ title: "Account Created!", description: "Let's get you started." });
       router.push("/onboarding/quiz");
     } catch (error: any) {
@@ -212,6 +218,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
       await signInWithEmailAndPassword(auth, email, pass);
+      // onAuthStateChanged will handle hydration and redirect.
       toast({ title: "Signed In Successfully", description: "Welcome back!" });
       router.push("/dashboard");
     } catch(error: any) {
@@ -234,7 +241,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             router.push("/dashboard");
         }
     } catch (error: any) {
-        console.error("Popup sign-in failed:", error);
+      console.error("Popup sign-in failed:", error);
         toast({
             variant: "destructive",
             title: "Sign In Failed",
