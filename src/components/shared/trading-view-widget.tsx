@@ -64,6 +64,10 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
         widgetRef.current = null;
     }
     
+    if (!container.current.id) {
+        container.current.id = `tradingview-widget-container-${Math.random().toString(36).substr(2, 9)}`;
+    }
+
     const widgetOptions = {
         "autosize": true,
         "symbol": symbol || "AAPL",
@@ -80,18 +84,17 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
     const widget = new window.TradingView.widget(widgetOptions);
     widgetRef.current = widget;
 
-    widget.onChartReady(() => {
-      widget.chart().onSymbolChanged().subscribe(null, (newSymbol: { name: string }) => {
-          const cleanSymbol = newSymbol.name.split(':').pop();
-          if (cleanSymbol) {
-              onSymbolChange(cleanSymbol);
-          }
-      });
+    widget.ready(() => {
+        widget.onChartReady(() => {
+            widget.chart().onSymbolChanged().subscribe(null, (newSymbol: { name: string }) => {
+                const cleanSymbol = newSymbol.name.split(':').pop();
+                if (cleanSymbol) {
+                    onSymbolChange(cleanSymbol);
+                }
+            });
+        });
     });
 
-    // No explicit cleanup needed for the widget itself on re-render, 
-    // as we handle it at the start of the effect.
-    // However, we ensure it's removed if the component unmounts.
     return () => {
         if (widgetRef.current) {
             widgetRef.current.remove();
@@ -102,7 +105,6 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
 
   return (
     <div
-      id={`tradingview-widget-container-${React.useId()}`}
       className="tradingview-widget-container h-full w-full"
       ref={container}
     >
