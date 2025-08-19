@@ -1,5 +1,9 @@
 
 import admin from 'firebase-admin';
+import { config } from 'dotenv';
+
+// Load environment variables from .env file
+config();
 
 // NOTE: dotenv.config() is removed. Next.js handles .env file loading automatically.
 
