@@ -12,6 +12,7 @@ import CongratulationsBanner from "@/components/dashboard/congratulations-banner
 import Chatbot from "@/components/chatbot/chatbot";
 import AppLayout from "@/components/layout/app-layout";
 import AiPrediction from "@/components/ai/ai-prediction";
+import AutoInvest from "@/components/dashboard/auto-invest";
 
 const PortfolioSummary = dynamic(() => import("@/components/dashboard/portfolio-summary"), { 
     ssr: false,
@@ -20,9 +21,6 @@ const CommunityLeaderboard = dynamic(() => import("@/components/dashboard/commun
     ssr: false,
 });
 const CommunityTrends = dynamic(() => import("@/components/dashboard/community-trends"), { 
-    ssr: false,
-});
-const AutoInvest = dynamic(() => import("@/components/dashboard/auto-invest"), {
     ssr: false,
 });
 const GoalProgress = dynamic(() => import("@/components/dashboard/goal-progress"), {
