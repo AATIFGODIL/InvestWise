@@ -1,118 +1,143 @@
-"use client"
-import { useState, useEffect, useCallback } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
-import EducationalVideo from "@/components/shared/educational-video";
-import TradeForm from "@/components/trade/trade-form";
-import AutoInvest from "@/components/dashboard/auto-invest";
-import InvestmentBundles from "@/components/dashboard/investment-bundles";
-import { specializedBundles } from "@/data/bundles";
-import TradingViewWidget from "@/components/shared/trading-view-widget";
-import TradingViewScreener from "@/components/shared/trading-view-screener";
-import AiPredictionTrade from "../ai/ai-prediction-trade";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-const videos = [
-    {
-        title: "What are Stocks and ETFs?",
-        description: "A beginner's guide to understanding the basics of stocks and exchange-traded-funds.",
-        image: "https://placehold.co/600x400.png",
-        hint: "chart graph"
-    },
-    {
-        title: "How to Place Your First Trade",
-        description: "A step-by-step walkthrough of buying your first asset on an investment platform.",
-        image: "https://placehold.co/600x400.png",
-        hint: "trading screen"
-    }
-]
+// ✅ Finnhub API key directly from .env
+const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
-// Function to generate a stable, pseudo-random price based on the symbol
-const getSimulatedPrice = (symbol: string): number => {
-    let hash = 0;
-    for (let i = 0; i < symbol.length; i++) {
-        const char = symbol.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash |= 0; // Convert to 32bit integer
-    }
-    const pseudoRandom = (Math.abs(hash) % 100000) / 100; // Price between 0 and 1000
-    return parseFloat((pseudoRandom + 50).toFixed(2)); // Ensure a minimum price of 50
-};
+interface TradeData {
+  p: number; // price
+}
 
-export default function TradePageContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+export default function TradeClient() {
+  const [symbols, setSymbols] = useState<string[]>([]);
   const [selectedSymbol, setSelectedSymbol] = useState<string>("AAPL");
-  const [selectedPrice, setSelectedPrice] = useState<number | null>(null); 
-  const [loadingPrice, setLoadingPrice] = useState(false);
+  const [price, setPrice] = useState<number | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string>("");
+  const [error, setError] = useState<string | null>(null);
 
-  // update symbol from URL on initial load
+  // 🔹 Step 1: Load NASDAQ symbol list from Finnhub
   useEffect(() => {
-    const symbolFromUrl = searchParams.get('symbol');
-    if (symbolFromUrl) {
-      setSelectedSymbol(symbolFromUrl.toUpperCase());
+    async function fetchSymbols() {
+      if (!API_KEY) {
+        setError("Finnhub API key is not configured. Please set NEXT_PUBLIC_FINNHUB_API_KEY in your .env file.");
+        console.error("Finnhub API key is not configured.");
+        return;
+      }
+      setError(null);
+      try {
+        const res = await fetch(
+          `https://finnhub.io/api/v1/stock/symbol?exchange=US&token=${API_KEY}`
+        );
+        if (!res.ok) {
+          throw new Error(`Failed to fetch symbols: ${res.statusText}`);
+        }
+        const data = await res.json();
+        const nasdaqOnly = data
+          .filter((s: any) => s.mic === "XNAS") // only NASDAQ
+          .map((s: any) => s.symbol)
+          .sort(); // Sort symbols alphabetically
+        setSymbols(nasdaqOnly);
+      } catch (err: any) {
+        console.error("Error fetching NASDAQ symbols:", err);
+        setError(`Failed to load stock symbols. ${err.message}`);
+      }
     }
-  }, [searchParams]);
+    fetchSymbols();
+  }, []);
 
-  // fetch price whenever symbol changes
+  // 🔹 Step 2: Subscribe to WebSocket for live prices
   useEffect(() => {
-    function getPrice() {
-      setLoadingPrice(true);
-      // Use the new simulated price function
-      const price = getSimulatedPrice(selectedSymbol);
-      setSelectedPrice(price);
-      setLoadingPrice(false);
+    if (!selectedSymbol || !API_KEY) return;
+
+    setPrice(null); // Reset price when symbol changes
+    setLastUpdated("");
+
+    const ws = new WebSocket(`wss://ws.finnhub.io?token=${API_KEY}`);
+
+    ws.onopen = () => {
+      console.log(`✅ Connected to Finnhub WS for ${selectedSymbol}`);
+      ws.send(JSON.stringify({ type: "subscribe", symbol: selectedSymbol }));
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === "trade" && data.data && data.data.length > 0) {
+        const trade: TradeData = data.data[0];
+        setPrice(trade.p);
+        setLastUpdated(new Date().toLocaleTimeString());
+      }
+    };
+
+    ws.onerror = (err) => {
+      console.error("❌ WebSocket error:", err);
+      setError("WebSocket connection failed. Live price updates may not be available.");
+    };
+    
+    ws.onclose = () => {
+        console.log(`Finnhub WebSocket closed for ${selectedSymbol}`);
     }
 
-    if (selectedSymbol) {
-      getPrice();
-    }
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "unsubscribe", symbol: selectedSymbol }));
+        ws.close();
+      }
+    };
   }, [selectedSymbol]);
-
-  const handleSymbolChange = useCallback((newSymbol: string) => {
-    if (newSymbol && newSymbol !== selectedSymbol) {
-      setSelectedSymbol(newSymbol);
-      // Update the URL without reloading the page
-      router.replace(`/trade?symbol=${newSymbol}`, { scroll: false });
-    }
-  }, [selectedSymbol, router]);
 
   return (
     <div className="w-full bg-background font-body">
       <Header />
       <main className="p-4 space-y-6 pb-40">
-        <h1 className="text-2xl font-bold">Trade</h1>
-        
-        <div className="h-[600px] w-full">
-            <TradingViewWidget symbol={selectedSymbol} onSymbolChange={handleSymbolChange} />
-        </div>
+        <Card>
+            <CardHeader>
+                 <CardTitle className="text-2xl font-bold">📈 Live NASDAQ Prices</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                {error && <p className="text-destructive text-sm">{error}</p>}
+                
+                {/* Symbol Selector */}
+                <div>
+                    <label htmlFor="symbol-select" className="block text-sm font-medium text-muted-foreground mb-1">Select Stock</label>
+                    <select
+                        id="symbol-select"
+                        value={selectedSymbol}
+                        onChange={(e) => setSelectedSymbol(e.target.value)}
+                        className="p-2 rounded-lg border w-full bg-background"
+                        disabled={symbols.length === 0}
+                    >
+                        {symbols.length > 0 ? (
+                        symbols.map((sym) => (
+                            <option key={sym} value={sym}>
+                            {sym}
+                            </option>
+                        ))
+                        ) : (
+                        <option>Loading symbols...</option>
+                        )}
+                    </select>
+                </div>
 
-        <TradeForm 
-          selectedSymbol={selectedSymbol} 
-          selectedPrice={selectedPrice} 
-          loadingPrice={loadingPrice}
-        />
 
-        <AiPredictionTrade initialSymbol={selectedSymbol} />
-        
-        <div className="h-[550px] w-full">
-            <TradingViewScreener />
-        </div>
-        
-        <InvestmentBundles 
-          bundles={specializedBundles}
-          title="Discover Specialized Bundles"
-          description="Themed collections for focused strategies"
-        />
-        <AutoInvest />
-        <div className="space-y-4 pt-4">
-            <h2 className="text-xl font-bold">Learn About Trading</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {videos.map((video) => (
-                    <EducationalVideo key={video.title} {...video} />
-                ))}
-            </div>
-        </div>
+                {/* Live Price Display */}
+                <div className="mt-6 text-lg">
+                    {price !== null ? (
+                    <p className="text-3xl font-bold">
+                        {selectedSymbol}:{" "}
+                        <span>${price.toFixed(2)}</span>  
+                        <span className="text-sm text-muted-foreground ml-2"> (updated {lastUpdated})</span>
+                    </p>
+                    ) : (
+                    <p>Waiting for price...</p>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
       </main>
       <BottomNav />
     </div>

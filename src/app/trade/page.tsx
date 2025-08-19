@@ -3,7 +3,7 @@ import AppLayout from '@/components/layout/app-layout';
 import dynamic from 'next/dynamic';
 import PageSkeleton from '@/components/layout/page-skeleton';
 
-const TradePageContent = dynamic(() => import('@/components/trade/trade-client'), {
+const TradeClient = dynamic(() => import('@/components/trade/trade-client'), {
   loading: () => <PageSkeleton />,
 });
 
@@ -11,7 +11,7 @@ const TradePageContent = dynamic(() => import('@/components/trade/trade-client')
 export default function TradePage() {
     return (
         <AppLayout>
-            <TradePageContent />
+            <TradeClient />
         </AppLayout>
     )
 }
