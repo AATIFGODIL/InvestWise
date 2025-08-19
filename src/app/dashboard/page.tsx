@@ -5,7 +5,6 @@ import PageSkeleton from '@/components/layout/page-skeleton';
 
 const DashboardClient = dynamic(() => import('@/components/dashboard/dashboard-client'), {
   loading: () => <PageSkeleton />,
-  ssr: false // Ensures the component only renders on the client-side
 });
 
 export default function DashboardPage() {
