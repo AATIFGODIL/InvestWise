@@ -62,7 +62,7 @@ export default function TradePageContent() {
 
       const intervalId = setInterval(() => {
         getPrice(false); // Subsequent fetches without loading indicator
-      }, 60000); // 60000 ms = 1 minute
+      }, 30000); // 30000 ms = 30 seconds
 
       // Clean up the interval when the component unmounts or the symbol changes
       return () => clearInterval(intervalId);
