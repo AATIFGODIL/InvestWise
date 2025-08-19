@@ -1,3 +1,4 @@
+
 "use client"
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -43,16 +44,28 @@ export default function TradePageContent() {
     }
   }, [searchParams]);
 
-  // fetch price whenever symbol changes
+  // fetch price whenever symbol changes and set up a refresh interval
   useEffect(() => {
-    async function getPrice() {
-      setLoadingPrice(true);
+    async function getPrice(isInitialLoad: boolean) {
+      if (isInitialLoad) {
+        setLoadingPrice(true);
+      }
       const price = await fetchPrice(selectedSymbol);
       setSelectedPrice(price);
-      setLoadingPrice(false);
+      if (isInitialLoad) {
+        setLoadingPrice(false);
+      }
     }
+
     if (selectedSymbol) {
-      getPrice();
+      getPrice(true); // Initial fetch with loading indicator
+
+      const intervalId = setInterval(() => {
+        getPrice(false); // Subsequent fetches without loading indicator
+      }, 60000); // 60000 ms = 1 minute
+
+      // Clean up the interval when the component unmounts or the symbol changes
+      return () => clearInterval(intervalId);
     }
   }, [selectedSymbol]);
 
