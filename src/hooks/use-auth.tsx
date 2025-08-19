@@ -170,24 +170,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setHydrating(true);
       if (firebaseUser) {
-        // First, check if the user document exists, and create it if not.
-        const { isNew } = await initializeUserDocument(firebaseUser);
-        
-        // Now that we're sure the document exists, fetch all user data.
         await fetchAndHydrateUserData(firebaseUser.uid);
-        
-        // Set the user state and readiness flags.
         setUser(firebaseUser);
         setIsTokenReady(true);
-        
-        // Finally, handle redirection.
-        if (isNew) {
-          router.push('/onboarding/quiz');
-        } else {
-          const isAuthPage = window.location.pathname.startsWith('/auth');
-          if (isAuthPage) {
+        const isAuthPage = window.location.pathname.startsWith('/auth');
+        if (isAuthPage) {
             router.push('/dashboard');
-          }
         }
       } else {
         setUser(null);
@@ -198,7 +186,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           router.push('/auth/signin');
         }
       }
-      // Only stop hydrating once all auth-related async operations are complete.
       setHydrating(false);
       hideLoading();
     });
@@ -211,9 +198,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-      await updateProfile(userCredential.user, { displayName: username });
-      // onAuthStateChanged will handle document creation, data hydration, and redirection.
+      await initializeUserDocument(userCredential.user, { username });
+      // onAuthStateChanged will handle data hydration and redirection to quiz for new users
       toast({ title: "Account Created!", description: "Let's get you started." });
+      router.push('/onboarding/quiz');
     } catch (error: any) {
       hideLoading();
       throw error;
@@ -235,18 +223,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
     showLoading();
     try {
-        await signInWithPopup(auth, provider);
-        // onAuthStateChanged will handle everything else.
+        const result = await signInWithPopup(auth, provider);
+        const { isNew } = await initializeUserDocument(result.user);
+        if (isNew) {
+            router.push('/onboarding/quiz');
+        } else {
+            // onAuthStateChanged will handle redirect for existing users
+        }
     } catch (error: any) {
       hideLoading();
       console.error("Popup sign-in failed:", error);
-      toast({
-          variant: "destructive",
-          title: "Sign In Failed",
-          description: error.code === 'auth/popup-closed-by-user' 
+        toast({
+            variant: "destructive",
+            title: "Sign In Failed",
+            description: error.code === 'auth/popup-closed-by-user' 
             ? "The sign-in window was closed. Please try again."
             : error.message || "An unknown error occurred.",
-      });
+        });
     }
   };
 
@@ -331,3 +324,5 @@ export function useAuth() {
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }
+
+    
