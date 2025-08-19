@@ -5,6 +5,7 @@ import PageSkeleton from '@/components/layout/page-skeleton';
 
 const TradeClient = dynamic(() => import('@/components/trade/trade-client'), {
   loading: () => <PageSkeleton />,
+  ssr: false, // Disable SSR for this component to avoid window-related errors
 });
 
 
