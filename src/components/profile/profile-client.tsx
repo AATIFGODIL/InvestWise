@@ -1,23 +1,22 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
-import { User, updateProfile } from "firebase/auth";
+import { useState } from "react";
+import { updateProfile } from "firebase/auth";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { auth, storage } from "@/lib/firebase/config";
+import { storage } from "@/lib/firebase/config";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Loader2, Upload, LogIn, ChevronLeft } from "lucide-react";
 import Link from "next/link";
-import AppLayout from "@/components/layout/app-layout";
 import PaymentMethods from "@/components/profile/payment-methods";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import useLoadingStore from "@/store/loading-store";
 import useUserStore from "@/store/user-store";
 
-function ProfileClient() {
+export default function ProfileClient() {
   const { user, hydrating } = useAuth();
   const [uploading, setUploading] = useState(false);
   const router = useRouter();
@@ -116,12 +115,4 @@ function ProfileClient() {
       </main>
     </div>
   );
-}
-
-export default function ProfilePage() {
-    return (
-        <AppLayout>
-            <ProfileClient />
-        </AppLayout>
-    )
 }
