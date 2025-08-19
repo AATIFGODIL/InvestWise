@@ -18,20 +18,20 @@ declare global {
 const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolChange }) => {
   const container = useRef<HTMLDivElement>(null);
   const widgetRef = useRef<any>(null);
-  const isMounted = useRef(false);
   const { theme } = useThemeStore();
 
   const createWidget = useCallback(() => {
-    if (!container.current || !isMounted.current || typeof window.TradingView === 'undefined') {
+    if (!container.current || typeof window.TradingView === 'undefined') {
+      // If the library isn't loaded yet, do nothing.
+      // This might happen on initial fast loads, but useEffect will re-run.
       return;
     }
-    
-    // If a widget already exists, remove it before creating a new one
+
     if (widgetRef.current) {
       widgetRef.current.remove();
       widgetRef.current = null;
     }
-
+    
     const widgetOptions = {
       "autosize": true,
       "symbol": symbol || "AAPL",
@@ -45,7 +45,7 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
       "container_id": container.current.id,
       "onChartReady": () => {
         const widget = widgetRef.current;
-        if (widget) {
+        if (widget?.chart) { // Check if chart method exists
           const chart = widget.chart();
           chart.onSymbolChanged().subscribe(null, (newSymbol: { ticker: string }) => {
             const cleanSymbol = newSymbol.ticker ? newSymbol.ticker.split(':').pop() : newSymbol.ticker;
@@ -56,61 +56,29 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
         }
       }
     };
-
+    
     widgetRef.current = new window.TradingView.widget(widgetOptions);
   }, [symbol, theme, onSymbolChange]);
 
   useEffect(() => {
-    isMounted.current = true;
-
-    const initialize = () => {
-        if (window.TradingView) {
-            createWidget();
-        } else {
-            const script = document.createElement("script");
-            script.src = "https://s3.tradingview.com/tv.js";
-            script.async = true;
-            script.onload = createWidget;
-            document.body.appendChild(script);
-
-            return () => {
-                if (script.parentNode) {
-                    script.parentNode.removeChild(script);
-                }
-            };
-        }
-    };
-    
-    const cleanup = initialize();
+    // We assume the TradingView script is loaded globally from layout.tsx
+    // We create the widget once the component mounts and the container is available.
+    if (container.current) {
+      createWidget();
+    }
 
     return () => {
-        isMounted.current = false;
-        if (widgetRef.current) {
-            widgetRef.current.remove();
-            widgetRef.current = null;
-        }
-        if (cleanup) {
-            cleanup();
-        }
+      if (widgetRef.current) {
+        widgetRef.current.remove();
+        widgetRef.current = null;
+      }
     };
-  }, [createWidget]);
-  
-   useEffect(() => {
-    if (widgetRef.current && widgetRef.current.changeTheme) {
-      widgetRef.current.changeTheme(theme);
-    }
-  }, [theme]);
-
-   useEffect(() => {
-    if (widgetRef.current && widgetRef.current.chart && symbol && widgetRef.current.chart().symbol() !== symbol) {
-        widgetRef.current.chart().setSymbol(symbol, () => {});
-    }
-   }, [symbol]);
+  }, [createWidget]); // Rerun when symbol or theme changes
 
   return (
-    <div 
-      id="tradingview-widget-container-advanced" 
-      className="tradingview-widget-container h-full w-full" 
+    <div
+      id={`tradingview-widget-container-${React.useId()}`}
+      className="tradingview-widget-container h-full w-full"
       ref={container}
     >
       <div className="tradingview-widget-container__widget h-full w-full"></div>
