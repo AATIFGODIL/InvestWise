@@ -1,4 +1,3 @@
-
 "use client"
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -12,7 +11,6 @@ import { specializedBundles } from "@/data/bundles";
 import TradingViewWidget from "@/components/shared/trading-view-widget";
 import TradingViewScreener from "@/components/shared/trading-view-screener";
 import AiPredictionTrade from "../ai/ai-prediction-trade";
-import { fetchPrice } from "@/lib/alphaVantage";
 
 const videos = [
     {
@@ -28,6 +26,18 @@ const videos = [
         hint: "trading screen"
     }
 ]
+
+// Function to generate a stable, pseudo-random price based on the symbol
+const getSimulatedPrice = (symbol: string): number => {
+    let hash = 0;
+    for (let i = 0; i < symbol.length; i++) {
+        const char = symbol.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash |= 0; // Convert to 32bit integer
+    }
+    const pseudoRandom = (Math.abs(hash) % 100000) / 100; // Price between 0 and 1000
+    return parseFloat((pseudoRandom + 50).toFixed(2)); // Ensure a minimum price of 50
+};
 
 export default function TradePageContent() {
   const searchParams = useSearchParams();
@@ -46,9 +56,10 @@ export default function TradePageContent() {
 
   // fetch price whenever symbol changes
   useEffect(() => {
-    async function getPrice() {
+    function getPrice() {
       setLoadingPrice(true);
-      const price = await fetchPrice(selectedSymbol);
+      // Use the new simulated price function
+      const price = getSimulatedPrice(selectedSymbol);
       setSelectedPrice(price);
       setLoadingPrice(false);
     }

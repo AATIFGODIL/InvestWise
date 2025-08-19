@@ -9,7 +9,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import TradeForm from "./trade-form";
-import { fetchPrice } from "@/lib/alphaVantage";
 
 interface TradeDialogProps {
   isOpen: boolean;
@@ -18,6 +17,19 @@ interface TradeDialogProps {
   price: number;
   action: "buy" | "sell";
 }
+
+// Function to generate a stable, pseudo-random price based on the symbol
+const getSimulatedPrice = (symbol: string): number => {
+    let hash = 0;
+    for (let i = 0; i < symbol.length; i++) {
+        const char = symbol.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash |= 0; // Convert to 32bit integer
+    }
+    const pseudoRandom = (Math.abs(hash) % 100000) / 100; // Price between 0 and 1000
+    return parseFloat((pseudoRandom + 50).toFixed(2)); // Ensure a minimum price of 50
+};
+
 
 export default function TradeDialog({
   isOpen,
@@ -30,10 +42,9 @@ export default function TradeDialog({
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Re-fetch the latest price when the dialog opens for a different symbol
-    async function getPrice() {
+    function getPrice() {
       setIsLoading(true);
-      const fetchedPrice = await fetchPrice(symbol);
+      const fetchedPrice = getSimulatedPrice(symbol);
       setCurrentPrice(fetchedPrice);
       setIsLoading(false);
     }
@@ -48,7 +59,7 @@ export default function TradeDialog({
         <DialogHeader>
           <DialogTitle className="capitalize">{`${action} ${symbol}`}</DialogTitle>
           <DialogDescription>
-            The market is constantly changing. The final price may vary.
+            This is a simulated price. The final execution price may vary in a real market.
           </DialogDescription>
         </DialogHeader>
         <TradeForm
