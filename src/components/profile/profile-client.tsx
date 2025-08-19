@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -15,16 +14,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ChevronLeft, KeyRound, User, Save, Mail, Repeat, BarChart, Briefcase, ChevronRight, Loader2, Upload } from "lucide-react";
+import { ChevronLeft, KeyRound, User, Save, Mail, Loader2, Upload, Repeat, BarChart, Briefcase, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import useUserStore from "@/store/user-store";
 import { useAuth } from "@/hooks/use-auth";
 import PaymentMethods from "@/components/profile/payment-methods";
 import { useRouter } from "next/navigation";
 import useLoadingStore from "@/store/loading-store";
 import { storage } from "@/lib/firebase/config";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-
 
 interface ProfileClientProps {
     initialUserData: {
@@ -38,27 +35,16 @@ interface ProfileClientProps {
 export default function ProfileClient({ initialUserData }: ProfileClientProps) {
   const { toast } = useToast();
   const { user, updateUserProfile, sendPasswordReset } = useAuth();
-  const { username: globalUsername, photoURL: globalPhotoURL, setUsername: setGlobalUsername, setPhotoURL: setGlobalPhotoURL } = useUserStore();
   const router = useRouter();
   const { showLoading } = useLoadingStore();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [localUsername, setLocalUsername] = useState(initialUserData.username);
+  const [username, setUsername] = useState(initialUserData.username);
+  const [photoURL, setPhotoURL] = useState(initialUserData.photoURL);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
 
-  useEffect(() => {
-    if (initialUserData.username) {
-      setGlobalUsername(initialUserData.username);
-    }
-    if (initialUserData.photoURL) {
-      setGlobalPhotoURL(initialUserData.photoURL);
-    }
-  }, [initialUserData, setGlobalUsername, setGlobalPhotoURL]);
-
-  useEffect(() => {
-    setLocalUsername(globalUsername);
-  }, [globalUsername]);
+  const hasUsernameChanged = username !== initialUserData.username;
 
   const handleBackClick = () => {
     showLoading();
@@ -71,23 +57,16 @@ export default function ProfileClient({ initialUserData }: ProfileClientProps) {
         return;
     }
     
-    if (localUsername === globalUsername) {
+    if (!hasUsernameChanged) {
         toast({ title: "No Changes", description: "You haven't made any changes to your username." });
         return;
     }
 
     setIsSaving(true);
     try {
-        await updateUserProfile({
-            username: localUsername,
-        });
-        
-        setGlobalUsername(localUsername);
-
-        toast({
-            title: "Success!",
-            description: "Your profile has been updated.",
-        });
+        await updateUserProfile({ username });
+        toast({ title: "Success!", description: "Your profile has been updated." });
+        // Optionally, force a refresh or update the initial data state if needed
     } catch (error: any) {
         console.error("Error updating profile:", error);
         toast({ variant: "destructive", title: "Error", description: error.message || "Failed to update profile." });
@@ -135,7 +114,7 @@ export default function ProfileClient({ initialUserData }: ProfileClientProps) {
           const downloadURL = await getDownloadURL(snapshot.ref);
 
           await updateUserProfile({ photoURL: downloadURL });
-          setGlobalPhotoURL(downloadURL);
+          setPhotoURL(downloadURL); // Update local state to show new avatar immediately
 
           toast({ title: "Avatar Updated", description: "Your new profile picture has been saved." });
       } catch (error) {
@@ -157,7 +136,7 @@ export default function ProfileClient({ initialUserData }: ProfileClientProps) {
                     </Button>
                     <h1 className="text-xl font-bold">Profile</h1>
                 </div>
-                 <Button variant="default" size="sm" onClick={handleSaveChanges} disabled={isSaving}>
+                 <Button variant="default" size="sm" onClick={handleSaveChanges} disabled={isSaving || !hasUsernameChanged}>
                     {isSaving ? (
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
@@ -179,8 +158,8 @@ export default function ProfileClient({ initialUserData }: ProfileClientProps) {
                 <div className="flex items-center gap-4">
                     <div className="relative">
                         <Avatar className="h-20 w-20 border-2 border-primary cursor-pointer" onClick={handleAvatarClick}>
-                            <AvatarImage src={globalPhotoURL || ''} alt={localUsername || ''} />
-                            <AvatarFallback>{localUsername?.charAt(0).toUpperCase()}</AvatarFallback>
+                            <AvatarImage src={photoURL || ''} alt={username || ''} />
+                            <AvatarFallback>{username?.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer" onClick={handleAvatarClick}>
                            {isUploading ? <Loader2 className="h-6 w-6 animate-spin text-white"/> : <Upload className="h-6 w-6 text-white"/>}
@@ -188,7 +167,7 @@ export default function ProfileClient({ initialUserData }: ProfileClientProps) {
                         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/png, image/jpeg, image/webp" />
                     </div>
                     <div>
-                        <p className="font-semibold text-lg">{localUsername}</p>
+                        <p className="font-semibold text-lg">{username}</p>
                         <p className="text-muted-foreground">{initialUserData.email}</p>
                     </div>
                 </div>
@@ -196,8 +175,8 @@ export default function ProfileClient({ initialUserData }: ProfileClientProps) {
                     <Label htmlFor="username">Username</Label>
                     <Input 
                         id="username" 
-                        value={localUsername || ''}
-                        onChange={(e) => setLocalUsername(e.target.value)}
+                        value={username || ''}
+                        onChange={(e) => setUsername(e.target.value)}
                         disabled={isSaving}
                     />
                 </div>
@@ -219,7 +198,7 @@ export default function ProfileClient({ initialUserData }: ProfileClientProps) {
                 <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                     <div>
                         <p className="font-medium">Password Reset</p>
-                        <p className="text-sm text-muted-foreground">An email with instructions will be sent to your registered email address.</p>
+                        <p className="text-sm text-muted-foreground">An email will be sent to your registered email address.</p>
                     </div>
                     <Button onClick={handlePasswordReset}>
                         <Mail className="mr-2 h-4 w-4" />
