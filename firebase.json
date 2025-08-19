@@ -12,7 +12,7 @@
     },
     "headers": [
       {
-        "source": "/_next/static/**/*",
+        "source": "/_next/static/**",
         "headers": [
           {
             "key": "Cache-Control",
@@ -21,7 +21,7 @@
         ]
       },
       {
-        "source": "/**/*.@(jpg|jpeg|gif|png|svg|webp|ico|woff2)",
+        "source": "/**/*.@(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff|woff2|ttf|otf|eot)",
         "headers": [
           {
             "key": "Cache-Control",
