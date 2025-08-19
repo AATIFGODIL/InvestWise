@@ -23,7 +23,7 @@ import {
   type User,
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/config";
-import { doc, setDoc, getDoc, updateDoc, type Timestamp } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import useUserStore from "@/store/user-store";
 import usePortfolioStore from "@/store/portfolio-store";
@@ -51,40 +51,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-const fetchAndHydrateUserData = async (uid: string): Promise<boolean> => {
-    const userDocRef = doc(db, "users", uid);
-    const userDoc = await getDoc(userDocRef);
-
-    if (!userDoc.exists()) {
-        console.error("User document not found for hydration!");
-        return false;
-    }
-    const userData = userDoc.data();
-
-    const { setUsername } = useUserStore.getState();
-    const { loadInitialData } = usePortfolioStore.getState();
-    const { setNotifications } = useNotificationStore.getState();
-    const { loadGoals } = useGoalStore.getState();
-    const { loadAutoInvestments } = useAutoInvestStore.getState();
-    const { setTheme } = useThemeStore.getState();
-    const { loadPrivacySettings } = usePrivacyStore.getState();
-
-    const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
-    const theme = userData.theme || "light";
-
-    setTheme(theme);
-    setUsername(userData.username || "Investor");
-    loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
-    setNotifications(userData.notifications || []);
-    loadGoals(userData.goals || []);
-    loadAutoInvestments(userData.autoInvestments || []);
-    loadPrivacySettings({
-        leaderboardVisibility: userData.leaderboardVisibility || "public",
-        showQuests: userData.showQuests === undefined ? true : userData.showQuests,
-    });
-    return true;
-};
 
 
 const initializeUserDocument = async (user: User, additionalData: { username?: string } = {}) => {
@@ -168,24 +134,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setHydrating(true);
-      if (firebaseUser) {
-        await fetchAndHydrateUserData(firebaseUser.uid);
-        setUser(firebaseUser);
-        setIsTokenReady(true);
-        const isAuthPage = window.location.pathname.startsWith('/auth');
-        if (isAuthPage) {
-            router.push('/dashboard');
-        }
-      } else {
-        setUser(null);
+      setUser(firebaseUser);
+      setIsTokenReady(!!firebaseUser);
+
+      if (!firebaseUser) {
         resetAllStores();
-        setIsTokenReady(false);
         const isProtectedPage = !window.location.pathname.startsWith('/auth');
         if (isProtectedPage) {
           router.push('/auth/signin');
         }
       }
+      
       setHydrating(false);
       hideLoading();
     });
@@ -199,7 +158,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       await initializeUserDocument(userCredential.user, { username });
-      // onAuthStateChanged will handle data hydration and redirection to quiz for new users
       toast({ title: "Account Created!", description: "Let's get you started." });
       router.push('/onboarding/quiz');
     } catch (error: any) {
@@ -212,8 +170,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
       await signInWithEmailAndPassword(auth, email, pass);
-      // onAuthStateChanged will handle hydration and redirect.
       toast({ title: "Signed In Successfully", description: "Welcome back!" });
+      router.push('/dashboard');
     } catch(error: any) {
       hideLoading();
       throw error;
@@ -228,7 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (isNew) {
             router.push('/onboarding/quiz');
         } else {
-            // onAuthStateChanged will handle redirect for existing users
+            router.push('/dashboard');
         }
     } catch (error: any) {
       hideLoading();
@@ -294,7 +252,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => {
     showLoading();
     await firebaseSignOut(auth);
-    // onAuthStateChanged will handle resetting stores and redirection.
   };
 
   return (
