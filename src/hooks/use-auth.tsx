@@ -170,9 +170,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setHydrating(true);
       if (firebaseUser) {
           setUser(firebaseUser);
-          await initializeUserDocument(firebaseUser);
+          const { isNew } = await initializeUserDocument(firebaseUser);
           await fetchAndHydrateUserData(firebaseUser.uid);
           setIsTokenReady(true);
+          // This logic will run for existing users on page load/refresh
+          if (!isNew && window.location.pathname.startsWith('/onboarding')) {
+             router.push('/dashboard');
+          }
       } else {
         setUser(null);
         resetAllStores();
@@ -196,8 +200,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       await initializeUserDocument(userCredential.user, { username });
-      toast({ title: "Account Created!", description: "Welcome to InvestWise." });
-      router.push("/dashboard");
+      toast({ title: "Account Created!", description: "Let's get you started." });
+      router.push("/onboarding/quiz");
     } catch (error: any) {
       hideLoading();
       throw error;
@@ -219,9 +223,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
     showLoading();
     try {
-        await signInWithPopup(auth, provider);
-        toast({ title: "Signed In Successfully", description: "Welcome!" });
-        router.push("/dashboard");
+        const result = await signInWithPopup(auth, provider);
+        const { isNew } = await initializeUserDocument(result.user);
+        
+        if (isNew) {
+            toast({ title: "Account Created!", description: "Let's get you started." });
+            router.push('/onboarding/quiz');
+        } else {
+            toast({ title: "Signed In Successfully", description: "Welcome back!" });
+            router.push("/dashboard");
+        }
     } catch (error: any) {
         console.error("Popup sign-in failed:", error);
         toast({
