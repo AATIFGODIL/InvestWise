@@ -27,37 +27,39 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
       return;
     }
 
-    if (container.current && !isWidgetReady.current) {
-        const widgetOptions = {
-            "autosize": true,
-            "symbol": symbol || "AAPL",
-            "interval": "D",
-            "timezone": "Etc/UTC",
-            "theme": theme,
-            "style": "1",
-            "locale": "en",
-            "enable_publishing": false,
-            "allow_symbol_change": true,
-            "container_id": `tradingview-widget-container-${Date.now()}` // Unique ID for container
-        };
-        
-        container.current.id = widgetOptions.container_id;
+    const createWidget = () => {
+      if (container.current && !isWidgetReady.current) {
+          const containerId = `tradingview-widget-container-${Date.now()}`;
+          container.current.id = containerId;
 
-        const widget = new window.TradingView.widget(widgetOptions);
-        widgetRef.current = widget;
-        isWidgetReady.current = true;
-
-        widget.ready(() => {
-            widget.onChartReady(() => {
-                widget.chart().onSymbolChanged().subscribe(null, (newSymbol: { name: string }) => {
-                    const cleanSymbol = newSymbol.name.split(':').pop();
-                    if (cleanSymbol) {
-                        onSymbolChange(cleanSymbol);
-                    }
-                });
-            });
-        });
-    }
+          const widgetOptions = {
+              "autosize": true,
+              "symbol": symbol || "AAPL",
+              "interval": "D",
+              "timezone": "Etc/UTC",
+              "theme": theme,
+              "style": "1",
+              "locale": "en",
+              "enable_publishing": false,
+              "allow_symbol_change": true,
+              "container_id": containerId,
+              "onChartReady": (widget: any) => {
+                  widget.chart().onSymbolChanged().subscribe(null, (newSymbol: { name: string }) => {
+                      const cleanSymbol = newSymbol.name.split(':').pop();
+                      if (cleanSymbol) {
+                          onSymbolChange(cleanSymbol);
+                      }
+                  });
+              }
+          };
+          
+          const widget = new window.TradingView.widget(widgetOptions);
+          widgetRef.current = widget;
+          isWidgetReady.current = true;
+      }
+    };
+    
+    createWidget();
 
     return () => {
         if (widgetRef.current && typeof widgetRef.current.remove === 'function') {
@@ -66,19 +68,20 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
             isWidgetReady.current = false;
         }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on mount
 
   // Effect to update theme
   useEffect(() => {
-      if (widgetRef.current && typeof widgetRef.current.changeTheme === 'function') {
+      if (widgetRef.current && isWidgetReady.current && typeof widgetRef.current.changeTheme === 'function') {
           widgetRef.current.changeTheme(theme);
       }
   }, [theme]);
 
   // Effect to update symbol
   useEffect(() => {
-    if (widgetRef.current && typeof widgetRef.current.symbol === 'function') {
-      widgetRef.current.symbol(symbol || "AAPL");
+    if (widgetRef.current && isWidgetReady.current && symbol && typeof widgetRef.current.setSymbol === 'function') {
+      widgetRef.current.setSymbol(symbol, 'D', () => {});
     }
   }, [symbol]);
 
