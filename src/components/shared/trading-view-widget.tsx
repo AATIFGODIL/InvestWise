@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useRef, memo, useCallback } from 'react';
+import React, { useEffect, useRef, memo, useState } from 'react';
 import useThemeStore from '@/store/theme-store';
 
 interface TradingViewWidgetProps {
@@ -15,65 +15,90 @@ declare global {
   }
 }
 
+const TRADINGVIEW_SCRIPT_ID = "tradingview-widget-script";
+
 const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolChange }) => {
   const container = useRef<HTMLDivElement>(null);
   const widgetRef = useRef<any>(null);
   const { theme } = useThemeStore();
+  const [isScriptReady, setIsScriptReady] = useState(false);
 
-  const createWidget = useCallback(() => {
-    if (!container.current || typeof window.TradingView === 'undefined') {
-      // If the library isn't loaded yet, do nothing.
-      // This might happen on initial fast loads, but useEffect will re-run.
+  // Effect to load the TradingView script
+  useEffect(() => {
+    if (window.TradingView) {
+      setIsScriptReady(true);
       return;
     }
 
+    const script = document.createElement('script');
+    script.id = TRADINGVIEW_SCRIPT_ID;
+    script.src = "https://s3.tradingview.com/tv.js";
+    script.async = true;
+    script.onload = () => {
+        setIsScriptReady(true);
+    };
+    script.onerror = () => {
+        console.error("TradingView script failed to load.");
+    };
+
+    document.head.appendChild(script);
+
+    return () => {
+      // Clean up script if component unmounts before it loads
+      const existingScript = document.getElementById(TRADINGVIEW_SCRIPT_ID);
+      if (existingScript) {
+        existingScript.remove();
+      }
+    };
+  }, []);
+
+  // Effect to create/update the widget once the script is ready
+  useEffect(() => {
+    if (!isScriptReady || !container.current) {
+      return;
+    }
+    
+    // Clean up previous widget instance if it exists
     if (widgetRef.current) {
-      widgetRef.current.remove();
-      widgetRef.current = null;
+        widgetRef.current.remove();
+        widgetRef.current = null;
     }
     
     const widgetOptions = {
-      "autosize": true,
-      "symbol": symbol || "AAPL",
-      "interval": "D",
-      "timezone": "Etc/UTC",
-      "theme": theme,
-      "style": "1",
-      "locale": "en",
-      "enable_publishing": false,
-      "allow_symbol_change": true,
-      "container_id": container.current.id,
-      "onChartReady": () => {
-        const widget = widgetRef.current;
-        if (widget?.chart) { // Check if chart method exists
-          const chart = widget.chart();
-          chart.onSymbolChanged().subscribe(null, (newSymbol: { ticker: string }) => {
-            const cleanSymbol = newSymbol.ticker ? newSymbol.ticker.split(':').pop() : newSymbol.ticker;
-            if (cleanSymbol) {
+        "autosize": true,
+        "symbol": symbol || "AAPL",
+        "interval": "D",
+        "timezone": "Etc/UTC",
+        "theme": theme,
+        "style": "1",
+        "locale": "en",
+        "enable_publishing": false,
+        "allow_symbol_change": true,
+        "container_id": container.current.id
+    };
+
+    const widget = new window.TradingView.widget(widgetOptions);
+    widgetRef.current = widget;
+
+    widget.onChartReady(() => {
+      widget.chart().onSymbolChanged().subscribe(null, (newSymbol: { name: string }) => {
+          const cleanSymbol = newSymbol.name.split(':').pop();
+          if (cleanSymbol) {
               onSymbolChange(cleanSymbol);
-            }
-          });
-        }
-      }
-    };
-    
-    widgetRef.current = new window.TradingView.widget(widgetOptions);
-  }, [symbol, theme, onSymbolChange]);
+          }
+      });
+    });
 
-  useEffect(() => {
-    // We assume the TradingView script is loaded globally from layout.tsx
-    // We create the widget once the component mounts and the container is available.
-    if (container.current) {
-      createWidget();
-    }
-
+    // No explicit cleanup needed for the widget itself on re-render, 
+    // as we handle it at the start of the effect.
+    // However, we ensure it's removed if the component unmounts.
     return () => {
-      if (widgetRef.current) {
-        widgetRef.current.remove();
-        widgetRef.current = null;
-      }
+        if (widgetRef.current) {
+            widgetRef.current.remove();
+            widgetRef.current = null;
+        }
     };
-  }, [createWidget]); // Rerun when symbol or theme changes
+  }, [isScriptReady, symbol, theme, onSymbolChange]);
 
   return (
     <div
