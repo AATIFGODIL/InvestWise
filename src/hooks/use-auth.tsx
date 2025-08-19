@@ -54,19 +54,10 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const fetchAndHydrateUserData = async (uid: string): Promise<boolean> => {
     const userDocRef = doc(db, "users", uid);
-    
-    // Retry mechanism to wait for the document to be created
-    let userDoc;
-    for (let i = 0; i < 5; i++) {
-        userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-            break;
-        }
-        await new Promise(resolve => setTimeout(resolve, 300)); // wait 300ms before retrying
-    }
+    const userDoc = await getDoc(userDocRef);
 
-    if (!userDoc || !userDoc.exists()) {
-        console.error("User document not found for hydration after retries!");
+    if (!userDoc.exists()) {
+        console.error("User document not found for hydration!");
         return false;
     }
     const userData = userDoc.data();
@@ -180,8 +171,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setHydrating(true);
       if (firebaseUser) {
           setUser(firebaseUser);
+          const { isNew } = await initializeUserDocument(firebaseUser);
           await fetchAndHydrateUserData(firebaseUser.uid);
           setIsTokenReady(true);
+
+          if (isNew) {
+            router.push('/onboarding/quiz');
+          } else {
+             if (window.location.pathname.startsWith('/auth')) {
+               router.push('/dashboard');
+             }
+          }
+
       } else {
         setUser(null);
         resetAllStores();
@@ -204,10 +205,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-      await initializeUserDocument(userCredential.user, { username });
-      // onAuthStateChanged will handle hydration and final state updates.
+      // Manually update the profile here because onAuthStateChanged might fire before this completes.
+      await updateProfile(userCredential.user, { displayName: username });
+      // onAuthStateChanged will handle document creation and redirection.
       toast({ title: "Account Created!", description: "Let's get you started." });
-      router.push("/onboarding/quiz");
     } catch (error: any) {
       hideLoading();
       throw error;
@@ -220,7 +221,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await signInWithEmailAndPassword(auth, email, pass);
       // onAuthStateChanged will handle hydration and redirect.
       toast({ title: "Signed In Successfully", description: "Welcome back!" });
-      router.push("/dashboard");
     } catch(error: any) {
       hideLoading();
       throw error;
@@ -230,17 +230,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
     showLoading();
     try {
-        const result = await signInWithPopup(auth, provider);
-        const { isNew } = await initializeUserDocument(result.user);
-        
-        if (isNew) {
-            toast({ title: "Account Created!", description: "Let's get you started." });
-            router.push('/onboarding/quiz');
-        } else {
-            toast({ title: "Signed In Successfully", description: "Welcome back!" });
-            router.push("/dashboard");
-        }
+        await signInWithPopup(auth, provider);
+        // onAuthStateChanged will handle document creation, hydration, and redirection.
     } catch (error: any) {
+      hideLoading();
       console.error("Popup sign-in failed:", error);
         toast({
             variant: "destructive",
@@ -249,7 +242,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               ? "The sign-in window was closed. Please try again."
               : error.message || "An unknown error occurred.",
         });
-        hideLoading();
     }
   };
 
