@@ -163,18 +163,27 @@ export type LeaderboardUser = {
 
 export async function getLeaderboardData(): Promise<{ success: boolean; data?: LeaderboardUser[]; error?: string; }> {
     try {
+        // Firestore queries with inequalities on one field and ordering on another require a composite index.
+        // To avoid needing manual index creation, we fetch all users ordered by gain, then filter in the backend.
         const usersSnapshot = await db
             .collection('users')
-            .where('leaderboardVisibility', 'in', ['public', 'anonymous'])
             .orderBy('portfolio.summary.totalGainLoss', 'desc')
-            .limit(10)
             .get();
 
         if (usersSnapshot.empty) {
             return { success: true, data: [] };
         }
 
-        const leaderboardData = usersSnapshot.docs.map((doc, index) => {
+        // Filter out users who have opted out of the leaderboard.
+        const visibleUsers = usersSnapshot.docs.filter(doc => {
+            const visibility = doc.data().leaderboardVisibility;
+            return visibility === 'public' || visibility === 'anonymous';
+        });
+
+        // Take the top 10 from the filtered list.
+        const topUsers = visibleUsers.slice(0, 10);
+
+        const leaderboardData = topUsers.map((doc, index) => {
             const userData = doc.data();
             const isAnonymous = userData.leaderboardVisibility === 'anonymous';
             
