@@ -19,6 +19,8 @@ import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import appleLogo from "./applio.webp";
+import { useRouter } from "next/navigation";
+import useLoadingStore from "@/store/loading-store";
 
 const GoogleIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512" className="h-5 w-5 mr-2">
@@ -38,6 +40,8 @@ const AppleIcon = () => (
 
 export default function SignInPage() {
   const { signIn, signInWithGoogle, signInWithApple } = useAuth();
+  const router = useRouter();
+  const { showLoading } = useLoadingStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -57,6 +61,12 @@ export default function SignInPage() {
     } finally {
       setIsEmailLoading(false);
     }
+  };
+
+  const handleNavigateToSignUp = (e: React.MouseEvent) => {
+    e.preventDefault();
+    showLoading();
+    router.push('/auth/signup');
   };
 
   return (
@@ -143,7 +153,7 @@ export default function SignInPage() {
           </CardContent>
           <CardFooter className="text-center text-sm">
             Don&apos;t have an account?&nbsp;
-            <Link href="/auth/signup" className="underline">
+            <Link href="/auth/signup" className="underline" onClick={handleNavigateToSignUp}>
               Sign up
             </Link>
           </CardFooter>
