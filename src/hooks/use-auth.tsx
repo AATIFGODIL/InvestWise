@@ -109,27 +109,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const { showLoading, hideLoading } = useLoadingStore();
 
-  const resetUserStore = useUserStore((state) => state.reset);
-  const resetPortfolio = usePortfolioStore((state) => state.resetPortfolio);
-  const setNotifications = useNotificationStore((state) => state.setNotifications);
-  const resetGoals = useGoalStore((state) => state.resetGoals);
-  const resetAutoInvest = useAutoInvestStore((state) => state.resetAutoInvest);
-  const setTheme = useThemeStore((state) => state.setTheme);
-  const resetPrivacySettings = usePrivacyStore((state) => state.resetPrivacySettings);
-
   const [user, setUser] = useState<User | null>(null);
   const [hydrating, setHydrating] = useState(true);
   const [isTokenReady, setIsTokenReady] = useState(false);
 
   const resetAllStores = useCallback(() => {
-    resetUserStore();
-    resetPortfolio();
-    setNotifications([]);
-    resetGoals();
-    resetAutoInvest();
-    setTheme("light");
-    resetPrivacySettings();
-  }, [resetUserStore, resetPortfolio, setNotifications, resetGoals, resetAutoInvest, setTheme, resetPrivacySettings]);
+    useUserStore.getState().reset();
+    usePortfolioStore.getState().resetPortfolio();
+    useNotificationStore.getState().setNotifications([]);
+    useGoalStore.getState().resetGoals();
+    useAutoInvestStore.getState().resetAutoInvest();
+    useThemeStore.getState().setTheme("light"); // Explicitly reset theme
+    usePrivacyStore.getState().resetPrivacySettings();
+  }, []);
 
 
   useEffect(() => {
