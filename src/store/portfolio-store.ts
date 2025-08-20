@@ -52,50 +52,61 @@ const defaultSummary: PortfolioSummary = {
 const generateChartData = (totalValue: number, registrationDate: Date): ChartData => {
     const allTradingDaysData: ChartDataPoint[] = [];
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     let currentDate = new Date(registrationDate);
     currentDate.setHours(0, 0, 0, 0);
-
-    // If registration is in the future, return empty data
-    if (currentDate > today) {
-        return { '1W': [], '1M': [], '6M': [], '1Y': [] };
-    }
     
-    let currentValue = 0; // Start at 0 on registration day
-
-    // Generate data from registration day up to today
+    // Create a list of all trading days (weekdays) from registration until today
+    const tradingDays = [];
     while (currentDate <= today) {
         const dayOfWeek = currentDate.getDay();
-        if (dayOfWeek > 0 && dayOfWeek < 6) { // It's a weekday
-            // For the last day, the value is the current totalValue
-            if (currentDate.toDateString() === today.toDateString()) {
-                 currentValue = totalValue;
-            } else {
-                 // Simulate daily fluctuation
-                 const noise = (Math.random() - 0.49) * (currentValue * 0.05 + totalValue * 0.01);
-                 currentValue = Math.max(0, currentValue + noise);
-            }
-           
-            allTradingDaysData.push({
-                date: currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                value: parseFloat(currentValue.toFixed(2)),
-            });
+        if (dayOfWeek > 0 && dayOfWeek < 6) { // Monday to Friday
+            tradingDays.push(new Date(currentDate));
         }
         currentDate.setDate(currentDate.getDate() + 1);
     }
-    
-    // Ensure the very last point is the accurate total value
-    if (allTradingDaysData.length > 0) {
-        allTradingDaysData[allTradingDaysData.length - 1].value = totalValue;
-    } else if (totalValue > 0) {
-        // Handle case where user registered today on a weekday
-         allTradingDaysData.push({
-            date: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            value: totalValue,
+
+    if (tradingDays.length > 0) {
+        const numDays = tradingDays.length;
+        // The value on the first day is always 0
+        allTradingDaysData.push({
+            date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            value: 0.00,
         });
+
+        // If there are more than 1 trading days, simulate the path to the current totalValue
+        if (numDays > 1) {
+            let currentValue = 0;
+            // The increment is the total value divided over the remaining days
+            const increment = totalValue / (numDays - 1);
+
+            for (let i = 1; i < numDays; i++) {
+                 // On the last day, ensure the value is exactly the totalValue
+                if (i === numDays - 1) {
+                    currentValue = totalValue;
+                } else {
+                    // Add the base increment plus some random noise for realism
+                    const noise = (Math.random() - 0.45) * increment * 0.5;
+                    currentValue += increment + noise;
+                }
+
+                allTradingDaysData.push({
+                    date: tradingDays[i].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                    value: Math.max(0, parseFloat(currentValue.toFixed(2))), // Ensure value is not negative
+                });
+            }
+        } else if (totalValue > 0) {
+            // This case handles if user registers and has value on the same day.
+            // We'll show the initial 0 and the current value on the same day for clarity.
+             allTradingDaysData.push({
+                date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                value: totalValue,
+            });
+        }
     }
 
 
-    // Slice the data for different time ranges from the end of the full history
     const getRange = (days: number) => {
         return allTradingDaysData.slice(-days);
     };
