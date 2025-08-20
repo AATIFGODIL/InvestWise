@@ -65,7 +65,9 @@ export default function useUserData(user: User | null) {
           });
 
         } else {
-            console.error("User document not found for hydration!");
+            // This can happen during new user creation if this hook runs before the user document is created.
+            // It's not a critical error, so we can just log it for debugging if needed, but not as an error.
+            console.log("User document not found for hydration, likely a new user.");
         }
       } catch (error) {
         console.error("Failed to fetch and hydrate user data:", error);
