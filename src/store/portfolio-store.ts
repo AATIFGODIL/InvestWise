@@ -92,8 +92,8 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
 
     let currentDate = new Date(registrationDate);
     currentDate.setHours(0, 0, 0, 0);
-    
-    // Create a list of all trading days from registration until today
+
+    // 1. Create a list of all valid trading days from registration until today
     const tradingDays: Date[] = [];
     while (currentDate <= today) {
         const dayOfWeek = currentDate.getDay();
@@ -106,43 +106,52 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
         currentDate.setDate(currentDate.getDate() + 1);
     }
     
+    // 2. Generate the data points based on the list of trading days
     if (tradingDays.length > 0) {
         const numDays = tradingDays.length;
         let currentValue = 0;
-        
-        // Always start with 0 on the first trading day, which is the registration date or the next available trading day
+
+        // The first data point is always the first trading day with value 0
         allTradingDaysData.push({
             date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
             value: 0.00,
         });
 
+        // If there is more than one trading day, simulate growth
         if (numDays > 1) {
-            // Distribute the total value growth over the remaining trading days
             const increment = totalValue / (numDays - 1);
 
             for (let i = 1; i < numDays; i++) {
+                // For the last day, use the exact total value to ensure accuracy
                 if (i === numDays - 1) {
-                    currentValue = totalValue; // Ensure the last point is the exact total value
+                    currentValue = totalValue;
                 } else {
-                    // Simulate a random walk for more realistic chart
-                    const noise = (Math.random() - 0.45) * increment * 0.6; 
+                    // Simulate a random walk for a more realistic chart appearance
+                    const noise = (Math.random() - 0.45) * increment * 0.6;
                     currentValue += increment + noise;
                 }
-                 allTradingDaysData.push({
+
+                allTradingDaysData.push({
                     date: tradingDays[i].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
                     value: Math.max(0, parseFloat(currentValue.toFixed(2))),
                 });
             }
-        } else if (numDays === 1 && totalValue > 0) {
-             // If the only trading day is today, show the jump from 0 to current value
-            allTradingDaysData.push({
-                date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                value: totalValue,
-            });
+        }
+        // If there's only one trading day and there's value, create a point for it.
+        // This is unlikely if the first point is 0, but is a good safeguard.
+        else if (numDays === 1 && totalValue > 0) {
+            // Check if the only point is already the start date, if so, update it.
+             if (allTradingDaysData.length > 0) {
+                allTradingDaysData.push({
+                    date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                    value: totalValue,
+                });
+             }
         }
     }
 
     const getRange = (days: number) => {
+        // Return the last 'days' elements from the generated data
         return allTradingDaysData.slice(-days);
     };
 
@@ -153,7 +162,6 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
         '1Y': getRange(252),
     };
 };
-
 
 export const usePortfolioStore = create<PortfolioState>((set, get) => ({
   holdings: [],
@@ -283,5 +291,3 @@ const calculatePortfolioSummary = (holdings: Holding[]): PortfolioSummary => {
     
     return summary;
 };
-
-    
