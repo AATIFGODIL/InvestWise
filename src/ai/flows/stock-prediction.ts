@@ -19,7 +19,7 @@ export async function stockPrediction(input: StockPredictionInput): Promise<Stoc
 
 const InterpretationPromptSchema = z.object({
     symbol: z.string(),
-    forecast: z.array(z.number()),
+    forecast: z.string(),
     accuracy: z.number(),
 });
 
@@ -30,7 +30,7 @@ const prompt = ai.definePrompt({
     prompt: `You are a financial analyst. Your task is to interpret raw stock forecast data and present a clear, concise, and easy-to-understand prediction for a beginner investor.
 
     Here is the data for the stock symbol {{{symbol}}}:
-    - 5-day price forecast: {{{JSONstringify forecast}}}
+    - 5-day price forecast: {{{forecast}}}
     - Model accuracy: {{{accuracy}}}
 
     Based on this data, provide the following:
@@ -61,7 +61,7 @@ const stockPredictionFlow = ai.defineFlow(
     // 2. Interpret the raw data using an LLM
     const { output } = await prompt({
         symbol: predictionResult.symbol,
-        forecast: predictionResult.forecast,
+        forecast: JSON.stringify(predictionResult.forecast),
         accuracy: predictionResult.accuracy,
     });
 
