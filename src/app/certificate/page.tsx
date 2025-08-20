@@ -7,8 +7,6 @@ import Certificate from "@/components/dashboard/certificate";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Download, ArrowLeft } from "lucide-react";
-import { toPng } from "html-to-image";
-
 
 export default function CertificatePage() {
   const { username } = useUserStore();
@@ -24,16 +22,19 @@ export default function CertificatePage() {
       return;
     }
 
-    toPng(certificateRef.current, { cacheBust: true })
-      .then((dataUrl) => {
-        const link = document.createElement("a");
-        link.download = "InvestWise-Certificate.png";
-        link.href = dataUrl;
-        link.click();
-      })
-      .catch((err) => {
-        console.error("Failed to download certificate image:", err);
-      });
+    // Dynamically import the library only when the function is called
+    import('html-to-image').then(({ toPng }) => {
+      toPng(certificateRef.current!, { cacheBust: true })
+        .then((dataUrl) => {
+          const link = document.createElement("a");
+          link.download = "InvestWise-Certificate.png";
+          link.href = dataUrl;
+          link.click();
+        })
+        .catch((err) => {
+          console.error("Failed to download certificate image:", err);
+        });
+    });
   }, []);
 
   return (
