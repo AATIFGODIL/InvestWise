@@ -14,6 +14,8 @@ import TradeForm from "@/components/trade/trade-form";
 import TradingViewScreener from "@/components/shared/trading-view-screener";
 import AiPredictionTrade from "@/components/ai/ai-prediction-trade";
 import EducationalVideo from "@/components/shared/educational-video";
+import InvestmentBundles from "../dashboard/investment-bundles";
+import { specializedBundles } from "@/data/bundles";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -190,6 +192,12 @@ export default function TradeClient() {
             </div>
           </CardContent>
         </Card>
+
+        <InvestmentBundles
+            title="Explore Specialized Bundles"
+            description="Discover themed collections for more focused strategies."
+            bundles={specializedBundles}
+        />
         
         <Card>
             <CardHeader>
