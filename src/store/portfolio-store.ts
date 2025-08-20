@@ -43,6 +43,7 @@ interface PortfolioState {
     portfolioSummary: PortfolioSummary;
     chartData: ChartData;
     marketHolidays: Set<string>;
+    isLoading: boolean;
     fetchMarketHolidays: () => Promise<void>;
     executeTrade: (trade: { symbol: string, qty: number, price: number, description: string }) => { success: boolean, error?: string };
     loadInitialData: (holdings: Holding[], summary: PortfolioSummary | null, registrationDate: Date) => void;
@@ -54,6 +55,10 @@ const defaultSummary: PortfolioSummary = {
     todaysChange: 0,
     totalGainLoss: 0,
     annualRatePercent: 0,
+};
+
+const defaultChartData: ChartData = {
+    '1W': [], '1M': [], '6M': [], '1Y': [],
 };
 
 // --- Finnhub API Integration ---
@@ -77,7 +82,6 @@ const fetchHolidaysFromFinnhub = async (): Promise<Set<string>> => {
              return new Set();
         }
         
-        // The API returns the full holiday object, we only need the date string "YYYY-MM-DD"
         return new Set(holidays.map(h => h.atDate));
     } catch (error) {
         console.error("Failed to fetch market holidays:", error);
@@ -99,7 +103,6 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
         const dayOfWeek = currentDate.getDay();
         const dateString = currentDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
         
-        // Check if it's a weekday (Monday-Friday) and not a market holiday
         if (dayOfWeek > 0 && dayOfWeek < 6 && !holidays.has(dateString)) {
             tradingDays.push(new Date(currentDate));
         }
@@ -122,11 +125,9 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
             const increment = totalValue / (numDays - 1);
 
             for (let i = 1; i < numDays; i++) {
-                // For the last day, use the exact total value to ensure accuracy
                 if (i === numDays - 1) {
                     currentValue = totalValue;
                 } else {
-                    // Simulate a random walk for a more realistic chart appearance
                     const noise = (Math.random() - 0.45) * increment * 0.6;
                     currentValue += increment + noise;
                 }
@@ -137,23 +138,17 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
                 });
             }
         }
-        // If there's only one trading day and there's value, create a point for it.
-        // This is unlikely if the first point is 0, but is a good safeguard.
+        // If there's only one trading day but the user has value (e.g., from a deposit),
+        // add a second point for the same day to show the value.
         else if (numDays === 1 && totalValue > 0) {
-            // Check if the only point is already the start date, if so, update it.
-             if (allTradingDaysData.length > 0) {
-                allTradingDaysData.push({
-                    date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                    value: totalValue,
-                });
-             }
+             allTradingDaysData.push({
+                date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                value: totalValue,
+            });
         }
     }
 
-    const getRange = (days: number) => {
-        // Return the last 'days' elements from the generated data
-        return allTradingDaysData.slice(-days);
-    };
+    const getRange = (days: number) => allTradingDaysData.slice(-days);
 
     return {
         '1W': getRange(5),
@@ -167,20 +162,28 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
   holdings: [],
   portfolioSummary: { ...defaultSummary },
   marketHolidays: new Set(),
-  chartData: generateChartData(0, new Date(), new Set()),
+  chartData: { ...defaultChartData },
+  isLoading: true,
   
   fetchMarketHolidays: async () => {
-    const holidays = await fetchHolidaysFromFinnhub();
-    set({ marketHolidays: holidays });
+    // Only fetch if not already fetched
+    if (get().marketHolidays.size === 0) {
+        const holidays = await fetchHolidaysFromFinnhub();
+        set({ marketHolidays: holidays });
+    }
   },
 
   loadInitialData: (holdings, summary, registrationDate) => {
+    set({ isLoading: true });
     const { marketHolidays } = get();
     const newSummary = summary || calculatePortfolioSummary(holdings);
+    const newChartData = generateChartData(newSummary.totalValue, registrationDate, marketHolidays);
+    
     set({
       holdings: holdings,
       portfolioSummary: newSummary,
-      chartData: generateChartData(newSummary.totalValue, registrationDate, marketHolidays),
+      chartData: newChartData,
+      isLoading: false,
     });
   },
 
@@ -188,7 +191,8 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
     set({
       holdings: [],
       portfolioSummary: { ...defaultSummary },
-      chartData: generateChartData(0, new Date(), get().marketHolidays),
+      chartData: { ...defaultChartData },
+      isLoading: true, // Set to true on reset, will be false after new user data is loaded
     });
   },
   
@@ -250,10 +254,10 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
     }).catch(console.error);
     
     set(state => {
-        // We need the registration date to regenerate the chart correctly.
-        // It's not stored in state, so we have to assume a recent date. This is a limitation.
-        // For now, we'll just update the holdings and summary.
-        // A full re-fetch via useUserData would be the most robust solution.
+        // Here we need the registration date to regenerate the chart correctly.
+        // It's not stored in state, so we have to retrieve it or accept a limitation.
+        // For now, we'll just update holdings and summary, and accept the chart won't update on trade.
+        // A full data refetch via useUserData after a trade would be the most robust solution.
         return {
             holdings: newHoldings,
             portfolioSummary: newSummary
