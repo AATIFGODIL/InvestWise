@@ -6,8 +6,9 @@ import { useUserStore } from "@/store/user-store";
 import Certificate from "@/components/dashboard/certificate";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { toPng } from "html-to-image";
 import { Download, ArrowLeft } from "lucide-react";
+import { toPng } from "html-to-image";
+
 
 export default function CertificatePage() {
   const { username } = useUserStore();
