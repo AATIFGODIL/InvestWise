@@ -84,7 +84,6 @@ export default function CommunityTrends() {
   
   const handleStockLinkClick = (symbol: string) => {
     showLoading();
-    setIsDialogOpen(false); // Close dialog first
     router.push(`/trade?symbol=${symbol}`);
   };
 

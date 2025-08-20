@@ -48,12 +48,11 @@ export default function InvestmentBundles({ bundles, title, description, showDis
 
   const handleStockLinkClick = (symbol: string) => {
     showLoading();
-    setSelectedBundle(null); // Close dialog first
     router.push(`/trade?symbol=${symbol}`);
   };
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={(isOpen) => !isOpen && setSelectedBundle(null)}>
       <Card className="flex flex-col h-full">
         <CardHeader>
           <CardTitle>{title}</CardTitle>
