@@ -6,16 +6,16 @@ import { useSearchParams } from "next/navigation";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Loader2 } from "lucide-react";
 import TradingViewWidget from "@/components/shared/trading-view-widget";
 import TradeForm from "@/components/trade/trade-form";
 import TradingViewScreener from "@/components/shared/trading-view-screener";
 import AiPredictionTrade from "@/components/ai/ai-prediction-trade";
-import EducationalVideo from "@/components/shared/educational-video";
 import InvestmentBundles from "../dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -23,20 +23,12 @@ interface TradeData {
   p: number; // price
 }
 
-const videos = [
-    {
-        title: "Technical Analysis Basics",
-        description: "Learn how to read stock charts and identify potential trading opportunities.",
-        image: "https://placehold.co/600x400.png",
-        hint: "stock chart analysis"
-    },
-    {
-        title: "Understanding Order Types",
-        description: "A clear guide to market, limit, and stop orders and when to use each one.",
-        image: "https://placehold.co/600x400.png",
-        hint: "financial strategy planning"
-    }
-];
+interface SearchResult {
+  description: string;
+  displaySymbol: string;
+  symbol: string;
+  type: string;
+}
 
 export default function TradeClient() {
   const searchParams = useSearchParams();
@@ -46,11 +38,16 @@ export default function TradeClient() {
   const [loadingPrice, setLoadingPrice] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleSymbolChange = useCallback((newSymbol: string) => {
+    if (!newSymbol) return;
     const upperSymbol = newSymbol.toUpperCase();
     setSymbol(upperSymbol);
     setInputValue(upperSymbol);
+    setIsSearchOpen(false);
     // Update URL without reloading page
     window.history.pushState({}, '', `/trade?symbol=${upperSymbol}`);
   }, []);
@@ -60,8 +57,9 @@ export default function TradeClient() {
     if (symbolFromUrl && symbolFromUrl.toUpperCase() !== symbol) {
       handleSymbolChange(symbolFromUrl);
     }
-  }, [searchParams, symbol, handleSymbolChange]);
-  
+    // This effect should only run when the search params change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     if (!symbol || !API_KEY) {
@@ -73,18 +71,15 @@ export default function TradeClient() {
     setLoadingPrice(true);
     setError(null);
 
-    // --- 1. Fetch initial price via REST API ---
     async function fetchInitialPrice() {
         try {
             const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${API_KEY}`);
-            if (!res.ok) {
-                throw new Error(`Failed to fetch quote: ${res.statusText}`);
-            }
+            if (!res.ok) throw new Error(`Failed to fetch quote: ${res.statusText}`);
             const data = await res.json();
-            if (data && typeof data.c !== 'undefined') {
-                setPrice(data.c); // 'c' is the close price / current price
+            if (data && typeof data.c !== 'undefined' && data.c !== 0) {
+                setPrice(data.c);
             } else {
-                 setError("Invalid data received for symbol.");
+                setError("Invalid data received for symbol. It might be delisted or incorrect.");
             }
         } catch (err: any) {
             console.error("Error fetching initial price:", err);
@@ -96,11 +91,7 @@ export default function TradeClient() {
 
     fetchInitialPrice();
 
-
-    // --- 2. Connect to WebSocket for live updates ---
-    if (socketRef.current) {
-        socketRef.current.close();
-    }
+    if (socketRef.current) socketRef.current.close();
 
     const socket = new WebSocket(`wss://ws.finnhub.io?token=${API_KEY}`);
     socketRef.current = socket;
@@ -112,38 +103,40 @@ export default function TradeClient() {
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === "trade" && data.data && data.data.length > 0) {
+      if (data.type === "trade" && data.data?.length > 0) {
         const trade: TradeData = data.data[0];
         setPrice(trade.p);
       }
     };
 
-    socket.onerror = (err) => {
-      console.error("WebSocket error:", err);
-      // Don't set a blocking error here, as the REST price might still be valid.
-    };
-
-    socket.onclose = () => {
-      console.log(`Finnhub WebSocket closed for ${symbol}`);
-    };
+    socket.onerror = (err) => console.error("WebSocket error. This is often due to an invalid symbol or connection issue.");
+    socket.onclose = () => console.log(`Finnhub WebSocket closed for ${symbol}`);
 
     return () => {
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ type: "unsubscribe", symbol }));
-        socket.close();
+      if (socketRef.current) {
+        if (socketRef.current.readyState === WebSocket.OPEN) {
+            socketRef.current.send(JSON.stringify({ type: "unsubscribe", symbol }));
+            socketRef.current.close();
+        }
+        socketRef.current = null;
       }
-      socketRef.current = null;
     };
   }, [symbol]);
 
-  const handleSearch = () => {
-    handleSymbolChange(inputValue);
-  };
-  
-  const handleScreenerSymbolClick = (screenerSymbol: string) => {
-    const cleanSymbol = screenerSymbol.split(':').pop();
-    if (cleanSymbol) {
-      handleSymbolChange(cleanSymbol);
+  const handleSearchInputChange = async (value: string) => {
+    setInputValue(value.toUpperCase());
+    if (value.length > 0) {
+        if (!isSearchOpen) setIsSearchOpen(true);
+        try {
+            const res = await fetch(`https://finnhub.io/api/v1/search?q=${value}&token=${API_KEY}`);
+            const data = await res.json();
+            setSearchResults(data.result || []);
+        } catch (err) {
+            console.error("Search failed:", err);
+        }
+    } else {
+        if (isSearchOpen) setIsSearchOpen(false);
+        setSearchResults([]);
     }
   };
 
@@ -159,17 +152,43 @@ export default function TradeClient() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-col sm:flex-row gap-2">
-              <div className="relative flex-grow">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value.toUpperCase())}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  placeholder="e.g., AAPL, TSLA"
-                  className="pl-10"
-                />
-              </div>
-              <Button onClick={handleSearch}>
+                <Popover open={isSearchOpen} onOpenChange={setIsSearchOpen}>
+                    <PopoverTrigger asChild>
+                        <div className="relative flex-grow">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                             <Command className="w-full">
+                                <CommandInput
+                                    ref={searchInputRef}
+                                    value={inputValue}
+                                    onValueChange={handleSearchInputChange}
+                                    placeholder="e.g., AAPL, TSLA"
+                                    className="pl-10 h-10"
+                                />
+                            </Command>
+                        </div>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+                        <Command>
+                            <CommandList>
+                                {searchResults.length === 0 && inputValue.length > 1 && <CommandEmpty>No results found.</CommandEmpty>}
+                                <CommandGroup>
+                                    {searchResults.map((result) => (
+                                        <CommandItem
+                                            key={result.symbol}
+                                            value={result.symbol}
+                                            onSelect={() => handleSymbolChange(result.symbol)}
+                                            className="cursor-pointer"
+                                        >
+                                            <span className="font-bold w-20">{result.symbol}</span>
+                                            <span className="text-muted-foreground truncate">{result.description}</span>
+                                        </CommandItem>
+                                    ))}
+                                </CommandGroup>
+                            </CommandList>
+                        </Command>
+                    </PopoverContent>
+                </Popover>
+              <Button onClick={() => handleSymbolChange(inputValue)}>
                 {loadingPrice ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
                 Search
               </Button>
@@ -207,15 +226,6 @@ export default function TradeClient() {
                  <TradingViewScreener />
             </CardContent>
         </Card>
-
-        <div className="space-y-4 pt-4">
-            <h2 className="text-xl font-bold">Trading Education</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {videos.map((video) => (
-                    <EducationalVideo key={video.title} {...video} />
-                ))}
-            </div>
-        </div>
 
       </main>
       <BottomNav />
