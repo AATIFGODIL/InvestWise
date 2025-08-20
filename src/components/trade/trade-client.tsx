@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, a, { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
@@ -93,7 +93,10 @@ export default function TradeClient() {
       }
     };
 
-    socket.onerror = (err) => console.error("WebSocket error. This is often due to an invalid symbol or connection issue.");
+    socket.onerror = (err) => {
+        setError("Could not connect to live price feed. The symbol may be invalid or delisted.");
+        console.error("WebSocket error:", err);
+    }
     socket.onclose = () => console.log(`Finnhub WebSocket closed for ${searchedSymbol}`);
 
     return () => {
@@ -109,7 +112,10 @@ export default function TradeClient() {
 
   const handleSearch = () => {
     if (inputValue) {
-        setSearchedSymbol(inputValue.toUpperCase());
+        const upperCaseSymbol = inputValue.toUpperCase();
+        setSearchedSymbol(upperCaseSymbol);
+        // We don't sync the widget anymore, per user request.
+        // setWidgetSymbol(upperCaseSymbol); 
     }
   };
 
@@ -130,7 +136,7 @@ export default function TradeClient() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                         value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value.toUpperCase())}
+                        onChange={(e) => setInputValue(e.target.value)}
                         placeholder="e.g., AAPL, TSLA"
                         className="pl-10 h-10"
                         onKeyDown={(e) => {
@@ -141,7 +147,7 @@ export default function TradeClient() {
                     />
                 </div>
               <Button onClick={handleSearch}>
-                {loadingPrice && searchedSymbol === inputValue ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                {loadingPrice && searchedSymbol === inputValue.toUpperCase() ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
                 Search
               </Button>
             </div>
