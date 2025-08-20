@@ -1,12 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  devIndicators: {
-    buildActivity: false,
-  },
   experimental: {
-    allowedDevOrigins: [
-      '6000-firebase-studio-1751627876811.cluster-nzwlpk54dvagsxetkvxzbvslyi.cloudworkstations.dev',
-    ],
+    // Keep this empty if no other experimental features are needed.
+    // allowedDevOrigins has been moved to the top level.
   },
   images: {
     remotePatterns: [
@@ -20,6 +16,8 @@ const nextConfig = {
       },
     ],
   },
+  // This is a top-level configuration, not inside 'experimental'.
+  allowedDevOrigins: ["*.cloudworkstations.dev", "*.apptivi.dev"],
 };
 
 export default nextConfig;
