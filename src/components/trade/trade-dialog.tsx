@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,18 +19,7 @@ interface TradeDialogProps {
   action: "buy" | "sell";
 }
 
-// Function to generate a stable, pseudo-random price based on the symbol
-const getSimulatedPrice = (symbol: string): number => {
-    let hash = 0;
-    for (let i = 0; i < symbol.length; i++) {
-        const char = symbol.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
-        hash |= 0; // Convert to 32bit integer
-    }
-    const pseudoRandom = (Math.abs(hash) % 100000) / 100; // Price between 0 and 1000
-    return parseFloat((pseudoRandom + 50).toFixed(2)); // Ensure a minimum price of 50
-};
-
+const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
 export default function TradeDialog({
   isOpen,
@@ -40,17 +30,34 @@ export default function TradeDialog({
 }: TradeDialogProps) {
   const [currentPrice, setCurrentPrice] = useState<number | null>(price);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    function getPrice() {
+    async function fetchPrice() {
+      if (!isOpen || !symbol || !API_KEY) return;
+      
       setIsLoading(true);
-      const fetchedPrice = getSimulatedPrice(symbol);
-      setCurrentPrice(fetchedPrice);
-      setIsLoading(false);
+      setError(null);
+      try {
+        const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${API_KEY}`);
+        if (!res.ok) throw new Error(`Failed to fetch quote: ${res.statusText}`);
+        const data = await res.json();
+        if (data && typeof data.c !== 'undefined' && data.c !== 0) {
+            setCurrentPrice(data.c);
+        } else {
+            setError("Could not fetch a valid price for this stock.");
+            setCurrentPrice(null);
+        }
+      } catch (err) {
+        console.error("Error fetching price in dialog:", err);
+        setError("Could not fetch the latest price.");
+        setCurrentPrice(null);
+      } finally {
+        setIsLoading(false);
+      }
     }
-    if (isOpen && symbol) {
-      getPrice();
-    }
+    
+    fetchPrice();
   }, [symbol, isOpen]);
 
   return (
@@ -59,7 +66,7 @@ export default function TradeDialog({
         <DialogHeader>
           <DialogTitle className="capitalize">{`${action} ${symbol}`}</DialogTitle>
           <DialogDescription>
-            This is a simulated price. The final execution price may vary in a real market.
+            {error ? error : "Price is updated in real-time. The final execution price may vary in a real market."}
           </DialogDescription>
         </DialogHeader>
         <TradeForm
