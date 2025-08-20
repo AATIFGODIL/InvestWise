@@ -136,9 +136,10 @@ export default function HoldingsTable() {
                 </Table>
             </div>
             <div className="p-4 mt-4">
-                <Button className="w-full sm:w-auto" variant="outline">
+                 {/* This button is currently a placeholder */}
+                <Button className="w-full sm:w-auto" variant="outline" disabled>
                     <History className="h-4 w-4 mr-2"/>
-                    Trade History
+                    Trade History (Coming Soon)
                 </Button>
             </div>
       </CardContent>

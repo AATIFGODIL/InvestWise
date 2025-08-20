@@ -225,7 +225,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
           ...existingHolding,
           qty: newQty,
           purchasePrice: newPurchasePrice,
-          currentPrice: trade.price,
+          currentPrice: trade.price, // Update with the latest trade price
         };
       }
     } else {
@@ -238,26 +238,31 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
         currentPrice: trade.price,
         purchasePrice: trade.price,
         qty: trade.qty,
-        todaysChange: 0,
-        todaysChangePercent: 0,
-        annualRatePercent: 0,
+        todaysChange: 0, // This will be updated by a separate mechanism in a real app
+        todaysChangePercent: 0, // This will be updated by a separate mechanism
+        annualRatePercent: 0, // Placeholder
       };
       newHoldings.push(newHolding);
     }
     
+    // Recalculate summary based on new holdings
     const newSummary = calculatePortfolioSummary(newHoldings);
     
     const userDocRef = doc(getFirestore(), "users", user.uid);
+    // Persist changes to Firestore
     updateDoc(userDocRef, { 
         "portfolio.holdings": newHoldings,
         "portfolio.summary": newSummary 
-    }).catch(console.error);
+    }).catch(error => {
+        console.error("Failed to update portfolio in Firestore:", error);
+        // Optionally revert state or show an error to the user
+    });
     
+    // Update state locally for immediate UI feedback
     set(state => {
         // Here we need the registration date to regenerate the chart correctly.
         // It's not stored in state, so we have to retrieve it or accept a limitation.
-        // For now, we'll just update holdings and summary, and accept the chart won't update on trade.
-        // A full data refetch via useUserData after a trade would be the most robust solution.
+        // For now, we'll just update holdings and summary. The chart will update on next full load.
         return {
             holdings: newHoldings,
             portfolioSummary: newSummary
@@ -268,6 +273,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
   }
 }));
 
+// This function calculates the portfolio summary based on the current state of holdings.
 const calculatePortfolioSummary = (holdings: Holding[]): PortfolioSummary => {
     if (holdings.length === 0) {
         return { ...defaultSummary };
@@ -277,15 +283,18 @@ const calculatePortfolioSummary = (holdings: Holding[]): PortfolioSummary => {
         const gainLoss = (holding.currentPrice - holding.purchasePrice) * holding.qty;
         
         acc.totalValue += holdingValue;
+        // Today's change is simulated and should ideally come from a live data feed per holding
         acc.todaysChange += holding.todaysChange * holding.qty;
         acc.totalGainLoss += gainLoss;
         return acc;
     }, { totalValue: 0, todaysChange: 0, totalGainLoss: 0, annualRatePercent: 0 });
 
+    // Calculate weighted average for the portfolio's annual return
     if (summary.totalValue > 0) {
         const weightedAnnualRate = holdings.reduce((acc, holding) => {
             const holdingValue = holding.qty * holding.currentPrice;
             if (holdingValue > 0) {
+                 // Weight of this holding in the portfolio * its annual rate
                  return acc + (holding.annualRatePercent * (holdingValue / summary.totalValue));
             }
             return acc;

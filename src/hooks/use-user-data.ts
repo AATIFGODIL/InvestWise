@@ -79,7 +79,8 @@ export default function useUserData(user: User | null) {
     };
 
     fetchAndHydrate();
-  }, [user, fetchMarketHolidays]); // This effect runs whenever the user object changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); // This effect runs whenever the user object changes.
 
   return { loading };
 }
