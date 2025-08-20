@@ -8,6 +8,8 @@ interface GoalState {
   goals: Goal[];
   loadGoals: (goals: Goal[]) => void;
   addGoal: (newGoal: Omit<Goal, 'id' | 'icon' | 'progress' | 'current'>) => void;
+  updateGoal: (goalId: string, updates: Partial<Pick<Goal, 'name' | 'target'>>) => void;
+  removeGoal: (goalId: string) => void;
   resetGoals: () => void;
 }
 
@@ -33,12 +35,34 @@ export const useGoalStore = create<GoalState>((set, get) => ({
         id: newGoalData.name.toLowerCase().replace(/\s/g, '-') + '-' + Date.now(),
         current: 0,
         progress: 0,
-        icon: iconName, // Store the icon name as a string
+        icon: iconName,
     };
     const updatedGoals = [...get().goals, newGoal];
     set({ goals: updatedGoals });
     updateGoalsInFirestore(updatedGoals);
   },
   
+  updateGoal: (goalId, updates) => {
+    const updatedGoals = get().goals.map(goal => {
+      if (goal.id === goalId) {
+        const updatedGoal = { ...goal, ...updates };
+        // Recalculate icon if name changes
+        if (updates.name) {
+            updatedGoal.icon = updates.name.toLowerCase().includes('trip') ? 'plane' : 'default';
+        }
+        return updatedGoal;
+      }
+      return goal;
+    });
+    set({ goals: updatedGoals });
+    updateGoalsInFirestore(updatedGoals);
+  },
+
+  removeGoal: (goalId) => {
+    const updatedGoals = get().goals.filter(goal => goal.id !== goalId);
+    set({ goals: updatedGoals });
+    updateGoalsInFirestore(updatedGoals);
+  },
+
   resetGoals: () => set({ goals: [] }),
 }));
