@@ -1,32 +1,33 @@
 
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Crown } from "lucide-react";
+import { Crown, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "../ui/avatar";
-import { usePortfolioStore } from "@/store/portfolio-store";
-import { useUserStore } from "@/store/user-store";
 import { cn } from "@/lib/utils";
-
+import { useAuth } from "@/hooks/use-auth";
+import { getLeaderboardData, type LeaderboardUser } from "@/app/actions";
 
 export default function CommunityLeaderboard() {
-  const { portfolioSummary } = usePortfolioStore();
-  const { username } = useUserStore();
+  const { user } = useAuth();
+  const [topInvestors, setTopInvestors] = useState<LeaderboardUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const currentUserData = {
-    name: username,
-    gain: portfolioSummary.totalGainLoss,
-    isYou: true,
-  };
+  useEffect(() => {
+    const fetchTopInvestors = async () => {
+      setIsLoading(true);
+      const result = await getLeaderboardData();
+      if (result.success && result.data) {
+        setTopInvestors(result.data.slice(0, 3));
+      }
+      setIsLoading(false);
+    };
 
-  // The leaderboard now only contains the current user.
-  const leaderboardData = [currentUserData]
-    .sort((a, b) => b.gain - a.gain)
-    .map((user, index) => ({...user, rank: index + 1}));
-
-  const topInvestors = leaderboardData.slice(0, 3);
+    fetchTopInvestors();
+  }, []);
 
   return (
     <Card className="h-full flex flex-col">
@@ -34,27 +35,34 @@ export default function CommunityLeaderboard() {
         <CardTitle className="text-base font-medium">Community Leaderboard</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 px-4 pt-2 flex-grow">
-        {topInvestors.map((investor) => {
-          const isPositive = investor.gain >= 0;
-          const formattedGain = `${isPositive ? '+' : '-'}$${Math.abs(investor.gain).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        {isLoading ? (
+          <div className="flex justify-center items-center h-full">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          </div>
+        ) : (
+          topInvestors.map((investor) => {
+            const isPositive = investor.gain >= 0;
+            const formattedGain = `${isPositive ? '+' : '-'}$${Math.abs(investor.gain).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            const isYou = investor.uid === user?.uid;
 
-          return (
-            <div key={investor.rank} className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <span className="font-semibold text-md w-5">
-                  {investor.rank === 1 ? <Crown className="h-5 w-5 text-yellow-500" /> : investor.rank}
-                </span>
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback>{investor.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <p className="text-sm font-medium">{investor.isYou ? "You" : investor.name}</p>
+            return (
+              <div key={investor.rank} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="font-semibold text-md w-5">
+                    {investor.rank === 1 ? <Crown className="h-5 w-5 text-yellow-500" /> : investor.rank}
+                  </span>
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback>{investor.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <p className="text-sm font-medium">{isYou ? "You" : investor.name}</p>
+                </div>
+                <p className={cn("text-sm font-semibold", isPositive ? "text-green-500" : "text-red-500")}>
+                  {formattedGain}
+                </p>
               </div>
-              <p className={cn("text-sm font-semibold", isPositive ? "text-green-500" : "text-red-500")}>
-                {formattedGain}
-              </p>
-            </div>
-          )
-        })}
+            )
+          })
+        )}
       </CardContent>
       <CardFooter className="pt-4 px-4">
         <Button asChild className="w-full">

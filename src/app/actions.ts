@@ -152,3 +152,44 @@ export async function createTransaction(data: { userId: string; amount: string }
         throw new Error(result.message);
     }
 }
+
+// Community Actions
+export type LeaderboardUser = {
+  rank: number;
+  uid: string;
+  name: string;
+  gain: number;
+};
+
+export async function getLeaderboardData(): Promise<{ success: boolean; data?: LeaderboardUser[]; error?: string; }> {
+    try {
+        const usersSnapshot = await db
+            .collection('users')
+            .where('leaderboardVisibility', '!=', 'hidden')
+            .orderBy('leaderboardVisibility') // This is a bit of a trick to satisfy Firestore query constraints
+            .orderBy('portfolio.summary.totalGainLoss', 'desc')
+            .limit(10)
+            .get();
+
+        if (usersSnapshot.empty) {
+            return { success: true, data: [] };
+        }
+
+        const leaderboardData = usersSnapshot.docs.map((doc, index) => {
+            const userData = doc.data();
+            const isAnonymous = userData.leaderboardVisibility === 'anonymous';
+            
+            return {
+                rank: index + 1,
+                uid: doc.id,
+                name: isAnonymous ? 'Anonymous' : userData.username || 'Investor',
+                gain: userData.portfolio?.summary?.totalGainLoss || 0,
+            };
+        });
+
+        return { success: true, data: leaderboardData };
+    } catch (error: any) {
+        console.error("Error fetching leaderboard data:", error);
+        return { success: false, error: "Failed to fetch leaderboard data." };
+    }
+}

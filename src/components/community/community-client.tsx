@@ -32,7 +32,7 @@ const videos = [
 export default function CommunityClient() {
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get('tab') || 'feed';
-  const { leaderboardVisibility, showQuests } = usePrivacyStore();
+  const { showQuests } = usePrivacyStore();
 
   return (
     <div className="w-full bg-background font-body">
@@ -47,7 +47,7 @@ export default function CommunityClient() {
             <TabsContent value="feed" className="mt-6">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div className="lg:col-span-2 space-y-6">
-                        <Leaderboard visibility={leaderboardVisibility} />
+                        <Leaderboard />
                         <PrivacySettings />
                         {showQuests && <Quests />}
                     </div>

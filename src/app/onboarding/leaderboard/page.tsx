@@ -12,18 +12,35 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Users, UserCheck, EyeOff } from "lucide-react";
-
-type LeaderboardSelection = "public" | "anonymous" | "hidden";
+import { Users, UserCheck, EyeOff, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import type { LeaderboardVisibility } from "@/store/privacy-store";
 
 export default function OnboardingLeaderboardPage() {
   const router = useRouter();
-  const [selection, setSelection] = useState<LeaderboardSelection | null>(null);
+  const { updatePrivacySettings } = useAuth();
+  const { toast } = useToast();
+  const [selection, setSelection] = useState<LeaderboardVisibility | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleContinue = () => {
-    // Here you would typically save the user's preference
-    console.log("Leaderboard preference:", selection);
-    router.push("/onboarding/welcome");
+  const handleContinue = async () => {
+    if (!selection) return;
+
+    setIsLoading(true);
+    try {
+      await updatePrivacySettings({ leaderboardVisibility: selection });
+      router.push("/onboarding/welcome");
+    } catch (error) {
+      console.error("Failed to save preference:", error);
+      toast({
+        variant: "destructive",
+        title: "Oh no!",
+        description: "Could not save your preference. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -68,7 +85,8 @@ export default function OnboardingLeaderboardPage() {
           </Card>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleContinue} className="w-full" disabled={!selection}>
+          <Button onClick={handleContinue} className="w-full" disabled={!selection || isLoading}>
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Continue
           </Button>
         </CardFooter>
