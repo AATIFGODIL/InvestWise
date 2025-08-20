@@ -23,6 +23,7 @@ import { usePrivacyStore } from "@/store/privacy-store";
  */
 export default function useUserData(user: User | null) {
   const [loading, setLoading] = useState(true);
+  const { fetchMarketHolidays } = usePortfolioStore();
 
   useEffect(() => {
     // If there's no user, there's no data to load.
@@ -34,6 +35,9 @@ export default function useUserData(user: User | null) {
     const fetchAndHydrate = async () => {
       setLoading(true);
       try {
+        // Fetch market holidays once and for all. This will be stored in the portfolio store.
+        await fetchMarketHolidays();
+        
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
 
@@ -75,7 +79,7 @@ export default function useUserData(user: User | null) {
     };
 
     fetchAndHydrate();
-  }, [user]); // This effect runs whenever the user object changes.
+  }, [user, fetchMarketHolidays]); // This effect runs whenever the user object changes.
 
   return { loading };
 }

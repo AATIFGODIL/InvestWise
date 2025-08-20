@@ -33,10 +33,17 @@ interface ChartData {
     '1Y': ChartDataPoint[];
 }
 
+interface MarketHoliday {
+    atDate: string; // "YYYY-MM-DD"
+    eventName: string;
+}
+
 interface PortfolioState {
     holdings: Holding[];
     portfolioSummary: PortfolioSummary;
     chartData: ChartData;
+    marketHolidays: Set<string>;
+    fetchMarketHolidays: () => Promise<void>;
     executeTrade: (trade: { symbol: string, qty: number, price: number, description: string }) => { success: boolean, error?: string };
     loadInitialData: (holdings: Holding[], summary: PortfolioSummary | null, registrationDate: Date) => void;
     resetPortfolio: () => void;
@@ -49,7 +56,29 @@ const defaultSummary: PortfolioSummary = {
     annualRatePercent: 0,
 };
 
-const generateChartData = (totalValue: number, registrationDate: Date): ChartData => {
+// --- Finnhub API Integration ---
+const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
+
+const fetchHolidaysFromFinnhub = async (): Promise<Set<string>> => {
+    if (!API_KEY) {
+        console.error("Finnhub API key is not configured. Market holidays will not be accurate.");
+        return new Set();
+    }
+    try {
+        const res = await fetch(`https://finnhub.io/api/v1/stock/market-holiday?exchange=US&token=${API_KEY}`);
+        if (!res.ok) {
+            throw new Error(`Finnhub API error: ${res.statusText}`);
+        }
+        const holidays: MarketHoliday[] = await res.json();
+        // The API returns the full holiday object, we only need the date string "YYYY-MM-DD"
+        return new Set(holidays.map(h => h.atDate));
+    } catch (error) {
+        console.error("Failed to fetch market holidays:", error);
+        return new Set(); // Return empty set on error
+    }
+};
+
+const generateChartData = (totalValue: number, registrationDate: Date, holidays: Set<string>): ChartData => {
     const allTradingDaysData: ChartDataPoint[] = [];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -57,55 +86,53 @@ const generateChartData = (totalValue: number, registrationDate: Date): ChartDat
     let currentDate = new Date(registrationDate);
     currentDate.setHours(0, 0, 0, 0);
     
-    // Create a list of all trading days (weekdays) from registration until today
-    const tradingDays = [];
+    // Create a list of all trading days from registration until today
+    const tradingDays: Date[] = [];
     while (currentDate <= today) {
         const dayOfWeek = currentDate.getDay();
-        if (dayOfWeek > 0 && dayOfWeek < 6) { // Monday to Friday
+        const dateString = currentDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
+        
+        if (dayOfWeek > 0 && dayOfWeek < 6 && !holidays.has(dateString)) { // Monday to Friday and not a holiday
             tradingDays.push(new Date(currentDate));
         }
         currentDate.setDate(currentDate.getDate() + 1);
     }
-
+    
     if (tradingDays.length > 0) {
         const numDays = tradingDays.length;
-        // The value on the first day is always 0
+        let currentValue = 0;
+        
+        // Start with 0 on the first trading day (registration date or next available)
         allTradingDaysData.push({
             date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
             value: 0.00,
         });
 
-        // If there are more than 1 trading days, simulate the path to the current totalValue
         if (numDays > 1) {
-            let currentValue = 0;
-            // The increment is the total value divided over the remaining days
+            // Distribute the total value growth over the remaining trading days
             const increment = totalValue / (numDays - 1);
 
             for (let i = 1; i < numDays; i++) {
-                 // On the last day, ensure the value is exactly the totalValue
                 if (i === numDays - 1) {
-                    currentValue = totalValue;
+                    currentValue = totalValue; // Ensure the last point is the exact total value
                 } else {
-                    // Add the base increment plus some random noise for realism
-                    const noise = (Math.random() - 0.45) * increment * 0.5;
+                    // Simulate a random walk for more realistic chart
+                    const noise = (Math.random() - 0.45) * increment * 0.6; 
                     currentValue += increment + noise;
                 }
-
-                allTradingDaysData.push({
+                 allTradingDaysData.push({
                     date: tradingDays[i].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                    value: Math.max(0, parseFloat(currentValue.toFixed(2))), // Ensure value is not negative
+                    value: Math.max(0, parseFloat(currentValue.toFixed(2))),
                 });
             }
-        } else if (totalValue > 0) {
-            // This case handles if user registers and has value on the same day.
-            // We'll show the initial 0 and the current value on the same day for clarity.
-             allTradingDaysData.push({
+        } else if (totalValue > 0 && numDays === 1) {
+             // If the only trading day is today, show the jump from 0 to current value
+            allTradingDaysData.push({
                 date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
                 value: totalValue,
             });
         }
     }
-
 
     const getRange = (days: number) => {
         return allTradingDaysData.slice(-days);
@@ -123,14 +150,21 @@ const generateChartData = (totalValue: number, registrationDate: Date): ChartDat
 export const usePortfolioStore = create<PortfolioState>((set, get) => ({
   holdings: [],
   portfolioSummary: { ...defaultSummary },
-  chartData: generateChartData(0, new Date()),
+  marketHolidays: new Set(),
+  chartData: generateChartData(0, new Date(), new Set()),
   
+  fetchMarketHolidays: async () => {
+    const holidays = await fetchHolidaysFromFinnhub();
+    set({ marketHolidays: holidays });
+  },
+
   loadInitialData: (holdings, summary, registrationDate) => {
+    const { marketHolidays } = get();
     const newSummary = summary || calculatePortfolioSummary(holdings);
     set({
       holdings: holdings,
       portfolioSummary: newSummary,
-      chartData: generateChartData(newSummary.totalValue, registrationDate),
+      chartData: generateChartData(newSummary.totalValue, registrationDate, marketHolidays),
     });
   },
 
@@ -138,7 +172,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
     set({
       holdings: [],
       portfolioSummary: { ...defaultSummary },
-      chartData: generateChartData(0, new Date()),
+      chartData: generateChartData(0, new Date(), get().marketHolidays),
     });
   },
   
@@ -199,20 +233,15 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
         "portfolio.summary": newSummary 
     }).catch(console.error);
     
-    // We need the registration date to regenerate the chart correctly.
-    // Assuming it doesn't change, we can get it from the existing loaded data.
-    // A more robust solution might involve fetching it again or storing it in the state.
-    // For now, we'll rely on the initial load.
-    // Let's call the load function again to properly regenerate chart with existing registration date.
-    const { loadInitialData } = get();
-    // To get registration date, we need to fetch it from firestore.
-    // Let's assume the user data hook will handle re-hydrating.
-    // For immediate feedback, let's call the chart generation with a placeholder.
-    // A better way is to store registrationDate in the store.
-
-    set({ 
-        holdings: newHoldings,
-        portfolioSummary: newSummary,
+    set(state => {
+        // We need the registration date to regenerate the chart correctly.
+        // It's not stored in state, so we have to assume a recent date. This is a limitation.
+        // For now, we'll just update the holdings and summary.
+        // A full re-fetch via useUserData would be the most robust solution.
+        return {
+            holdings: newHoldings,
+            portfolioSummary: newSummary
+        }
     });
 
     return { success: true };
