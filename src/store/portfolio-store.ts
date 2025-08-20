@@ -1,7 +1,8 @@
 
 import { create } from 'zustand';
-import { doc, updateDoc, getFirestore } from "firebase/firestore";
+import { doc, updateDoc, getFirestore, arrayUnion, serverTimestamp } from "firebase/firestore";
 import { auth } from '@/lib/firebase/config';
+import { useTransactionStore, type Transaction } from './transaction-store';
 
 export interface Holding {
     symbol: string;
@@ -305,15 +306,28 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
     }
     
     const newSummary = calculatePortfolioSummary(newHoldings);
+    const newTransaction: Omit<Transaction, 'timestamp'> = {
+        symbol: trade.symbol,
+        action: trade.qty > 0 ? 'buy' : 'sell',
+        quantity: Math.abs(trade.qty),
+        price: trade.price,
+    };
     
     const userDocRef = doc(getFirestore(), "users", user.uid);
     updateDoc(userDocRef, { 
         "portfolio.holdings": newHoldings,
-        "portfolio.summary": newSummary 
+        "portfolio.summary": newSummary,
+        "transactions": arrayUnion({ ...newTransaction, timestamp: serverTimestamp() })
     }).catch(error => {
         console.error("Failed to update portfolio in Firestore:", error);
     });
     
+    // Add to local transaction store immediately for UI update
+    useTransactionStore.getState().addTransaction({
+        ...newTransaction,
+        timestamp: new Date().toISOString()
+    });
+
     set(state => {
         const registrationDate = new Date(); 
         const newChartData = generateChartData(newSummary.totalValue, registrationDate, state.marketHolidays);

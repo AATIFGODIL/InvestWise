@@ -6,7 +6,9 @@ import { stockPrediction } from "@/ai/flows/stock-prediction";
 import type { StockPredictionOutput } from "@/ai/types/stock-prediction-types";
 import { gateway } from "@/lib/braintree";
 import { db } from "@/lib/firebase/admin";
-import { type BraintreeGateway, type Customer } from "braintree";
+import { type BraintreeGateway, type Customer, type Transaction as BraintreeTransaction } from "braintree";
+import { type Transaction } from "@/store/transaction-store";
+
 
 type ActionResult = {
   success: boolean;
@@ -199,5 +201,31 @@ export async function getLeaderboardData(): Promise<{ success: boolean; data?: L
     } catch (error: any) {
         console.error("Error fetching leaderboard data:", error);
         return { success: false, error: "Failed to fetch leaderboard data." };
+    }
+}
+
+export async function getTradeHistory(userId: string): Promise<{ success: boolean; data?: Transaction[]; error?: string; }> {
+    if (!userId) {
+        return { success: false, error: "User ID is required." };
+    }
+
+    try {
+        const userDoc = await db.collection("users").doc(userId).get();
+        if (!userDoc.exists) {
+            return { success: false, error: "User not found." };
+        }
+        
+        const transactions = userDoc.data()?.transactions || [];
+
+        // The transactions are stored with Firestore Timestamps, so we need to convert them to strings.
+        const formattedTransactions = transactions.map((tx: any) => ({
+            ...tx,
+            timestamp: tx.timestamp.toDate().toISOString(),
+        }));
+
+        return { success: true, data: formattedTransactions };
+    } catch (error: any) {
+        console.error("Error fetching trade history:", error);
+        return { success: false, error: "Failed to fetch trade history." };
     }
 }

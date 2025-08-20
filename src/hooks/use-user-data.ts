@@ -14,6 +14,7 @@ import { useGoalStore } from "@/store/goal-store";
 import { useAutoInvestStore } from "@/store/auto-invest-store";
 import { useThemeStore } from "@/store/theme-store";
 import { usePrivacyStore } from "@/store/privacy-store";
+import { useTransactionStore } from '@/store/transaction-store';
 
 /**
  * A hook to fetch and hydrate all user-related data from Firestore
@@ -52,8 +53,13 @@ export default function useUserData(user: User | null) {
           const { loadAutoInvestments } = useAutoInvestStore.getState();
           const { setTheme } = useThemeStore.getState();
           const { loadPrivacySettings } = usePrivacyStore.getState();
+          const { loadTransactions } = useTransactionStore.getState();
           
           const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
+          const transactions = (userData.transactions || []).map((tx: any) => ({
+              ...tx,
+              timestamp: (tx.timestamp as Timestamp).toDate().toISOString(),
+          }));
 
           // Hydrate all stores with the fetched data
           setTheme(userData.theme || "light");
@@ -63,6 +69,7 @@ export default function useUserData(user: User | null) {
           setNotifications(userData.notifications || []);
           loadGoals(userData.goals || []);
           loadAutoInvestments(userData.autoInvestments || []);
+          loadTransactions(transactions);
           loadPrivacySettings({
               leaderboardVisibility: userData.leaderboardVisibility || "public",
               showQuests: userData.showQuests === undefined ? true : userData.showQuests,
