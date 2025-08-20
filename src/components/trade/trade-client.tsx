@@ -7,7 +7,7 @@ import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, Clock } from "lucide-react";
 import TradingViewWidget from "@/components/shared/trading-view-widget";
 import TradeForm from "@/components/trade/trade-form";
 import TradingViewScreener from "@/components/shared/trading-view-screener";
@@ -15,6 +15,7 @@ import AiPredictionTrade from "@/components/ai/ai-prediction-trade";
 import InvestmentBundles from "../dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
 import { Input } from "@/components/ui/input";
+import { useMarketStore } from "@/store/market-store";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -37,6 +38,7 @@ export default function TradeClient() {
   const [loadingPrice, setLoadingPrice] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
+  const { isMarketOpen } = useMarketStore();
 
   // This callback is ONLY for the TradingView widget to update its own state
   const handleWidgetSymbolChange = useCallback((newSymbol: string) => {
@@ -126,7 +128,13 @@ export default function TradeClient() {
         
         <Card>
           <CardHeader>
-            <CardTitle>Stock Chart & Trading</CardTitle>
+            <div className="flex justify-between items-center">
+                <CardTitle>Stock Chart & Trading</CardTitle>
+                <div className="flex items-center gap-2 text-sm text-primary">
+                    <Clock className="h-4 w-4" />
+                    <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+                </div>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-col sm:flex-row gap-2">

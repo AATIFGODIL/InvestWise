@@ -13,6 +13,8 @@ import Chatbot from "@/components/chatbot/chatbot";
 import AppLayout from "@/components/layout/app-layout";
 import AiPrediction from "@/components/ai/ai-prediction";
 import AutoInvest from "@/components/dashboard/auto-invest";
+import { useMarketStore } from "@/store/market-store";
+import { Clock } from "lucide-react";
 
 const PortfolioSummary = dynamic(() => import("@/components/dashboard/portfolio-summary"), { 
     ssr: false,
@@ -78,6 +80,7 @@ const experiencedVideos = [
 
 function DashboardClientContent() {
   const [userProfile, setUserProfile] = useState<string | null>(null);
+  const { isMarketOpen } = useMarketStore();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -136,6 +139,13 @@ function DashboardClientContent() {
     <div className="w-full bg-background font-body">
         <Header />
         <main className="p-4 space-y-6 pb-40">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Explore</h1>
+            <div className="flex items-center gap-2 text-sm text-primary">
+                <Clock className="h-4 w-4" />
+                <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+            </div>
+          </div>
           <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
           <PortfolioSummary />
           <AutoInvest />

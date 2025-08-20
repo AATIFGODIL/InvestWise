@@ -14,12 +14,15 @@ import { useUserStore } from "@/store/user-store";
 import { useRouter } from "next/navigation";
 import { createTransaction } from "@/app/actions";
 import { useAuth } from "@/hooks/use-auth";
+import { useMarketStore } from "@/store/market-store";
 
 export default function PortfolioClient() {
   const { toast } = useToast();
   const { user } = useAuth();
   const router = useRouter();
   const { paymentMethodToken } = useUserStore();
+  const { isMarketOpen } = useMarketStore();
+
 
   const handleAddFunds = async () => {
     if (!paymentMethodToken) {
@@ -75,7 +78,7 @@ export default function PortfolioClient() {
             <h2 className="text-xl font-bold">Holdings</h2>
              <div className="flex items-center gap-2 text-sm text-primary">
                 <Clock className="h-4 w-4" />
-                <span>Market is open.</span>
+                <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
             </div>
           </div>
           <HoldingsTable />
