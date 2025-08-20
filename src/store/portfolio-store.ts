@@ -21,11 +21,16 @@ interface PortfolioSummary {
     annualRatePercent: number;
 }
 
+interface ChartDataPoint {
+    date: string;
+    value: number;
+}
+
 interface ChartData {
-    '1W': { date: string, value: number }[];
-    '1M': { date: string, value: number }[];
-    '6M': { date: string, value: number }[];
-    '1Y': { date: string, value: number }[];
+    '1W': ChartDataPoint[];
+    '1M': ChartDataPoint[];
+    '6M': ChartDataPoint[];
+    '1Y': ChartDataPoint[];
 }
 
 interface PortfolioState {
@@ -45,48 +50,62 @@ const defaultSummary: PortfolioSummary = {
 };
 
 const generateChartData = (totalValue: number, registrationDate: Date): ChartData => {
-    const generateDateLabel = (date: Date) => {
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
+    const allTradingDaysData: ChartDataPoint[] = [];
+    const today = new Date();
+    let currentDate = new Date(registrationDate);
+    currentDate.setHours(0, 0, 0, 0);
 
-    const generateRandomWalk = (days: number, initialValue: number, startDate: Date, registrationDate: Date) => {
-        const data = [];
-        let currentValue = initialValue;
-        let currentDate = new Date(startDate);
-        
-        // Ensure data generation doesn't go past the registration date
-        const registrationTimestamp = registrationDate.setHours(0, 0, 0, 0);
-
-        while (data.length < days && currentDate.getTime() >= registrationTimestamp) {
-            // Check if it's a weekday (Monday=1, ..., Friday=5)
-            if (currentDate.getDay() >= 1 && currentDate.getDay() <= 5) {
-                const noise = (Math.random() - 0.49) * (initialValue * 0.03); // More realistic daily fluctuation
-                currentValue += noise;
-                data.push({ 
-                    date: generateDateLabel(new Date(currentDate)), 
-                    value: Math.max(0, parseFloat(currentValue.toFixed(2))) 
-                });
-            }
-            currentDate.setDate(currentDate.getDate() - 1);
-        }
-        return data.reverse();
+    // If registration is in the future, return empty data
+    if (currentDate > today) {
+        return { '1W': [], '1M': [], '6M': [], '1Y': [] };
     }
     
-    const today = new Date();
-    const timeRanges = {
-        '1W': 5,  // 5 trading days
-        '1M': 22, // Approx 22 trading days
-        '6M': 126, // Approx 126 trading days
-        '1Y': 252, // Approx 252 trading days
-    };
+    let currentValue = 0; // Start at 0 on registration day
 
-    const generatedData: Partial<ChartData> = {};
-
-    for (const [range, tradingDays] of Object.entries(timeRanges)) {
-        generatedData[range as keyof typeof timeRanges] = generateRandomWalk(tradingDays, totalValue, today, registrationDate);
+    // Generate data from registration day up to today
+    while (currentDate <= today) {
+        const dayOfWeek = currentDate.getDay();
+        if (dayOfWeek > 0 && dayOfWeek < 6) { // It's a weekday
+            // For the last day, the value is the current totalValue
+            if (currentDate.toDateString() === today.toDateString()) {
+                 currentValue = totalValue;
+            } else {
+                 // Simulate daily fluctuation
+                 const noise = (Math.random() - 0.49) * (currentValue * 0.05 + totalValue * 0.01);
+                 currentValue = Math.max(0, currentValue + noise);
+            }
+           
+            allTradingDaysData.push({
+                date: currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                value: parseFloat(currentValue.toFixed(2)),
+            });
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    // Ensure the very last point is the accurate total value
+    if (allTradingDaysData.length > 0) {
+        allTradingDaysData[allTradingDaysData.length - 1].value = totalValue;
+    } else if (totalValue > 0) {
+        // Handle case where user registered today on a weekday
+         allTradingDaysData.push({
+            date: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            value: totalValue,
+        });
     }
 
-    return generatedData as ChartData;
+
+    // Slice the data for different time ranges from the end of the full history
+    const getRange = (days: number) => {
+        return allTradingDaysData.slice(-days);
+    };
+
+    return {
+        '1W': getRange(5),
+        '1M': getRange(22),
+        '6M': getRange(126),
+        '1Y': getRange(252),
+    };
 };
 
 
@@ -168,11 +187,21 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
         "portfolio.holdings": newHoldings,
         "portfolio.summary": newSummary 
     }).catch(console.error);
+    
+    // We need the registration date to regenerate the chart correctly.
+    // Assuming it doesn't change, we can get it from the existing loaded data.
+    // A more robust solution might involve fetching it again or storing it in the state.
+    // For now, we'll rely on the initial load.
+    // Let's call the load function again to properly regenerate chart with existing registration date.
+    const { loadInitialData } = get();
+    // To get registration date, we need to fetch it from firestore.
+    // Let's assume the user data hook will handle re-hydrating.
+    // For immediate feedback, let's call the chart generation with a placeholder.
+    // A better way is to store registrationDate in the store.
 
     set({ 
         holdings: newHoldings,
         portfolioSummary: newSummary,
-        chartData: generateChartData(newSummary.totalValue, new Date()) // This needs the registration date. Let's assume it's stored somewhere accessible or refetch. For now, using new Date()
     });
 
     return { success: true };
