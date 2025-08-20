@@ -1,10 +1,9 @@
-
 "use client";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trophy } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 interface CongratulationsBannerProps {
   show: boolean;
@@ -12,19 +11,9 @@ interface CongratulationsBannerProps {
 }
 
 export default function CongratulationsBanner({ show, userProfile }: CongratulationsBannerProps) {
-  const { toast } = useToast();
-
   if (!show || userProfile === "Experienced Investor" || userProfile === "New Investor") {
     return null;
   }
-
-  const handleButtonClick = () => {
-    toast({
-      title: "Coming Soon!",
-      description: "This feature is currently under development.",
-      variant: "default",
-    });
-  };
 
   return (
     <Card className="bg-primary border-none text-primary-foreground shadow-lg overflow-hidden">
@@ -42,10 +31,10 @@ export default function CongratulationsBanner({ show, userProfile }: Congratulat
           </p>
         </div>
         <Button
-          onClick={handleButtonClick}
+          asChild
           className="bg-accent hover:bg-accent/90 text-accent-foreground shrink-0 rounded-lg"
         >
-          View Certificate
+          <Link href="/certificate">View Certificate</Link>
         </Button>
       </div>
     </Card>
