@@ -30,11 +30,11 @@ const prompt = ai.definePrompt({
     prompt: `You are a financial analyst. Your task is to interpret raw stock forecast data and present a clear, concise, and easy-to-understand prediction for a beginner investor.
 
     Here is the data for the stock symbol {{{symbol}}}:
-    - 5-day price forecast: {{{forecast}}}
+    - 5-month price forecast: {{{forecast}}}
     - Model accuracy: {{{accuracy}}}
 
     Based on this data, provide the following:
-    1.  **prediction**: A human-readable summary of the forecast. Explain the overall trend (e.g., "trending upwards," "expected to dip slightly," "remain volatile"). Mention the potential highs and lows based on the forecast data. Calculate the percentage change between the first and second day, and the first and third day, and mention it in the summary.
+    1.  **prediction**: A human-readable summary of the 5-month forecast. Explain the overall trend (e.g., "trending upwards," "expected to dip slightly," "remain volatile"). Mention the potential highs and lows based on the forecast data. Calculate the percentage change between the first and second month, and the first and third month, and mention it in the summary.
     2.  **confidence**: A confidence level based on the model's accuracy score. Use these mappings:
         - accuracy > 0.85: "High"
         - accuracy > 0.70: "Medium"
