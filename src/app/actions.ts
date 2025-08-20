@@ -217,13 +217,8 @@ export async function getTradeHistory(userId: string): Promise<{ success: boolea
         
         const transactions = userDoc.data()?.transactions || [];
 
-        // The transactions are stored with Firestore Timestamps, so we need to convert them to strings.
-        const formattedTransactions = transactions.map((tx: any) => ({
-            ...tx,
-            timestamp: tx.timestamp.toDate().toISOString(),
-        }));
-
-        return { success: true, data: formattedTransactions };
+        // Timestamps are already stored as ISO strings, no conversion needed.
+        return { success: true, data: transactions };
     } catch (error: any) {
         console.error("Error fetching trade history:", error);
         return { success: false, error: "Failed to fetch trade history." };
