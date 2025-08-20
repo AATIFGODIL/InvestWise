@@ -165,8 +165,7 @@ export async function getLeaderboardData(): Promise<{ success: boolean; data?: L
     try {
         const usersSnapshot = await db
             .collection('users')
-            .where('leaderboardVisibility', '!=', 'hidden')
-            .orderBy('leaderboardVisibility') // This is a bit of a trick to satisfy Firestore query constraints
+            .where('leaderboardVisibility', 'in', ['public', 'anonymous'])
             .orderBy('portfolio.summary.totalGainLoss', 'desc')
             .limit(10)
             .get();
