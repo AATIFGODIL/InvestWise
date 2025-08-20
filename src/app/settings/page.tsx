@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useThemeStore } from "@/store/theme-store";
 import { useAuth } from "@/hooks/use-auth";
-import usePrivacyStore, { type LeaderboardVisibility } from "@/store/privacy-store";
+import { usePrivacyStore, type LeaderboardVisibility } from "@/store/privacy-store";
 import AppLayout from "@/components/layout/app-layout";
 import PaymentMethods from "@/components/profile/payment-methods";
 import { useRouter } from "next/navigation";
