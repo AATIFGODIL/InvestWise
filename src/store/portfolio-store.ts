@@ -55,11 +55,11 @@ const generateChartData = (totalValue: number, registrationDate: Date): ChartDat
         let currentDate = new Date(startDate);
 
         for (let i = 0; i < days; i++) {
+            currentDate.setDate(currentDate.getDate() - 1);
              // Only add data for weekdays
             if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
                  data.push({ date: generateDateLabel(currentDate), value: Math.max(0, parseFloat(currentValue.toFixed(2))) });
             }
-            currentDate.setDate(currentDate.getDate() - 1);
             currentValue += (Math.random() - 0.5) * (initialValue * 0.05);
         }
         return data.reverse();
@@ -76,8 +76,8 @@ const generateChartData = (totalValue: number, registrationDate: Date): ChartDat
     const generatedData: Partial<ChartData> = {};
 
     for (const [range, defaultDays] of Object.entries(timeRanges)) {
-        const rangeStartDate = new Date(today);
-        rangeStartDate.setDate(rangeStartDate.getDate() - defaultDays);
+        const rangeStartDate = new Date();
+        rangeStartDate.setDate(today.getDate() - defaultDays);
 
         const chartStartDate = registrationDate > rangeStartDate ? registrationDate : rangeStartDate;
         
