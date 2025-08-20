@@ -14,14 +14,18 @@ export default function CertificatePage() {
   const [currentDate, setCurrentDate] = useState("");
 
   useEffect(() => {
-    // Generate the date only on the client-side after the component has mounted
-    // This prevents a hydration mismatch between server and client.
+    // This effect runs only on the client-side
+    // 1. Generate the date
     setCurrentDate(new Date().toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     }));
-  }, []); // Empty dependency array ensures this runs only once on the client
+
+    // 2. Set a flag in localStorage to indicate the user has seen the certificate
+    localStorage.setItem('hasViewedCertificate', 'true');
+    
+  }, []);
 
   const handleDownload = useCallback(() => {
     if (certificateRef.current === null) {

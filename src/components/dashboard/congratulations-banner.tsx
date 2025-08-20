@@ -1,5 +1,7 @@
+
 "use client";
 
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trophy } from "lucide-react";
@@ -11,7 +13,18 @@ interface CongratulationsBannerProps {
 }
 
 export default function CongratulationsBanner({ show, userProfile }: CongratulationsBannerProps) {
-  if (!show || userProfile === "Experienced Investor" || userProfile === "New Investor") {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const hasViewedCertificate = localStorage.getItem('hasViewedCertificate');
+    if (show && !hasViewedCertificate) {
+      setIsVisible(true);
+    } else {
+      setIsVisible(false);
+    }
+  }, [show]);
+
+  if (!isVisible || userProfile === "Experienced Investor" || userProfile === "New Investor") {
     return null;
   }
 

@@ -15,12 +15,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { BookOpen, Trophy, ShieldCheck } from "lucide-react";
 import { useQuestStore } from "@/store/quest-store";
 import { useEffect } from "react";
+import Link from "next/link";
 
 export default function Quests() {
   const { questData, updateQuestProgress } = useQuestStore();
+  const beginnerQuestsComplete = questData.beginner.every(q => q.progress === 100);
 
   useEffect(() => {
     // This will trigger a re-calculation of quest progress whenever a user visits the community page.
@@ -51,6 +54,11 @@ export default function Quests() {
                   <Progress value={quest.progress} />
                 </div>
               ))}
+               {beginnerQuestsComplete && (
+                  <Button asChild className="w-full mt-2">
+                      <Link href="/certificate">View Certificate</Link>
+                  </Button>
+              )}
             </AccordionContent>
           </AccordionItem>
           <AccordionItem value="item-2">
