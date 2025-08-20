@@ -16,7 +16,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Shield, Sun, Moon, Eye, LogOut, ChevronLeft, ShieldBan, FileUp, CreditCard } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import useThemeStore from "@/store/theme-store";
+import { useThemeStore } from "@/store/theme-store";
 import { useAuth } from "@/hooks/use-auth";
 import usePrivacyStore, { type LeaderboardVisibility } from "@/store/privacy-store";
 import AppLayout from "@/components/layout/app-layout";
