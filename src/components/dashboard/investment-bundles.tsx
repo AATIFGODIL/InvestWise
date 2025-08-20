@@ -31,6 +31,8 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { type Bundle } from "@/data/bundles";
+import { useRouter } from "next/navigation";
+import useLoadingStore from "@/store/loading-store";
 
 interface InvestmentBundlesProps {
   bundles: Bundle[];
@@ -41,6 +43,13 @@ interface InvestmentBundlesProps {
 
 export default function InvestmentBundles({ bundles, title, description, showDisclaimer = false }: InvestmentBundlesProps) {
   const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null);
+  const router = useRouter();
+  const { showLoading } = useLoadingStore();
+
+  const handleStockLinkClick = (href: string) => {
+    showLoading();
+    router.push(href);
+  };
 
   return (
     <Dialog>
@@ -117,17 +126,19 @@ export default function InvestmentBundles({ bundles, title, description, showDis
           <div className="space-y-2">
             {selectedBundle?.stocks.map((stock) => (
               <DialogClose asChild key={stock.symbol}>
-                <Link
-                  href={`/trade?symbol=${stock.symbol}`}
-                  className="flex items-center justify-between p-2 rounded-md hover:bg-accent"
-                  onClick={() => setSelectedBundle(null)}
+                <button
+                  className="flex items-center justify-between p-2 rounded-md hover:bg-accent w-full text-left"
+                  onClick={() => {
+                    handleStockLinkClick(`/trade?symbol=${stock.symbol}`);
+                    setSelectedBundle(null);
+                  }}
                 >
                   <div>
                     <p className="font-medium">{stock.name}</p>
                     <p className="text-sm text-muted-foreground">{stock.symbol}</p>
                   </div>
                   <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                </Link>
+                </button>
               </DialogClose>
             ))}
           </div>

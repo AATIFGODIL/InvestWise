@@ -29,7 +29,9 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
-import { type Bundle } from "@/data/bundles";
+import { useRouter } from "next/navigation";
+import useLoadingStore from "@/store/loading-store";
+
 
 const trends = [
   { name: "S&P 500 ETF", symbol: "SPY", category: "ETF", popularity: 92 },
@@ -67,6 +69,8 @@ const trends = [
 export default function CommunityTrends() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedBundle, setSelectedBundle] = useState<(typeof trends[number] & {category: 'Bundle'}) | null>(null);
+  const router = useRouter();
+  const { showLoading } = useLoadingStore();
 
   const handleTrendClick = (trend: typeof trends[number]) => {
     if (trend.category === 'Bundle') {
@@ -74,18 +78,23 @@ export default function CommunityTrends() {
       setIsDialogOpen(true);
     }
   };
+  
+  const handleStockLinkClick = (href: string) => {
+    showLoading();
+    router.push(href);
+  };
 
   const renderTrendRow = (trend: typeof trends[number]) => {
     if (trend.category === "Bundle") {
       return (
         <TableRow key={trend.name} className="group hover:bg-muted/50 cursor-pointer" onClick={() => handleTrendClick(trend)}>
-          <TableCell className="font-medium">
+          <TableCell className="font-medium p-4">
             <div className="flex items-center justify-between w-full h-full">
               <span>{trend.name}</span>
               <ExternalLink className="h-4 w-4 text-muted-foreground invisible group-hover:visible" />
             </div>
           </TableCell>
-          <TableCell className="text-right">
+          <TableCell className="text-right p-4">
             <div className="flex items-center justify-end w-full h-full">
               <Badge variant="outline">{trend.category}</Badge>
             </div>
@@ -95,17 +104,21 @@ export default function CommunityTrends() {
     }
 
     return (
-      <TableRow key={trend.name} className="group hover:bg-muted/50">
-        <TableCell className="font-medium p-0">
-          <Link href={`/trade?symbol=${trend.symbol}`} className="flex items-center justify-between p-4 w-full h-full">
-            <span>{trend.name}</span>
-            <ExternalLink className="h-4 w-4 text-muted-foreground invisible group-hover:visible" />
-          </Link>
+      <TableRow 
+        key={trend.name} 
+        className="group hover:bg-muted/50 cursor-pointer"
+        onClick={() => handleStockLinkClick(`/trade?symbol=${trend.symbol}`)}
+      >
+        <TableCell className="font-medium p-4">
+            <div className="flex items-center justify-between w-full h-full">
+                <span>{trend.name}</span>
+                <ExternalLink className="h-4 w-4 text-muted-foreground invisible group-hover:visible" />
+            </div>
         </TableCell>
-        <TableCell className="text-right p-0">
-          <Link href={`/trade?symbol=${trend.symbol}`} className="flex items-center justify-end p-4 w-full h-full">
-            <Badge variant="outline">{trend.category}</Badge>
-          </Link>
+        <TableCell className="text-right p-4">
+            <div className="flex items-center justify-end w-full h-full">
+                <Badge variant="outline">{trend.category}</Badge>
+            </div>
         </TableCell>
       </TableRow>
     );
@@ -127,8 +140,8 @@ export default function CommunityTrends() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Asset</TableHead>
-                <TableHead className="text-right">Category</TableHead>
+                <TableHead className="px-4">Asset</TableHead>
+                <TableHead className="text-right px-4">Category</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -158,10 +171,10 @@ export default function CommunityTrends() {
             <div className="space-y-2">
               {selectedBundle?.stocks.map((stock) => (
                 <DialogClose asChild key={stock.symbol}>
-                  <Link
-                    href={`/trade?symbol=${stock.symbol}`}
-                    className="flex items-center justify-between p-2 rounded-md hover:bg-accent"
+                  <button
+                    className="flex items-center justify-between p-2 rounded-md hover:bg-accent w-full text-left"
                     onClick={() => {
+                      handleStockLinkClick(`/trade?symbol=${stock.symbol}`);
                       setSelectedBundle(null);
                       setIsDialogOpen(false);
                     }}
@@ -171,7 +184,7 @@ export default function CommunityTrends() {
                       <p className="text-sm text-muted-foreground">{stock.symbol}</p>
                     </div>
                     <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                  </Link>
+                  </button>
                 </DialogClose>
               ))}
             </div>
