@@ -46,9 +46,10 @@ export default function InvestmentBundles({ bundles, title, description, showDis
   const router = useRouter();
   const { showLoading } = useLoadingStore();
 
-  const handleStockLinkClick = (href: string) => {
+  const handleStockLinkClick = (symbol: string) => {
     showLoading();
-    router.push(href);
+    setSelectedBundle(null); // Close dialog first
+    router.push(`/trade?symbol=${symbol}`);
   };
 
   return (
@@ -128,10 +129,7 @@ export default function InvestmentBundles({ bundles, title, description, showDis
               <DialogClose asChild key={stock.symbol}>
                 <button
                   className="flex items-center justify-between p-2 rounded-md hover:bg-accent w-full text-left"
-                  onClick={() => {
-                    handleStockLinkClick(`/trade?symbol=${stock.symbol}`);
-                    setSelectedBundle(null);
-                  }}
+                  onClick={() => handleStockLinkClick(stock.symbol)}
                 >
                   <div>
                     <p className="font-medium">{stock.name}</p>

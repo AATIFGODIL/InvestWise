@@ -76,38 +76,24 @@ export default function CommunityTrends() {
     if (trend.category === 'Bundle') {
       setSelectedBundle(trend as typeof trends[number] & {category: 'Bundle'});
       setIsDialogOpen(true);
+    } else if (trend.symbol) {
+        showLoading();
+        router.push(`/trade?symbol=${trend.symbol}`);
     }
   };
   
-  const handleStockLinkClick = (href: string) => {
+  const handleStockLinkClick = (symbol: string) => {
     showLoading();
-    router.push(href);
+    setIsDialogOpen(false); // Close dialog first
+    router.push(`/trade?symbol=${symbol}`);
   };
 
   const renderTrendRow = (trend: typeof trends[number]) => {
-    if (trend.category === "Bundle") {
-      return (
-        <TableRow key={trend.name} className="group hover:bg-muted/50 cursor-pointer" onClick={() => handleTrendClick(trend)}>
-          <TableCell className="font-medium p-4">
-            <div className="flex items-center justify-between w-full h-full">
-              <span>{trend.name}</span>
-              <ExternalLink className="h-4 w-4 text-muted-foreground invisible group-hover:visible" />
-            </div>
-          </TableCell>
-          <TableCell className="text-right p-4">
-            <div className="flex items-center justify-end w-full h-full">
-              <Badge variant="outline">{trend.category}</Badge>
-            </div>
-          </TableCell>
-        </TableRow>
-      );
-    }
-
     return (
       <TableRow 
         key={trend.name} 
         className="group hover:bg-muted/50 cursor-pointer"
-        onClick={() => handleStockLinkClick(`/trade?symbol=${trend.symbol}`)}
+        onClick={() => handleTrendClick(trend)}
       >
         <TableCell className="font-medium p-4">
             <div className="flex items-center justify-between w-full h-full">
@@ -173,11 +159,7 @@ export default function CommunityTrends() {
                 <DialogClose asChild key={stock.symbol}>
                   <button
                     className="flex items-center justify-between p-2 rounded-md hover:bg-accent w-full text-left"
-                    onClick={() => {
-                      handleStockLinkClick(`/trade?symbol=${stock.symbol}`);
-                      setSelectedBundle(null);
-                      setIsDialogOpen(false);
-                    }}
+                    onClick={() => handleStockLinkClick(stock.symbol)}
                   >
                     <div>
                       <p className="font-medium">{stock.name}</p>
