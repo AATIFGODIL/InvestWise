@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -16,7 +17,7 @@ import {
 import { ArrowUp, ArrowDown, PlusCircle, MinusCircle, History, Percent } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import usePortfolioStore from "@/store/portfolio-store";
+import { usePortfolioStore } from "@/store/portfolio-store";
 import TradeDialog from "../trade/trade-dialog";
 import { type Holding } from "@/store/portfolio-store";
 

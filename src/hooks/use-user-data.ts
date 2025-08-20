@@ -6,7 +6,7 @@ import { type User } from 'firebase/auth';
 import { doc, getDoc, type Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 
-// Import all necessary store actions
+// Import all necessary store hooks
 import { useUserStore } from "@/store/user-store";
 import { usePortfolioStore } from "@/store/portfolio-store";
 import { useNotificationStore } from "@/store/notification-store";
@@ -25,6 +25,7 @@ export default function useUserData(user: User | null) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // If there's no user, there's no data to load.
     if (!user) {
       setLoading(false);
       return;
@@ -38,18 +39,27 @@ export default function useUserData(user: User | null) {
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
+
+          // Get the update functions from each store
+          const { setUsername, setPhotoURL } = useUserStore.getState();
+          const { loadInitialData } = usePortfolioStore.getState();
+          const { setNotifications } = useNotificationStore.getState();
+          const { loadGoals } = useGoalStore.getState();
+          const { loadAutoInvestments } = useAutoInvestStore.getState();
+          const { setTheme } = useThemeStore.getState();
+          const { loadPrivacySettings } = usePrivacyStore.getState();
           
           const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
 
           // Hydrate all stores with the fetched data
-          useThemeStore.getState().setTheme(userData.theme || "light");
-          useUserStore.getState().setUsername(userData.username || "Investor");
-          useUserStore.getState().setPhotoURL(userData.photoURL || "");
-          usePortfolioStore.getState().loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
-          useNotificationStore.getState().setNotifications(userData.notifications || []);
-          useGoalStore.getState().loadGoals(userData.goals || []);
-          useAutoInvestStore.getState().loadAutoInvestments(userData.autoInvestments || []);
-          usePrivacyStore.getState().loadPrivacySettings({
+          setTheme(userData.theme || "light");
+          setUsername(userData.username || "Investor");
+          setPhotoURL(userData.photoURL || "");
+          loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
+          setNotifications(userData.notifications || []);
+          loadGoals(userData.goals || []);
+          loadAutoInvestments(userData.autoInvestments || []);
+          loadPrivacySettings({
               leaderboardVisibility: userData.leaderboardVisibility || "public",
               showQuests: userData.showQuests === undefined ? true : userData.showQuests,
           });
@@ -65,7 +75,7 @@ export default function useUserData(user: User | null) {
     };
 
     fetchAndHydrate();
-  }, [user]); 
+  }, [user]); // This effect runs whenever the user object changes.
 
   return { loading };
 }

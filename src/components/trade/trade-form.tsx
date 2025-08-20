@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -39,7 +40,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast";
-import usePortfolioStore from "@/store/portfolio-store";
+import { usePortfolioStore } from "@/store/portfolio-store";
 
 
 const tradeSchema = z.object({

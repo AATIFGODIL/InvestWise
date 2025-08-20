@@ -19,7 +19,7 @@ import {
 } from "recharts";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import usePortfolioStore from "@/store/portfolio-store";
+import { usePortfolioStore } from "@/store/portfolio-store";
 
 type TimeRange = '1W' | '1M' | '6M' | '1Y';
 
