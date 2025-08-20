@@ -1,6 +1,6 @@
 
 import type { Metadata } from "next";
-import { PT_Sans } from "next/font/google";
+import { Poppins } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
 import ThemeProvider from "@/components/layout/theme-provider";
@@ -13,7 +13,7 @@ import Script from "next/script";
 import '../lib/firebase/config';
 
 
-const ptSans = PT_Sans({
+const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-body",
@@ -34,7 +34,7 @@ export default function RootLayout({
       <head>
         <Script src="https://s3.tradingview.com/tv.js" strategy="beforeInteractive" />
       </head>
-      <body className={`${ptSans.variable} font-body antialiased`}>
+      <body className={`${poppins.variable} font-body antialiased`}>
         <AuthProvider>
             <ThemeProvider>
               <GlobalLoadingIndicator />
