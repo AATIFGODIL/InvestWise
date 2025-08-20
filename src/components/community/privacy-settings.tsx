@@ -13,9 +13,21 @@ import { Switch } from "@/components/ui/switch";
 import { EyeOff, ShieldBan, Users, UserCheck } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { usePrivacyStore, type LeaderboardVisibility } from "@/store/privacy-store";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function PrivacySettings() {
     const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
+    const { updatePrivacySettings } = useAuth();
+
+    const handleLeaderboardChange = (visibility: LeaderboardVisibility) => {
+        setLeaderboardVisibility(visibility);
+        updatePrivacySettings({ leaderboardVisibility: visibility });
+    };
+
+    const handleQuestsChange = (show: boolean) => {
+        setShowQuests(show);
+        updatePrivacySettings({ showQuests: show });
+    };
 
   return (
     <Card>
@@ -33,7 +45,7 @@ export default function PrivacySettings() {
             <Label className="font-medium flex items-center gap-2">
                 Leaderboard Visibility
             </Label>
-            <RadioGroup value={leaderboardVisibility} onValueChange={(value) => setLeaderboardVisibility(value as LeaderboardVisibility)}>
+            <RadioGroup value={leaderboardVisibility} onValueChange={handleLeaderboardChange}>
                 <div className="flex items-center space-x-2">
                     <RadioGroupItem value="public" id="vis-public" />
                     <Label htmlFor="vis-public" className="font-normal flex items-center gap-2"><Users className="h-4 w-4" /> Public (Show rank and username)</Label>
@@ -56,7 +68,7 @@ export default function PrivacySettings() {
             <Switch
                 id="opt-out-quests"
                 checked={showQuests}
-                onCheckedChange={setShowQuests}
+                onCheckedChange={handleQuestsChange}
             />
         </div>
       </CardContent>
