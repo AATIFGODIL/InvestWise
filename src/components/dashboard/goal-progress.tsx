@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useGoalStore } from "@/store/goal-store";
 import { Target } from "lucide-react";
+import { goalIcons } from "@/data/goals";
 
 export default function GoalProgress() {
   const { goals } = useGoalStore();
@@ -35,6 +36,7 @@ export default function GoalProgress() {
   }
   
   const goal = goals[0];
+  const IconComponent = goalIcons[goal.icon] || goalIcons.default;
 
   return (
     <Card className="h-full flex flex-col">
@@ -55,7 +57,7 @@ export default function GoalProgress() {
                 </div>
                 <div className="p-2 rounded-lg bg-secondary flex items-center justify-center self-start">
                     <div className="relative h-8 w-6 flex items-center justify-center">
-                        {goal.icon}
+                        {IconComponent}
                     </div>
                 </div>
             </div>
