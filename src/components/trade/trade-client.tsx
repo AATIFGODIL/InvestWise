@@ -71,7 +71,31 @@ export default function TradeClient() {
     setLoadingPrice(true);
     setError(null);
 
-    // Clean up the previous socket connection if it exists
+    // --- 1. Fetch initial price via REST API ---
+    async function fetchInitialPrice() {
+        try {
+            const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${API_KEY}`);
+            if (!res.ok) {
+                throw new Error(`Failed to fetch quote: ${res.statusText}`);
+            }
+            const data = await res.json();
+            if (data && typeof data.c !== 'undefined') {
+                setPrice(data.c); // 'c' is the close price / current price
+            } else {
+                 setError("Invalid data received for symbol.");
+            }
+        } catch (err: any) {
+            console.error("Error fetching initial price:", err);
+            setError(`Could not fetch price data for ${symbol}. Please check the symbol.`);
+        } finally {
+            setLoadingPrice(false);
+        }
+    }
+
+    fetchInitialPrice();
+
+
+    // --- 2. Connect to WebSocket for live updates ---
     if (socketRef.current) {
         socketRef.current.close();
     }
@@ -82,7 +106,6 @@ export default function TradeClient() {
     socket.onopen = () => {
       console.log(`✅ Connected to Finnhub WS for ${symbol}`);
       socket.send(JSON.stringify({ type: "subscribe", symbol }));
-      setLoadingPrice(false);
     };
 
     socket.onmessage = (event) => {
@@ -95,8 +118,7 @@ export default function TradeClient() {
 
     socket.onerror = (err) => {
       console.error("WebSocket error:", err);
-      setError("Failed to connect to live price feed.");
-      setLoadingPrice(false);
+      // Don't set a blocking error here, as the REST price might still be valid.
     };
 
     socket.onclose = () => {
