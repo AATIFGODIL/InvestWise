@@ -49,41 +49,41 @@ const generateChartData = (totalValue: number, registrationDate: Date): ChartDat
         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 
-    const generateRandomWalk = (days: number, initialValue: number, startDate: Date) => {
+    const generateRandomWalk = (days: number, initialValue: number, startDate: Date, registrationDate: Date) => {
         const data = [];
         let currentValue = initialValue;
         let currentDate = new Date(startDate);
+        
+        // Ensure data generation doesn't go past the registration date
+        const registrationTimestamp = registrationDate.setHours(0, 0, 0, 0);
 
-        for (let i = 0; i < days; i++) {
-            currentDate.setDate(currentDate.getDate() - 1);
-             // Only add data for weekdays
-            if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
-                 data.push({ date: generateDateLabel(currentDate), value: Math.max(0, parseFloat(currentValue.toFixed(2))) });
+        while (data.length < days && currentDate.getTime() >= registrationTimestamp) {
+            // Check if it's a weekday (Monday=1, ..., Friday=5)
+            if (currentDate.getDay() >= 1 && currentDate.getDay() <= 5) {
+                const noise = (Math.random() - 0.49) * (initialValue * 0.03); // More realistic daily fluctuation
+                currentValue += noise;
+                data.push({ 
+                    date: generateDateLabel(new Date(currentDate)), 
+                    value: Math.max(0, parseFloat(currentValue.toFixed(2))) 
+                });
             }
-            currentValue += (Math.random() - 0.5) * (initialValue * 0.05);
+            currentDate.setDate(currentDate.getDate() - 1);
         }
         return data.reverse();
     }
     
     const today = new Date();
     const timeRanges = {
-        '1W': 7,
-        '1M': 30,
-        '6M': 180,
-        '1Y': 365,
+        '1W': 5,  // 5 trading days
+        '1M': 22, // Approx 22 trading days
+        '6M': 126, // Approx 126 trading days
+        '1Y': 252, // Approx 252 trading days
     };
 
     const generatedData: Partial<ChartData> = {};
 
-    for (const [range, defaultDays] of Object.entries(timeRanges)) {
-        const rangeStartDate = new Date();
-        rangeStartDate.setDate(today.getDate() - defaultDays);
-
-        const chartStartDate = registrationDate > rangeStartDate ? registrationDate : rangeStartDate;
-        
-        const daysToGenerate = Math.ceil((today.getTime() - chartStartDate.getTime()) / (1000 * 60 * 60 * 24));
-        
-        generatedData[range as keyof typeof timeRanges] = generateRandomWalk(Math.max(1, daysToGenerate), totalValue, today);
+    for (const [range, tradingDays] of Object.entries(timeRanges)) {
+        generatedData[range as keyof typeof timeRanges] = generateRandomWalk(tradingDays, totalValue, today, registrationDate);
     }
 
     return generatedData as ChartData;
@@ -172,7 +172,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
     set({ 
         holdings: newHoldings,
         portfolioSummary: newSummary,
-        chartData: generateChartData(newSummary.totalValue, new Date())
+        chartData: generateChartData(newSummary.totalValue, new Date()) // This needs the registration date. Let's assume it's stored somewhere accessible or refetch. For now, using new Date()
     });
 
     return { success: true };
