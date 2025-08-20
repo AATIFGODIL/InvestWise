@@ -79,14 +79,10 @@ const generateChartData = (totalValue: number, registrationDate: Date): ChartDat
         const rangeStartDate = new Date(today);
         rangeStartDate.setDate(rangeStartDate.getDate() - defaultDays);
 
-        // Determine the actual start date for the chart data
-        // It's the later of the registration date or the calculated range start date
         const chartStartDate = registrationDate > rangeStartDate ? registrationDate : rangeStartDate;
         
-        // Calculate the number of days between today and the chart start date
         const daysToGenerate = Math.ceil((today.getTime() - chartStartDate.getTime()) / (1000 * 60 * 60 * 24));
         
-        // Ensure we generate at least one data point if the date is today
         generatedData[range as keyof typeof timeRanges] = generateRandomWalk(Math.max(1, daysToGenerate), totalValue, today);
     }
 
@@ -94,7 +90,7 @@ const generateChartData = (totalValue: number, registrationDate: Date): ChartDat
 };
 
 
-const usePortfolioStore = create<PortfolioState>((set, get) => ({
+export const usePortfolioStore = create<PortfolioState>((set, get) => ({
   holdings: [],
   portfolioSummary: { ...defaultSummary },
   chartData: generateChartData(0, new Date()),
@@ -176,8 +172,7 @@ const usePortfolioStore = create<PortfolioState>((set, get) => ({
     set({ 
         holdings: newHoldings,
         portfolioSummary: newSummary,
-        // Re-generate chart data with the new total value to keep it consistent
-        chartData: generateChartData(newSummary.totalValue, new Date()) // Assume we can refetch registration date if needed, for now use today
+        chartData: generateChartData(newSummary.totalValue, new Date())
     });
 
     return { success: true };
@@ -211,6 +206,3 @@ const calculatePortfolioSummary = (holdings: Holding[]): PortfolioSummary => {
     
     return summary;
 };
-
-
-export default usePortfolioStore;

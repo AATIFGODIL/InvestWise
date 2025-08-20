@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { EyeOff, ShieldBan, Users, UserCheck } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
-import usePrivacyStore, { type LeaderboardVisibility } from "@/store/privacy-store";
+import { usePrivacyStore, type LeaderboardVisibility } from "@/store/privacy-store";
 
 export default function PrivacySettings() {
     const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();

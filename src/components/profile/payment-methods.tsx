@@ -20,7 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import AddPaymentMethod from "./add-payment-method";
-import useUserStore from "@/store/user-store";
+import { useUserStore } from "@/store/user-store";
 
 interface PaymentMethodsProps {
   userId: string;

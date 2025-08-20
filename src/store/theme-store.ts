@@ -19,7 +19,7 @@ const getInitialTheme = (): Theme => {
 };
 
 
-const useThemeStore = create<ThemeState>((set) => ({
+export const useThemeStore = create<ThemeState>((set) => ({
   theme: getInitialTheme(),
   setTheme: (theme) => {
     if (typeof window !== 'undefined') {
@@ -31,5 +31,3 @@ const useThemeStore = create<ThemeState>((set) => ({
     set({ theme });
   },
 }));
-
-export default useThemeStore;

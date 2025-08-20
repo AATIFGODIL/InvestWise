@@ -29,7 +29,7 @@ const updateAutoInvestInFirestore = (investments: AutoInvestment[]) => {
     });
 };
 
-const useAutoInvestStore = create<AutoInvestState>((set, get) => ({
+export const useAutoInvestStore = create<AutoInvestState>((set, get) => ({
     autoInvestments: [],
 
     loadAutoInvestments: (investments) => set({ autoInvestments: investments || [] }),
@@ -60,5 +60,3 @@ const useAutoInvestStore = create<AutoInvestState>((set, get) => ({
 
     resetAutoInvest: () => set({ autoInvestments: [] }),
 }));
-
-export default useAutoInvestStore;

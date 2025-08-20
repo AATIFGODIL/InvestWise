@@ -15,7 +15,7 @@ import PaymentMethods from "@/components/profile/payment-methods";
 import { useAuth } from "@/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import useLoadingStore from "@/store/loading-store";
-import useUserStore from "@/store/user-store";
+import { useUserStore } from "@/store/user-store";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ProfileClient() {

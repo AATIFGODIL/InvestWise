@@ -12,7 +12,7 @@ export interface PrivacyState {
   resetPrivacySettings: () => void;
 }
 
-const usePrivacyStore = create<PrivacyState>((set) => ({
+export const usePrivacyStore = create<PrivacyState>((set) => ({
   leaderboardVisibility: 'public',
   showQuests: true,
   
@@ -38,5 +38,3 @@ const usePrivacyStore = create<PrivacyState>((set) => ({
       })
   }
 }));
-
-export default usePrivacyStore;

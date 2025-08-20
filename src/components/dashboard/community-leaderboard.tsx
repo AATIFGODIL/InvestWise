@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Crown } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "../ui/avatar";
-import usePortfolioStore from "@/store/portfolio-store";
-import useUserStore from "@/store/user-store";
+import { usePortfolioStore } from "@/store/portfolio-store";
+import { useUserStore } from "@/store/user-store";
 import { cn } from "@/lib/utils";
 
 

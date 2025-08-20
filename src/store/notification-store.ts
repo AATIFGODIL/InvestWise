@@ -31,7 +31,7 @@ const updateNotificationsInFirestore = (notifications: Notification[]) => {
     });
 };
 
-const useNotificationStore = create<NotificationState>((set, get) => ({
+export const useNotificationStore = create<NotificationState>((set, get) => ({
   notifications: [],
   unreadCount: 0,
 
@@ -64,5 +64,3 @@ const useNotificationStore = create<NotificationState>((set, get) => ({
     updateNotificationsInFirestore(updatedNotifications);
   },
 }));
-
-export default useNotificationStore;

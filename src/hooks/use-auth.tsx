@@ -25,13 +25,13 @@ import {
 import { auth, db } from "@/lib/firebase/config";
 import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import useUserStore from "@/store/user-store";
-import usePortfolioStore from "@/store/portfolio-store";
-import useNotificationStore, { type Notification } from "@/store/notification-store";
-import useGoalStore from "@/store/goal-store";
-import useAutoInvestStore from "@/store/auto-invest-store";
-import useThemeStore from "@/store/theme-store";
-import usePrivacyStore, { type PrivacyState } from "@/store/privacy-store";
+import { useUserStore } from "@/store/user-store";
+import { usePortfolioStore } from "@/store/portfolio-store";
+import { useNotificationStore, type Notification } from "@/store/notification-store";
+import { useGoalStore } from "@/store/goal-store";
+import { useAutoInvestStore } from "@/store/auto-invest-store";
+import { useThemeStore } from "@/store/theme-store";
+import { usePrivacyStore, type PrivacyState } from "@/store/privacy-store";
 import useLoadingStore from "@/store/loading-store";
 import { useToast } from "./use-toast";
 
@@ -109,13 +109,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const { showLoading, hideLoading } = useLoadingStore();
 
-  const { reset: resetUserStore } = useUserStore.getState();
-  const { resetPortfolio } = usePortfolioStore.getState();
-  const { setNotifications } = useNotificationStore.getState();
-  const { resetGoals } = useGoalStore.getState();
-  const { resetAutoInvest } = useAutoInvestStore.getState();
-  const { setTheme } = useThemeStore.getState();
-  const { resetPrivacySettings } = usePrivacyStore.getState();
+  const resetUserStore = useUserStore((state) => state.reset);
+  const resetPortfolio = usePortfolioStore((state) => state.resetPortfolio);
+  const setNotifications = useNotificationStore((state) => state.setNotifications);
+  const resetGoals = useGoalStore((state) => state.resetGoals);
+  const resetAutoInvest = useAutoInvestStore((state) => state.resetAutoInvest);
+  const setTheme = useThemeStore((state) => state.setTheme);
+  const resetPrivacySettings = usePrivacyStore((state) => state.resetPrivacySettings);
 
   const [user, setUser] = useState<User | null>(null);
   const [hydrating, setHydrating] = useState(true);

@@ -12,7 +12,7 @@ import { useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CommunityTrends from "@/components/dashboard/community-trends";
 import Chatbot from "@/components/chatbot/chatbot";
-import usePrivacyStore from "@/store/privacy-store";
+import { usePrivacyStore } from "@/store/privacy-store";
 
 const videos = [
     {

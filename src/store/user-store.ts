@@ -21,7 +21,8 @@ const initialState = {
   loading: true,
 }
 
-const useUserStore = create<UserState>((set) => ({
+// Export the hook directly
+export const useUserStore = create<UserState>((set) => ({
   ...initialState,
   setUsername: (username) => set({ username }),
   setPhotoURL: (photoURL) => set({ photoURL }),
@@ -47,5 +48,3 @@ const useUserStore = create<UserState>((set) => ({
 
   reset: () => set(initialState),
 }));
-
-export default useUserStore;

@@ -10,7 +10,7 @@ import PortfolioValue from "@/components/portfolio/portfolio-value";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import AiPrediction from "../ai/ai-prediction";
-import useUserStore from "@/store/user-store";
+import { useUserStore } from "@/store/user-store";
 import { useRouter } from "next/navigation";
 import { createTransaction } from "@/app/actions";
 import { useAuth } from "@/hooks/use-auth";

@@ -27,8 +27,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
-import useUserStore from "@/store/user-store";
-import useNotificationStore, { type Notification } from "@/store/notification-store";
+import { useUserStore } from "@/store/user-store";
+import { useNotificationStore, type Notification } from "@/store/notification-store";
 
 const notificationIcons: { [key: string]: React.ElementType } = {
   holdings: TrendingUp,

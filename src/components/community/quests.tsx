@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { BookOpen, Trophy, ShieldCheck } from "lucide-react";
-import useQuestStore from "@/store/quest-store";
+import { useQuestStore } from "@/store/quest-store";
 import { useEffect } from "react";
 
 export default function Quests() {

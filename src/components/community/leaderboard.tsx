@@ -18,8 +18,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Crown, ArrowUp, ArrowDown } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { type LeaderboardVisibility } from "@/store/privacy-store";
-import useUserStore from "@/store/user-store";
-import usePortfolioStore from "@/store/portfolio-store";
+import { useUserStore } from "@/store/user-store";
+import { usePortfolioStore } from "@/store/portfolio-store";
 
 interface LeaderboardProps {
     visibility: LeaderboardVisibility;

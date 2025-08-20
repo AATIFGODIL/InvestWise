@@ -37,7 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import useAutoInvestStore, { type AutoInvestment } from "@/store/auto-invest-store";
+import { useAutoInvestStore, type AutoInvestment } from "@/store/auto-invest-store";
 
 export default function AutoInvest() {
     const { toast } = useToast();

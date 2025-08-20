@@ -21,7 +21,7 @@ const updateGoalsInFirestore = (goals: Goal[]) => {
     });
 };
 
-const useGoalStore = create<GoalState>((set, get) => ({
+export const useGoalStore = create<GoalState>((set, get) => ({
   goals: [],
 
   loadGoals: (goals) => set({ goals }),
@@ -41,5 +41,3 @@ const useGoalStore = create<GoalState>((set, get) => ({
   
   resetGoals: () => set({ goals: [] }),
 }));
-
-export default useGoalStore;

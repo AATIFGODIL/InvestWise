@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import useGoalStore from "@/store/goal-store";
+import { useGoalStore } from "@/store/goal-store";
 import { Target } from "lucide-react";
 
 export default function GoalProgress() {

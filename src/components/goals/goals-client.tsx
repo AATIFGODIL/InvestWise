@@ -7,7 +7,7 @@ import CreateGoal from "@/components/goals/create-goal";
 import GoalList from "@/components/goals/goal-list";
 import EducationalVideo from "@/components/shared/educational-video";
 import Chatbot from "@/components/chatbot/chatbot";
-import useGoalStore from "@/store/goal-store";
+import { useGoalStore } from "@/store/goal-store";
 
 const videos = [
     {
