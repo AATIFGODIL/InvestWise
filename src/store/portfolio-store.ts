@@ -69,7 +69,14 @@ const fetchHolidaysFromFinnhub = async (): Promise<Set<string>> => {
         if (!res.ok) {
             throw new Error(`Finnhub API error: ${res.statusText}`);
         }
-        const holidays: MarketHoliday[] = await res.json();
+        const responseData = await res.json();
+        const holidays: MarketHoliday[] = responseData.data;
+
+        if (!Array.isArray(holidays)) {
+             console.error("Finnhub holiday API did not return an array in the 'data' field.", responseData);
+             return new Set();
+        }
+        
         // The API returns the full holiday object, we only need the date string "YYYY-MM-DD"
         return new Set(holidays.map(h => h.atDate));
     } catch (error) {
@@ -92,7 +99,8 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
         const dayOfWeek = currentDate.getDay();
         const dateString = currentDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
         
-        if (dayOfWeek > 0 && dayOfWeek < 6 && !holidays.has(dateString)) { // Monday to Friday and not a holiday
+        // Check if it's a weekday (Monday-Friday) and not a market holiday
+        if (dayOfWeek > 0 && dayOfWeek < 6 && !holidays.has(dateString)) {
             tradingDays.push(new Date(currentDate));
         }
         currentDate.setDate(currentDate.getDate() + 1);
@@ -102,7 +110,7 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
         const numDays = tradingDays.length;
         let currentValue = 0;
         
-        // Start with 0 on the first trading day (registration date or next available)
+        // Always start with 0 on the first trading day, which is the registration date or the next available trading day
         allTradingDaysData.push({
             date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
             value: 0.00,
@@ -125,7 +133,7 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
                     value: Math.max(0, parseFloat(currentValue.toFixed(2))),
                 });
             }
-        } else if (totalValue > 0 && numDays === 1) {
+        } else if (numDays === 1 && totalValue > 0) {
              // If the only trading day is today, show the jump from 0 to current value
             allTradingDaysData.push({
                 date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
@@ -275,3 +283,5 @@ const calculatePortfolioSummary = (holdings: Holding[]): PortfolioSummary => {
     
     return summary;
 };
+
+    
