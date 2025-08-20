@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import { useUserStore } from "@/store/user-store";
 import Certificate from "@/components/dashboard/certificate";
 import { Button } from "@/components/ui/button";
@@ -11,11 +11,17 @@ import { Download, ArrowLeft } from "lucide-react";
 export default function CertificatePage() {
   const { username } = useUserStore();
   const certificateRef = useRef<HTMLDivElement>(null);
-  const currentDate = new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const [currentDate, setCurrentDate] = useState("");
+
+  useEffect(() => {
+    // Generate the date only on the client-side after the component has mounted
+    // This prevents a hydration mismatch between server and client.
+    setCurrentDate(new Date().toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }));
+  }, []); // Empty dependency array ensures this runs only once on the client
 
   const handleDownload = useCallback(() => {
     if (certificateRef.current === null) {
