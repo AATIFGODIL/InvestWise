@@ -29,7 +29,6 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
-import { useRouter } from "next/navigation";
 import useLoadingStore from "@/store/loading-store";
 
 
@@ -69,7 +68,6 @@ const trends = [
 export default function CommunityTrends() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedBundle, setSelectedBundle] = useState<(typeof trends[number] & {category: 'Bundle'}) | null>(null);
-  const router = useRouter();
   const { showLoading } = useLoadingStore();
 
   const handleTrendClick = (trend: typeof trends[number]) => {
@@ -77,14 +75,14 @@ export default function CommunityTrends() {
       setSelectedBundle(trend as typeof trends[number] & {category: 'Bundle'});
       setIsDialogOpen(true);
     } else if (trend.symbol) {
-        showLoading();
-        router.push(`/trade?symbol=${trend.symbol}`);
+        handleStockLinkClick(trend.symbol);
     }
   };
   
   const handleStockLinkClick = (symbol: string) => {
     showLoading();
-    router.push(`/trade?symbol=${symbol}`);
+    // Use window.location.href to force a full page reload
+    window.location.href = `/trade?symbol=${symbol}`;
   };
 
   const renderTrendRow = (trend: typeof trends[number]) => {

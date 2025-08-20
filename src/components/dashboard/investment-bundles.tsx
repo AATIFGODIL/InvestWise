@@ -31,7 +31,6 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { type Bundle } from "@/data/bundles";
-import { useRouter } from "next/navigation";
 import useLoadingStore from "@/store/loading-store";
 
 interface InvestmentBundlesProps {
@@ -43,12 +42,12 @@ interface InvestmentBundlesProps {
 
 export default function InvestmentBundles({ bundles, title, description, showDisclaimer = false }: InvestmentBundlesProps) {
   const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null);
-  const router = useRouter();
   const { showLoading } = useLoadingStore();
 
   const handleStockLinkClick = (symbol: string) => {
     showLoading();
-    router.push(`/trade?symbol=${symbol}`);
+    // Use window.location.href to force a full page reload
+    window.location.href = `/trade?symbol=${symbol}`;
   };
 
   return (
