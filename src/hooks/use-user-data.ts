@@ -56,10 +56,9 @@ export default function useUserData(user: User | null) {
           const { loadTransactions } = useTransactionStore.getState();
           
           const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
-          const transactions = (userData.transactions || []).map((tx: any) => ({
-              ...tx,
-              timestamp: (tx.timestamp as Timestamp).toDate().toISOString(),
-          }));
+          
+          // Timestamps are stored as ISO strings, so no conversion is needed.
+          const transactions = userData.transactions || [];
 
           // Hydrate all stores with the fetched data
           setTheme(userData.theme || "light");
