@@ -4,7 +4,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
-import { type Goal } from "@/data/goals";
+import { type Goal, goalIcons } from "@/data/goals";
 
 
 interface GoalListProps {
@@ -21,7 +21,7 @@ export default function GoalList({ goals }: GoalListProps) {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="p-3 rounded-lg bg-secondary flex items-center justify-center">
-                                {goal.icon}
+                                {goalIcons[goal.icon] || goalIcons.default}
                             </div>
                             <div>
                                 <CardTitle className="text-lg">{goal.name}</CardTitle>

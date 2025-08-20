@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import { doc, updateDoc, getFirestore } from "firebase/firestore";
 import { auth } from '@/lib/firebase/config';
-import { goalIcons, type Goal } from "@/data/goals";
+import { type Goal } from "@/data/goals";
 
 interface GoalState {
   goals: Goal[];
@@ -24,7 +24,7 @@ const updateGoalsInFirestore = (goals: Goal[]) => {
 export const useGoalStore = create<GoalState>((set, get) => ({
   goals: [],
 
-  loadGoals: (goals) => set({ goals }),
+  loadGoals: (goals) => set({ goals: goals || [] }), // Handle undefined goals from Firestore
 
   addGoal: (newGoalData) => {
     const newGoal: Goal = {
@@ -32,7 +32,7 @@ export const useGoalStore = create<GoalState>((set, get) => ({
         id: newGoalData.name.toLowerCase().replace(/\s/g, '-') + '-' + Date.now(),
         current: 0,
         progress: 0,
-        icon: goalIcons.default,
+        icon: 'default', // Store the icon name as a string
     };
     const updatedGoals = [...get().goals, newGoal];
     set({ goals: updatedGoals });

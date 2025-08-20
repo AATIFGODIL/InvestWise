@@ -5,7 +5,7 @@ import { Laptop, Car, Plane, Check } from "lucide-react";
 export interface Goal {
     id: string;
     name: string;
-    icon: ReactNode;
+    icon: string; // Changed from ReactNode to string
     current: number;
     target: number;
     progress: number;
