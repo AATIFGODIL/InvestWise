@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, a, { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
@@ -114,8 +114,6 @@ export default function TradeClient() {
     if (inputValue) {
         const upperCaseSymbol = inputValue.toUpperCase();
         setSearchedSymbol(upperCaseSymbol);
-        // We don't sync the widget anymore, per user request.
-        // setWidgetSymbol(upperCaseSymbol); 
     }
   };
 
