@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useRef, memo } from 'react';
-import useThemeStore from '@/store/theme-store';
+import { useThemeStore } from '@/store/theme-store';
 
 function TradingViewScreener() {
   const container = useRef<HTMLDivElement>(null);
