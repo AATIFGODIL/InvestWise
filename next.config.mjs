@@ -1,9 +1,24 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  devIndicators: {
+    buildActivity: false,
+  },
   experimental: {
-    // This is required to allow the Next.js dev server to accept requests from the browser
-    // in the Firebase Studio environment.
-    allowedDevOrigins: ["*.cloudworkstations.dev"],
+    allowedDevOrigins: [
+      '6000-firebase-studio-1751627876811.cluster-nzwlpk54dvagsxetkvxzbvslyi.cloudworkstations.dev',
+    ],
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      },
+    ],
   },
 };
 
