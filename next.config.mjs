@@ -1,11 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    // This is required to allow the Next.js dev server to accept requests from the
-    // Firebase Studio preview URL.
-    allowedDevOrigins: [
-      "https://*.cluster-nzwlpk54dvagsxetkvxzbvslyi.cloudworkstations.dev",
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
     ],
+  },
+  experimental: {
+    // This is required for the app to be able to run in IDX which is a cloud-based IDE.
+    // This allows all origins to access the dev server.
+    allowedDevOrigins: ['*'],
   },
 };
 
