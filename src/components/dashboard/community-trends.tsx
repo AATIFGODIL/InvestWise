@@ -40,12 +40,11 @@ const trends = [
     popularity: 85,
     description: "Invest in leading tech companies with this diversified bundle. Ideal for growth-oriented beginners.",
     stocks: [
-      { name: "Apple Inc.", symbol: "AAPL" },
-      { name: "Microsoft Corp.", symbol: "MSFT" },
-      { name: "Alphabet Inc.", symbol: "GOOGL" },
-      { name: "Amazon.com, Inc.", symbol: "AMZN" },
-      { name: "NVIDIA Corp.", symbol: "NVDA" },
-      { name: "Tesla, Inc.", symbol: "TSLA" },
+      { name: "Salesforce, Inc.", symbol: "CRM" },
+      { name: "Adobe Inc.", symbol: "ADBE" },
+      { name: "Broadcom Inc.", symbol: "AVGO" },
+      { name: "Oracle Corporation", symbol: "ORCL" },
+      { name: "Cisco Systems, Inc.", symbol: "CSCO" },
     ]
   },
   { name: "NVIDIA Corp.", symbol: "NVDA", category: "Stock", popularity: 82 },
