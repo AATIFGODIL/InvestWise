@@ -9,7 +9,7 @@ import { doc, updateDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Upload, LogIn, ChevronLeft, Repeat, Users, Briefcase } from "lucide-react";
+import { Loader2, Upload, LogIn, ChevronLeft, Repeat, Users, Briefcase, Settings } from "lucide-react";
 import Link from "next/link";
 import PaymentMethods from "@/components/profile/payment-methods";
 import { useAuth } from "@/hooks/use-auth";
@@ -148,7 +148,7 @@ export default function ProfileClient() {
                 <CardHeader>
                     <CardTitle>Quick Links</CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                     <Button asChild variant="outline">
                         <Link href="/trade">
                             <Repeat className="mr-2 h-4 w-4"/>
@@ -165,6 +165,12 @@ export default function ProfileClient() {
                         <Link href="/portfolio">
                             <Briefcase className="mr-2 h-4 w-4"/>
                             Portfolio
+                        </Link>
+                    </Button>
+                    <Button asChild variant="outline">
+                        <Link href="/settings">
+                            <Settings className="mr-2 h-4 w-4"/>
+                            Settings
                         </Link>
                     </Button>
                 </CardContent>
