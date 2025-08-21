@@ -67,10 +67,11 @@ const trends = [
 
 interface CommunityTrendsProps {
   showViewAllButton?: boolean;
+  limit?: number;
 }
 
 
-export default function CommunityTrends({ showViewAllButton = true }: CommunityTrendsProps) {
+export default function CommunityTrends({ showViewAllButton = true, limit }: CommunityTrendsProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedBundle, setSelectedBundle] = useState<(typeof trends[number] & {category: 'Bundle'}) | null>(null);
   const { showLoading } = useLoadingStore();
@@ -112,6 +113,8 @@ export default function CommunityTrends({ showViewAllButton = true }: CommunityT
     );
   };
 
+  const trendsToDisplay = limit ? trends.slice(0, limit) : trends;
+
   return (
     <>
       <Card className="h-full flex flex-col">
@@ -133,7 +136,7 @@ export default function CommunityTrends({ showViewAllButton = true }: CommunityT
               </TableRow>
             </TableHeader>
             <TableBody>
-              {trends.map(renderTrendRow)}
+              {trendsToDisplay.map(renderTrendRow)}
             </TableBody>
           </Table>
         </CardContent>

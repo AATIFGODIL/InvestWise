@@ -154,7 +154,7 @@ function DashboardClientContent() {
             <CommunityLeaderboard />
           </div>
           <InvestmentBundles {...bundleProps} />
-          <CommunityTrends />
+          <CommunityTrends limit={5} />
           <AiPrediction />
         </main>
         <Chatbot />
