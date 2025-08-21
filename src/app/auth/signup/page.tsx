@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,7 +18,6 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
-import appleLogo from "../signin/applio.webp";
 import useLoadingStore from "@/store/loading-store";
 
 
@@ -29,19 +27,9 @@ const GoogleIcon = () => (
   </svg>
 );
 
-const AppleIcon = () => (
-    <Image
-      src={appleLogo}
-      alt="Apple"
-      width={20}
-      height={20}
-      className="mr-2 rounded-sm"
-    />
-);
-
 export default function SignUpPage() {
   const router = useRouter();
-  const { signUp, signInWithGoogle, signInWithApple } = useAuth();
+  const { signUp, signInWithGoogle } = useAuth();
   const { showLoading } = useLoadingStore();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -94,12 +82,9 @@ export default function SignUpPage() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
           )}
-          <div className="grid grid-cols-2 gap-2">
-            <Button variant="outline" onClick={signInWithGoogle} disabled={loading}>
+          <div className="grid gap-2">
+            <Button variant="outline" onClick={signInWithGoogle} disabled={loading} className="w-full">
                 <GoogleIcon /> Google
-            </Button>
-            <Button variant="outline" onClick={signInWithApple} disabled={loading}>
-                <AppleIcon /> Apple
             </Button>
           </div>
           <div className="relative">
