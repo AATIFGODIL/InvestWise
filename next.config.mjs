@@ -1,23 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    // Keep this empty if no other experimental features are needed.
-    // allowedDevOrigins has been moved to the top level.
-  },
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-      },
+    // This is required to allow the Next.js dev server to accept requests from the
+    // Firebase Studio preview URL.
+    allowedDevOrigins: [
+      "https://*.cluster-nzwlpk54dvagsxetkvxzbvslyi.cloudworkstations.dev",
     ],
   },
-  // This is a top-level configuration, not inside 'experimental'.
-  allowedDevOrigins: ["*.cloudworkstations.dev", "*.apptivi.dev"],
 };
 
 export default nextConfig;
