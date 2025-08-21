@@ -25,6 +25,8 @@ import { useTransactionStore } from '@/store/transaction-store';
 export default function useUserData(user: User | null) {
   const [loading, setLoading] = useState(true);
   const { fetchMarketHolidays } = usePortfolioStore();
+  const { checkForDueTrades } = useAutoInvestStore();
+
 
   useEffect(() => {
     // If there's no user, there's no data to load.
@@ -73,6 +75,10 @@ export default function useUserData(user: User | null) {
               leaderboardVisibility: userData.leaderboardVisibility || "public",
               showQuests: userData.showQuests === undefined ? true : userData.showQuests,
           });
+
+          // After hydrating, check for due auto-trades
+          checkForDueTrades();
+
 
         } else {
             console.log("User document not found for hydration, likely a new user.");

@@ -48,7 +48,7 @@ export default function AutoInvest() {
     const [selectedInvestment, setSelectedInvestment] = useState<AutoInvestment | null>(null);
     
     // State for the creation form
-    const [newName, setNewName] = useState("");
+    const [newSymbol, setNewSymbol] = useState("");
     const [newAmount, setNewAmount] = useState<number | string>("");
     const [newFrequency, setNewFrequency] = useState("");
 
@@ -59,7 +59,7 @@ export default function AutoInvest() {
 
     const handleSaveChanges = () => {
         if (!selectedInvestment) return;
-        updateAutoInvestment(selectedInvestment.name, selectedInvestment);
+        updateAutoInvestment(selectedInvestment.id, selectedInvestment);
         toast({
             title: "Success!",
             description: "Your auto-invest settings have been updated.",
@@ -69,17 +69,17 @@ export default function AutoInvest() {
     
     const handleRemoveInvestment = () => {
         if (!selectedInvestment) return;
-        removeAutoInvestment(selectedInvestment.name);
+        removeAutoInvestment(selectedInvestment.id);
          toast({
             variant: "destructive",
             title: "Investment Removed",
-            description: `${selectedInvestment.name} has been removed from your auto-investments.`,
+            description: `${selectedInvestment.symbol} has been removed from your auto-investments.`,
         });
         setIsManageOpen(false);
     }
 
     const handleCreateInvestment = () => {
-        if (!newName || !newAmount || !newFrequency) {
+        if (!newSymbol || !newAmount || !newFrequency) {
              toast({
                 variant: "destructive",
                 title: "Missing Information",
@@ -88,16 +88,16 @@ export default function AutoInvest() {
             return;
         }
         addAutoInvestment({
-            name: newName,
+            symbol: newSymbol.toUpperCase(),
             amount: Number(newAmount),
-            frequency: newFrequency,
+            frequency: newFrequency as "Daily" | "Weekly" | "Bi-weekly" | "Monthly",
         });
          toast({
             title: "Success!",
-            description: `Auto-investment for ${newName} has been created.`,
+            description: `Auto-investment for ${newSymbol.toUpperCase()} has been created.`,
         });
         // Reset form and close dialog
-        setNewName("");
+        setNewSymbol("");
         setNewAmount("");
         setNewFrequency("");
         setIsCreateOpen(false);
@@ -117,15 +117,15 @@ export default function AutoInvest() {
             </CardHeader>
             <CardContent className="space-y-4">
                 {autoInvestments.map((investment) => (
-                    <div key={investment.name} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div key={investment.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                         <div>
-                            <p className="font-semibold">{investment.name}</p>
+                            <p className="font-semibold">{investment.symbol}</p>
                             <p className="text-sm text-muted-foreground">
                                 ${investment.amount} / {investment.frequency}
                             </p>
                         </div>
                         <div className="text-right">
-                           <Badge variant="secondary">Next: {investment.nextDate}</Badge>
+                           <Badge variant="secondary">Next: {new Date(investment.nextDate).toLocaleDateString()}</Badge>
                            <Button variant="link" size="sm" className="h-auto p-0 mt-1" onClick={() => handleManageClick(investment)}>Manage</Button>
                         </div>
                     </div>
@@ -146,15 +146,15 @@ export default function AutoInvest() {
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="investment-name" className="text-right">
-                                    Investment
+                                <Label htmlFor="investment-symbol" className="text-right">
+                                    Symbol
                                 </Label>
                                 <Input
-                                    id="investment-name"
-                                    placeholder="e.g. S&P 500 ETF"
+                                    id="investment-symbol"
+                                    placeholder="e.g. AAPL"
                                     className="col-span-3"
-                                    value={newName}
-                                    onChange={(e) => setNewName(e.target.value)}
+                                    value={newSymbol}
+                                    onChange={(e) => setNewSymbol(e.target.value)}
                                 />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
@@ -201,7 +201,7 @@ export default function AutoInvest() {
             <Dialog open={isManageOpen} onOpenChange={setIsManageOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>Manage {selectedInvestment?.name}</DialogTitle>
+                        <DialogTitle>Manage {selectedInvestment?.symbol}</DialogTitle>
                         <DialogDescription>
                             Update or remove your recurring investment.
                         </DialogDescription>
@@ -229,7 +229,7 @@ export default function AutoInvest() {
                                 </Label>
                                 <Select 
                                     value={selectedInvestment.frequency}
-                                    onValueChange={(value) => setSelectedInvestment({ ...selectedInvestment, frequency: value })}
+                                    onValueChange={(value) => setSelectedInvestment({ ...selectedInvestment, frequency: value as any })}
                                 >
                                     <SelectTrigger className="col-span-3">
                                         <SelectValue placeholder="Select frequency" />
@@ -256,7 +256,7 @@ export default function AutoInvest() {
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        This will permanently remove your auto-investment for {selectedInvestment?.name}. This action cannot be undone.
+                                        This will permanently remove your auto-investment for {selectedInvestment?.symbol}. This action cannot be undone.
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
