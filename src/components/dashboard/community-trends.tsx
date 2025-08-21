@@ -40,16 +40,14 @@ const trends = [
     popularity: 85,
     description: "Invest in leading tech companies with this diversified bundle. Ideal for growth-oriented beginners.",
     stocks: [
-      { name: "Salesforce, Inc.", symbol: "CRM" },
-      { name: "Adobe Inc.", symbol: "ADBE" },
-      { name: "Broadcom Inc.", symbol: "AVGO" },
-      { name: "Oracle Corporation", symbol: "ORCL" },
-      { name: "Cisco Systems, Inc.", symbol: "CSCO" },
+      { name: "Apple Inc.", symbol: "AAPL" },
+      { name: "Microsoft Corp.", symbol: "MSFT" },
+      { name: "Alphabet Inc.", symbol: "GOOGL" },
     ]
   },
   { name: "NVIDIA Corp.", symbol: "NVDA", category: "Stock", popularity: 82 },
-  { name: "Apple Inc.", symbol: "AAPL", category: "Stock", popularity: 78 },
-  { name: "Microsoft Corp.", symbol: "MSFT", category: "Stock", popularity: 75 },
+  { name: "Tesla, Inc.", symbol: "TSLA", category: "Stock", popularity: 78 },
+  { name: "Amazon.com, Inc.", symbol: "AMZN", category: "Stock", popularity: 75 },
   { 
     name: "Green Energy", 
     category: "Bundle", 
@@ -61,7 +59,7 @@ const trends = [
       { name: "Enphase Energy", symbol: "ENPH" },
     ]
   },
-  { name: "Amazon.com, Inc.", symbol: "AMZN", category: "Stock", popularity: 62 },
+  { name: "Meta Platforms, Inc.", symbol: "META", category: "Stock", popularity: 62 },
 ];
 
 interface CommunityTrendsProps {
