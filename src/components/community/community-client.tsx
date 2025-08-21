@@ -57,7 +57,7 @@ export default function CommunityClient() {
                 </div>
             </TabsContent>
              <TabsContent value="trends" className="mt-6">
-                <CommunityTrends />
+                <CommunityTrends showViewAllButton={false} />
             </TabsContent>
         </Tabs>
         

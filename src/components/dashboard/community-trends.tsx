@@ -65,7 +65,12 @@ const trends = [
   { name: "Amazon.com, Inc.", symbol: "AMZN", category: "Stock", popularity: 62 },
 ];
 
-export default function CommunityTrends() {
+interface CommunityTrendsProps {
+  showViewAllButton?: boolean;
+}
+
+
+export default function CommunityTrends({ showViewAllButton = true }: CommunityTrendsProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedBundle, setSelectedBundle] = useState<(typeof trends[number] & {category: 'Bundle'}) | null>(null);
   const { showLoading } = useLoadingStore();
@@ -132,13 +137,15 @@ export default function CommunityTrends() {
             </TableBody>
           </Table>
         </CardContent>
-        <div className="p-4 mt-auto">
-          <Button asChild variant="outline" className="w-full">
-              <Link href="/community?tab=trends">
-                  View All Trends
-              </Link>
-          </Button>
-        </div>
+        {showViewAllButton && (
+            <div className="p-4 mt-auto">
+                <Button asChild variant="outline" className="w-full">
+                    <Link href="/community?tab=trends">
+                        View All Trends
+                    </Link>
+                </Button>
+            </div>
+        )}
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
