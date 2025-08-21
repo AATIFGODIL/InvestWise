@@ -49,7 +49,7 @@ const trends = [
   { name: "Tesla, Inc.", symbol: "TSLA", category: "Stock", popularity: 78 },
   { name: "Amazon.com, Inc.", symbol: "AMZN", category: "Stock", popularity: 75 },
   { 
-    name: "Green Energy", 
+    name: "Green Energy Bundle", 
     category: "Bundle", 
     popularity: 65,
     description: "Support a sustainable future by investing in renewable energy and clean technology companies.",
