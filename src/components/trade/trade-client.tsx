@@ -48,15 +48,25 @@ export default function TradeClient() {
 
   // Effect to fetch price when the *searchedSymbol* changes
   useEffect(() => {
-    if (!searchedSymbol || !API_KEY) {
-      setError(!API_KEY ? "Finnhub API key is not configured." : null);
-      return;
-    }
+    if (!searchedSymbol) return;
 
     setPrice(null);
     setLoadingPrice(true);
     setError(null);
 
+    // --- Fallback for missing API Key ---
+    if (!API_KEY) {
+      setError("Finnhub API key not configured. Using simulated data.");
+      // Simulate fetching a price
+      setTimeout(() => {
+        const simulatedPrice = parseFloat((Math.random() * (500 - 100) + 100).toFixed(2));
+        setPrice(simulatedPrice);
+        setLoadingPrice(false);
+      }, 500);
+      return; // Stop execution to prevent WebSocket connection attempt
+    }
+    
+    // --- Live Data Fetching ---
     async function fetchInitialPrice() {
         try {
             const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${searchedSymbol}&token=${API_KEY}`);
