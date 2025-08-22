@@ -27,7 +27,6 @@ import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/user-store";
 import { usePortfolioStore } from "@/store/portfolio-store";
-import { useNotificationStore, type Notification } from "@/store/notification-store";
 import { useGoalStore } from "@/store/goal-store";
 import { useAutoInvestStore } from "@/store/auto-invest-store";
 import { useThemeStore } from "@/store/theme-store";
@@ -62,15 +61,6 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
   }
 
   const displayName = additionalData.username || user.displayName || "Investor";
-  const welcomeNotification: Notification = {
-    id: `welcome-${Date.now()}`,
-    title: "Welcome to InvestWise!",
-    description: "We're glad to have you. Explore the app to start your journey.",
-    href: "/dashboard",
-    type: "welcome",
-    read: false,
-    createdAt: new Date().toISOString(),
-  };
 
   const newUserDoc = {
     uid: user.uid,
@@ -90,7 +80,7 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
         annualRatePercent: 0,
       },
     },
-    notifications: [welcomeNotification],
+    notifications: [],
     goals: [],
     autoInvestments: [],
   };
@@ -116,7 +106,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resetAllStores = useCallback(() => {
     useUserStore.getState().reset();
     usePortfolioStore.getState().resetPortfolio();
-    useNotificationStore.getState().setNotifications([]);
     useGoalStore.getState().resetGoals();
     useAutoInvestStore.getState().resetAutoInvest();
     useThemeStore.getState().setTheme("light"); // Explicitly reset theme

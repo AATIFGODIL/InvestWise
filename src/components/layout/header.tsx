@@ -7,12 +7,8 @@ import { useRouter } from "next/navigation";
 import {
   Bell,
   LogOut,
-  PlayCircle,
   Settings,
-  TrendingUp,
-  Trophy,
   User,
-  PartyPopper,
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,30 +24,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { useUserStore } from "@/store/user-store";
-import { useNotificationStore, type Notification } from "@/store/notification-store";
-
-const notificationIcons: { [key: string]: React.ElementType } = {
-  holdings: TrendingUp,
-  content: PlayCircle,
-  leaderboard: Trophy,
-  welcome: PartyPopper,
-  default: Bell,
-};
-
-const getIconForNotification = (type: string) => {
-  return notificationIcons[type] || notificationIcons.default;
-};
 
 export default function Header() {
   const { user, signOut } = useAuth();
   const { username, photoURL } = useUserStore();
-  const { notifications, unreadCount, removeNotification } = useNotificationStore();
   const router = useRouter();
-
-  const handleNotificationClick = (notification: Notification) => {
-    removeNotification(notification.id);
-    router.push(notification.href);
-  };
 
   return (
     <header className="sticky top-0 z-30 flex h-20 items-center justify-between bg-primary px-4 sm:px-6 text-primary-foreground">
@@ -65,36 +42,12 @@ export default function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full">
                 <Bell className="h-6 w-6" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-2 right-2 flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-                  </span>
-                )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-80" align="end">
              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
              <DropdownMenuSeparator />
-             {notifications.length === 0 ? (
-               <DropdownMenuItem disabled className="p-3">You have no new notifications.</DropdownMenuItem>
-             ) : (
-                notifications.map((notif, index) => {
-                  const Icon = getIconForNotification(notif.type);
-                  return (
-                    <React.Fragment key={notif.id}>
-                      <DropdownMenuItem className="flex items-start gap-3 p-3 cursor-pointer" onClick={() => handleNotificationClick(notif)}>
-                        <Icon className="h-5 w-5 mt-1 text-primary" />
-                        <div>
-                            <p className="font-semibold">{notif.title}</p>
-                            <p className="text-xs text-muted-foreground">{notif.description}</p>
-                        </div>
-                      </DropdownMenuItem>
-                      {index < notifications.length - 1 && <DropdownMenuSeparator />}
-                    </React.Fragment>
-                  );
-                })
-             )}
+             <DropdownMenuItem disabled className="p-3">You have no new notifications.</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 

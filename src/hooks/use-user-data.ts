@@ -9,7 +9,6 @@ import { db } from "@/lib/firebase/config";
 // Import all necessary store hooks
 import { useUserStore } from "@/store/user-store";
 import { usePortfolioStore } from "@/store/portfolio-store";
-import { useNotificationStore } from "@/store/notification-store";
 import { useGoalStore } from "@/store/goal-store";
 import { useAutoInvestStore } from "@/store/auto-invest-store";
 import { useThemeStore } from "@/store/theme-store";
@@ -50,7 +49,6 @@ export default function useUserData(user: User | null) {
           // Get the update functions from each store
           const { setUsername, setPhotoURL } = useUserStore.getState();
           const { loadInitialData } = usePortfolioStore.getState();
-          const { setNotifications } = useNotificationStore.getState();
           const { loadGoals } = useGoalStore.getState();
           const { loadAutoInvestments } = useAutoInvestStore.getState();
           const { setTheme } = useThemeStore.getState();
@@ -67,7 +65,6 @@ export default function useUserData(user: User | null) {
           setUsername(userData.username || "Investor");
           setPhotoURL(userData.photoURL || "");
           loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
-          setNotifications(userData.notifications || []);
           loadGoals(userData.goals || []);
           loadAutoInvestments(userData.autoInvestments || []);
           loadTransactions(transactions);
