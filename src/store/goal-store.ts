@@ -29,7 +29,7 @@ export const useGoalStore = create<GoalState>((set, get) => ({
   loadGoals: (goals) => set({ goals: goals || [] }), // Handle undefined goals from Firestore
 
   addGoal: (newGoalData) => {
-    const iconName = newGoalData.name.toLowerCase().includes('trip') ? 'plane' : 'default';
+    const iconName = newGoalData.name.toLowerCase().includes('trip') || newGoalData.name.toLowerCase().includes('vacation') ? 'plane' : 'default';
     const newGoal: Goal = {
         ...newGoalData,
         id: newGoalData.name.toLowerCase().replace(/\s/g, '-') + '-' + Date.now(),
@@ -48,7 +48,7 @@ export const useGoalStore = create<GoalState>((set, get) => ({
         const updatedGoal = { ...goal, ...updates };
         // Recalculate icon if name changes
         if (updates.name) {
-            updatedGoal.icon = updates.name.toLowerCase().includes('trip') ? 'plane' : 'default';
+            updatedGoal.icon = updates.name.toLowerCase().includes('trip') || updates.name.toLowerCase().includes('vacation') ? 'plane' : 'default';
         }
         return updatedGoal;
       }
