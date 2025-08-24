@@ -12,6 +12,7 @@ import "./globals.css";
 import Script from "next/script";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import '../lib/firebase/config';
+import { Loader2 } from 'lucide-react';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -33,16 +34,35 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         router.push('/auth/signin');
     }
   }, [user, loading, isAuthOrOnboardingRoute, router]);
+  
+  // While loading, show a full-screen loader to prevent flashing of protected content
+  if (loading) {
+    return (
+       <div className="flex items-center justify-center h-screen w-full bg-background">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+       </div>
+    );
+  }
 
-
+  // If not authenticated and on a public route (like signin), or if authenticated, show content
+  if ((!loading && !user && isAuthOrOnboardingRoute) || user) {
+      return (
+        <div className="flex flex-col h-screen">
+          <MainContent>
+            {children}
+          </MainContent>
+          {!isAuthOrOnboardingRoute && <BottomNav />}
+        </div>
+      );
+  }
+  
+  // If not authenticated and trying to access a protected route, the useEffect will redirect.
+  // In the meantime, show a loader to prevent rendering anything.
   return (
-    <div className="flex flex-col h-screen">
-      <MainContent>
-        {children}
-      </MainContent>
-      {!isAuthOrOnboardingRoute && <BottomNav />}
-    </div>
-  );
+       <div className="flex items-center justify-center h-screen w-full bg-background">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+       </div>
+    );
 }
 
 export default function RootLayout({
