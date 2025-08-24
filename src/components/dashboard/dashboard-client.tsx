@@ -132,7 +132,7 @@ export default function DashboardClient() {
   const showCongrats = userProfile === "Student" || userProfile === "Beginner" || userProfile === "Amateur";
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4 space-y-6 pb-24">
     <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Explore</h1>
         <div className="flex items-center gap-2 text-sm text-primary">
