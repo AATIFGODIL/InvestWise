@@ -50,19 +50,21 @@ export default function AddPaymentMethod({ userId, onCardSaved }: { userId: stri
         }
       }
     }
-    setup();
+
+    if (userId) {
+      setup();
+    }
 
     return () => {
         isMounted = false;
-        if (dropinRef.current) {
+        if (dropinRef.current && typeof dropinRef.current.teardown === 'function') {
             dropinRef.current.teardown().catch((err: any) => {
                 console.error("Error tearing down Braintree Drop-in:", err);
             });
             dropinRef.current = null;
         }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, [userId, toast]);
 
   async function handleSave() {
     if (!dropinRef.current) {
