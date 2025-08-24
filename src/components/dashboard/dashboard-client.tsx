@@ -4,8 +4,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { useMemo, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import Header from "@/components/layout/header";
-import BottomNav from "@/components/layout/bottom-nav";
 import { Skeleton } from "@/components/ui/skeleton";
 import { recommendedBundles, specializedBundles } from "@/data/bundles";
 import CongratulationsBanner from "@/components/dashboard/congratulations-banner";

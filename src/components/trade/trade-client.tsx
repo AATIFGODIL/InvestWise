@@ -3,8 +3,6 @@
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
-import Header from "@/components/layout/header";
-import BottomNav from "@/components/layout/bottom-nav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search, Loader2, Clock, Star } from "lucide-react";
@@ -153,85 +151,80 @@ export default function TradeClient() {
 
 
   return (
-    <div className="w-full bg-background font-body">
-      <Header />
-      <main className="p-4 space-y-6 pb-40">
-        <h1 className="text-2xl font-bold">Trade</h1>
-        
-        <Card>
+    <div className="p-4 space-y-6">
+      <h1 className="text-2xl font-bold">Trade</h1>
+      
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                  <CardTitle>Stock Chart & Trading</CardTitle>
+                  <Button variant="ghost" size="icon" onClick={handleToggleWatchlist} className="h-8 w-8">
+                      <Star className={cn("h-5 w-5", isSymbolInWatchlist ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
+                  </Button>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-primary">
+                  <Clock className="h-4 w-4" />
+                  <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+              </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-grow">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                      value={inputValue}
+                      onChange={(e) => setInputValue(e.target.value.toUpperCase())}
+                      placeholder="e.g., AAPL, TSLA"
+                      className="pl-10 h-10"
+                      onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                              handleSearch();
+                          }
+                      }}
+                  />
+              </div>
+            <Button onClick={handleSearch}>
+              {loadingPrice && searchedSymbol === inputValue.toUpperCase() ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+              Search
+            </Button>
+          </div>
+            {error && <p className="text-destructive text-sm">{error}</p>}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                  <div className="h-[400px] md:h-[500px] w-full mb-6">
+                      <TradingViewWidget symbol={widgetSymbol} onSymbolChange={handleWidgetSymbolChange}/>
+                  </div>
+                  <AiPredictionTrade initialSymbol={searchedSymbol} />
+              </div>
+              <div className="lg:col-span-1">
+                  <TradeForm 
+                      selectedSymbol={searchedSymbol}
+                      selectedPrice={price}
+                      loadingPrice={loadingPrice}
+                  />
+              </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Watchlist />
+
+      <InvestmentBundles
+          title="Explore Specialized Bundles"
+          description="Discover themed collections for more focused strategies."
+          bundles={specializedBundles}
+      />
+      
+      <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                    <CardTitle>Stock Chart & Trading</CardTitle>
-                    <Button variant="ghost" size="icon" onClick={handleToggleWatchlist} className="h-8 w-8">
-                        <Star className={cn("h-5 w-5", isSymbolInWatchlist ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
-                    </Button>
-                </div>
-                <div className="flex items-center gap-2 text-sm text-primary">
-                    <Clock className="h-4 w-4" />
-                    <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
-                </div>
-            </div>
+              <CardTitle>Stock Screener</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex flex-col sm:flex-row gap-2">
-                <div className="relative flex-grow">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value.toUpperCase())}
-                        placeholder="e.g., AAPL, TSLA"
-                        className="pl-10 h-10"
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                handleSearch();
-                            }
-                        }}
-                    />
-                </div>
-              <Button onClick={handleSearch}>
-                {loadingPrice && searchedSymbol === inputValue.toUpperCase() ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                Search
-              </Button>
-            </div>
-             {error && <p className="text-destructive text-sm">{error}</p>}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                    <div className="h-[400px] md:h-[500px] w-full mb-6">
-                        <TradingViewWidget symbol={widgetSymbol} onSymbolChange={handleWidgetSymbolChange}/>
-                    </div>
-                    <AiPredictionTrade initialSymbol={searchedSymbol} />
-                </div>
-                <div className="lg:col-span-1">
-                    <TradeForm 
-                        selectedSymbol={searchedSymbol}
-                        selectedPrice={price}
-                        loadingPrice={loadingPrice}
-                    />
-                </div>
-            </div>
+          <CardContent className="h-[600px]">
+                <TradingViewScreener />
           </CardContent>
-        </Card>
-
-        <Watchlist />
-
-        <InvestmentBundles
-            title="Explore Specialized Bundles"
-            description="Discover themed collections for more focused strategies."
-            bundles={specializedBundles}
-        />
-        
-        <Card>
-            <CardHeader>
-                <CardTitle>Stock Screener</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[600px]">
-                 <TradingViewScreener />
-            </CardContent>
-        </Card>
-
-      </main>
-      <BottomNav />
+      </Card>
     </div>
   );
 }

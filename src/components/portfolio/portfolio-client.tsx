@@ -1,8 +1,6 @@
 
 "use client";
 
-import Header from "@/components/layout/header";
-import BottomNav from "@/components/layout/bottom-nav";
 import HoldingsTable from "@/components/portfolio/holdings-table";
 import { Clock, PlusCircle } from "lucide-react";
 import Chatbot from "@/components/chatbot/chatbot";
@@ -63,32 +61,28 @@ export default function PortfolioClient() {
   }
 
   return (
-    <div className="w-full bg-background font-body">
-      <Header />
-      <main className="p-4 space-y-6 pb-40">
-        <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Portfolio</h1>
-            <Button onClick={handleAddFunds}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add $100 (Demo)
-            </Button>
-        </div>
-        <PortfolioValue />
-        <Watchlist />
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Holdings</h2>
-             <div className="flex items-center gap-2 text-sm text-primary">
-                <Clock className="h-4 w-4" />
-                <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
-            </div>
+    <div className="p-4 space-y-6">
+      <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Portfolio</h1>
+          <Button onClick={handleAddFunds}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add $100 (Demo)
+          </Button>
+      </div>
+      <PortfolioValue />
+      <Watchlist />
+      <div>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold">Holdings</h2>
+            <div className="flex items-center gap-2 text-sm text-primary">
+              <Clock className="h-4 w-4" />
+              <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
           </div>
-          <HoldingsTable />
         </div>
-         <AiPrediction />
-      </main>
+        <HoldingsTable />
+      </div>
+        <AiPrediction />
       <Chatbot />
-      <BottomNav />
     </div>
   );
 }
