@@ -7,6 +7,8 @@ import useUserData from "@/hooks/use-user-data";
 import Loading from "@/app/loading";
 import { usePortfolioStore } from "@/store/portfolio-store";
 import { useMarketStore } from "@/store/market-store";
+import Header from "@/components/layout/header";
+import BottomNav from "@/components/layout/bottom-nav";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -15,18 +17,25 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const { user, hydrating: authHydrating } = useAuth();
   const { loading: userDataLoading } = useUserData(user);
-  const { isLoading: portfolioLoading } = usePortfolioStore();
-  const { fetchMarketStatus, isLoading: marketStatusLoading } = useMarketStore();
+  
+  // No longer need portfolioLoading or marketStatusLoading here
   
   useEffect(() => {
-    if (user) {
-      fetchMarketStatus();
-    }
-  }, [user, fetchMarketStatus]);
+    // Market status can be fetched inside the dashboard/portfolio components
+    // if needed, or remain in useUserData hook.
+  }, [user]);
 
-  if (authHydrating || userDataLoading || portfolioLoading || marketStatusLoading) {
+  if (authHydrating || userDataLoading) {
     return <Loading />;
   }
 
-  return <div>{children}</div>;
+  return (
+    <div className="w-full bg-background font-body">
+      <Header />
+      <main className="pb-20">
+        {children}
+      </main>
+      <BottomNav />
+    </div>
+  );
 }

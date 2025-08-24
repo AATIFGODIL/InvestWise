@@ -10,7 +10,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { recommendedBundles, specializedBundles } from "@/data/bundles";
 import CongratulationsBanner from "@/components/dashboard/congratulations-banner";
 import Chatbot from "@/components/chatbot/chatbot";
-import AppLayout from "@/components/layout/app-layout";
 import AiPrediction from "@/components/ai/ai-prediction";
 import AutoInvest from "@/components/dashboard/auto-invest";
 import { useMarketStore } from "@/store/market-store";
@@ -79,16 +78,20 @@ const experiencedVideos = [
     }
 ]
 
-function DashboardClientContent() {
+export default function DashboardClient() {
   const [userProfile, setUserProfile] = useState<string | null>(null);
-  const { isMarketOpen } = useMarketStore();
+  const { isMarketOpen, fetchMarketStatus } = useMarketStore();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const profile = localStorage.getItem('userProfile');
       setUserProfile(profile);
     }
-  }, []);
+    if (user) {
+        fetchMarketStatus();
+    }
+  }, [user, fetchMarketStatus]);
 
   const getBundlesForProfile = (profile: string | null) => {
     switch(profile) {
@@ -137,38 +140,26 @@ function DashboardClientContent() {
   const showCongrats = userProfile === "Student" || userProfile === "Beginner" || userProfile === "Amateur";
 
   return (
-    <div className="w-full bg-background font-body">
-        <Header />
-        <main className="p-4 space-y-6 pb-40">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Explore</h1>
-            <div className="flex items-center gap-2 text-sm text-primary">
-                <Clock className="h-4 w-4" />
-                <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
-            </div>
-          </div>
-          <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
-          <PortfolioSummary />
-          <Watchlist />
-          <AutoInvest />
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <GoalProgress />
-            <CommunityLeaderboard />
-          </div>
-          <InvestmentBundles {...bundleProps} />
-          <CommunityTrends limit={5} />
-          <AiPrediction />
-        </main>
-        <Chatbot />
-        <BottomNav />
+    <div className="p-4 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Explore</h1>
+        <div className="flex items-center gap-2 text-sm text-primary">
+            <Clock className="h-4 w-4" />
+            <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+        </div>
+      </div>
+      <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
+      <PortfolioSummary />
+      <Watchlist />
+      <AutoInvest />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <GoalProgress />
+        <CommunityLeaderboard />
+      </div>
+      <InvestmentBundles {...bundleProps} />
+      <CommunityTrends limit={5} />
+      <AiPrediction />
+      <Chatbot />
     </div>
   );
-}
-
-export default function DashboardClient() {
-  return (
-    <AppLayout>
-      <DashboardClientContent />
-    </AppLayout>
-  )
 }
