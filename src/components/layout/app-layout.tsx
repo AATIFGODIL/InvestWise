@@ -4,7 +4,6 @@
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import useUserData from "@/hooks/use-user-data";
-import Loading from "@/app/loading";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
 import useLoadingStore from "@/store/loading-store";
@@ -34,7 +33,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
     // We can't show the app layout yet.
     return (
         <div className="flex items-center justify-center min-h-screen bg-background">
-            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+            {/* Using a simple div for the initial load to avoid extra imports */}
+            <div className="h-16 w-16 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
         </div>
     );
   }
