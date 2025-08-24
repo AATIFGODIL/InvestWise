@@ -19,12 +19,28 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Watchlist from "../dashboard/watchlist";
 import AppLayout from "../layout/app-layout";
+import EducationalVideo from "../shared/educational-video";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
 interface TradeData {
   p: number; // price
 }
+
+const videos = [
+    {
+        title: "Market vs. Limit Orders",
+        description: "Learn the crucial difference between order types to buy and sell at the price you want.",
+        image: "https://placehold.co/600x400.png",
+        hint: "stock chart"
+    },
+    {
+        title: "Reading Stock Charts for Beginners",
+        description: "An introduction to candlestick charts, volume, and identifying simple trends.",
+        image: "https://placehold.co/600x400.png",
+        hint: "financial analytics"
+    }
+]
 
 export default function TradeClient() {
   const searchParams = useSearchParams();
@@ -153,7 +169,7 @@ export default function TradeClient() {
 
   return (
     <AppLayout>
-        <div className="p-4 space-y-6">
+        <div className="p-4 space-y-6 pb-24">
         <h1 className="text-2xl font-bold">Trade</h1>
         
         <Card>
@@ -218,6 +234,15 @@ export default function TradeClient() {
             description="Discover themed collections for more focused strategies."
             bundles={specializedBundles}
         />
+
+        <div className="space-y-4 pt-4">
+            <h2 className="text-xl font-bold">Learn About Trading</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {videos.map((video) => (
+                    <EducationalVideo key={video.title} {...video} />
+                ))}
+            </div>
+        </div>
         
         <Card>
             <CardHeader>
