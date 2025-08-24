@@ -20,7 +20,7 @@ export default function BottomNav() {
   const pathname = usePathname();
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const navRef = useRef<HTMLDivElement>(null);
-  const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const activeIndex = navItems.findIndex((item) => pathname.startsWith(item.href));
@@ -39,24 +39,24 @@ export default function BottomNav() {
         {navItems.map((item, index) => {
           const isActive = pathname.startsWith(item.href);
           return (
-            <Link 
-              href={item.href} 
-              key={item.label} 
-              className="flex-1 z-10"
-              prefetch={true}
+            <div 
+              key={item.label}
               ref={el => itemRefs.current[index] = el}
+              className="flex-1 z-10"
             >
-              <Button
-                variant="ghost"
-                className={cn(
-                  "flex h-auto w-full flex-col items-center justify-center gap-1 p-2 transition-colors duration-300",
-                  isActive ? "text-primary" : "text-muted-foreground"
-                )}
-              >
-                <item.icon className="h-6 w-6" />
-                <span className="text-xs font-medium">{item.label}</span>
-              </Button>
-            </Link>
+              <Link href={item.href} className="w-full" prefetch={true}>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "flex h-auto w-full flex-col items-center justify-center gap-1 p-2 transition-colors duration-300",
+                    isActive ? "text-primary" : "text-muted-foreground"
+                  )}
+                >
+                  <item.icon className="h-6 w-6" />
+                  <span className="text-xs font-medium">{item.label}</span>
+                </Button>
+              </Link>
+            </div>
           );
         })}
          <div
