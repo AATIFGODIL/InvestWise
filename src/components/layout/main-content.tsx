@@ -3,33 +3,25 @@
 
 import { useAuth } from "@/hooks/use-auth";
 import useUserData from "@/hooks/use-user-data";
-import useLoadingStore from "@/store/loading-store";
-import PageSkeleton from "./page-skeleton";
-import { AuthProvider } from "@/hooks/use-auth";
+import { Loader2 } from "lucide-react";
 
 interface MainContentProps {
   children: React.ReactNode;
 }
 
-function Content({ children }: MainContentProps) {
+export default function MainContent({ children }: MainContentProps) {
   const { user, hydrating: authHydrating } = useAuth();
   const { loading: userDataLoading } = useUserData(user);
-  const { isLoading: isPageNavigating } = useLoadingStore();
 
-  const showSkeleton = authHydrating || userDataLoading || isPageNavigating;
+  const isLoading = authHydrating || userDataLoading;
 
-  if (showSkeleton) {
-    return <PageSkeleton />;
+  if (isLoading) {
+    return (
+       <div className="flex items-center justify-center h-full w-full bg-background">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+       </div>
+    );
   }
 
   return <>{children}</>;
-}
-
-
-export default function MainContent({ children }: MainContentProps) {
-    return (
-        <AuthProvider>
-            <Content>{children}</Content>
-        </AuthProvider>
-    )
 }

@@ -7,6 +7,8 @@ import BottomNav from "@/components/layout/bottom-nav";
 import MainContent from "@/components/layout/main-content";
 import "./globals.css";
 import Script from "next/script";
+import { AuthProvider } from "@/hooks/use-auth";
+
 
 // This import will initialize Firebase on the client side.
 // The config file itself ensures client-only features run only in the browser.
@@ -36,11 +38,17 @@ export default function RootLayout({
       </head>
       <body className={`${poppins.variable} font-body antialiased`}>
         <ThemeProvider>
-          <MainContent>
-            {children}
-          </MainContent>
-          <Toaster />
-          <BottomNav />
+          <AuthProvider>
+            <div className="flex flex-col h-screen">
+              <main className="flex-1 overflow-y-auto pb-16">
+                <MainContent>
+                  {children}
+                </MainContent>
+              </main>
+              <BottomNav />
+            </div>
+            <Toaster />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

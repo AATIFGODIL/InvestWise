@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import useLoadingStore from "@/store/loading-store";
 import { useEffect, useRef, useState } from "react";
 
 const navItems = [
@@ -19,7 +18,6 @@ const navItems = [
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { showLoading, hideLoading } = useLoadingStore();
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const navRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -33,15 +31,7 @@ export default function BottomNav() {
         transform: `translateX(${activeItem.offsetLeft}px)`,
       });
     }
-    // Hide loading when navigation is complete
-    hideLoading();
-  }, [pathname, hideLoading]);
-
-  const handleNavClick = (href: string) => {
-    if (!pathname.startsWith(href)) {
-      showLoading();
-    }
-  };
+  }, [pathname]);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-sm">
@@ -53,7 +43,6 @@ export default function BottomNav() {
               href={item.href} 
               key={item.label} 
               className="flex-1 z-10"
-              onClick={() => handleNavClick(item.href)}
               prefetch={true}
               ref={el => itemRefs.current[index] = el}
             >
