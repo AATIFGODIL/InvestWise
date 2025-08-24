@@ -46,6 +46,7 @@ export default function TradeClient() {
   const searchParams = useSearchParams();
   const initialSymbol = searchParams.get('symbol')?.toUpperCase() || "AAPL";
   const { toast } = useToast();
+  const [isClient, setIsClient] = useState(false);
 
   // State for the main TradingView widget symbol, managed independently
   const [widgetSymbol, setWidgetSymbol] = useState(initialSymbol);
@@ -62,6 +63,11 @@ export default function TradeClient() {
   const { watchlist, addSymbol, removeSymbol } = useWatchlistStore();
 
   const isSymbolInWatchlist = watchlist.includes(searchedSymbol);
+
+  useEffect(() => {
+    // This ensures the component is only rendered on the client side
+    setIsClient(true);
+  }, []);
 
   const handleToggleWatchlist = () => {
     if (isSymbolInWatchlist) {
@@ -169,7 +175,7 @@ export default function TradeClient() {
 
   return (
     <AppLayout>
-        <div className="p-4 space-y-6 pb-24">
+        <div className="p-4 space-y-6">
         <h1 className="text-2xl font-bold">Trade</h1>
         
         <Card>
@@ -212,7 +218,7 @@ export default function TradeClient() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                     <div className="h-[400px] md:h-[500px] w-full mb-6">
-                        <TradingViewWidget symbol={widgetSymbol} onSymbolChange={handleWidgetSymbolChange}/>
+                        {isClient && <TradingViewWidget symbol={widgetSymbol} onSymbolChange={handleWidgetSymbolChange}/>}
                     </div>
                     <AiPredictionTrade initialSymbol={searchedSymbol} />
                 </div>
