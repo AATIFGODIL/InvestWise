@@ -5,7 +5,6 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/hooks/use-auth";
 import ThemeProvider from "@/components/layout/theme-provider";
 import "./globals.css";
-import GlobalLoadingIndicator from "@/components/layout/global-loading-indicator";
 import Script from "next/script";
 
 // This import will initialize Firebase on the client side.
@@ -37,7 +36,6 @@ export default function RootLayout({
       <body className={`${poppins.variable} font-body antialiased`}>
         <AuthProvider>
             <ThemeProvider>
-              <GlobalLoadingIndicator />
               {children}
               <Toaster />
             </ThemeProvider>

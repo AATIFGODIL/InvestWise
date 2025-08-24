@@ -1,11 +1,8 @@
 
-import AppLayout from '@/components/layout/app-layout';
-import dynamic from 'next/dynamic';
-import PageSkeleton from '@/components/layout/page-skeleton';
+"use client";
 
-const PortfolioClient = dynamic(() => import('@/components/portfolio/portfolio-client'), {
-  loading: () => <PageSkeleton />,
-});
+import AppLayout from '@/components/layout/app-layout';
+import PortfolioClient from '@/components/portfolio/portfolio-client';
 
 export default function PortfolioPage() {
   return (

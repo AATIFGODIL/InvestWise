@@ -25,7 +25,7 @@ export default function BottomNav() {
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
   useEffect(() => {
-    const activeIndex = navItems.findIndex((item) => item.href === pathname);
+    const activeIndex = navItems.findIndex((item) => pathname.startsWith(item.href));
     if (activeIndex !== -1 && itemRefs.current[activeIndex]) {
       const activeItem = itemRefs.current[activeIndex]!;
       setIndicatorStyle({
@@ -45,7 +45,7 @@ export default function BottomNav() {
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-sm">
       <nav ref={navRef} className="relative flex h-16 items-center justify-around px-2">
         {navItems.map((item, index) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname.startsWith(item.href);
           return (
             <Link 
               href={item.href} 

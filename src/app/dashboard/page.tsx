@@ -1,11 +1,8 @@
 
-import AppLayout from '@/components/layout/app-layout';
-import dynamic from 'next/dynamic';
-import PageSkeleton from '@/components/layout/page-skeleton';
+"use client";
 
-const DashboardClient = dynamic(() => import('@/components/dashboard/dashboard-client'), {
-  loading: () => <PageSkeleton />,
-});
+import AppLayout from '@/components/layout/app-layout';
+import DashboardClient from '@/components/dashboard/dashboard-client';
 
 export default function DashboardPage() {
   return (

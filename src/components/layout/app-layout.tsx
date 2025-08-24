@@ -5,10 +5,11 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import useUserData from "@/hooks/use-user-data";
 import Loading from "@/app/loading";
-import { usePortfolioStore } from "@/store/portfolio-store";
-import { useMarketStore } from "@/store/market-store";
 import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
+import useLoadingStore from "@/store/loading-store";
+import PageSkeleton from "./page-skeleton";
+import { usePathname, useSearchParams } from "next/navigation";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -17,14 +18,17 @@ interface AppLayoutProps {
 export default function AppLayout({ children }: AppLayoutProps) {
   const { user, hydrating: authHydrating } = useAuth();
   const { loading: userDataLoading } = useUserData(user);
-  
-  // No longer need portfolioLoading or marketStatusLoading here
-  
-  useEffect(() => {
-    // Market status can be fetched inside the dashboard/portfolio components
-    // if needed, or remain in useUserData hook.
-  }, [user]);
+  const { isLoading, hideLoading } = useLoadingStore();
 
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    // This effect runs when the page component has mounted,
+    // so we can safely hide the loading indicator.
+    hideLoading();
+  }, [pathname, searchParams, hideLoading]);
+  
   if (authHydrating || userDataLoading) {
     return <Loading />;
   }
@@ -33,7 +37,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
     <div className="w-full bg-background font-body">
       <Header />
       <main className="pb-20">
-        {children}
+        {isLoading ? <PageSkeleton /> : children}
       </main>
       <BottomNav />
     </div>

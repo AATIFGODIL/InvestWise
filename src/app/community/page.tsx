@@ -1,12 +1,8 @@
 
+"use client";
+
 import AppLayout from '@/components/layout/app-layout';
-import dynamic from 'next/dynamic';
-import PageSkeleton from '@/components/layout/page-skeleton';
-
-const CommunityClient = dynamic(() => import('@/components/community/community-client'), {
-  loading: () => <PageSkeleton />,
-});
-
+import CommunityClient from '@/components/community/community-client';
 
 export default function CommunityPage() {
   return (

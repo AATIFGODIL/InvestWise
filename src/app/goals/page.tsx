@@ -1,11 +1,8 @@
 
-import AppLayout from '@/components/layout/app-layout';
-import dynamic from 'next/dynamic';
-import PageSkeleton from '@/components/layout/page-skeleton';
+"use client";
 
-const GoalsClient = dynamic(() => import('@/components/goals/goals-client'), {
-  loading: () => <PageSkeleton />,
-});
+import AppLayout from '@/components/layout/app-layout';
+import GoalsClient from '@/components/goals/goals-client';
 
 export default function GoalsPage() {
   return (
