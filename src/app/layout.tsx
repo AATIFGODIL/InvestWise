@@ -42,9 +42,7 @@ export default function RootLayout({
           <div className="flex flex-col h-screen">
             <AuthProvider>
               <MainContent>
-                <div className="flex-1 overflow-y-auto">
-                  {children}
-                </div>
+                {children}
               </MainContent>
             </AuthProvider>
             {showBottomNav && <BottomNav />}
