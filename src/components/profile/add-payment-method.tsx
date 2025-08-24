@@ -7,28 +7,29 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
 export default function AddPaymentMethod({ userId, onCardSaved }: { userId: string, onCardSaved: () => void }) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const dropinRef = useRef<any>(null);
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    // A flag to track if the component is still mounted
     let isMounted = true;
 
     async function setup() {
-      if (dropinRef.current) {
-        // If Drop-in is already initialized, do nothing.
-        setIsLoading(false);
+      // Ensure the container is mounted before proceeding
+      if (!containerRef.current) {
         return;
       }
+      
       try {
         const token = await getClientToken();
-        if (!isMounted) return; // Don't proceed if component unmounted
+        if (!isMounted) return;
 
+        // Dynamically import to ensure it runs only on the client
         const dropin = await (await import("braintree-web-drop-in")).create({
           authorization: token,
-          container: "#dropin-container",
+          container: containerRef.current,
         });
 
         if (isMounted) {
@@ -53,7 +54,6 @@ export default function AddPaymentMethod({ userId, onCardSaved }: { userId: stri
 
     return () => {
         isMounted = false;
-        // Clean up the Drop-in instance when the component unmounts
         if (dropinRef.current) {
             dropinRef.current.teardown().catch((err: any) => {
                 console.error("Error tearing down Braintree Drop-in:", err);
@@ -91,7 +91,7 @@ export default function AddPaymentMethod({ userId, onCardSaved }: { userId: stri
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       )}
-      <div id="dropin-container" className={isLoading ? 'hidden' : ''}></div>
+      <div ref={containerRef} id="dropin-container" className={isLoading ? 'hidden' : ''}></div>
       <Button onClick={handleSave} disabled={isLoading || isSaving} className="w-full mt-4">
         {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         Save Card
