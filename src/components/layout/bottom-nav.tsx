@@ -19,7 +19,7 @@ const navItems = [
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { showLoading } = useLoadingStore();
+  const { showLoading, hideLoading } = useLoadingStore();
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const navRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
@@ -33,7 +33,9 @@ export default function BottomNav() {
         transform: `translateX(${activeItem.offsetLeft}px)`,
       });
     }
-  }, [pathname]);
+    // Hide loading when navigation is complete
+    hideLoading();
+  }, [pathname, hideLoading]);
 
   const handleNavClick = (href: string) => {
     if (!pathname.startsWith(href)) {
