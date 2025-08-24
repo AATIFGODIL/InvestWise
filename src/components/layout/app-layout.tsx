@@ -9,9 +9,9 @@ interface AppLayoutProps {
 
 export default function AppLayout({ children }: AppLayoutProps) {
   return (
-    <div className="w-full bg-background font-body">
+    <>
       <Header />
       {children}
-    </div>
+    </>
   );
 }
