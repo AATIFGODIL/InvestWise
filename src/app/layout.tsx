@@ -1,5 +1,7 @@
 
-import type { Metadata } from "next";
+"use client";
+
+import { usePathname } from 'next/navigation';
 import { Poppins } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import ThemeProvider from "@/components/layout/theme-provider";
@@ -21,34 +23,31 @@ const poppins = Poppins({
   variable: "--font-body",
 });
 
-export const metadata: Metadata = {
-  title: "InvestWise",
-  description: "InvestWise - Your friendly guide to investing.",
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = usePathname();
+  const showBottomNav = !pathname.startsWith('/auth') && !pathname.startsWith('/onboarding') && pathname !== '/certificate';
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <title>InvestWise</title>
         <Script src="https://s3.tradingview.com/tv.js" strategy="beforeInteractive" />
       </head>
       <body className={`${poppins.variable} font-body antialiased`}>
         <ThemeProvider>
-          <AuthProvider>
-            <div className="flex flex-col h-screen">
-              <main className="flex-1 overflow-y-auto pb-16">
-                <MainContent>
-                  {children}
-                </MainContent>
-              </main>
-              <BottomNav />
-            </div>
-            <Toaster />
-          </AuthProvider>
+          <div className="flex flex-col h-screen">
+            <AuthProvider>
+              <MainContent>
+                {children}
+              </MainContent>
+            </AuthProvider>
+            {showBottomNav && <BottomNav />}
+          </div>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

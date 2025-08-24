@@ -34,7 +34,8 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
-  
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -46,6 +47,19 @@ export default function SignInPage() {
       setError(err.message);
     } finally {
       setIsEmailLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setIsGoogleLoading(true);
+    try {
+      await signInWithGoogle();
+      // Redirect is handled by the hook
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -72,8 +86,17 @@ export default function SignInPage() {
               </Alert>
             )}
             <div className="grid gap-2">
-              <Button variant="outline" onClick={signInWithGoogle} className="w-full">
-                  <GoogleIcon /> Google
+              <Button variant="outline" onClick={handleGoogleSignIn} className="w-full" disabled={isEmailLoading || isGoogleLoading}>
+                  {isGoogleLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Signing in...
+                    </>
+                  ) : (
+                    <>
+                      <GoogleIcon /> Google
+                    </>
+                  )}
               </Button>
             </div>
             <div className="relative">
@@ -94,7 +117,7 @@ export default function SignInPage() {
                   required 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={isEmailLoading}
+                  disabled={isEmailLoading || isGoogleLoading}
                 />
               </div>
               <div className="grid gap-2">
@@ -107,7 +130,7 @@ export default function SignInPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pr-10"
-                    disabled={isEmailLoading}
+                    disabled={isEmailLoading || isGoogleLoading}
                   />
                   <Button 
                     type="button" 
@@ -115,13 +138,13 @@ export default function SignInPage() {
                     size="icon" 
                     className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
                     onClick={() => setShowPassword(prev => !prev)}
-                    disabled={isEmailLoading}
+                    disabled={isEmailLoading || isGoogleLoading}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={isEmailLoading}>
+              <Button type="submit" className="w-full" disabled={isEmailLoading || isGoogleLoading}>
                 {isEmailLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
