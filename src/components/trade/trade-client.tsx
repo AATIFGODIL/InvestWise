@@ -152,7 +152,7 @@ export default function TradeClient() {
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input
                         value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
+                        onChange={(e) => setInputValue(e.target.value.toUpperCase())}
                         placeholder="e.g., AAPL, TSLA"
                         className="pl-10 h-10"
                         onKeyDown={(e) => {
