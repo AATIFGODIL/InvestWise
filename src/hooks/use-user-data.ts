@@ -46,16 +46,6 @@ export default function useUserData(user: User | null) {
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
-
-          // Get the update functions from each store
-          const { setUsername, setPhotoURL } = useUserStore.getState();
-          const { loadInitialData } = usePortfolioStore.getState();
-          const { loadGoals } = useGoalStore.getState();
-          const { loadAutoInvestments } = useAutoInvestStore.getState();
-          const { setTheme } = useThemeStore.getState();
-          const { loadPrivacySettings } = usePrivacyStore.getState();
-          const { loadTransactions } = useTransactionStore.getState();
-          const { loadWatchlist } = useWatchlistStore.getState();
           
           const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
           
@@ -63,15 +53,16 @@ export default function useUserData(user: User | null) {
           const transactions = userData.transactions || [];
 
           // Hydrate all stores with the fetched data
-          setTheme(userData.theme || "light");
-          setUsername(userData.username || "Investor");
-          setPhotoURL(userData.photoURL || "");
-          loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
-          loadGoals(userData.goals || []);
-          loadAutoInvestments(userData.autoInvestments || []);
-          loadTransactions(transactions);
-          loadWatchlist(userData.watchlist || []);
-          loadPrivacySettings({
+          // Directly calling the store's methods is the robust way to handle this.
+          useThemeStore.getState().setTheme(userData.theme || "light");
+          useUserStore.getState().setUsername(userData.username || "Investor");
+          useUserStore.getState().setPhotoURL(userData.photoURL || "");
+          usePortfolioStore.getState().loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
+          useGoalStore.getState().loadGoals(userData.goals || []);
+          useAutoInvestStore.getState().loadAutoInvestments(userData.autoInvestments || []);
+          useTransactionStore.getState().loadTransactions(transactions);
+          useWatchlistStore.getState().loadWatchlist(userData.watchlist || []);
+          usePrivacyStore.getState().loadPrivacySettings({
               leaderboardVisibility: userData.leaderboardVisibility || "public",
               showQuests: userData.showQuests === undefined ? true : userData.showQuests,
           });
