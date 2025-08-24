@@ -33,14 +33,14 @@ const educationalContent = [
     {
         title: "Week 6 Infographic",
         description: "A visual summary of key concepts from Week 6.",
-        filePath: "/src/app/Week 6 Infographic.png",
-        type: "image"
+        filePath: "/Week 6 Infographic.png",
+        type: "image" as const
     },
     {
         title: "Elijah Dailey Week 6 Deliverable",
         description: "The Week 6 deliverable document by Elijah Dailey.",
-        filePath: "/src/app/Elijah Dailey Week 6 Deliverable.pdf",
-        type: "pdf"
+        filePath: "/Elijah Dailey Week 6 Deliverable.pdf",
+        type: "pdf" as const
     }
 ]
 
@@ -79,12 +79,6 @@ export default function DashboardClient() {
                 description: "Collections of assets to help you diversify your portfolio.",
                 bundles: [...recommendedBundles, ...specializedBundles],
             };
-    }
-  }
-  
-  const getVideosForProfile = (profile: string | null) => {
-    switch(profile) {
-        default: return educationalContent;
     }
   }
 
