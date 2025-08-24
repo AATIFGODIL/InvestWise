@@ -1,19 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Allow requests from Firebase Studio development environments
-  allowedDevOrigins: [
-    "https://*.cluster-nzwlpk54dvagsxetkvxzbvslyi.cloudworkstations.dev",
-  ],
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'placehold.co',
-      }
+  experimental: {
+    allowedDevOrigins: [
+      "https://6000-firebase-studio-1751627876811.cluster-nzwlpk54dvagsxetkvxzbvslyi.cloudworkstations.dev",
     ],
   },
 };
