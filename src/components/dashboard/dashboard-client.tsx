@@ -11,6 +11,7 @@ import AutoInvest from "@/components/dashboard/auto-invest";
 import { useMarketStore } from "@/store/market-store";
 import { Clock } from "lucide-react";
 import Watchlist from "@/components/dashboard/watchlist";
+import EducationalContentDisplay from "@/components/dashboard/EducationalContentDisplay";
 
 const PortfolioSummary = dynamic(() => import("@/components/dashboard/portfolio-summary"), { 
     ssr: false,
@@ -28,49 +29,18 @@ const InvestmentBundles = dynamic(() => import("@/components/dashboard/investmen
     ssr: false,
 });
 
-
-const beginnerVideos = [
+const educationalContent = [
     {
-        title: "What is Risk?",
-        description: "A simple explanation of investment risk and why it matters for your financial journey.",
-        image: "https://placehold.co/600x400.png",
-        hint: "question mark"
+        title: "Week 6 Infographic",
+        description: "A visual summary of key concepts from Week 6.",
+        filePath: "/src/app/Week 6 Infographic.png",
+        type: "image"
     },
     {
-        title: "Diversification 101",
-        description: "Learn how spreading your investments can help manage risk and improve stability.",
-        image: "https://placehold.co/600x400.png",
-        hint: "spreading chart"
-    }
-];
-
-const studentVideos = [
-    {
-        title: "Saving vs. Investing",
-        description: "Understand the key differences and why both are important for your financial future.",
-        image: "https://placehold.co/600x400.png",
-        hint: "piggy bank"
-    },
-    {
-        title: "Starting with Small Investments",
-        description: "You don't need a lot of money to start. Learn how to begin your journey with just a little.",
-        image: "https://placehold.co/600x400.png",
-        hint: "small plant"
-    }
-];
-
-const experiencedVideos = [
-     {
-        title: "Advanced Risk Metrics",
-        description: "An introduction to concepts like Sharpe Ratio and Beta for analyzing portfolio risk.",
-        image: "https://placehold.co/600x400.png",
-        hint: "data analytics"
-    },
-    {
-        title: "Hedging Strategies",
-        description: "Explore basic options and strategies that can be used to protect your portfolio from downturns.",
-        image: "https://placehold.co/600x400.png",
-        hint: "financial strategy"
+        title: "Elijah Dailey Week 6 Deliverable",
+        description: "The Week 6 deliverable document by Elijah Dailey.",
+        filePath: "/src/app/Elijah Dailey Week 6 Deliverable.pdf",
+        type: "pdf"
     }
 ]
 
@@ -114,16 +84,7 @@ export default function DashboardClient() {
   
   const getVideosForProfile = (profile: string | null) => {
     switch(profile) {
-        case "Student":
-            return studentVideos;
-        case "Beginner":
-             return beginnerVideos;
-        case "Experienced Investor":
-        case "Amateur":
-        case "New Investor":
-            return experiencedVideos;
-        default:
-            return beginnerVideos;
+        default: return educationalContent;
     }
   }
 
@@ -140,6 +101,7 @@ export default function DashboardClient() {
             <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
         </div>
     </div>
+    <EducationalContentDisplay content={educationalContent} />
     <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
     <PortfolioSummary />
     <Watchlist />

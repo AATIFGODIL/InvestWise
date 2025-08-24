@@ -1,7 +1,7 @@
 
 "use client";
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Poppins } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import ThemeProvider from "@/components/layout/theme-provider";
@@ -9,7 +9,7 @@ import BottomNav from "@/components/layout/bottom-nav";
 import MainContent from "@/components/layout/main-content";
 import "./globals.css";
 import Script from "next/script";
-import { AuthProvider } from "@/hooks/use-auth";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 
 
 // This import will initialize Firebase on the client side.
@@ -29,7 +29,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const showBottomNav = !pathname.startsWith('/auth') && !pathname.startsWith('/onboarding') && pathname !== '/certificate';
+  const router = useRouter();
+  const { user, loading } = useAuth();
+
+  // Redirect logic based on authentication status and path
+  if (!loading && !user && !pathname.startsWith('/auth') && !pathname.startsWith('/onboarding')) {
+      router.push('/auth/signin');
+  } else if (!loading && user && (pathname === '/auth/signin' || pathname === '/auth/signup')) {
+      router.push('/dashboard');
+  }
+
+
+  const showBottomNav = !pathname.startsWith('/auth') && !pathname.startsWith('/onboarding');
+
 
   return (
     <html lang="en" suppressHydrationWarning>
