@@ -1,12 +1,21 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    // Other experimental features can go here
-  },
-  // allowedDevOrigins should be at the top level, not inside experimental
-  allowedDevOrigins: [
-    "https://*.cloudworkstations.dev",
-  ],
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'images.unsplash.com',
+            },
+            {
+                protocol: 'https',
+                hostname: 'placehold.co',
+            }
+        ],
+    },
+    experimental: {
+        allowedDevOrigins: ["https://*.cluster-nzwlpk54dvagsxetkvxzbvslyi.cloudworkstations.dev"],
+    },
 };
 
 export default nextConfig;

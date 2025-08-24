@@ -25,17 +25,6 @@ import { useWatchlistStore } from '@/store/watchlist-store';
 export default function useUserData(user: User | null) {
   const [loading, setLoading] = useState(true);
 
-  // Get the update functions from each store.
-  const { fetchMarketHolidays, loadInitialData } = usePortfolioStore();
-  const { checkForDueTrades, loadAutoInvestments } = useAutoInvestStore();
-  const { setUsername, setPhotoURL } = useUserStore();
-  const { setTheme } = useThemeStore();
-  const { loadGoals } = useGoalStore();
-  const { loadTransactions } = useTransactionStore();
-  const { loadWatchlist } = useWatchlistStore();
-  const { loadPrivacySettings } = usePrivacyStore();
-
-
   useEffect(() => {
     // If there's no user, there's no data to load.
     if (!user) {
@@ -47,7 +36,7 @@ export default function useUserData(user: User | null) {
       setLoading(true);
       try {
         // Fetch market holidays once and for all. This will be stored in the portfolio store.
-        await fetchMarketHolidays();
+        await usePortfolioStore.getState().fetchMarketHolidays();
         
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
@@ -61,21 +50,21 @@ export default function useUserData(user: User | null) {
           const transactions = userData.transactions || [];
 
           // Hydrate all stores with the fetched data
-          setTheme(userData.theme || "light");
-          setUsername(userData.username || "Investor");
-          setPhotoURL(userData.photoURL || "");
-          loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
-          loadGoals(userData.goals || []);
-          loadAutoInvestments(userData.autoInvestments || []);
-          loadTransactions(transactions);
-          loadWatchlist(userData.watchlist || []);
-          loadPrivacySettings({
+          useThemeStore.getState().setTheme(userData.theme || "light");
+          useUserStore.getState().setUsername(userData.username || "Investor");
+          useUserStore.getState().setPhotoURL(userData.photoURL || "");
+          usePortfolioStore.getState().loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
+          useGoalStore.getState().loadGoals(userData.goals || []);
+          useAutoInvestStore.getState().loadAutoInvestments(userData.autoInvestments || []);
+          useTransactionStore.getState().loadTransactions(transactions);
+          useWatchlistStore.getState().loadWatchlist(userData.watchlist || []);
+          usePrivacyStore.getState().loadPrivacySettings({
               leaderboardVisibility: userData.leaderboardVisibility || "public",
               showQuests: userData.showQuests === undefined ? true : userData.showQuests,
           });
 
           // After hydrating, check for due auto-trades
-          checkForDueTrades();
+          useAutoInvestStore.getState().checkForDueTrades();
 
         } else {
             console.log("User document not found for hydration, likely a new user.");
@@ -88,20 +77,7 @@ export default function useUserData(user: User | null) {
     };
 
     fetchAndHydrate();
-  }, [
-    user, 
-    fetchMarketHolidays, 
-    loadInitialData, 
-    checkForDueTrades, 
-    loadAutoInvestments, 
-    setUsername, 
-    setPhotoURL, 
-    setTheme, 
-    loadGoals, 
-    loadTransactions, 
-    loadWatchlist, 
-    loadPrivacySettings
-  ]); // This effect runs whenever the user or store actions change.
+  }, [user]); 
 
   return { loading };
 }
