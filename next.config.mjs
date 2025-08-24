@@ -1,10 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    allowedDevOrigins: [
-      "https://6000-firebase-studio-1751627876811.cluster-nzwlpk54dvagsxetkvxzbvslyi.cloudworkstations.dev",
-    ],
+    // Other experimental features can go here
   },
+  // allowedDevOrigins should be at the top level, not inside experimental
+  allowedDevOrigins: [
+    "https://*.cloudworkstations.dev",
+  ],
 };
 
 export default nextConfig;
