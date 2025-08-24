@@ -7,7 +7,7 @@ import Header from "@/components/layout/header";
 import BottomNav from "@/components/layout/bottom-nav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2, Clock } from "lucide-react";
+import { Search, Loader2, Clock, Star } from "lucide-react";
 import TradingViewWidget from "@/components/shared/trading-view-widget";
 import TradeForm from "@/components/trade/trade-form";
 import TradingViewScreener from "@/components/shared/trading-view-screener";
@@ -16,6 +16,9 @@ import InvestmentBundles from "../dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
 import { Input } from "@/components/ui/input";
 import { useMarketStore } from "@/store/market-store";
+import { useWatchlistStore } from "@/store/watchlist-store";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -26,6 +29,7 @@ interface TradeData {
 export default function TradeClient() {
   const searchParams = useSearchParams();
   const initialSymbol = searchParams.get('symbol')?.toUpperCase() || "AAPL";
+  const { toast } = useToast();
 
   // State for the main TradingView widget symbol, managed independently
   const [widgetSymbol, setWidgetSymbol] = useState(initialSymbol);
@@ -39,6 +43,23 @@ export default function TradeClient() {
   const [error, setError] = useState<string | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const { isMarketOpen } = useMarketStore();
+  const { watchlist, addSymbol, removeSymbol } = useWatchlistStore();
+
+  const isSymbolInWatchlist = watchlist.includes(searchedSymbol);
+
+  const handleToggleWatchlist = () => {
+    if (isSymbolInWatchlist) {
+      removeSymbol(searchedSymbol);
+      toast({
+        description: `${searchedSymbol} removed from your watchlist.`,
+      });
+    } else {
+      addSymbol(searchedSymbol);
+      toast({
+        description: `${searchedSymbol} added to your watchlist.`,
+      });
+    }
+  };
 
   // This callback is ONLY for the TradingView widget to update its own state
   const handleWidgetSymbolChange = useCallback((newSymbol: string) => {
@@ -139,7 +160,12 @@ export default function TradeClient() {
         <Card>
           <CardHeader>
             <div className="flex justify-between items-center">
-                <CardTitle>Stock Chart & Trading</CardTitle>
+                <div className="flex items-center gap-2">
+                    <CardTitle>Stock Chart & Trading</CardTitle>
+                    <Button variant="ghost" size="icon" onClick={handleToggleWatchlist} className="h-8 w-8">
+                        <Star className={cn("h-5 w-5", isSymbolInWatchlist ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
+                    </Button>
+                </div>
                 <div className="flex items-center gap-2 text-sm text-primary">
                     <Clock className="h-4 w-4" />
                     <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>

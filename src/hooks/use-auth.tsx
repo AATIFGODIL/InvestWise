@@ -33,6 +33,8 @@ import { useThemeStore } from "@/store/theme-store";
 import { usePrivacyStore, type PrivacyState } from "@/store/privacy-store";
 import useLoadingStore from "@/store/loading-store";
 import { useToast } from "./use-toast";
+import { useWatchlistStore } from "@/store/watchlist-store";
+import { useTransactionStore } from "@/store/transaction-store";
 
 interface AuthContextType {
   user: User | null;
@@ -83,6 +85,8 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
     notifications: [],
     goals: [],
     autoInvestments: [],
+    watchlist: [],
+    transactions: [],
   };
 
   await setDoc(userDocRef, newUserDoc);
@@ -110,6 +114,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useAutoInvestStore.getState().resetAutoInvest();
     useThemeStore.getState().setTheme("light"); // Explicitly reset theme
     usePrivacyStore.getState().resetPrivacySettings();
+    useWatchlistStore.getState().resetWatchlist();
+    useTransactionStore.getState().resetTransactions();
   }, []);
 
 

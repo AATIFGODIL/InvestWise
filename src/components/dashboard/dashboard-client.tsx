@@ -15,6 +15,7 @@ import AiPrediction from "@/components/ai/ai-prediction";
 import AutoInvest from "@/components/dashboard/auto-invest";
 import { useMarketStore } from "@/store/market-store";
 import { Clock } from "lucide-react";
+import Watchlist from "@/components/dashboard/watchlist";
 
 const PortfolioSummary = dynamic(() => import("@/components/dashboard/portfolio-summary"), { 
     ssr: false,
@@ -148,6 +149,7 @@ function DashboardClientContent() {
           </div>
           <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
           <PortfolioSummary />
+          <Watchlist />
           <AutoInvest />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <GoalProgress />
