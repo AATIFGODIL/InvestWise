@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { createTransaction } from "@/app/actions";
 import { useAuth } from "@/hooks/use-auth";
 import { useMarketStore } from "@/store/market-store";
+import Watchlist from "../dashboard/watchlist";
 
 export default function PortfolioClient() {
   const { toast } = useToast();
@@ -73,6 +74,7 @@ export default function PortfolioClient() {
             </Button>
         </div>
         <PortfolioValue />
+        <Watchlist />
         <div>
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">Holdings</h2>

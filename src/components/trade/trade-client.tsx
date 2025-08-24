@@ -19,6 +19,7 @@ import { useMarketStore } from "@/store/market-store";
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import Watchlist from "../dashboard/watchlist";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -211,6 +212,8 @@ export default function TradeClient() {
             </div>
           </CardContent>
         </Card>
+
+        <Watchlist />
 
         <InvestmentBundles
             title="Explore Specialized Bundles"
