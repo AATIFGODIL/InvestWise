@@ -6,7 +6,6 @@ import GoalList from "@/components/goals/goal-list";
 import EducationalVideo from "@/components/shared/educational-video";
 import Chatbot from "@/components/chatbot/chatbot";
 import { useGoalStore } from "@/store/goal-store";
-import AppLayout from "../layout/app-layout";
 
 const videos = [
     {
@@ -27,22 +26,20 @@ export default function GoalsClient() {
   const { goals, addGoal } = useGoalStore();
 
   return (
-    <AppLayout>
-      <div className="p-4 space-y-6">
-        <h1 className="text-2xl font-bold">Goals</h1>
-        <CreateGoal onAddGoal={addGoal} />
-        <GoalList goals={goals} />
+    <div className="p-4 space-y-6">
+      <h1 className="text-2xl font-bold">Goals</h1>
+      <CreateGoal onAddGoal={addGoal} />
+      <GoalList goals={goals} />
 
-        <div className="space-y-4 pt-4">
-            <h2 className="text-xl font-bold">Learn About Goals</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {videos.map((video) => (
-                    <EducationalVideo key={video.title} {...video} />
-                ))}
-            </div>
-        </div>
-        <Chatbot />
+      <div className="space-y-4 pt-4">
+          <h2 className="text-xl font-bold">Learn About Goals</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {videos.map((video) => (
+                  <EducationalVideo key={video.title} {...video} />
+              ))}
+          </div>
       </div>
-    </AppLayout>
+      <Chatbot />
+    </div>
   );
 }

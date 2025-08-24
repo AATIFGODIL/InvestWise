@@ -11,7 +11,6 @@ import AutoInvest from "@/components/dashboard/auto-invest";
 import { useMarketStore } from "@/store/market-store";
 import { Clock } from "lucide-react";
 import Watchlist from "@/components/dashboard/watchlist";
-import AppLayout from "../layout/app-layout";
 
 const PortfolioSummary = dynamic(() => import("@/components/dashboard/portfolio-summary"), { 
     ssr: false,
@@ -133,28 +132,26 @@ export default function DashboardClient() {
   const showCongrats = userProfile === "Student" || userProfile === "Beginner" || userProfile === "Amateur";
 
   return (
-    <AppLayout>
-        <div className="p-4 space-y-6">
-        <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Explore</h1>
-            <div className="flex items-center gap-2 text-sm text-primary">
-                <Clock className="h-4 w-4" />
-                <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
-            </div>
+    <div className="p-4 space-y-6">
+    <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Explore</h1>
+        <div className="flex items-center gap-2 text-sm text-primary">
+            <Clock className="h-4 w-4" />
+            <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
         </div>
-        <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
-        <PortfolioSummary />
-        <Watchlist />
-        <AutoInvest />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <GoalProgress />
-            <CommunityLeaderboard />
-        </div>
-        <InvestmentBundles {...bundleProps} />
-        <CommunityTrends limit={5} />
-        <AiPrediction />
-        <Chatbot />
-        </div>
-    </AppLayout>
+    </div>
+    <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
+    <PortfolioSummary />
+    <Watchlist />
+    <AutoInvest />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <GoalProgress />
+        <CommunityLeaderboard />
+    </div>
+    <InvestmentBundles {...bundleProps} />
+    <CommunityTrends limit={5} />
+    <AiPrediction />
+    <Chatbot />
+    </div>
   );
 }

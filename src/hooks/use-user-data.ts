@@ -26,7 +26,6 @@ export default function useUserData(user: User | null) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // If there's no user, there's no data to load.
     if (!user) {
       setLoading(false);
       return;
@@ -35,7 +34,6 @@ export default function useUserData(user: User | null) {
     const fetchAndHydrate = async () => {
       setLoading(true);
       try {
-        // Fetch market holidays once and for all. This will be stored in the portfolio store.
         await usePortfolioStore.getState().fetchMarketHolidays();
         
         const userDocRef = doc(db, "users", user.uid);
@@ -43,13 +41,10 @@ export default function useUserData(user: User | null) {
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          
           const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
-          
-          // Timestamps are stored as ISO strings, so no conversion is needed.
           const transactions = userData.transactions || [];
 
-          // Hydrate all stores with the fetched data
+          // Hydrate all stores safely using getState() inside the async function
           useThemeStore.getState().setTheme(userData.theme || "light");
           useUserStore.getState().setUsername(userData.username || "Investor");
           useUserStore.getState().setPhotoURL(userData.photoURL || "");
@@ -63,9 +58,7 @@ export default function useUserData(user: User | null) {
               showQuests: userData.showQuests === undefined ? true : userData.showQuests,
           });
 
-          // After hydrating, check for due auto-trades
           useAutoInvestStore.getState().checkForDueTrades();
-
         } else {
             console.log("User document not found for hydration, likely a new user.");
         }

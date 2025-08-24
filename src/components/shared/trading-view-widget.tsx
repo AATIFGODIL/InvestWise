@@ -43,27 +43,33 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
               "enable_publishing": false,
               "allow_symbol_change": true,
               "container_id": containerId,
-              "onChartReady": (widget: any) => {
-                  widget.chart().onSymbolChanged().subscribe(null, (newSymbol: { name: string }) => {
-                      const cleanSymbol = newSymbol.name.split(':').pop();
-                      if (cleanSymbol) {
-                          onSymbolChange(cleanSymbol);
-                      }
-                  });
-              }
           };
           
           const widget = new window.TradingView.widget(widgetOptions);
-          widgetRef.current = widget;
-          isWidgetReady.current = true;
+          widget.onChartReady(() => {
+            widget.chart().onSymbolChanged().subscribe(null, (newSymbol: { name: string }) => {
+                const cleanSymbol = newSymbol.name.split(':').pop();
+                if (cleanSymbol) {
+                    onSymbolChange(cleanSymbol);
+                }
+            });
+            widgetRef.current = widget;
+            isWidgetReady.current = true;
+          });
       }
     };
     
-    createWidget();
+    // Delay widget creation slightly to ensure DOM is fully ready
+    const timeoutId = setTimeout(createWidget, 0);
 
     return () => {
+        clearTimeout(timeoutId);
         if (widgetRef.current && typeof widgetRef.current.remove === 'function') {
-            widgetRef.current.remove();
+            try {
+              widgetRef.current.remove();
+            } catch (e) {
+              console.error("Error removing TradingView widget", e);
+            }
             widgetRef.current = null;
             isWidgetReady.current = false;
         }
