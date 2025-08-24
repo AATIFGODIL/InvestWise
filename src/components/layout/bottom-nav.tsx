@@ -36,7 +36,7 @@ export default function BottomNav() {
   }, [pathname]);
 
   const handleNavClick = (href: string) => {
-    if (pathname !== href) {
+    if (!pathname.startsWith(href)) {
       showLoading();
     }
   };
