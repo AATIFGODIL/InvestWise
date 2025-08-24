@@ -10,12 +10,7 @@ import MainContent from "@/components/layout/main-content";
 import "./globals.css";
 import Script from "next/script";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
-
-
-// This import will initialize Firebase on the client side.
-// The config file itself ensures client-only features run only in the browser.
 import '../lib/firebase/config';
-
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -23,11 +18,8 @@ const poppins = Poppins({
   variable: "--font-body",
 });
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+// Inner component to safely use the useAuth hook
+function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -39,10 +31,23 @@ export default function RootLayout({
       router.push('/dashboard');
   }
 
-
   const showBottomNav = !pathname.startsWith('/auth') && !pathname.startsWith('/onboarding');
 
+  return (
+    <div className="flex flex-col h-screen">
+      <MainContent>
+        {children}
+      </MainContent>
+      {showBottomNav && <BottomNav />}
+    </div>
+  );
+}
 
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -51,14 +56,9 @@ export default function RootLayout({
       </head>
       <body className={`${poppins.variable} font-body antialiased`}>
         <ThemeProvider>
-          <div className="flex flex-col h-screen">
-            <AuthProvider>
-              <MainContent>
-                {children}
-              </MainContent>
-            </AuthProvider>
-            {showBottomNav && <BottomNav />}
-          </div>
+          <AuthProvider>
+            <LayoutContent>{children}</LayoutContent>
+          </AuthProvider>
           <Toaster />
         </ThemeProvider>
       </body>
