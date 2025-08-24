@@ -43,7 +43,9 @@ export default function RootLayout({
             <AuthProvider>
               <MainContent>
                 <div className="flex-1 overflow-y-auto">
+                  <div className="pb-16">
                     {children}
+                  </div>
                 </div>
               </MainContent>
             </AuthProvider>
