@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { type Goal } from "@/data/goals";
+import { type Goal } from "@/store/goal-store";
 
 interface CreateGoalProps {
   onAddGoal: (newGoal: Omit<Goal, 'id' | 'icon' | 'progress' | 'current'>) => void;
