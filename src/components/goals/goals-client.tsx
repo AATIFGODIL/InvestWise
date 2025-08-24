@@ -26,7 +26,7 @@ export default function GoalsClient() {
   const { goals, addGoal } = useGoalStore();
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4 space-y-6 pb-24">
       <h1 className="text-2xl font-bold">Goals</h1>
       <CreateGoal onAddGoal={addGoal} />
       <GoalList goals={goals} />
