@@ -2,6 +2,7 @@
 "use client";
 
 import { usePathname, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { Poppins } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import ThemeProvider from "@/components/layout/theme-provider";
@@ -23,22 +24,23 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useAuth();
+  
+  const isAuthOrOnboardingRoute = pathname.startsWith('/auth') || pathname.startsWith('/onboarding');
 
-  // Redirect logic based on authentication status and path
-  if (!loading && !user && !pathname.startsWith('/auth') && !pathname.startsWith('/onboarding')) {
-      router.push('/auth/signin');
-  } else if (!loading && user && (pathname === '/auth/signin' || pathname === '/auth/signup')) {
-      router.push('/dashboard');
-  }
+  useEffect(() => {
+    // If we're done loading, there's no user, and we are on a protected route, redirect to signin.
+    if (!loading && !user && !isAuthOrOnboardingRoute) {
+        router.push('/auth/signin');
+    }
+  }, [user, loading, isAuthOrOnboardingRoute, router]);
 
-  const showBottomNav = !pathname.startsWith('/auth') && !pathname.startsWith('/onboarding');
 
   return (
     <div className="flex flex-col h-screen">
       <MainContent>
         {children}
       </MainContent>
-      {showBottomNav && <BottomNav />}
+      {!isAuthOrOnboardingRoute && <BottomNav />}
     </div>
   );
 }
