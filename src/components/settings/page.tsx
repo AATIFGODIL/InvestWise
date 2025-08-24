@@ -13,34 +13,25 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Shield, Sun, Moon, Eye, LogOut, ChevronLeft, ShieldBan, FileUp, CreditCard } from "lucide-react";
+import { Shield, Sun, Moon, Eye, LogOut, ShieldBan, FileUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useThemeStore } from "@/store/theme-store";
 import { useAuth } from "@/hooks/use-auth";
 import { usePrivacyStore, type LeaderboardVisibility } from "@/store/privacy-store";
-import AppLayout from "@/components/layout/app-layout";
 import PaymentMethods from "@/components/profile/payment-methods";
-import { useRouter } from "next/navigation";
-import useLoadingStore from "@/store/loading-store";
+import AppLayout from "../layout/app-layout";
 
-function SettingsClient() {
+export default function SettingsClient() {
   const [parentalControl, setParentalControl] = useState(false);
   const { theme, setTheme } = useThemeStore();
   const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
   const { user, updateUserTheme, signOut: firebaseSignOut, updatePrivacySettings } = useAuth();
   const [isClient, setIsClient] = useState(false);
-  const router = useRouter();
-  const { showLoading } = useLoadingStore();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  const handleBackClick = () => {
-    showLoading();
-    router.back();
-  };
   
   const handleThemeChange = (newTheme: "light" | "dark") => {
     setTheme(newTheme);
@@ -58,23 +49,7 @@ function SettingsClient() {
   }
 
   return (
-    <div className="bg-muted/40 min-h-screen">
-      <header className="bg-background border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between h-16">
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={handleBackClick}>
-                        <ChevronLeft className="h-5 w-5" />
-                    </Button>
-                    <h1 className="text-xl font-bold">Settings</h1>
-                </div>
-                <Button variant="ghost" size="icon" onClick={firebaseSignOut}>
-                    <LogOut className="h-5 w-5" />
-                </Button>
-            </div>
-        </div>
-      </header>
-      
+    <AppLayout>
       <main className="container mx-auto p-4 space-y-8">
         
         {/* Payment Methods Section */}
@@ -190,15 +165,6 @@ function SettingsClient() {
           </CardContent>
         </Card>
       </main>
-    </div>
+    </AppLayout>
   );
-}
-
-
-export default function SettingsPage() {
-    return (
-        <AppLayout>
-            <SettingsClient />
-        </AppLayout>
-    )
 }

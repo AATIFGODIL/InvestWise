@@ -17,9 +17,10 @@ import { useRouter } from "next/navigation";
 import useLoadingStore from "@/store/loading-store";
 import { useUserStore } from "@/store/user-store";
 import { useToast } from "@/hooks/use-toast";
+import AppLayout from "../layout/app-layout";
 
 export default function ProfileClient() {
-  const { user, hydrating } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   const router = useRouter();
@@ -73,29 +74,9 @@ export default function ProfileClient() {
     router.back();
   };
 
-  if (hydrating) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-muted/40 min-h-screen">
-       <header className="bg-background border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between h-16">
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={handleBackClick}>
-                        <ChevronLeft className="h-5 w-5" />
-                    </Button>
-                    <h1 className="text-xl font-bold">Profile</h1>
-                </div>
-            </div>
-        </div>
-      </header>
-       <main className="container mx-auto p-4 space-y-8">
+    <AppLayout>
+      <main className="container mx-auto p-4 space-y-8">
         <Card>
           <CardHeader>
             <CardTitle>Your Profile</CardTitle>
@@ -178,6 +159,6 @@ export default function ProfileClient() {
         )}
 
       </main>
-    </div>
+    </AppLayout>
   );
 }

@@ -1,10 +1,8 @@
 
 "use client";
 
-import { useAuth } from "@/hooks/use-auth";
 import { useMemo, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Skeleton } from "@/components/ui/skeleton";
 import { recommendedBundles, specializedBundles } from "@/data/bundles";
 import CongratulationsBanner from "@/components/dashboard/congratulations-banner";
 import Chatbot from "@/components/chatbot/chatbot";
@@ -13,6 +11,7 @@ import AutoInvest from "@/components/dashboard/auto-invest";
 import { useMarketStore } from "@/store/market-store";
 import { Clock } from "lucide-react";
 import Watchlist from "@/components/dashboard/watchlist";
+import AppLayout from "../layout/app-layout";
 
 const PortfolioSummary = dynamic(() => import("@/components/dashboard/portfolio-summary"), { 
     ssr: false,
@@ -79,17 +78,14 @@ const experiencedVideos = [
 export default function DashboardClient() {
   const [userProfile, setUserProfile] = useState<string | null>(null);
   const { isMarketOpen, fetchMarketStatus } = useMarketStore();
-  const { user } = useAuth();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const profile = localStorage.getItem('userProfile');
       setUserProfile(profile);
     }
-    if (user) {
-        fetchMarketStatus();
-    }
-  }, [user, fetchMarketStatus]);
+    fetchMarketStatus();
+  }, [fetchMarketStatus]);
 
   const getBundlesForProfile = (profile: string | null) => {
     switch(profile) {
@@ -133,31 +129,32 @@ export default function DashboardClient() {
   }
 
   const bundleProps = useMemo(() => getBundlesForProfile(userProfile), [userProfile]);
-  const videoProps = useMemo(() => getVideosForProfile(userProfile), [userProfile]);
 
   const showCongrats = userProfile === "Student" || userProfile === "Beginner" || userProfile === "Amateur";
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Explore</h1>
-        <div className="flex items-center gap-2 text-sm text-primary">
-            <Clock className="h-4 w-4" />
-            <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+    <AppLayout>
+        <div className="p-4 space-y-6">
+        <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Explore</h1>
+            <div className="flex items-center gap-2 text-sm text-primary">
+                <Clock className="h-4 w-4" />
+                <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+            </div>
         </div>
-      </div>
-      <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
-      <PortfolioSummary />
-      <Watchlist />
-      <AutoInvest />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <GoalProgress />
-        <CommunityLeaderboard />
-      </div>
-      <InvestmentBundles {...bundleProps} />
-      <CommunityTrends limit={5} />
-      <AiPrediction />
-      <Chatbot />
-    </div>
+        <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
+        <PortfolioSummary />
+        <Watchlist />
+        <AutoInvest />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <GoalProgress />
+            <CommunityLeaderboard />
+        </div>
+        <InvestmentBundles {...bundleProps} />
+        <CommunityTrends limit={5} />
+        <AiPrediction />
+        <Chatbot />
+        </div>
+    </AppLayout>
   );
 }

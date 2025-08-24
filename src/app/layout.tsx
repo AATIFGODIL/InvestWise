@@ -2,8 +2,9 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
-import { AuthProvider } from "@/hooks/use-auth";
 import ThemeProvider from "@/components/layout/theme-provider";
+import BottomNav from "@/components/layout/bottom-nav";
+import MainContent from "@/components/layout/main-content";
 import "./globals.css";
 import Script from "next/script";
 
@@ -34,12 +35,13 @@ export default function RootLayout({
         <Script src="https://s3.tradingview.com/tv.js" strategy="beforeInteractive" />
       </head>
       <body className={`${poppins.variable} font-body antialiased`}>
-        <AuthProvider>
-            <ThemeProvider>
-              {children}
-              <Toaster />
-            </ThemeProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <MainContent>
+            {children}
+          </MainContent>
+          <Toaster />
+          <BottomNav />
+        </ThemeProvider>
       </body>
     </html>
   );

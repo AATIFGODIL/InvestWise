@@ -14,6 +14,7 @@ import { createTransaction } from "@/app/actions";
 import { useAuth } from "@/hooks/use-auth";
 import { useMarketStore } from "@/store/market-store";
 import Watchlist from "../dashboard/watchlist";
+import AppLayout from "../layout/app-layout";
 
 export default function PortfolioClient() {
   const { toast } = useToast();
@@ -61,28 +62,30 @@ export default function PortfolioClient() {
   }
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Portfolio</h1>
-          <Button onClick={handleAddFunds}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add $100 (Demo)
-          </Button>
-      </div>
-      <PortfolioValue />
-      <Watchlist />
-      <div>
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">Holdings</h2>
-            <div className="flex items-center gap-2 text-sm text-primary">
-              <Clock className="h-4 w-4" />
-              <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
-          </div>
+    <AppLayout>
+      <div className="p-4 space-y-6">
+        <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Portfolio</h1>
+            <Button onClick={handleAddFunds}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add $100 (Demo)
+            </Button>
         </div>
-        <HoldingsTable />
+        <PortfolioValue />
+        <Watchlist />
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Holdings</h2>
+              <div className="flex items-center gap-2 text-sm text-primary">
+                <Clock className="h-4 w-4" />
+                <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+            </div>
+          </div>
+          <HoldingsTable />
+        </div>
+          <AiPrediction />
+        <Chatbot />
       </div>
-        <AiPrediction />
-      <Chatbot />
-    </div>
+    </AppLayout>
   );
 }
