@@ -67,7 +67,7 @@ export default function InvestmentBundles({ bundles, title, description, showDis
             className="w-full"
           >
             <CarouselContent>
-              {bundles.map((bundle, index) => (
+              {[...bundles, ...explorationBundles].map((bundle, index) => (
                 <CarouselItem key={index} className="md:basis-1/2">
                   <div className="p-1 h-full">
                     <Card className="h-full flex flex-col">
@@ -75,7 +75,12 @@ export default function InvestmentBundles({ bundles, title, description, showDis
                         <CardHeader className="p-0">
                             <Image
                             src={bundle.image}
-                            alt={bundle.title}
+                            alt={bundle.title + " Image"}
+                            style={{
+                              backgroundImage: `url(${bundle.image})`,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center',
+                            }}
                             width={600}
                             height={400}
                             className="rounded-t-lg aspect-[16/9] object-cover"

@@ -16,7 +16,24 @@ interface EducationalContentDisplayProps {
   content: EducationalContentItem[];
 }
 
-const EducationalContentDisplay: React.FC<EducationalContentDisplayProps> = ({ content }) => {
+const defaultContent: EducationalContentItem[] = [
+  {
+    title: "The Power of Compound Interest",
+    description: "Learn how your money can grow exponentially over time.",
+    filePath: "/src/app/Elijah Dailey Week 6 Deliverable_page-0001.jpg",
+    type: "image",
+  },
+  {
+    title: "Week 6 Infographic",
+    description: "A visual summary of key concepts from week 6.",
+    filePath: "/src/app/Week 6 Infographic.png",
+    type: "image",
+  },
+  // Add other default educational content items here if any
+];
+
+
+const EducationalContentDisplay: React.FC<EducationalContentDisplayProps> = ({ content = defaultContent }) => {
   return (
     <div className="grid gap-6 md:grid-cols-2">
       {content.map((item, index) => (
