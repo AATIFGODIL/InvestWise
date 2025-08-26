@@ -192,10 +192,10 @@ export async function getLeaderboardData(): Promise<{ success: boolean; data?: L
         return { success: true, data: leaderboardData };
     } catch (error: any) {
         console.error("Error fetching leaderboard data:", error);
-        if (error.code === 'failed-precondition') {
-             return { success: false, error: "Database index not found. Please create the required composite index in your Firestore settings." };
+        if (error.code === 'failed-precondition' || error.message?.includes('index')) {
+             return { success: false, error: "Database index not found. Please create the required composite index in your Firestore settings to enable the leaderboard." };
         }
-        return { success: false, error: "Failed to fetch leaderboard data." };
+        return { success: false, error: "Failed to fetch leaderboard data. Please try again later." };
     }
 }
 
