@@ -26,6 +26,34 @@ const GoogleIcon = () => (
   </svg>
 );
 
+const FinanceBackground = () => (
+    <div className="absolute inset-0 -z-10 overflow-hidden">
+        <svg
+        className="absolute left-0 top-0 h-full w-full"
+        xmlns="http://www.w3.org/2000/svg"
+        >
+        <defs>
+            <pattern
+            id="finance-pattern"
+            width="100"
+            height="100"
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(45)"
+            >
+            <path
+                d="M 25 0 V 10 M 20 5 H 30 M 50 15 V 25 M 45 20 H 55 M 75 30 V 40 M 70 35 H 80 M 10 50 L 20 60 L 30 50 L 40 60 M 60 70 L 70 80 L 80 70 L 90 80 M 5 80 H 15 M 10 75 V 85"
+                strokeWidth="0.5"
+                className="stroke-muted-foreground/10"
+                fill="none"
+            />
+            </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#finance-pattern)" />
+        </svg>
+  </div>
+);
+
+
 export default function SignInPage() {
   const { signIn, signInWithGoogle } = useAuth();
   const router = useRouter();
@@ -72,7 +100,8 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background p-4">
+    <div className="relative flex items-center justify-center min-h-screen bg-background p-4">
+      <FinanceBackground />
       <Card className="w-full max-w-sm">
           <div className="flex justify-center pt-8">
               <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
