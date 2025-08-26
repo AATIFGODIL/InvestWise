@@ -19,6 +19,7 @@ import {
   GoogleAuthProvider,
   OAuthProvider,
   sendPasswordResetEmail,
+  sendEmailVerification,
   type AuthProvider as FirebaseAuthProvider,
   type User,
 } from "firebase/auth";
@@ -144,8 +145,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+      await sendEmailVerification(userCredential.user);
       await initializeUserDocument(userCredential.user, { username });
-      toast({ title: "Account Created!", description: "Let's get you started." });
+      toast({ title: "Account Created!", description: "A verification email has been sent to your inbox." });
       router.push('/onboarding/quiz');
     } catch (error: any) {
       hideLoading();
