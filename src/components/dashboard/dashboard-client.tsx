@@ -41,6 +41,12 @@ const educationalContent = [
         description: "A finance infographic explaining compound interest.",
         filePath: "/deliverable.png",
         type: "image" as const
+    },
+    {
+        title: "Intro to Stock Market Basics",
+        description: "Learn the fundamentals of stock market investing in this beginner-friendly video.",
+        filePath: "https://www.youtube.com/watch?v=A7_fkAmql_4",
+        type: "video" as const
     }
 ]
 
