@@ -174,7 +174,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { isNew } = await initializeUserDocument(result.user);
         
         if (isNew) {
-            toast({ title: "Account Created!", description: "Let's get you started." });
+            toast({ title: "Account Created!", description: "Your email is verified. Let's get you started." });
             router.push('/onboarding/quiz');
         } else {
             toast({ title: "Signed In Successfully", description: "Welcome back!" });
