@@ -18,6 +18,7 @@ import Link from "next/link";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import useLoadingStore from "@/store/loading-store";
 
 const GoogleIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512" className="h-5 w-5 mr-2">
@@ -28,6 +29,7 @@ const GoogleIcon = () => (
 export default function SignInPage() {
   const { signIn, signInWithGoogle } = useAuth();
   const router = useRouter();
+  const { showLoading } = useLoadingStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -65,6 +67,7 @@ export default function SignInPage() {
 
   const handleNavigateToSignUp = (e: React.MouseEvent) => {
     e.preventDefault();
+    showLoading();
     router.push('/auth/signup');
   };
 
