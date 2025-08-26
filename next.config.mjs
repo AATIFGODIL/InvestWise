@@ -1,9 +1,25 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  webpack: (config) => {
+    // Required for genkit to work.
+    config.externals.push('node:stream/web');
+    return config;
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
   experimental: {
-    // This setting resolves the "Cross origin request detected" warning
-    // by explicitly allowing requests from the development environment's domain.
-    allowedDevOrigins: ["*.cloudworkstations.dev"],
+    // This is to allow requests from the firebase studio preview URL.
+    allowedDevOrigins: [
+      '*.cluster-nzwlpk54dvagsxetkvxzbvslyi.cloudworkstations.dev',
+    ],
   },
 };
 
