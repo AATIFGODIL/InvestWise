@@ -175,6 +175,7 @@ export default function TradeClient() {
 
   return (
     <AppLayout>
+      <main className="container mx-auto max-w-4xl">
         <div className="p-4 space-y-6">
         <h1 className="text-2xl font-bold">Trade</h1>
         
@@ -259,6 +260,7 @@ export default function TradeClient() {
             </CardContent>
         </Card>
         </div>
+      </main>
     </AppLayout>
   );
 }

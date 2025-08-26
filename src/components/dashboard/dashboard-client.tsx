@@ -87,31 +87,33 @@ export default function DashboardClient() {
   const showCongrats = userProfile === "Student" || userProfile === "Beginger" || userProfile === "Amateur";
 
   return (
-    <div className="p-4 space-y-6 pb-40">
-    <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Explore</h1>
-        <div className="flex items-center gap-2 text-sm text-primary">
-            <Clock className="h-4 w-4" />
-            <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+    <main className="container mx-auto max-w-4xl">
+        <div className="p-4 space-y-6 pb-40">
+        <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold">Explore</h1>
+            <div className="flex items-center gap-2 text-sm text-primary">
+                <Clock className="h-4 w-4" />
+                <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+            </div>
         </div>
-    </div>
-    
-    <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
-    <PortfolioSummary />
-    <Watchlist />
-    <AutoInvest />
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <GoalProgress />
-        <CommunityLeaderboard />
-    </div>
-    <div className="space-y-4">
-        <h2 className="text-xl font-bold">Educational Content</h2>
-        <EducationalContent content={educationalContent} />
-    </div>
-    <InvestmentBundles {...bundleProps} />
-    <CommunityTrends limit={5} />
-    <AiPrediction />
-    <Chatbot />
-    </div>
+        
+        <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
+        <PortfolioSummary />
+        <Watchlist />
+        <AutoInvest />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <GoalProgress />
+            <CommunityLeaderboard />
+        </div>
+        <div className="space-y-4">
+            <h2 className="text-xl font-bold">Educational Content</h2>
+            <EducationalContent content={educationalContent} />
+        </div>
+        <InvestmentBundles {...bundleProps} />
+        <CommunityTrends limit={5} />
+        <AiPrediction />
+        <Chatbot />
+        </div>
+    </main>
   );
 }
