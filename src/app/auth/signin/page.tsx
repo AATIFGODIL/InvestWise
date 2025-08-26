@@ -43,7 +43,7 @@ const FinanceBackground = () => (
             <path
                 d="M 25 0 V 10 M 20 5 H 30 M 50 15 V 25 M 45 20 H 55 M 75 30 V 40 M 70 35 H 80 M 10 50 L 20 60 L 30 50 L 40 60 M 60 70 L 70 80 L 80 70 L 90 80 M 5 80 H 15 M 10 75 V 85"
                 strokeWidth="0.5"
-                className="stroke-muted-foreground/10"
+                className="stroke-muted-foreground/20"
                 fill="none"
             />
             </pattern>
