@@ -96,7 +96,8 @@ export default function TradeClient() {
     setError(null);
 
     // --- Fallback for missing API Key ---
-    if (!API_KEY) {
+    if (!API_KEY || API_KEY === "your_finnhub_api_key_here") {
+      console.error("Finnhub API key not configured. Using simulated data.");
       setError("Finnhub API key not configured. Using simulated data.");
       // Simulate fetching a price
       setTimeout(() => {
