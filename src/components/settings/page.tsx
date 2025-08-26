@@ -50,7 +50,7 @@ export default function SettingsClient() {
   }
 
   return (
-      <main className="container mx-auto p-4 space-y-8 pb-24 relative">
+      <main className="container mx-auto p-4 space-y-8 pb-24 relative max-w-4xl">
         <Button variant="ghost" size="icon" className="absolute top-4 left-4" onClick={() => router.back()}>
           <ArrowLeft className="h-6 w-6" />
         </Button>

@@ -49,20 +49,22 @@ export default function CertificatePage() {
 
   return (
     <div className="bg-muted/40 min-h-screen flex flex-col items-center justify-center p-4">
-      <div ref={certificateRef}>
-        <Certificate name={username} date={currentDate} />
-      </div>
-      <div className="mt-8 flex gap-4">
-        <Button asChild variant="outline">
-          <Link href="/dashboard">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Link>
-        </Button>
-        <Button onClick={handleDownload}>
-          <Download className="mr-2 h-4 w-4" />
-          Download Certificate
-        </Button>
+      <div className="w-full max-w-lg mx-auto">
+        <div ref={certificateRef}>
+            <Certificate name={username} date={currentDate} />
+        </div>
+        <div className="mt-8 flex gap-4 justify-center">
+            <Button asChild variant="outline">
+            <Link href="/dashboard">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Dashboard
+            </Link>
+            </Button>
+            <Button onClick={handleDownload}>
+            <Download className="mr-2 h-4 w-4" />
+            Download Certificate
+            </Button>
+        </div>
       </div>
     </div>
   );
