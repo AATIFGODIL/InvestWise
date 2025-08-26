@@ -43,7 +43,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     }
   }, [user, hydrating, isAuthOrOnboardingRoute, router]);
   
-  if (hydrating) {
+  if (hydrating || isLoading) {
     return (
        <div className="flex items-center justify-center h-screen w-full bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -54,13 +54,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   if ((user && isSpecialLayoutRoute) || isAuthOrOnboardingRoute) {
       return (
         <div className="flex flex-col h-screen">
-          <MainContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center h-full w-full">
-                <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              </div>
-            ) : children}
-          </MainContent>
+          <MainContent>{children}</MainContent>
         </div>
       );
   }
@@ -69,13 +63,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
        return (
         <div className="flex flex-col h-screen">
           <Header />
-          <MainContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center h-full w-full">
-                <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              </div>
-            ) : children}
-          </MainContent>
+          <MainContent>{children}</MainContent>
           <BottomNav />
         </div>
       );
