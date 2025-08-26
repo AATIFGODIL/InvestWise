@@ -16,13 +16,9 @@ export const useMarketStore = create<MarketState>((set, get) => ({
   error: null,
 
   fetchMarketStatus: async () => {
-    // Prevent fetching if already fetched or no API key
-    if (get().isMarketOpen !== null || !API_KEY) {
-        set({ isLoading: false });
-        if (!API_KEY) {
-            console.error("Finnhub API key is not configured.");
-            set({ error: "API key not configured." });
-        }
+    if (!API_KEY) {
+        set({ isLoading: false, isMarketOpen: false, error: "API key not configured." });
+        console.error("Finnhub API key is not configured.");
         return;
     }
     
