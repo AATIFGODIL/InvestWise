@@ -13,7 +13,7 @@ import { z } from 'genkit';
 import { StockPredictionInputSchema, type StockPredictionInput, StockPredictionOutputSchema, type StockPredictionOutput } from '@/ai/types/stock-prediction-types';
 import { getPredictionFromApi } from '../tools/prediction-api-tool';
 
-export async function stockPrediction(input: StockPredictionInput): Promise<StockPredictionOutput> {
+export async function stockPrediction(input: StockPredictionInput): Promise<StockPredictionOutput | null> {
   return stockPredictionFlow(input);
 }
 
@@ -47,28 +47,31 @@ const stockPredictionFlow = ai.defineFlow(
   {
     name: 'stockPredictionFlow',
     inputSchema: StockPredictionInputSchema,
-    outputSchema: StockPredictionOutputSchema,
+    outputSchema: z.nullable(StockPredictionOutputSchema),
     tools: [getPredictionFromApi],
   },
   async (input) => {
-    // 1. Call the external API via the tool
-    const predictionResult = await getPredictionFromApi(input);
+    try {
+        // 1. Call the external API via the tool
+        const predictionResult = await getPredictionFromApi(input);
 
-    if (!predictionResult || !predictionResult.forecast || predictionResult.forecast.length === 0) {
-        throw new Error("Failed to get a valid prediction from the external service.");
+        if (!predictionResult || !predictionResult.forecast || predictionResult.forecast.length === 0) {
+            console.error("Prediction API returned no forecast.");
+            return null;
+        }
+        
+        // 2. Interpret the raw data using an LLM
+        const { output } = await prompt({
+            symbol: predictionResult.symbol,
+            forecast: JSON.stringify(predictionResult.forecast),
+            accuracy: predictionResult.accuracy,
+        });
+        
+        return output || null;
+
+    } catch (error) {
+        console.error("An error occurred during the stock prediction flow:", error);
+        return null; // Return null on any error to be handled by the action
     }
-    
-    // 2. Interpret the raw data using an LLM
-    const { output } = await prompt({
-        symbol: predictionResult.symbol,
-        forecast: JSON.stringify(predictionResult.forecast),
-        accuracy: predictionResult.accuracy,
-    });
-
-    if (!output) {
-        throw new Error("Failed to interpret the prediction data.");
-    }
-
-    return output;
   }
 );

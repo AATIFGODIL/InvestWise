@@ -47,6 +47,9 @@ export async function handleStockPrediction(symbol: string): Promise<StockPredic
 
     try {
         const result = await stockPrediction({ symbol });
+        if (!result) {
+             return { success: false, error: "You have reached the daily limit of predictions." };
+        }
         return { success: true, prediction: result };
     } catch (error: any) {
         console.error("Error calling stock prediction flow:", error);
@@ -165,19 +168,18 @@ export type LeaderboardUser = {
 
 export async function getLeaderboardData(): Promise<{ success: boolean; data?: LeaderboardUser[]; error?: string; }> {
     try {
-        const usersSnapshot = await db
-            .collection('users')
-            .where('leaderboardVisibility', 'in', ['public', 'anonymous'])
-            .get();
+        const usersSnapshot = await db.collection('users').get();
 
         if (usersSnapshot.empty) {
             return { success: true, data: [] };
         }
         
-        const usersData = usersSnapshot.docs.map(doc => ({
-            uid: doc.id,
-            ...doc.data(),
-        }));
+        const usersData = usersSnapshot.docs
+            .map(doc => ({
+                uid: doc.id,
+                ...doc.data(),
+            }))
+            .filter(user => user.leaderboardVisibility === 'public' || user.leaderboardVisibility === 'anonymous');
         
         const sortedUsers = usersData.sort((a, b) => (b.portfolio?.summary?.totalGainLoss || 0) - (a.portfolio?.summary?.totalGainLoss || 0));
 
