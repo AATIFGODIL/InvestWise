@@ -43,8 +43,8 @@ export default function Watchlist() {
             }
             setIsLoading(true);
 
-            if (!API_KEY) {
-                console.error("Finnhub API key not configured. Using simulated data for watchlist.");
+            if (!API_KEY || API_KEY.startsWith("AIzaSy") || API_KEY === "your_finnhub_api_key_here") {
+                console.warn("Finnhub API key not configured. Using simulated data for watchlist.");
                 const simulatedData = watchlist.map(symbol => ({
                     symbol,
                     price: parseFloat((Math.random() * 500).toFixed(2)),
