@@ -11,7 +11,6 @@ import AutoInvest from "@/components/dashboard/auto-invest";
 import { useMarketStore } from "@/store/market-store";
 import { Clock } from "lucide-react";
 import Watchlist from "@/components/dashboard/watchlist";
-import EducationalContent from "@/components/dashboard/educational-content";
 
 const PortfolioSummary = dynamic(() => import("@/components/dashboard/portfolio-summary"), { 
     ssr: false,
