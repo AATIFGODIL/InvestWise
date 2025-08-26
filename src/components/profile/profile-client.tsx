@@ -9,22 +9,18 @@ import { doc, updateDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Upload, LogIn, ChevronLeft, Repeat, Users, Briefcase, Settings } from "lucide-react";
+import { Loader2, Upload, LogIn, Repeat, Users, Briefcase, Settings } from "lucide-react";
 import Link from "next/link";
 import PaymentMethods from "@/components/profile/payment-methods";
 import { useAuth } from "@/hooks/use-auth";
-import { useRouter } from "next/navigation";
-import useLoadingStore from "@/store/loading-store";
 import { useUserStore } from "@/store/user-store";
 import { useToast } from "@/hooks/use-toast";
-import AppLayout from "../layout/app-layout";
+import Header from "../layout/header";
 
 export default function ProfileClient() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
-  const router = useRouter();
-  const { showLoading } = useLoadingStore();
   const { photoURL, setPhotoURL, username } = useUserStore();
   
   const [newImage, setNewImage] = useState<File | null>(null);
@@ -47,14 +43,11 @@ export default function ProfileClient() {
       await uploadBytes(fileRef, newImage);
       const url = await getDownloadURL(fileRef);
       
-      // Update Firebase Auth profile
       await updateProfile(user, { photoURL: url });
 
-      // Update Firestore document
       const userDocRef = doc(db, "users", user.uid);
       await updateDoc(userDocRef, { photoURL: url });
 
-      // Update the global user store for instant UI feedback
       setPhotoURL(url);
 
       toast({ title: "Success!", description: "Your profile has been updated." });
@@ -68,15 +61,10 @@ export default function ProfileClient() {
     setUploading(false);
   };
 
-
-  const handleBackClick = () => {
-    showLoading();
-    router.back();
-  };
-
   return (
-    <AppLayout>
-      <main className="container mx-auto p-4 space-y-8">
+    <>
+      <Header />
+      <main className="container mx-auto p-4 space-y-8 pb-24">
         <Card>
           <CardHeader>
             <CardTitle>Your Profile</CardTitle>
@@ -157,8 +145,7 @@ export default function ProfileClient() {
                 </CardContent>
             </Card>
         )}
-
       </main>
-    </AppLayout>
+    </>
   );
 }

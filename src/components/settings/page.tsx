@@ -20,7 +20,7 @@ import { useThemeStore } from "@/store/theme-store";
 import { useAuth } from "@/hooks/use-auth";
 import { usePrivacyStore, type LeaderboardVisibility } from "@/store/privacy-store";
 import PaymentMethods from "@/components/profile/payment-methods";
-import AppLayout from "../layout/app-layout";
+import Header from "../layout/header";
 
 export default function SettingsClient() {
   const [parentalControl, setParentalControl] = useState(false);
@@ -49,8 +49,9 @@ export default function SettingsClient() {
   }
 
   return (
-    <AppLayout>
-      <main className="container mx-auto p-4 space-y-8">
+    <>
+      <Header />
+      <main className="container mx-auto p-4 space-y-8 pb-24">
         
         {/* Payment Methods Section */}
         {user && <PaymentMethods userId={user.uid} />}
@@ -165,6 +166,6 @@ export default function SettingsClient() {
           </CardContent>
         </Card>
       </main>
-    </AppLayout>
+    </>
   );
 }
