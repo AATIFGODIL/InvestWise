@@ -34,12 +34,12 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ youtubeUrl, videoTitle, d
     return (
         <Card className="h-full flex flex-col">
             <CardHeader className="p-0">
-              <div className="relative aspect-video w-full rounded-t-lg bg-muted/30">
+              <div className="relative aspect-[16/9] w-full">
                 <Image
                     src={imageUrl || "https://placehold.co/600x400.png"}
                     alt={videoTitle}
                     fill
-                    className="rounded-t-lg object-contain"
+                    className="rounded-t-lg object-cover"
                     data-ai-hint="youtube channel"
                 />
               </div>
