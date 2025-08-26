@@ -29,13 +29,11 @@ const useVideoProgressStore = create<VideoProgressState>()(
       name: 'video-progress-storage', // name of the item in the storage (must be unique)
       storage: {
         getItem: (name) => {
-          const str = localStorage.getItem(name);
-          if (!str) return null;
-          const { state } = JSON.parse(str);
+          // When getting item, we reset the progress as requested
+          localStorage.removeItem(name);
           return {
             state: {
-              ...state,
-              watchedVideos: new Set(state.watchedVideos),
+              watchedVideos: new Set(),
             },
           };
         },

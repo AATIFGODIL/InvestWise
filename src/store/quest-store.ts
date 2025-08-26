@@ -33,7 +33,7 @@ const initialQuestData: QuestData = {
     intermediate: [
         { title: "Diversify your portfolio with 3+ assets", progress: 0 },
         { title: "Set up a recurring investment", progress: 0 },
-        { title: "Watch 5 educational videos", progress: 0 },
+        { title: "Watch 4 educational videos", progress: 0 },
     ],
     pro: [
         { title: "Reach a portfolio value of $10,000", progress: 0 },
@@ -64,7 +64,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         const diversificationProgress = Math.min((holdings.length / 3) * 100, 100);
         newQuestData.intermediate[0].progress = diversificationProgress;
         newQuestData.intermediate[1].progress = autoInvestments.length > 0 ? 100 : 0;
-        const videoProgress = Math.min((watchedVideos.size / 5) * 100, 100);
+        const videoProgress = Math.min((watchedVideos.size / 4) * 100, 100);
         newQuestData.intermediate[2].progress = videoProgress;
         
         // Pro Quests
