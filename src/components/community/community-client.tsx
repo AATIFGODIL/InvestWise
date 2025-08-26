@@ -15,17 +15,17 @@ import YouTubePlayer from "../shared/youtube-player";
 const videos = [
     {
         title: "Following the Experts: CA Rachana Ranade",
-        description: "Learn from CA Rachana Ranade, one of the leading voices in financial education. Note: This is a link to a channel.",
+        description: "Learn from CA Rachana Ranade, one of the leading voices in financial education. Note: This is a link to her channel.",
         youtubeUrl: "https://www.youtube.com/channel/UCfO2yCpx6_XU-xovhpJuaYw",
         isChannel: true,
-        imageUrl: "https://yt3.googleusercontent.com/ytc/AIdro_k-21_0-2DB-s-3a3EDi-22_p9-9135V5LJ6w=s176-c-k-c0x00ffffff-no-rj"
+        imageUrl: "/rachana-ranade.jpg"
     },
     {
         title: "Trading Insights with Adam Khoo",
-        description: "Explore trading strategies and market analysis from Adam Khoo, a professional investor and trader. Note: This is a link to a channel.",
+        description: "Explore trading strategies and market analysis from Adam Khoo, a professional investor and trader. Note: This is a link to his channel.",
         youtubeUrl: "https://www.youtube.com/@AdamKhoo",
         isChannel: true,
-        imageUrl: "https://yt3.googleusercontent.com/ytc/AIdro_n05CF6SDB-r53e-2-2Pb-X4-3_d-4_G9G8GQ=s176-c-k-c0x00ffffff-no-rj"
+        imageUrl: "/adam-khoo.jpg"
     }
 ]
 
@@ -61,7 +61,7 @@ export default function CommunityClient() {
       </Tabs>
       
       <div className="space-y-4 pt-4">
-          <h2 className="text-xl font-bold">Learn About Community</h2>
+          <h2 className="text-xl font-bold">Learn from the Experts</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {videos.map((video) => (
                   <YouTubePlayer key={video.title} videoTitle={video.title} {...video} />
