@@ -9,14 +9,16 @@ import { doc, updateDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Loader2, Upload, LogIn, Repeat, Users, Briefcase, Settings } from "lucide-react";
+import { Loader2, Upload, LogIn, Repeat, Users, Briefcase, Settings, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import PaymentMethods from "@/components/profile/payment-methods";
 import { useAuth } from "@/hooks/use-auth";
 import { useUserStore } from "@/store/user-store";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function ProfileClient() {
+  const router = useRouter();
   const { user } = useAuth();
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
@@ -61,7 +63,10 @@ export default function ProfileClient() {
   };
 
   return (
-      <main className="container mx-auto p-4 space-y-8 pb-24">
+      <main className="container mx-auto p-4 space-y-8 pb-24 relative">
+        <Button variant="ghost" size="icon" className="absolute top-4 left-4" onClick={() => router.back()}>
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
         <Card>
           <CardHeader>
             <CardTitle>Your Profile</CardTitle>

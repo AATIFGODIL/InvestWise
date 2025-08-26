@@ -13,15 +13,17 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Shield, Sun, Moon, Eye, LogOut, ShieldBan, FileUp } from "lucide-react";
+import { Shield, Sun, Moon, Eye, LogOut, ShieldBan, FileUp, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useThemeStore } from "@/store/theme-store";
 import { useAuth } from "@/hooks/use-auth";
 import { usePrivacyStore, type LeaderboardVisibility } from "@/store/privacy-store";
 import PaymentMethods from "@/components/profile/payment-methods";
+import { useRouter } from "next/navigation";
 
 export default function SettingsClient() {
+  const router = useRouter();
   const [parentalControl, setParentalControl] = useState(false);
   const { theme, setTheme } = useThemeStore();
   const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
@@ -48,7 +50,10 @@ export default function SettingsClient() {
   }
 
   return (
-      <main className="container mx-auto p-4 space-y-8 pb-24">
+      <main className="container mx-auto p-4 space-y-8 pb-24 relative">
+        <Button variant="ghost" size="icon" className="absolute top-4 left-4" onClick={() => router.back()}>
+          <ArrowLeft className="h-6 w-6" />
+        </Button>
         
         {/* Payment Methods Section */}
         {user && <PaymentMethods userId={user.uid} />}
