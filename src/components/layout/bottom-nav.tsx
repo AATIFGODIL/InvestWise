@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import useLoadingStore from "@/store/loading-store";
 
 const navItems = [
   { href: "/dashboard", label: "Explore", icon: Home },
@@ -18,9 +19,10 @@ const navItems = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { showLoading } = useLoadingStore();
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const navRef = useRef<HTMLDivElement>(null);
-  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
   useEffect(() => {
     const activeIndex = navItems.findIndex((item) => pathname.startsWith(item.href));
@@ -33,30 +35,38 @@ export default function BottomNav() {
     }
   }, [pathname]);
 
+  const handleLinkClick = (href: string) => {
+    // Only show loading screen if navigating to a different page
+    if (!pathname.startsWith(href)) {
+      showLoading();
+    }
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-sm">
       <nav ref={navRef} className="relative flex h-16 items-center justify-around px-2">
         {navItems.map((item, index) => {
           const isActive = pathname.startsWith(item.href);
           return (
-            <div 
+            <Link
               key={item.label}
-              ref={el => itemRefs.current[index] = el}
+              href={item.href}
+              ref={(el) => (itemRefs.current[index] = el)}
               className="flex-1 z-10"
+              onClick={() => handleLinkClick(item.href)}
+              prefetch={true}
             >
-              <Link href={item.href} className="w-full" prefetch={true}>
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    "flex h-auto w-full flex-col items-center justify-center gap-1 p-2 transition-colors duration-300",
-                    isActive ? "text-primary" : "text-muted-foreground"
-                  )}
-                >
-                  <item.icon className="h-6 w-6" />
-                  <span className="text-xs font-medium">{item.label}</span>
-                </Button>
-              </Link>
-            </div>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "flex h-auto w-full flex-col items-center justify-center gap-1 p-2 transition-colors duration-300",
+                  isActive ? "text-primary" : "text-muted-foreground"
+                )}
+              >
+                <item.icon className="h-6 w-6" />
+                <span className="text-xs font-medium">{item.label}</span>
+              </Button>
+            </Link>
           );
         })}
          <div

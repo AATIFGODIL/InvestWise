@@ -14,6 +14,7 @@ import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import '../lib/firebase/config';
 import { Loader2 } from 'lucide-react';
 import useLoadingStore from '@/store/loading-store';
+import Header from '@/components/layout/header';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -42,7 +43,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     }
   }, [user, hydrating, isAuthOrOnboardingRoute, router]);
   
-  if (hydrating || isLoading) {
+  if (hydrating) {
     return (
        <div className="flex items-center justify-center h-screen w-full bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -54,7 +55,11 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       return (
         <div className="flex flex-col h-screen">
           <MainContent>
-            {children}
+            {isLoading ? (
+              <div className="flex items-center justify-center h-full w-full">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              </div>
+            ) : children}
           </MainContent>
         </div>
       );
@@ -63,8 +68,13 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   if (user) {
        return (
         <div className="flex flex-col h-screen">
+          <Header />
           <MainContent>
-            {children}
+            {isLoading ? (
+              <div className="flex items-center justify-center h-full w-full">
+                <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              </div>
+            ) : children}
           </MainContent>
           <BottomNav />
         </div>
