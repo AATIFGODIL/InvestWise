@@ -34,7 +34,7 @@ const EducationalContentDisplay: React.FC<EducationalContentDisplayProps> = ({ c
           >
             {item.type === 'image' && (
                 <Image
-                    src={`/public${item.filePath}`}
+                    src={item.filePath}
                     alt={item.title}
                     fill
                     className="object-cover rounded-t-lg"
