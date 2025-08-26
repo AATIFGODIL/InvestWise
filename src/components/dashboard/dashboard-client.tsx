@@ -31,9 +31,9 @@ const InvestmentBundles = dynamic(() => import("@/components/dashboard/investmen
 
 const educationalContent = [
     {
-        title: "Week 6 Infographic",
-        description: "A visual summary of key concepts from Week 6.",
-        filePath: "/Week 6 Infographic.png",
+        title: "The Power of Compound Interest",
+        description: "A finance infographic on the power of compound interest.",
+        filePath: "/Dailey Week 6 Deliverable_page-0001.jpg",
         type: "image" as const
     },
     {
