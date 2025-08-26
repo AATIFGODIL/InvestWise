@@ -33,14 +33,14 @@ const educationalContent = [
     {
         title: "The Power of Compound Interest",
         description: "A finance infographic on the power of compound interest.",
-        filePath: "/infographic.jpg",
+        filePath: "/infographic.png",
         type: "image" as const
     },
     {
         title: "Elijah Dailey Week 6 Deliverable",
         description: "The Week 6 deliverable document by Elijah Dailey.",
-        filePath: "/deliverable.pdf",
-        type: "pdf" as const
+        filePath: "/deliverable.png",
+        type: "image" as const
     }
 ]
 

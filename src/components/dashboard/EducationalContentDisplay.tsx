@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -27,19 +27,14 @@ const EducationalContentDisplay: React.FC<EducationalContentDisplayProps> = ({ c
             className="flex flex-col justify-between"
         >
           <div 
-            className={cn(
-                "h-48 flex flex-col justify-end p-4 rounded-t-lg text-primary-foreground relative",
-                item.type === 'pdf' && "bg-primary"
-            )}
+            className="h-48 flex flex-col justify-end p-4 rounded-t-lg text-primary-foreground relative"
           >
-            {item.type === 'image' && (
-                <Image
-                    src={item.filePath}
-                    alt={item.title}
-                    fill
-                    className="object-cover rounded-t-lg"
-                />
-            )}
+            <Image
+                src={item.filePath}
+                alt={item.title}
+                fill
+                className="object-cover rounded-t-lg"
+            />
             <div className="relative z-10" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7)'}}>
                 <h2 className="text-xl font-bold">{item.title}</h2>
             </div>
