@@ -63,7 +63,7 @@ export default function PortfolioClient() {
 
   return (
     <AppLayout>
-      <main className="container mx-auto max-w-4xl">
+      <main>
         <div className="p-4 space-y-6 pb-24">
           <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold">Portfolio</h1>

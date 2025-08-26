@@ -175,7 +175,7 @@ export default function TradeClient() {
 
   return (
     <AppLayout>
-      <main className="container mx-auto max-w-4xl">
+      <main>
         <div className="p-4 space-y-6">
         <h1 className="text-2xl font-bold">Trade</h1>
         
@@ -242,6 +242,15 @@ export default function TradeClient() {
             bundles={specializedBundles}
         />
 
+        <Card>
+            <CardHeader>
+                <CardTitle>Stock Screener</CardTitle>
+            </CardHeader>
+            <CardContent className="h-[600px]">
+                    <TradingViewScreener />
+            </CardContent>
+        </Card>
+
         <div className="space-y-4 pt-4">
             <h2 className="text-xl font-bold">Learn About Trading</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -251,14 +260,6 @@ export default function TradeClient() {
             </div>
         </div>
         
-        <Card>
-            <CardHeader>
-                <CardTitle>Stock Screener</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[600px]">
-                    <TradingViewScreener />
-            </CardContent>
-        </Card>
         </div>
       </main>
     </AppLayout>

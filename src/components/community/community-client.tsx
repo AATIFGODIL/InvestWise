@@ -33,7 +33,7 @@ export default function CommunityClient() {
   const { showQuests } = usePrivacyStore();
 
   return (
-    <main className="container mx-auto max-w-4xl">
+    <main>
       <div className="p-4 space-y-6 pb-24">
       <h1 className="text-2xl font-bold">Community</h1>
       <Tabs defaultValue={defaultTab} className="w-full">
