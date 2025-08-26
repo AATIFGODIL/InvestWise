@@ -95,10 +95,10 @@ export default function TradeClient() {
     setLoadingPrice(true);
     setError(null);
 
-    // --- Fallback for missing API Key ---
-    if (!API_KEY || API_KEY === "your_finnhub_api_key_here") {
-      console.error("Finnhub API key not configured. Using simulated data.");
-      setError("Finnhub API key not configured. Using simulated data.");
+    // --- Fallback for missing or placeholder API Key ---
+    if (!API_KEY || API_KEY.startsWith("AIzaSy") || API_KEY === "your_finnhub_api_key_here") {
+      console.warn("Finnhub API key not configured. Using simulated data.");
+      setError("Live price data is unavailable. Using simulated data.");
       // Simulate fetching a price
       setTimeout(() => {
         const simulatedPrice = parseFloat((Math.random() * (500 - 100) + 100).toFixed(2));
