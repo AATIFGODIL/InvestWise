@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 interface EducationalContentItem {
   title: string;
@@ -16,24 +17,7 @@ interface EducationalContentDisplayProps {
   content: EducationalContentItem[];
 }
 
-const defaultContent: EducationalContentItem[] = [
-  {
-    title: "The Power of Compound Interest",
-    description: "Learn how your money can grow exponentially over time.",
-    filePath: "/src/app/Elijah Dailey Week 6 Deliverable_page-0001.jpg",
-    type: "image",
-  },
-  {
-    title: "Week 6 Infographic",
-    description: "A visual summary of key concepts from week 6.",
-    filePath: "/src/app/Week 6 Infographic.png",
-    type: "image",
-  },
-  // Add other default educational content items here if any
-];
-
-
-const EducationalContentDisplay: React.FC<EducationalContentDisplayProps> = ({ content = defaultContent }) => {
+const EducationalContentDisplay: React.FC<EducationalContentDisplayProps> = ({ content }) => {
   return (
     <div className="grid gap-6 md:grid-cols-2">
       {content.map((item, index) => (
@@ -43,15 +27,21 @@ const EducationalContentDisplay: React.FC<EducationalContentDisplayProps> = ({ c
         >
           <div 
             className={cn(
-                "h-48 flex flex-col justify-end p-4 rounded-t-lg text-primary-foreground",
-                item.type === 'image' ? "bg-cover bg-center" : "bg-primary"
+                "h-48 flex flex-col justify-end p-4 rounded-t-lg text-primary-foreground relative",
+                item.type === 'pdf' && "bg-primary"
             )}
-            style={item.type === 'image' ? { 
-                backgroundImage: `url(${item.filePath})`,
-                textShadow: '1px 1px 3px rgba(0,0,0,0.7)'
-            } : {}}
           >
-            <h2 className="text-xl font-bold">{item.title}</h2>
+            {item.type === 'image' && (
+                <Image
+                    src={item.filePath}
+                    alt={item.title}
+                    fill
+                    className="object-cover rounded-t-lg"
+                />
+            )}
+            <div className="relative" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7)'}}>
+                <h2 className="text-xl font-bold">{item.title}</h2>
+            </div>
           </div>
           <CardContent className="pt-4 flex-grow">
             <p className="text-muted-foreground">{item.description}</p>

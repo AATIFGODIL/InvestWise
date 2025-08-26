@@ -95,7 +95,7 @@ export default function DashboardClient() {
             <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
         </div>
     </div>
-    <EducationalContentDisplay content={educationalContent} />
+    
     <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
     <PortfolioSummary />
     <Watchlist />
@@ -104,6 +104,7 @@ export default function DashboardClient() {
         <GoalProgress />
         <CommunityLeaderboard />
     </div>
+    <EducationalContentDisplay content={educationalContent} />
     <InvestmentBundles {...bundleProps} />
     <CommunityTrends limit={5} />
     <AiPrediction />

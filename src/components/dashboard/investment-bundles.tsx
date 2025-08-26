@@ -43,6 +43,7 @@ interface InvestmentBundlesProps {
 export default function InvestmentBundles({ bundles, title, description, showDisclaimer = false }: InvestmentBundlesProps) {
   const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null);
   const { showLoading } = useLoadingStore();
+  const explorationBundles: Bundle[] = [];
 
   const handleStockLinkClick = (symbol: string) => {
     showLoading();
