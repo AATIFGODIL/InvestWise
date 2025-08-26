@@ -27,6 +27,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const { user, hydrating } = useAuth(); // `hydrating` is the correct name from the provider
   
   const isAuthOrOnboardingRoute = pathname.startsWith('/auth') || pathname.startsWith('/onboarding');
+  const isSpecialLayoutRoute = pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/certificate');
 
   useEffect(() => {
     // If we're done loading, there's no user, and we are on a protected route, redirect to signin.
@@ -43,16 +44,26 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
        </div>
     );
   }
-
-  // If authenticated, or if unauthenticated but on a public route, show the content.
-  if (user || isAuthOrOnboardingRoute) {
+  
+  // If authenticated on a special route, or if unauthenticated but on a public route, show content without nav.
+  if ((user && isSpecialLayoutRoute) || isAuthOrOnboardingRoute) {
       return (
         <div className="flex flex-col h-screen">
           <MainContent>
             {children}
           </MainContent>
-          {/* Only show bottom nav if authenticated and not on a special route */}
-          {user && !isAuthOrOnboardingRoute && <BottomNav />}
+        </div>
+      );
+  }
+  
+  // If authenticated on a regular route, show the full app layout with navigation.
+  if (user) {
+       return (
+        <div className="flex flex-col h-screen">
+          <MainContent>
+            {children}
+          </MainContent>
+          <BottomNav />
         </div>
       );
   }

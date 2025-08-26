@@ -15,7 +15,6 @@ import PaymentMethods from "@/components/profile/payment-methods";
 import { useAuth } from "@/hooks/use-auth";
 import { useUserStore } from "@/store/user-store";
 import { useToast } from "@/hooks/use-toast";
-import Header from "../layout/header";
 
 export default function ProfileClient() {
   const { user } = useAuth();
@@ -62,8 +61,6 @@ export default function ProfileClient() {
   };
 
   return (
-    <>
-      <Header />
       <main className="container mx-auto p-4 space-y-8 pb-24">
         <Card>
           <CardHeader>
@@ -146,6 +143,5 @@ export default function ProfileClient() {
             </Card>
         )}
       </main>
-    </>
   );
 }
