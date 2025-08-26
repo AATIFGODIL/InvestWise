@@ -14,11 +14,11 @@ import YouTubePlayer from "../shared/youtube-player";
 
 const videos = [
     {
-        title: "Following the Experts: CA Rachana Ranade",
-        description: "Learn from CA Rachana Ranade, one of the leading voices in financial education. Note: This is a link to her channel.",
+        title: "Following the Experts: Bear Bull Traders",
+        description: "Learn from Bear Bull Traders, one of the leading voices in financial education. Note: This is a link to their channel.",
         youtubeUrl: "https://www.youtube.com/channel/UCfO2yCpx6_XU-xovhpJuaYw",
         isChannel: true,
-        imageUrl: "/rachana-ranade.jpg"
+        imageUrl: "/bull.jpg"
     },
     {
         title: "Trading Insights with Adam Khoo",
