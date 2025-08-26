@@ -24,19 +24,19 @@ const poppins = Poppins({
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, hydrating } = useAuth(); // `hydrating` is the correct name from the provider
   
   const isAuthOrOnboardingRoute = pathname.startsWith('/auth') || pathname.startsWith('/onboarding');
 
   useEffect(() => {
     // If we're done loading, there's no user, and we are on a protected route, redirect to signin.
-    if (!loading && !user && !isAuthOrOnboardingRoute) {
+    if (!hydrating && !user && !isAuthOrOnboardingRoute) {
         router.push('/auth/signin');
     }
-  }, [user, loading, isAuthOrOnboardingRoute, router]);
+  }, [user, hydrating, isAuthOrOnboardingRoute, router]);
   
   // While loading, show a full-screen loader to prevent flashing of protected content
-  if (loading) {
+  if (hydrating) {
     return (
        <div className="flex items-center justify-center h-screen w-full bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -44,14 +44,15 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If not authenticated and on a public route (like signin), or if authenticated, show content
-  if ((!loading && !user && isAuthOrOnboardingRoute) || user) {
+  // If authenticated, or if unauthenticated but on a public route, show the content.
+  if (user || isAuthOrOnboardingRoute) {
       return (
         <div className="flex flex-col h-screen">
           <MainContent>
             {children}
           </MainContent>
-          {!isAuthOrOnboardingRoute && <BottomNav />}
+          {/* Only show bottom nav if authenticated and not on a special route */}
+          {user && !isAuthOrOnboardingRoute && <BottomNav />}
         </div>
       );
   }
