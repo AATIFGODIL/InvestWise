@@ -5,10 +5,11 @@ import React from 'react';
 import YouTube from 'react-youtube';
 import useVideoProgressStore from '@/store/video-progress-store';
 import { Button } from '../ui/button';
-import { RotateCcw, ExternalLink } from 'lucide-react';
+import { ExternalLink, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from 'next/image';
 import Link from 'next/link';
+import { Badge } from '../ui/badge';
 
 interface YouTubePlayerProps {
   youtubeUrl: string;
@@ -26,7 +27,7 @@ const getYouTubeId = (url: string): string | null => {
 };
 
 const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ youtubeUrl, videoTitle, description, isChannel = false, imageUrl }) => {
-  const { watchedVideos, toggleWatchedVideo } = useVideoProgressStore();
+  const { watchedVideos, markVideoAsWatched } = useVideoProgressStore();
   const isWatched = watchedVideos.has(videoTitle);
   const videoId = getYouTubeId(youtubeUrl);
 
@@ -73,9 +74,9 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ youtubeUrl, videoTitle, d
   };
 
   const handleVideoEnd = () => {
-    // Only mark as watched, don't un-watch on end
+    // Only mark as watched on end
     if (!isWatched) {
-      toggleWatchedVideo(videoTitle);
+      markVideoAsWatched(videoTitle);
     }
   };
 
@@ -89,12 +90,10 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ youtubeUrl, videoTitle, d
                 className="absolute top-0 left-0 w-full h-full rounded-t-lg overflow-hidden"
             />
             {isWatched && (
-                <div className="absolute bottom-2 right-2 z-10">
-                    <Button size="sm" variant="secondary" onClick={() => toggleWatchedVideo(videoTitle)}>
-                        <RotateCcw className="mr-2 h-4 w-4" />
-                        Watched
-                    </Button>
-                </div>
+                <Badge variant="secondary" className="absolute bottom-2 right-2 z-10 flex items-center gap-1">
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                    Watched
+                </Badge>
             )}
         </CardContent>
         <CardFooter className="p-4 flex-grow flex flex-col items-start">

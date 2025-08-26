@@ -1,10 +1,10 @@
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface VideoProgressState {
   watchedVideos: Set<string>;
-  toggleWatchedVideo: (videoTitle: string) => void;
+  markVideoAsWatched: (videoTitle: string) => void;
   resetVideoProgress: () => void;
 }
 
@@ -13,12 +13,10 @@ const useVideoProgressStore = create<VideoProgressState>()(
   persist(
     (set) => ({
       watchedVideos: new Set(),
-      toggleWatchedVideo: (videoTitle) =>
+      markVideoAsWatched: (videoTitle) =>
         set((state) => {
           const newSet = new Set(state.watchedVideos);
-          if (newSet.has(videoTitle)) {
-            newSet.delete(videoTitle);
-          } else {
+          if (!newSet.has(videoTitle)) {
             newSet.add(videoTitle);
           }
           return { watchedVideos: newSet };
@@ -26,28 +24,24 @@ const useVideoProgressStore = create<VideoProgressState>()(
       resetVideoProgress: () => set({ watchedVideos: new Set() }),
     }),
     {
-      name: 'video-progress-storage', // name of the item in the storage (must be unique)
-      storage: {
-        getItem: (name) => {
-          // When getting item, we reset the progress as requested
-          localStorage.removeItem(name);
-          return {
-            state: {
-              watchedVideos: new Set(),
-            },
-          };
+      name: 'video-progress-storage', 
+      storage: createJSONStorage(() => localStorage, {
+        replacer: (key, value) => {
+          if (value instanceof Set) {
+            return {
+              _type: 'set',
+              value: Array.from(value),
+            };
+          }
+          return value;
         },
-        setItem: (name, newValue) => {
-          const str = JSON.stringify({
-            state: {
-              ...newValue.state,
-              watchedVideos: Array.from(newValue.state.watchedVideos),
-            },
-          });
-          localStorage.setItem(name, str);
+        reviver: (key, value) => {
+          if (typeof value === 'object' && value !== null && value._type === 'set') {
+            return new Set(value.value);
+          }
+          return value;
         },
-        removeItem: (name) => localStorage.removeItem(name),
-      },
+      }),
     }
   )
 );
