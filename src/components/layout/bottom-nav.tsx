@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import useLoadingStore from "@/store/loading-store";
 
 const navItems = [
   { href: "/dashboard", label: "Explore", icon: Home },
@@ -19,7 +18,6 @@ const navItems = [
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { showLoading } = useLoadingStore();
   const [indicatorStyle, setIndicatorStyle] = useState({});
   const navRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -35,10 +33,6 @@ export default function BottomNav() {
     }
   }, [pathname]);
 
-  const handleLinkClick = () => {
-    showLoading();
-  }
-
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-sm">
       <nav ref={navRef} className="relative flex h-16 items-center justify-around px-2">
@@ -50,7 +44,7 @@ export default function BottomNav() {
               ref={el => itemRefs.current[index] = el}
               className="flex-1 z-10"
             >
-              <Link href={item.href} className="w-full" prefetch={true} onClick={handleLinkClick}>
+              <Link href={item.href} className="w-full" prefetch={true}>
                 <Button
                   variant="ghost"
                   className={cn(
