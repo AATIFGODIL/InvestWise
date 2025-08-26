@@ -11,7 +11,7 @@ import AutoInvest from "@/components/dashboard/auto-invest";
 import { useMarketStore } from "@/store/market-store";
 import { Clock } from "lucide-react";
 import Watchlist from "@/components/dashboard/watchlist";
-import EducationalContentDisplay from "@/components/dashboard/EducationalContentDisplay";
+import EducationalContent from "@/components/dashboard/educational-content";
 
 const PortfolioSummary = dynamic(() => import("@/components/dashboard/portfolio-summary"), { 
     ssr: false,
@@ -31,13 +31,13 @@ const InvestmentBundles = dynamic(() => import("@/components/dashboard/investmen
 
 const educationalContent = [
     {
-        title: "The Power of Compound Interest",
-        description: "A finance infographic on the power of compound interest.",
+        title: "Market Structures Explained",
+        description: "A finance infographic explaining different market structures.",
         filePath: "/infographic.png",
         type: "image" as const
     },
     {
-        title: "Elijah Dailey Week 6 Deliverable",
+        title: "The Power of Compound Interest",
         description: "The Week 6 deliverable document by Elijah Dailey.",
         filePath: "/deliverable.png",
         type: "image" as const
@@ -106,7 +106,7 @@ export default function DashboardClient() {
     </div>
     <div className="space-y-4">
         <h2 className="text-xl font-bold">Educational Content</h2>
-        <EducationalContentDisplay content={educationalContent} />
+        <EducationalContent content={educationalContent} />
     </div>
     <InvestmentBundles {...bundleProps} />
     <CommunityTrends limit={5} />

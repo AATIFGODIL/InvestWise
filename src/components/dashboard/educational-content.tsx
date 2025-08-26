@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -14,11 +13,11 @@ interface EducationalContentItem {
   type: 'image' | 'pdf';
 }
 
-interface EducationalContentDisplayProps {
+interface EducationalContentProps {
   content: EducationalContentItem[];
 }
 
-const EducationalContentDisplay: React.FC<EducationalContentDisplayProps> = ({ content }) => {
+const EducationalContent: React.FC<EducationalContentProps> = ({ content }) => {
   return (
     <div className="grid gap-6 md:grid-cols-2">
       {content.map((item, index) => (
@@ -56,4 +55,4 @@ const EducationalContentDisplay: React.FC<EducationalContentDisplayProps> = ({ c
   );
 };
 
-export default EducationalContentDisplay;
+export default EducationalContent;
