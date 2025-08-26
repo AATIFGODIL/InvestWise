@@ -43,24 +43,26 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
               "enable_publishing": false,
               "allow_symbol_change": true,
               "container_id": containerId,
+              "onChartReady": (widget: any) => {
+                widget.chart().onSymbolChanged().subscribe(null, (newSymbol: { name: string }) => {
+                    const cleanSymbol = newSymbol.name.split(':').pop();
+                    if (cleanSymbol) {
+                        onSymbolChange(cleanSymbol);
+                    }
+                });
+                widgetRef.current = widget;
+                isWidgetReady.current = true;
+              }
           };
           
-          const widget = new window.TradingView.widget(widgetOptions);
-          widget.onChartReady(() => {
-            widget.chart().onSymbolChanged().subscribe(null, (newSymbol: { name: string }) => {
-                const cleanSymbol = newSymbol.name.split(':').pop();
-                if (cleanSymbol) {
-                    onSymbolChange(cleanSymbol);
-                }
-            });
-            widgetRef.current = widget;
-            isWidgetReady.current = true;
-          });
+          // The constructor returns the widget instance, but we will manage it
+          // inside the onChartReady callback to ensure it's fully loaded.
+          new window.TradingView.widget(widgetOptions);
       }
     };
     
     // Delay widget creation slightly to ensure DOM is fully ready
-    const timeoutId = setTimeout(createWidget, 0);
+    const timeoutId = setTimeout(createWidget, 100);
 
     return () => {
         clearTimeout(timeoutId);
