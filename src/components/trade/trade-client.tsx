@@ -217,8 +217,8 @@ export default function TradeClient() {
             </div>
                 {error && <p className="text-destructive text-sm">{error}</p>}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2">
-                    <div className="h-[400px] md:h-[500px] w-full mb-6">
+                <div className="lg:col-span-2 space-y-6">
+                    <div className="h-[400px] md:h-[500px] w-full">
                         {isClient && <TradingViewWidget symbol={widgetSymbol} onSymbolChange={handleWidgetSymbolChange}/>}
                     </div>
                     <AiPredictionTrade initialSymbol={searchedSymbol} />
@@ -241,7 +241,7 @@ export default function TradeClient() {
             description="Discover themed collections for more focused strategies."
             bundles={specializedBundles}
         />
-
+        
         <Card>
             <CardHeader>
                 <CardTitle>Stock Screener</CardTitle>

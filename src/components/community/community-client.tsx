@@ -42,14 +42,14 @@ export default function CommunityClient() {
               <TabsTrigger value="trends">Trends</TabsTrigger>
           </TabsList>
           <TabsContent value="feed" className="mt-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-6">
                       <Leaderboard />
                       <PrivacySettings />
-                      {showQuests && <Quests />}
                   </div>
                   <div className="space-y-6">
                       <AskMentor />
+                      {showQuests && <Quests />}
                   </div>
               </div>
           </TabsContent>
