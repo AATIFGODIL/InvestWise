@@ -13,6 +13,7 @@ import Script from "next/script";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import '../lib/firebase/config';
 import { Loader2 } from 'lucide-react';
+import useLoadingStore from '@/store/loading-store';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -20,24 +21,28 @@ const poppins = Poppins({
   variable: "--font-body",
 });
 
-// Inner component to safely use the useAuth hook
+// Inner component to safely use hooks
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, hydrating } = useAuth(); // `hydrating` is the correct name from the provider
-  
+  const { user, hydrating } = useAuth();
+  const { isLoading, hideLoading } = useLoadingStore();
+
   const isAuthOrOnboardingRoute = pathname.startsWith('/auth') || pathname.startsWith('/onboarding');
   const isSpecialLayoutRoute = pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/certificate');
+  
+  // Hide loading overlay once navigation is complete
+  useEffect(() => {
+    hideLoading();
+  }, [pathname, hideLoading]);
 
   useEffect(() => {
-    // If we're done loading, there's no user, and we are on a protected route, redirect to signin.
     if (!hydrating && !user && !isAuthOrOnboardingRoute) {
         router.push('/auth/signin');
     }
   }, [user, hydrating, isAuthOrOnboardingRoute, router]);
   
-  // While loading, show a full-screen loader to prevent flashing of protected content
-  if (hydrating) {
+  if (hydrating || isLoading) {
     return (
        <div className="flex items-center justify-center h-screen w-full bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -45,7 +50,6 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     );
   }
   
-  // If authenticated on a special route, or if unauthenticated but on a public route, show content without nav.
   if ((user && isSpecialLayoutRoute) || isAuthOrOnboardingRoute) {
       return (
         <div className="flex flex-col h-screen">
@@ -56,7 +60,6 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       );
   }
   
-  // If authenticated on a regular route, show the full app layout with navigation.
   if (user) {
        return (
         <div className="flex flex-col h-screen">
@@ -68,8 +71,6 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       );
   }
   
-  // If not authenticated and trying to access a protected route, the useEffect will redirect.
-  // In the meantime, show a loader to prevent rendering anything.
   return (
        <div className="flex items-center justify-center h-screen w-full bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
