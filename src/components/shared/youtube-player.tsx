@@ -15,6 +15,7 @@ interface YouTubePlayerProps {
   videoTitle: string;
   description?: string;
   isChannel?: boolean;
+  imageUrl?: string;
 }
 
 // Function to extract video ID from various YouTube URL formats
@@ -24,7 +25,7 @@ const getYouTubeId = (url: string): string | null => {
   return (match && match[2].length === 11) ? match[2] : null;
 };
 
-const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ youtubeUrl, videoTitle, description, isChannel = false }) => {
+const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ youtubeUrl, videoTitle, description, isChannel = false, imageUrl }) => {
   const { watchedVideos, toggleWatchedVideo } = useVideoProgressStore();
   const isWatched = watchedVideos.has(videoTitle);
   const videoId = getYouTubeId(youtubeUrl);
@@ -34,7 +35,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ youtubeUrl, videoTitle, d
         <Card className="h-full flex flex-col">
             <CardHeader className="p-0">
                 <Image
-                    src="https://placehold.co/600x400.png"
+                    src={imageUrl || "https://placehold.co/600x400.png"}
                     alt={videoTitle}
                     width={600}
                     height={400}

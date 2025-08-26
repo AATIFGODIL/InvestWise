@@ -51,7 +51,7 @@ export default function AiPrediction() {
             AI Stock Prediction
         </CardTitle>
         <CardDescription>
-          Enter a stock symbol to get an AI-powered prediction for the next 7 days. This is a simulation and not financial advice.
+          Enter a stock symbol to get an AI-powered prediction for the next 5 months. This is a simulation and not financial advice.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
