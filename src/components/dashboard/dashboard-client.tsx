@@ -104,7 +104,10 @@ export default function DashboardClient() {
         <GoalProgress />
         <CommunityLeaderboard />
     </div>
-    <EducationalContentDisplay content={educationalContent} />
+    <div className="space-y-4">
+        <h2 className="text-xl font-bold">Educational Content</h2>
+        <EducationalContentDisplay content={educationalContent} />
+    </div>
     <InvestmentBundles {...bundleProps} />
     <CommunityTrends limit={5} />
     <AiPrediction />

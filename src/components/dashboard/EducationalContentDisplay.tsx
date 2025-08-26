@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -39,7 +40,7 @@ const EducationalContentDisplay: React.FC<EducationalContentDisplayProps> = ({ c
                     className="object-cover rounded-t-lg"
                 />
             )}
-            <div className="relative" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7)'}}>
+            <div className="relative z-10" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7)'}}>
                 <h2 className="text-xl font-bold">{item.title}</h2>
             </div>
           </div>
