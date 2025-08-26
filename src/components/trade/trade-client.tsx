@@ -216,14 +216,12 @@ export default function TradeClient() {
                 </Button>
             </div>
                 {error && <p className="text-destructive text-sm">{error}</p>}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-6">
-                    <div className="h-[400px] md:h-[500px] w-full">
-                        {isClient && <TradingViewWidget symbol={widgetSymbol} onSymbolChange={handleWidgetSymbolChange}/>}
-                    </div>
-                    <AiPredictionTrade initialSymbol={searchedSymbol} />
+            <div className="space-y-6">
+                <div className="h-[400px] md:h-[500px] w-full">
+                    {isClient && <TradingViewWidget symbol={widgetSymbol} onSymbolChange={handleWidgetSymbolChange}/>}
                 </div>
-                <div className="lg:col-span-1">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <AiPredictionTrade initialSymbol={searchedSymbol} />
                     <TradeForm 
                         selectedSymbol={searchedSymbol}
                         selectedPrice={price}
