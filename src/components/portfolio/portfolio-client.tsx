@@ -14,7 +14,6 @@ import { createTransaction } from "@/app/actions";
 import { useAuth } from "@/hooks/use-auth";
 import { useMarketStore } from "@/store/market-store";
 import Watchlist from "../dashboard/watchlist";
-import AppLayout from "../layout/app-layout";
 
 export default function PortfolioClient() {
   const { toast } = useToast();
@@ -62,7 +61,6 @@ export default function PortfolioClient() {
   }
 
   return (
-    <AppLayout>
       <main>
         <div className="p-4 space-y-6 pb-24">
           <div className="flex justify-between items-center">
@@ -88,6 +86,5 @@ export default function PortfolioClient() {
           <Chatbot />
         </div>
       </main>
-    </AppLayout>
   );
 }

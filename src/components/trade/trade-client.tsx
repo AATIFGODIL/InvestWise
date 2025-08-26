@@ -18,7 +18,6 @@ import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Watchlist from "../dashboard/watchlist";
-import AppLayout from "../layout/app-layout";
 import EducationalVideo from "../shared/educational-video";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
@@ -175,7 +174,6 @@ export default function TradeClient() {
 
 
   return (
-    <AppLayout>
       <main>
         <div className="p-4 space-y-6">
         <h1 className="text-2xl font-bold">Trade</h1>
@@ -262,6 +260,5 @@ export default function TradeClient() {
         
         </div>
       </main>
-    </AppLayout>
   );
 }
