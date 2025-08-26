@@ -59,7 +59,7 @@ export default function TradeClient() {
   const [loadingPrice, setLoadingPrice] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
-  const { isMarketOpen } = useMarketStore();
+  const { isMarketOpen, fetchMarketStatus } = useMarketStore();
   const { watchlist, addSymbol, removeSymbol } = useWatchlistStore();
 
   const isSymbolInWatchlist = watchlist.includes(searchedSymbol);
@@ -67,7 +67,8 @@ export default function TradeClient() {
   useEffect(() => {
     // This ensures the component is only rendered on the client side
     setIsClient(true);
-  }, []);
+    fetchMarketStatus();
+  }, [fetchMarketStatus]);
 
   const handleToggleWatchlist = () => {
     if (isSymbolInWatchlist) {
