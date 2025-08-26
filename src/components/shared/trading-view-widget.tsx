@@ -43,20 +43,19 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
               "enable_publishing": false,
               "allow_symbol_change": true,
               "container_id": containerId,
-              "onChartReady": (widget: any) => {
-                widget.chart().onSymbolChanged().subscribe(null, (newSymbol: { name: string }) => {
-                    const cleanSymbol = newSymbol.name.split(':').pop();
-                    if (cleanSymbol) {
-                        onSymbolChange(cleanSymbol);
-                    }
-                });
-                widgetRef.current = widget; // Assign the widget to the ref here
-                isWidgetReady.current = true;
-              }
           };
           
-          // The constructor returns the widget instance, but we will manage it via the onChartReady callback
-          new window.TradingView.widget(widgetOptions);
+          const widget = new window.TradingView.widget(widgetOptions);
+          widget.onChartReady(() => {
+            widget.chart().onSymbolChanged().subscribe(null, (newSymbol: { name: string }) => {
+                const cleanSymbol = newSymbol.name.split(':').pop();
+                if (cleanSymbol) {
+                    onSymbolChange(cleanSymbol);
+                }
+            });
+            widgetRef.current = widget;
+            isWidgetReady.current = true;
+          });
       }
     };
     
@@ -73,6 +72,9 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol, onSymbolC
             }
             widgetRef.current = null;
             isWidgetReady.current = false;
+        }
+        if (container.current) {
+          container.current.innerHTML = "";
         }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
