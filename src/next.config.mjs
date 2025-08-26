@@ -1,21 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    images: {
-        remotePatterns: [
-            {
-                protocol: 'https',
-                hostname: 'images.unsplash.com',
-                port: '',
-                pathname: '/**',
-            },
-            {
-                protocol: 'https',
-                hostname: 'placehold.co',
-                port: '',
-                pathname: '/**',
-            }
-        ],
-    },
+  webpack: (config, { isServer }) => {
+    // This is to fix a bug with handlebars and webpack
+    // https://github.com/handlebars-lang/handlebars.js/issues/1953
+    config.module.rules.push({
+      test: /\.mjs$/,
+      include: /node_modules/,
+      type: 'javascript/auto',
+    });
+    return config;
+  },
 };
 
 export default nextConfig;
