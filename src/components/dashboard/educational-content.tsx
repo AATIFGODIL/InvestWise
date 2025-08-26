@@ -25,20 +25,16 @@ const EducationalContent: React.FC<EducationalContentProps> = ({ content }) => {
             key={index} 
             className="flex flex-col justify-between"
         >
-          <div 
-            className="h-48 flex flex-col justify-end p-4 rounded-t-lg text-primary-foreground relative"
-          >
+          <div className="relative h-48 w-full">
             <Image
                 src={item.filePath}
                 alt={item.title}
                 fill
                 className="object-cover rounded-t-lg"
             />
-            <div className="relative z-10" style={{textShadow: '1px 1px 3px rgba(0,0,0,0.7)'}}>
-                <h2 className="text-xl font-bold">{item.title}</h2>
-            </div>
           </div>
           <CardContent className="pt-4 flex-grow">
+            <h2 className="text-xl font-bold mb-2">{item.title}</h2>
             <p className="text-muted-foreground">{item.description}</p>
           </CardContent>
           <CardFooter>
