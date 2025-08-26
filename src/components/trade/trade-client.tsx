@@ -221,7 +221,10 @@ export default function TradeClient() {
                     {isClient && <TradingViewWidget symbol={widgetSymbol} onSymbolChange={handleWidgetSymbolChange}/>}
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <AiPredictionTrade initialSymbol={searchedSymbol} />
+                    <div className="space-y-6">
+                        <Watchlist />
+                        <AiPredictionTrade initialSymbol={searchedSymbol} />
+                    </div>
                     <TradeForm 
                         selectedSymbol={searchedSymbol}
                         selectedPrice={price}
@@ -231,8 +234,6 @@ export default function TradeClient() {
             </div>
             </CardContent>
         </Card>
-
-        <Watchlist />
 
         <InvestmentBundles
             title="Explore Specialized Bundles"
