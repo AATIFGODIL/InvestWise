@@ -165,25 +165,28 @@ export type LeaderboardUser = {
 
 export async function getLeaderboardData(): Promise<{ success: boolean; data?: LeaderboardUser[]; error?: string; }> {
     try {
-        // This query requires a composite index on (leaderboardVisibility, portfolio.summary.totalGainLoss)
         const usersSnapshot = await db
             .collection('users')
             .where('leaderboardVisibility', 'in', ['public', 'anonymous'])
-            .orderBy('portfolio.summary.totalGainLoss', 'desc')
-            .limit(10)
             .get();
 
         if (usersSnapshot.empty) {
             return { success: true, data: [] };
         }
+        
+        const usersData = usersSnapshot.docs.map(doc => ({
+            uid: doc.id,
+            ...doc.data(),
+        }));
+        
+        const sortedUsers = usersData.sort((a, b) => (b.portfolio?.summary?.totalGainLoss || 0) - (a.portfolio?.summary?.totalGainLoss || 0));
 
-        const leaderboardData = usersSnapshot.docs.map((doc, index) => {
-            const userData = doc.data();
+        const leaderboardData = sortedUsers.slice(0, 10).map((userData, index) => {
             const isAnonymous = userData.leaderboardVisibility === 'anonymous';
             
             return {
                 rank: index + 1,
-                uid: doc.id,
+                uid: userData.uid,
                 name: isAnonymous ? 'Anonymous' : userData.username || 'Investor',
                 gain: userData.portfolio?.summary?.totalGainLoss || 0,
             };
@@ -192,9 +195,6 @@ export async function getLeaderboardData(): Promise<{ success: boolean; data?: L
         return { success: true, data: leaderboardData };
     } catch (error: any) {
         console.error("Error fetching leaderboard data:", error);
-        if (error.code === 'failed-precondition' || error.message?.includes('index')) {
-             return { success: false, error: "Database index not found. Please create the required composite index in your Firestore settings to enable the leaderboard." };
-        }
         return { success: false, error: "Failed to fetch leaderboard data. Please try again later." };
     }
 }
