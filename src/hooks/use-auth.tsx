@@ -170,9 +170,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
         const result = await signInWithPopup(auth, provider);
         const { isNew } = await initializeUserDocument(result.user);
+        
         if (isNew) {
+            toast({ title: "Account Created!", description: "Let's get you started." });
             router.push('/onboarding/quiz');
         } else {
+            toast({ title: "Signed In Successfully", description: "Welcome back!" });
             router.push('/dashboard');
         }
     } catch (error: any) {
