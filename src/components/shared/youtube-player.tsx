@@ -84,6 +84,7 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ youtubeUrl, videoTitle, d
     <Card className="h-full flex flex-col">
         <CardContent className="p-0 relative aspect-video w-full">
             <YouTube 
+                key={videoId}
                 videoId={videoId} 
                 opts={opts} 
                 onEnd={handleVideoEnd}
