@@ -11,19 +11,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CommunityTrends from "@/components/dashboard/community-trends";
 import Chatbot from "@/components/chatbot/chatbot";
 import { usePrivacyStore } from "@/store/privacy-store";
+import YouTubePlayer from "../shared/youtube-player";
 
 const videos = [
     {
-        title: "The Power of Community Investing",
-        description: "Learn how sharing insights (not secrets!) can make everyone a smarter investor.",
-        image: "https://placehold.co/600x400.png",
-        hint: "people talking"
+        title: "Following the Experts: CA Rachana Ranade",
+        description: "Learn from one of the leading voices in financial education. Note: This is a link to a channel.",
+        youtubeUrl: "https://www.youtube.com/channel/UCfO2yCpx6_XU-xovhpJuaYw",
+        isChannel: true,
     },
     {
-        title: "Learning from the Pros: What to Ask Mentors",
-        description: "Get the most out of mentorship by asking the right questions. Here’s a guide.",
-        image: "https://placehold.co/600x400.png",
-        hint: "presentation teaching"
+        title: "Trading Insights with Adam Khoo",
+        description: "Explore trading strategies and market analysis from a professional investor and trader. Note: This is a link to a channel.",
+        youtubeUrl: "https://www.youtube.com/@AdamKhoo",
+        isChannel: true,
     }
 ]
 
@@ -62,7 +63,7 @@ export default function CommunityClient() {
           <h2 className="text-xl font-bold">Learn About Community</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {videos.map((video) => (
-                  <EducationalVideo key={video.title} {...video} />
+                  <YouTubePlayer key={video.title} {...video} />
               ))}
           </div>
       </div>

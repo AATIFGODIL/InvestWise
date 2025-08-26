@@ -18,7 +18,7 @@ import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Watchlist from "../dashboard/watchlist";
-import EducationalVideo from "../shared/educational-video";
+import YouTubePlayer from "../shared/youtube-player";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -28,16 +28,14 @@ interface TradeData {
 
 const videos = [
     {
-        title: "Market vs. Limit Orders",
-        description: "Learn the crucial difference between order types to buy and sell at the price you want.",
-        image: "https://placehold.co/600x400.png",
-        hint: "stock chart"
+        title: "Finance & Trading (Combined)",
+        description: "An in-depth look at finance and trading for beginners.",
+        youtubeUrl: "https://www.youtube.com/watch?v=BUCPPCXOHbs"
     },
     {
         title: "Reading Stock Charts for Beginners",
         description: "An introduction to candlestick charts, volume, and identifying simple trends.",
-        image: "https://placehold.co/600x400.png",
-        hint: "financial analytics"
+        youtubeUrl: "https://www.youtube.com/watch?v=sWTnFS10tdQ"
     }
 ]
 
@@ -253,7 +251,7 @@ export default function TradeClient() {
             <h2 className="text-xl font-bold">Learn About Trading</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {videos.map((video) => (
-                    <EducationalVideo key={video.title} {...video} />
+                    <YouTubePlayer key={video.title} videoTitle={video.title} description={video.description} youtubeUrl={video.youtubeUrl} />
                 ))}
             </div>
         </div>

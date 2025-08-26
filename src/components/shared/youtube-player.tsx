@@ -5,11 +5,16 @@ import React from 'react';
 import YouTube from 'react-youtube';
 import useVideoProgressStore from '@/store/video-progress-store';
 import { Button } from '../ui/button';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, ExternalLink } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import Image from 'next/image';
+import Link from 'next/link';
 
 interface YouTubePlayerProps {
   youtubeUrl: string;
   videoTitle: string;
+  description?: string;
+  isChannel?: boolean;
 }
 
 // Function to extract video ID from various YouTube URL formats
@@ -19,10 +24,39 @@ const getYouTubeId = (url: string): string | null => {
   return (match && match[2].length === 11) ? match[2] : null;
 };
 
-const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ youtubeUrl, videoTitle }) => {
+const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ youtubeUrl, videoTitle, description, isChannel = false }) => {
   const { watchedVideos, toggleWatchedVideo } = useVideoProgressStore();
   const isWatched = watchedVideos.has(videoTitle);
   const videoId = getYouTubeId(youtubeUrl);
+
+  if (isChannel) {
+    return (
+        <Card className="h-full flex flex-col">
+            <CardHeader className="p-0">
+                <Image
+                    src="https://placehold.co/600x400.png"
+                    alt={videoTitle}
+                    width={600}
+                    height={400}
+                    className="rounded-t-lg aspect-video object-cover"
+                    data-ai-hint="youtube channel"
+                />
+            </CardHeader>
+            <CardContent className="flex-1 p-4">
+                <h3 className="font-semibold">{videoTitle}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{description}</p>
+            </CardContent>
+            <CardFooter className="p-4 pt-0">
+                <Button asChild variant="outline" className="w-full">
+                    <Link href={youtubeUrl} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Visit Channel
+                    </Link>
+                </Button>
+            </CardFooter>
+        </Card>
+    )
+  }
 
   if (!videoId) {
     return <div className="aspect-video bg-muted rounded-t-lg flex items-center justify-center"><p>Invalid YouTube URL</p></div>;
@@ -44,22 +78,28 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ youtubeUrl, videoTitle })
   };
 
   return (
-    <div className="relative aspect-video w-full">
-      <YouTube 
-        videoId={videoId} 
-        opts={opts} 
-        onEnd={handleVideoEnd}
-        className="absolute top-0 left-0 w-full h-full rounded-t-lg overflow-hidden"
-      />
-      {isWatched && (
-        <div className="absolute bottom-2 right-2">
-            <Button size="sm" variant="secondary" onClick={() => toggleWatchedVideo(videoTitle)}>
-                <RotateCcw className="mr-2 h-4 w-4" />
-                Mark as Unwatched
-            </Button>
-        </div>
-      )}
-    </div>
+    <Card className="h-full flex flex-col">
+        <CardContent className="p-0 relative aspect-video w-full">
+            <YouTube 
+                videoId={videoId} 
+                opts={opts} 
+                onEnd={handleVideoEnd}
+                className="absolute top-0 left-0 w-full h-full rounded-t-lg overflow-hidden"
+            />
+            {isWatched && (
+                <div className="absolute bottom-2 right-2 z-10">
+                    <Button size="sm" variant="secondary" onClick={() => toggleWatchedVideo(videoTitle)}>
+                        <RotateCcw className="mr-2 h-4 w-4" />
+                        Watched
+                    </Button>
+                </div>
+            )}
+        </CardContent>
+        <CardFooter className="p-4 flex-grow flex flex-col items-start">
+             <h3 className="font-semibold">{videoTitle}</h3>
+             <p className="text-sm text-muted-foreground mt-1">{description}</p>
+        </CardFooter>
+    </Card>
   );
 };
 

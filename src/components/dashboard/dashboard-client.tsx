@@ -29,27 +29,6 @@ const InvestmentBundles = dynamic(() => import("@/components/dashboard/investmen
     ssr: false,
 });
 
-const educationalContent = [
-    {
-        title: "Market Structures Explained",
-        description: "A finance infographic explaining different market structures.",
-        filePath: "/infographic.png",
-        type: "image" as const
-    },
-    {
-        title: "The Power of Compound Interest",
-        description: "A finance infographic explaining compound interest.",
-        filePath: "/deliverable.png",
-        type: "image" as const
-    },
-    {
-        title: "Intro to Stock Market Basics",
-        description: "Learn the fundamentals of stock market investing in this beginner-friendly video.",
-        filePath: "https://www.youtube.com/watch?v=A7_fkAmql_4",
-        type: "video" as const
-    }
-]
-
 export default function DashboardClient() {
   const [userProfile, setUserProfile] = useState<string | null>(null);
   const { isMarketOpen, fetchMarketStatus } = useMarketStore();
@@ -110,10 +89,6 @@ export default function DashboardClient() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <GoalProgress />
             <CommunityLeaderboard />
-        </div>
-        <div className="space-y-4">
-            <h2 className="text-xl font-bold">Educational Content</h2>
-            <EducationalContent content={educationalContent} />
         </div>
         <InvestmentBundles {...bundleProps} />
         <CommunityTrends limit={5} />
