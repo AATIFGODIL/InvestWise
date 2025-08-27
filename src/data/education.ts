@@ -8,7 +8,7 @@ export const educationalContent = [
   },
   {
     title: "The Power of Compound Interest",
-    description: "A finance infographic explaining compound interest.",
+    description: "A finance infographic explaining the power of compound interest.",
     filePath: "/deliverable.png",
     type: 'image',
   }
