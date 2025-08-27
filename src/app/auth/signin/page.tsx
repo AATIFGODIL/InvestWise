@@ -43,7 +43,7 @@ const FinanceBackground = () => (
             <path
                 d="M 30 0 V 12 M 24 6 H 36 M 60 18 V 30 M 54 24 H 66 M 90 36 V 48 M 84 42 H 96 M 12 60 L 24 72 L 36 60 L 48 72 M 72 84 L 84 96 L 96 84 L 108 96 M 6 96 H 18 M 12 90 V 102"
                 strokeWidth="1"
-                className="stroke-border"
+                stroke="hsl(var(--primary) / 0.1)"
                 fill="none"
             />
             </pattern>
