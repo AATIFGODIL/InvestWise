@@ -22,7 +22,7 @@ export default function Logo({ className }: LogoProps) {
         strokeLinejoin="round"
       />
       <path
-        d="M16 7V25"
+        d="M16 4V28"
         stroke="currentColor"
         strokeWidth="3.5"
         strokeLinecap="round"
