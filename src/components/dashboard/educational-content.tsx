@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Card, CardFooter } from '@/components/ui/card';
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -35,7 +35,7 @@ const EducationalContent: React.FC<EducationalContentProps> = ({ content }) => {
                     src={item.filePath}
                     alt={item.title}
                     fill
-                    className="object-cover"
+                    className="object-cover object-top"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
                 <div className="absolute bottom-0 left-0 p-4">
