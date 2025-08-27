@@ -27,11 +27,8 @@ const GoogleIcon = () => (
 );
 
 const FinanceBackground = () => (
-  <div className="absolute inset-0 -z-10 overflow-hidden">
-    <svg
-      className="absolute left-0 top-0 h-full w-full"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+  <div className="absolute inset-0">
+    <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <pattern
           id="finance-pattern"
@@ -48,12 +45,13 @@ const FinanceBackground = () => (
                M 72 84 L 84 96 L 96 84 L 108 96 
                M 6 96 H 18 M 12 90 V 102"
             stroke="#6D28D9"
-            strokeOpacity="0.08"
+            strokeOpacity="0.12"
             strokeWidth="1"
             fill="none"
           />
         </pattern>
       </defs>
+      <rect width="100%" height="100%" fill="hsl(var(--background))" />
       <rect width="100%" height="100%" fill="url(#finance-pattern)" />
     </svg>
   </div>
@@ -106,9 +104,9 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-background p-4">
+    <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
       <FinanceBackground />
-      <Card className="w-full max-w-sm">
+      <Card className="w-full max-w-sm relative z-10">
           <div className="flex justify-center pt-8">
               <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
           </div>
@@ -145,7 +143,7 @@ export default function SignInPage() {
                   <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                  <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
               </div>
             </div>
             <form onSubmit={handleEmailSignIn} className="grid gap-4">
