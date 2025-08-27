@@ -14,6 +14,7 @@ export default function Logo({ className }: LogoProps) {
       xmlns="http://www.w3.org/2000/svg"
       className={cn("text-primary", className)}
     >
+      {/* Inverted W */}
       <path
         d="M4 25L10 7L16 25L22 7L28 25"
         stroke="currentColor"
@@ -21,6 +22,7 @@ export default function Logo({ className }: LogoProps) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+      {/* I */}
       <path
         d="M16 2V30"
         stroke="currentColor"
