@@ -35,15 +35,15 @@ const FinanceBackground = () => (
         <defs>
             <pattern
             id="finance-pattern"
-            width="100"
-            height="100"
+            width="120"
+            height="120"
             patternUnits="userSpaceOnUse"
             patternTransform="rotate(45)"
             >
             <path
-                d="M 25 0 V 10 M 20 5 H 30 M 50 15 V 25 M 45 20 H 55 M 75 30 V 40 M 70 35 H 80 M 10 50 L 20 60 L 30 50 L 40 60 M 60 70 L 70 80 L 80 70 L 90 80 M 5 80 H 15 M 10 75 V 85"
-                strokeWidth="0.5"
-                className="stroke-muted-foreground/20"
+                d="M 30 0 V 12 M 24 6 H 36 M 60 18 V 30 M 54 24 H 66 M 90 36 V 48 M 84 42 H 96 M 12 60 L 24 72 L 36 60 L 48 72 M 72 84 L 84 96 L 96 84 L 108 96 M 6 96 H 18 M 12 90 V 102"
+                strokeWidth="1"
+                className="stroke-border"
                 fill="none"
             />
             </pattern>
