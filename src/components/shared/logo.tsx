@@ -14,23 +14,24 @@ export default function Logo({ className }: LogoProps) {
       xmlns="http://www.w3.org/2000/svg"
       className={cn("text-primary", className)}
     >
-      {/* Upright 'W' path, shifted up to center the 'I' */}
       <path
         d="M4 7L10 25L16 7L22 25L28 7"
         stroke="currentColor"
         strokeWidth="3.5"
         strokeLinejoin="round"
       />
-      {/* Longer, rounded, dark purple 'I' using a <line> element for clarity */}
-      <line
-        x1="16"
-        y1="0"
-        x2="16"
-        y2="32"
-        stroke="#4C1D95"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-      />
+      <text
+        x="50%"
+        y="50%"
+        dominantBaseline="middle"
+        textAnchor="middle"
+        fill="#4C1D95"
+        fontSize="48"
+        fontWeight="bold"
+        fontFamily="Poppins, sans-serif"
+      >
+        I
+      </text>
     </svg>
   );
 }
