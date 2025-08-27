@@ -1,8 +1,3 @@
-
-'use server';
-
-import { createNextConfig } from 'next/dist/server/config-shared.js';
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -10,17 +5,13 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'picsum.photos',
-        port: '',
-        pathname: '**',
       },
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '**',
       },
     ],
   },
 };
 
-export default createNextConfig(nextConfig);
+export default nextConfig;
