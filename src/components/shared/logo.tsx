@@ -6,38 +6,18 @@ interface LogoProps {
   height?: string | number;
 }
 
-export default function Logo({ className, width = 40, height = 30 }: LogoProps) {
+export default function Logo({ className, width = 32, height = 32 }: LogoProps) {
   return (
     <svg
       width={width}
       height={height}
-      viewBox="0 0 256 192"
+      viewBox="0 0 100 100"
       xmlns="http://www.w3.org/2000/svg"
       className={cn("text-primary", className)}
       fill="currentColor"
     >
-      <path
-        d="M56 28 a18 18 0 1 1 0 -0.0001Z M56 64
-           v75
-           a12 12 0 0 0 12 12
-           h0
-           a12 12 0 0 0 12 -12
-           L80 94
-           l18 57
-           a12 12 0 0 0 11 9
-           h0
-           a12 12 0 0 0 11 -9
-           l18 -57
-           L138 139
-           a12 12 0 0 0 12 12
-           h0
-           a12 12 0 0 0 12 -12
-           v-75
-           a12 12 0 0 0 -12 -12
-           h-84
-           a12 12 0 0 0 -12 12
-           Z"
-      />
+      <circle cx="26" cy="23" r="11" />
+      <path d="M15,45 V85 H37 V58 C37,58 45,45 59,45 C73,45 80,58 80,58 V85 H100 V45 C100,45 85,30 72,30 C59,30 45,45 45,45 C45,45 31,30 18,30 C5,30 15,45 15,45 Z" />
     </svg>
   );
 }
