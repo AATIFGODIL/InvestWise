@@ -9,24 +9,14 @@ export default function Logo({ className }: LogoProps) {
     <svg
       width="28"
       height="28"
-      viewBox="0 0 28 24"
+      viewBox="0 0 28 28"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={cn("text-primary", className)}
     >
       <path
-        d="M2 20V4L8 20L14 4L20 20L26 4V20"
-        stroke="currentColor"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M14 4V20"
-        stroke="currentColor"
-        strokeWidth="4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M2 24L8 4H12L14 14L16 4H20L26 24H21L18 10L14 24L10 10L7 24H2Z"
+        fill="currentColor"
       />
     </svg>
   );
