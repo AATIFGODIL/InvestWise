@@ -7,16 +7,26 @@ interface LogoProps {
 export default function Logo({ className }: LogoProps) {
   return (
     <svg
-      width="28"
-      height="28"
-      viewBox="0 0 28 28"
+      width="32"
+      height="32"
+      viewBox="0 0 32 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={cn("text-primary", className)}
     >
       <path
-        d="M2 24L8 4H12L14 14L16 4H20L26 24H21L18 10L14 24L10 10L7 24H2Z"
-        fill="currentColor"
+        d="M4 8L10 24L16 14L22 24L28 8"
+        stroke="currentColor"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M16 4V28"
+        stroke="currentColor"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
