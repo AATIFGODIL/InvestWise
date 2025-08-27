@@ -24,7 +24,7 @@ export default function Logo({ className }: LogoProps) {
       <path
         d="M16 1V31"
         stroke="#4C1D95"
-        strokeWidth="7"
+        strokeWidth="3.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
