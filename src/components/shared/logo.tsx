@@ -15,14 +15,7 @@ export default function Logo({ className }: LogoProps) {
       className={cn("text-primary", className)}
     >
       <path
-        d="M4 8L10 24L16 14L22 24L28 8"
-        stroke="currentColor"
-        strokeWidth="3.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M16 4V28"
+        d="M4 18L10 24L16 14L22 24L28 18"
         stroke="currentColor"
         strokeWidth="3.5"
         strokeLinecap="round"
