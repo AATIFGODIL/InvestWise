@@ -92,7 +92,7 @@ export default function DashboardClient() {
             <CommunityLeaderboard />
         </div>
         <div className="space-y-4 pt-4">
-            <h2 className="text-xl font-bold">Learn the Ropes</h2>
+            <h2 className="text-xl font-bold">Educational Content</h2>
             <EducationalContent content={educationalContent} />
         </div>
         <InvestmentBundles {...bundleProps} />
