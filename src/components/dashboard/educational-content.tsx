@@ -35,7 +35,10 @@ const EducationalContent: React.FC<EducationalContentProps> = ({ content }) => {
                     src={item.filePath}
                     alt={item.title}
                     fill
-                    className={`object-cover ${item.title.includes("Market Structures") ? "object-top" : "object-center"}`}
+                    className="object-cover"
+                    style={{ 
+                      objectPosition: item.title.includes("Market Structures") ? 'top' : 'center 10%' 
+                    }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
                 <div className="absolute bottom-0 left-0 p-4">
