@@ -32,23 +32,18 @@ const FinanceBackground = () => (
       <defs>
         <pattern
           id="finance-pattern"
-          width="120"
-          height="120"
+          width="140"
+          height="140"
           patternUnits="userSpaceOnUse"
           patternTransform="rotate(45)"
         >
-          <path
-            d="M 30 0 V 12 M 24 6 H 36 
-               M 60 18 V 30 M 54 24 H 66 
-               M 90 36 V 48 M 84 42 H 96 
-               M 12 60 L 24 72 L 36 60 L 48 72 
-               M 72 84 L 84 96 L 96 84 L 108 96 
-               M 6 96 H 18 M 12 90 V 102"
-            stroke="#6D28D9"
-            strokeOpacity="0.12"
-            strokeWidth="1"
-            fill="none"
-          />
+          {/* Simple bar chart */}
+          <path d="M 20 120 V 90 M 30 120 V 80 M 40 120 V 100" stroke="hsl(var(--primary) / 0.12)" strokeWidth="2" fill="none" />
+          {/* Pie chart */}
+          <path d="M 70 20 A 15 15 0 0 1 85 35 L 70 35 Z" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="hsl(var(--primary) / 0.05)" />
+          <circle cx="70" cy="35" r="15" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" />
+          {/* Percentage sign */}
+          <path d="M 110 80 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 120 100 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 110 98 L 122 82" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" />
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill="hsl(var(--background))" />
