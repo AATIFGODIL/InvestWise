@@ -16,8 +16,11 @@ export default function Logo({ className }: LogoProps) {
       className={cn("text-primary", className)}
     >
       <path
-        d="M12 2L2 12H6V22H10V16H14V22H18V12H22L12 2ZM12 5.69L16.31 10H7.69L12 5.69Z"
-        fill="currentColor"
+        d="M4 4V20M4 20H8L12 4L16 20H20"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   );
