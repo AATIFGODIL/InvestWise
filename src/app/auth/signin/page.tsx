@@ -19,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import useLoadingStore from "@/store/loading-store";
+import Logo from "@/components/shared/logo";
 
 const GoogleIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512" className="h-5 w-5 mr-2">
@@ -102,7 +103,8 @@ export default function SignInPage() {
     <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
       <FinanceBackground />
       <Card className="w-full max-w-sm relative z-10">
-          <div className="flex justify-center pt-8">
+          <div className="flex justify-center items-center pt-8 gap-2">
+              <Logo />
               <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
           </div>
           <CardHeader>

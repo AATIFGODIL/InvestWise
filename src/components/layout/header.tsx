@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/use-auth";
 import { useUserStore } from "@/store/user-store";
+import Logo from "../shared/logo";
 
 export default function Header() {
   const { user, signOut } = useAuth();
@@ -33,7 +34,8 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-30 flex h-20 items-center justify-between bg-primary px-4 sm:px-6 text-primary-foreground">
       <div className="flex items-center gap-2 font-semibold">
-        <Link href="/dashboard">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <Logo className="text-primary-foreground" />
           <h1 className="text-xl font-bold">InvestWise</h1>
         </Link>
       </div>
