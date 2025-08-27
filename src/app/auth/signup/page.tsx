@@ -19,7 +19,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import useLoadingStore from "@/store/loading-store";
-import Logo from "@/components/shared/logo";
 
 
 const GoogleIcon = () => (
@@ -98,7 +97,6 @@ export default function SignUpPage() {
       <FinanceBackground />
       <Card className="w-full max-w-sm relative z-10">
         <div className="flex justify-center items-center pt-8 gap-2">
-            <Logo />
             <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
         </div>
         <CardHeader>
