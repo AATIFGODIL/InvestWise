@@ -17,14 +17,14 @@ export default function Logo({ className }: LogoProps) {
       <path
         d="M2 20V4L8 20L14 4L20 20L26 4V20"
         stroke="currentColor"
-        strokeWidth="3.5"
+        strokeWidth="4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M14 4V20"
         stroke="currentColor"
-        strokeWidth="3.5"
+        strokeWidth="4"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
