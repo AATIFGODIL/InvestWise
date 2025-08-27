@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -30,26 +30,29 @@ const EducationalContent: React.FC<EducationalContentProps> = ({ content }) => {
              <YouTubePlayer videoTitle={item.title} youtubeUrl={item.youtubeUrl} />
           ) : (
             item.filePath && (
-              <div className="relative h-48 w-full">
-                <Image
-                    src={item.filePath}
-                    alt={item.title}
-                    fill
-                    className="object-cover"
-                    style={{ 
-                      objectPosition: item.title.includes("Market Structures") ? 'top' : 'center 10%' 
-                    }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
-                <div className="absolute bottom-0 left-0 p-4">
-                    <h2 className="font-bold text-lg text-white mb-1">{item.title}</h2>
-                    <p className="text-sm text-white/90 line-clamp-2">{item.description}</p>
-                </div>
-              </div>
+              <>
+                <CardHeader className="p-0">
+                  <div className="relative h-48 w-full">
+                    <Image
+                        src={item.filePath}
+                        alt={item.title}
+                        fill
+                        className="object-cover"
+                        style={{ 
+                          objectPosition: item.title.includes("Market Structures") ? 'top' : 'center 10%' 
+                        }}
+                    />
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <h2 className="font-bold text-lg mb-1">{item.title}</h2>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
+                </CardContent>
+              </>
             )
           )}
           {item.type !== 'video' && item.filePath && (
-            <CardFooter className='p-4'>
+            <CardFooter className='p-4 pt-0 mt-auto'>
               <Button asChild className="w-full">
                 <Link href={item.filePath} target="_blank" rel="noopener noreferrer">
                   Read Document
