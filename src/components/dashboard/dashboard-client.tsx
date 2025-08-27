@@ -11,6 +11,8 @@ import AutoInvest from "@/components/dashboard/auto-invest";
 import { useMarketStore } from "@/store/market-store";
 import { Clock } from "lucide-react";
 import Watchlist from "@/components/dashboard/watchlist";
+import EducationalContent from "./educational-content";
+import { educationalContent } from "@/data/education";
 
 const PortfolioSummary = dynamic(() => import("@/components/dashboard/portfolio-summary"), { 
     ssr: false,
@@ -88,6 +90,10 @@ export default function DashboardClient() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <GoalProgress />
             <CommunityLeaderboard />
+        </div>
+        <div className="space-y-4 pt-4">
+            <h2 className="text-xl font-bold">Learn the Ropes</h2>
+            <EducationalContent content={educationalContent} />
         </div>
         <InvestmentBundles {...bundleProps} />
         <CommunityTrends limit={5} />
