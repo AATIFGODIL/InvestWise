@@ -20,18 +20,15 @@ export default function Logo({ className }: LogoProps) {
         strokeWidth="3.5"
         strokeLinejoin="round"
       />
-      <text
-        x="50%"
-        y="50%"
-        dominantBaseline="middle"
-        textAnchor="middle"
-        fill="#4C1D95"
-        fontSize="48"
-        fontWeight="bold"
-        fontFamily="Poppins, sans-serif"
-      >
-        I
-      </text>
+      <line
+        x1="16"
+        y1="0"
+        x2="16"
+        y2="32"
+        stroke="#4C1D95"
+        strokeWidth="3.5"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
