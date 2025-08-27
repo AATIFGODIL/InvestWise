@@ -14,17 +14,29 @@ export default function Logo({ className, width = 40, height = 30 }: LogoProps) 
       viewBox="0 0 256 192"
       xmlns="http://www.w3.org/2000/svg"
       className={cn("text-primary", className)}
+      fill="currentColor"
     >
-      {/* dot of the i */}
-      <circle cx="56" cy="28" r="18" fill="currentColor" />
-      {/* stem of the i + flowing w (rounded, thinner stroke, corrected orientation) */}
       <path
-        d="M56 64 V148 M56 148 C 92 200, 122 200, 140 148 C 158 200, 190 200, 208 148"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={36}
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        d="M56 28 a18 18 0 1 1 0 -0.0001Z M56 64
+           v75
+           a12 12 0 0 0 12 12
+           h0
+           a12 12 0 0 0 12 -12
+           L80 94
+           l18 57
+           a12 12 0 0 0 11 9
+           h0
+           a12 12 0 0 0 11 -9
+           l18 -57
+           L138 139
+           a12 12 0 0 0 12 12
+           h0
+           a12 12 0 0 0 12 -12
+           v-75
+           a12 12 0 0 0 -12 -12
+           h-84
+           a12 12 0 0 0 -12 12
+           Z"
       />
     </svg>
   );
