@@ -1,21 +1,14 @@
-
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.externals.push('handlebars');
-    }
-    return config;
-  },
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'images.unsplash.com',
+        hostname: 'picsum.photos',
       },
       {
         protocol: 'https',
-        hostname: 'placehold.co',
+        hostname: 'images.unsplash.com',
       },
     ],
   },
