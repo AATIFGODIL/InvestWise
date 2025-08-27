@@ -27,29 +27,35 @@ const GoogleIcon = () => (
 );
 
 const FinanceBackground = () => (
-    <div className="absolute inset-0 -z-10 overflow-hidden">
-        <svg
-        className="absolute left-0 top-0 h-full w-full"
-        xmlns="http://www.w3.org/2000/svg"
+  <div className="absolute inset-0 -z-10 overflow-hidden">
+    <svg
+      className="absolute left-0 top-0 h-full w-full"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <defs>
+        <pattern
+          id="finance-pattern"
+          width="120"
+          height="120"
+          patternUnits="userSpaceOnUse"
+          patternTransform="rotate(45)"
         >
-        <defs>
-            <pattern
-            id="finance-pattern"
-            width="120"
-            height="120"
-            patternUnits="userSpaceOnUse"
-            patternTransform="rotate(45)"
-            >
-            <path
-                d="M 30 0 V 12 M 24 6 H 36 M 60 18 V 30 M 54 24 H 66 M 90 36 V 48 M 84 42 H 96 M 12 60 L 24 72 L 36 60 L 48 72 M 72 84 L 84 96 L 96 84 L 108 96 M 6 96 H 18 M 12 90 V 102"
-                strokeWidth="1"
-                stroke="hsl(var(--primary) / 0.1)"
-                fill="none"
-            />
-            </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#finance-pattern)" />
-        </svg>
+          <path
+            d="M 30 0 V 12 M 24 6 H 36 
+               M 60 18 V 30 M 54 24 H 66 
+               M 90 36 V 48 M 84 42 H 96 
+               M 12 60 L 24 72 L 36 60 L 48 72 
+               M 72 84 L 84 96 L 96 84 L 108 96 
+               M 6 96 H 18 M 12 90 V 102"
+            stroke="#6D28D9"
+            strokeOpacity="0.08"
+            strokeWidth="1"
+            fill="none"
+          />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#finance-pattern)" />
+    </svg>
   </div>
 );
 
