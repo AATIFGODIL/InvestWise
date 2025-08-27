@@ -16,14 +16,14 @@ export default function Logo({ className }: LogoProps) {
       className={cn("text-primary", className)}
     >
       <path
-        d="M2 20L8 4L14 20L20 4L26 20"
+        d="M2 4L8 20L14 4L20 20L26 4"
         stroke="currentColor"
         strokeWidth="2.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M10 3V21"
+        d="M14 4V20"
         stroke="currentColor"
         strokeWidth="2.5"
         strokeLinecap="round"
