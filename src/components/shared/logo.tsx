@@ -1,4 +1,3 @@
-
 import { cn } from "@/lib/utils";
 
 interface LogoProps {
@@ -16,16 +15,16 @@ export default function Logo({ className }: LogoProps) {
       className={cn("text-primary", className)}
     >
       <path
-        d="M2 4L8 20L14 4L20 20L26 4"
+        d="M2 20V4L8 20L14 4L20 20L26 4V20"
         stroke="currentColor"
-        strokeWidth="2.5"
+        strokeWidth="3.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
         d="M14 4V20"
         stroke="currentColor"
-        strokeWidth="2.5"
+        strokeWidth="3.5"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
