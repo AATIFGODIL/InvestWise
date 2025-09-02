@@ -1,5 +1,4 @@
-
-"use client";
+'use client';
 
 import { useMemo, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
@@ -14,6 +13,8 @@ import Watchlist from "@/components/dashboard/watchlist";
 import EducationalContent from "./educational-content";
 import { educationalContent } from "@/data/education";
 
+// These components are loaded dynamically to improve initial page load performance.
+// They will only be loaded when they are needed, reducing the client-side JavaScript bundle size.
 const PortfolioSummary = dynamic(() => import("@/components/dashboard/portfolio-summary"), { 
     ssr: false,
 });
@@ -35,6 +36,8 @@ export default function DashboardClient() {
   const { isMarketOpen, fetchMarketStatus } = useMarketStore();
 
   useEffect(() => {
+    // Check for the user's profile (from the onboarding quiz) in localStorage
+    // to personalize the content they see on the dashboard.
     if (typeof window !== 'undefined') {
       const profile = localStorage.getItem('userProfile');
       setUserProfile(profile);
@@ -42,6 +45,8 @@ export default function DashboardClient() {
     fetchMarketStatus();
   }, [fetchMarketStatus]);
 
+  // This function determines which set of investment bundles to show the user
+  // based on their self-identified experience level from the onboarding quiz.
   const getBundlesForProfile = (profile: string | null) => {
     switch(profile) {
         case "Student":
@@ -70,6 +75,7 @@ export default function DashboardClient() {
 
   const bundleProps = useMemo(() => getBundlesForProfile(userProfile), [userProfile]);
 
+  // The congratulations banner is shown only to users who are still in the early stages of their investment journey.
   const showCongrats = userProfile === "Student" || userProfile === "Beginger" || userProfile === "Amateur";
 
   return (

@@ -35,10 +35,8 @@ export async function investmentChatbot(input: InvestmentChatbotInput): Promise<
   return investmentChatbotFlow(input);
 }
 
-/**
- * Defines the AI prompt for the chatbot.
- * This prompt instructs the AI on its role, personality, and how to format the output.
- */
+// This prompt instructs the AI on its persona and task. By defining its role as
+// a friendly assistant for beginners, we ensure the responses are helpful and easy to understand.
 const prompt = ai.definePrompt({
   name: 'investmentChatbotPrompt',
   input: {schema: InvestmentChatbotInputSchema},
@@ -52,10 +50,8 @@ const prompt = ai.definePrompt({
   Please provide a helpful and easy-to-understand explanation.`,
 });
 
-/**
- * Defines the main Genkit flow for the chatbot.
- * A flow orchestrates AI model calls and can include other logic. In this case, it simply calls the prompt.
- */
+// A Genkit flow orchestrates AI model calls and can include other logic.
+// In this case, the flow is straightforward: it simply executes the prompt with the user's input.
 const investmentChatbotFlow = ai.defineFlow(
   {
     name: 'investmentChatbotFlow',
@@ -63,10 +59,8 @@ const investmentChatbotFlow = ai.defineFlow(
     outputSchema: InvestmentChatbotOutputSchema,
   },
   async input => {
-    // Execute the prompt with the user's input.
     const {output} = await prompt(input);
-
-    // The '!' tells TypeScript that we are certain the output will not be null.
+    // The '!' tells TypeScript that we are certain the output will not be null based on the prompt's design.
     return output!;
   }
 );

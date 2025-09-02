@@ -1,12 +1,9 @@
-
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 import { type User } from 'firebase/auth';
 import { doc, getDoc, type Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
-
-// Import all necessary store hooks
 import { useUserStore } from "@/store/user-store";
 import { usePortfolioStore } from "@/store/portfolio-store";
 import { useGoalStore } from "@/store/goal-store";
@@ -17,8 +14,10 @@ import { useTransactionStore } from '@/store/transaction-store';
 import { useWatchlistStore } from '@/store/watchlist-store';
 
 /**
- * A hook to fetch and hydrate all user-related data from Firestore
- * into various Zustand stores.
+ * A custom hook to fetch all user-related data from Firestore and hydrate
+ * the application's state (Zustand stores) upon user login. This ensures
+ * that the entire app has access to the most up-to-date user information.
+ *
  * @param user The Firebase auth user object.
  * @returns An object containing the loading state.
  */
@@ -34,6 +33,7 @@ export default function useUserData(user: User | null) {
     const fetchAndHydrate = async () => {
       setLoading(true);
       try {
+        // Fetch market holidays first, as they are needed for chart generation.
         await usePortfolioStore.getState().fetchMarketHolidays();
         
         const userDocRef = doc(db, "users", user.uid);
@@ -44,7 +44,8 @@ export default function useUserData(user: User | null) {
           const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
           const transactions = userData.transactions || [];
 
-          // Hydrate all stores safely using getState() inside the async function
+          // Hydrate all Zustand stores with the fetched data.
+          // Using getState() here is safe because this effect runs once after the stores are initialized.
           useThemeStore.getState().setTheme(userData.theme || "light");
           useUserStore.getState().setUsername(userData.username || "Investor");
           useUserStore.getState().setPhotoURL(userData.photoURL || "");
@@ -58,6 +59,7 @@ export default function useUserData(user: User | null) {
               showQuests: userData.showQuests === undefined ? true : userData.showQuests,
           });
 
+          // After hydrating, check if any scheduled auto-investments are due.
           useAutoInvestStore.getState().checkForDueTrades();
         } else {
             console.log("User document not found for hydration, likely a new user.");

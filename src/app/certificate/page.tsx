@@ -1,5 +1,4 @@
-
-"use client";
+'use client';
 
 import { useRef, useCallback, useState, useEffect } from "react";
 import { useUserStore } from "@/store/user-store";
@@ -14,25 +13,26 @@ export default function CertificatePage() {
   const [currentDate, setCurrentDate] = useState("");
 
   useEffect(() => {
-    // This effect runs only on the client-side
-    // 1. Generate the date
+    // This effect runs only on the client-side to prevent hydration mismatches.
+    // It generates the current date and sets a flag in localStorage so the
+    // congratulations banner doesn't appear again after viewing the certificate.
     setCurrentDate(new Date().toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     }));
 
-    // 2. Set a flag in localStorage to indicate the user has seen the certificate
     localStorage.setItem('hasViewedCertificate', 'true');
     
   }, []);
 
+  // This function captures the certificate component as a PNG and initiates a download.
   const handleDownload = useCallback(() => {
     if (certificateRef.current === null) {
       return;
     }
 
-    // Dynamically import the library only when the function is called
+    // Dynamically import the html-to-image library only when needed to reduce initial bundle size.
     import('html-to-image').then(({ toPng }) => {
       toPng(certificateRef.current!, { cacheBust: true })
         .then((dataUrl) => {

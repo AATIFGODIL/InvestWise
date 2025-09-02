@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -34,10 +33,10 @@ const InterpretationPromptSchema = z.object({
     accuracy: z.number().describe("A score from 0 to 1 indicating the prediction model's accuracy."),
 });
 
-/**
- * Defines the AI prompt for interpreting the raw forecast data.
- * This prompt instructs the AI to act as a financial analyst and provide a clear, beginner-friendly summary.
- */
+// This prompt instructs the AI to act as a financial analyst. Its role is to translate
+// raw, numerical forecast data into a clear, beginner-friendly summary.
+// The prompt specifies the exact structure of the output (prediction and confidence)
+// to ensure consistent and parseable results.
 const prompt = ai.definePrompt({
     name: 'interpretStockPredictionPrompt',
     input: { schema: InterpretationPromptSchema },
@@ -58,24 +57,20 @@ const prompt = ai.definePrompt({
     `,
 });
 
-/**
- * Defines the main Genkit flow for stock prediction.
- * This flow chains together a tool call (to an external API) and a prompt call (to an LLM).
- */
+// This flow chains together a tool call (to an external API) and a prompt call (to an LLM).
+// It first fetches raw prediction data and then passes it to the LLM for interpretation.
 const stockPredictionFlow = ai.defineFlow(
   {
     name: 'stockPredictionFlow',
     inputSchema: StockPredictionInputSchema,
     outputSchema: z.nullable(StockPredictionOutputSchema),
-    // The 'tools' array makes the getPredictionFromApi tool available to this flow.
-    tools: [getPredictionFromApi],
+    tools: [getPredictionFromApi], // Makes the external API tool available to this flow.
   },
   async (input) => {
     try {
         // Step 1: Call the external prediction API via the Genkit tool.
         const predictionResult = await getPredictionFromApi(input);
 
-        // Gracefully handle cases where the API might not return a valid forecast.
         if (!predictionResult || !predictionResult.forecast || predictionResult.forecast.length === 0) {
             console.error("Prediction API returned no forecast data.");
             return null;
@@ -91,9 +86,9 @@ const stockPredictionFlow = ai.defineFlow(
         return output || null;
 
     } catch (error) {
-        // Log the error for debugging purposes and return null to the client.
+        // Log errors for debugging and return null to the client for graceful handling.
         console.error("An error occurred during the stock prediction flow:", error);
-        return null; // Return null to indicate an error, which can be handled gracefully by the calling function.
+        return null;
     }
   }
 );

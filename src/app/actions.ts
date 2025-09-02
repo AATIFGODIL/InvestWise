@@ -1,10 +1,9 @@
-
-"use server";
+'use server';
 
 /**
  * @fileOverview Server Actions for the application.
- * This file contains asynchronous functions that can be called directly from client components.
- * They handle tasks like interacting with AI flows, payment processing, and database operations.
+ * This file contains asynchronous functions that can be called directly from client components
+ * to handle server-side logic like AI interactions, payment processing, and database operations.
  */
 
 import { investmentChatbot } from "@/ai/flows/investment-chatbot";
@@ -34,9 +33,9 @@ type StockPredictionResult = {
 }
 
 /**
- * Handles a user's query by calling the investment chatbot AI flow.
+ * Calls the investment chatbot AI flow to answer a user's query.
  * @param {string} query - The user's question about an investment term.
- * @returns {Promise<ActionResult>} An object containing the success status and the chatbot's response or an error message.
+ * @returns {Promise<ActionResult>} An object with the chatbot's response or an error.
  */
 export async function handleInvestmentQuery(query: string): Promise<ActionResult> {
   if (!query) {
@@ -57,9 +56,9 @@ export async function handleInvestmentQuery(query: string): Promise<ActionResult
 }
 
 /**
- * Handles a stock prediction request by calling the stock prediction AI flow.
- * @param {string} symbol - The stock symbol (e.g., AAPL) to generate a prediction for.
- * @returns {Promise<StockPredictionResult>} An object containing the success status and the prediction data or an error message.
+ * Calls the stock prediction AI flow to generate a forecast for a given stock symbol.
+ * @param {string} symbol - The stock symbol (e.g., AAPL).
+ * @returns {Promise<StockPredictionResult>} An object with the prediction data or an error.
  */
 export async function handleStockPrediction(symbol: string): Promise<StockPredictionResult> {
     if (!symbol) {
@@ -81,10 +80,11 @@ export async function handleStockPrediction(symbol: string): Promise<StockPredic
     }
 }
 
-// Braintree Payment Actions
+// --- Braintree Payment Actions ---
 
 /**
  * Generates a client token from Braintree to initialize the payment Drop-in UI.
+ * This token authorizes the client to communicate with Braintree.
  * @returns {Promise<string>} A promise that resolves to the Braintree client token.
  */
 export async function getClientToken(): Promise<string> {
@@ -98,9 +98,11 @@ export async function getClientToken(): Promise<string> {
 }
 
 /**
- * Saves a payment method nonce to the Braintree vault, creating or updating a customer record.
- * @param {object} data - An object containing the payment method nonce and the user's ID.
- * @returns {Promise<{ success: boolean; token?: string }>} An object indicating success and the payment method token.
+ * Saves a payment method nonce to the Braintree vault.
+ * It creates a new Braintree customer record if one doesn't exist for the user ID.
+ * The resulting payment method token is stored in the user's Firestore document.
+ * @param {object} data - Contains the payment method nonce and user ID.
+ * @returns {Promise<{ success: boolean; token?: string }>} An object indicating success and the new payment method token.
  */
 export async function vaultPaymentMethod(data: { nonce: string; userId: string }): Promise<{ success: boolean; token?: string }> {
     const { nonce, userId } = data;
@@ -126,13 +128,12 @@ export async function vaultPaymentMethod(data: { nonce: string; userId: string }
                 console.error("Braintree payment method update failed:", updateResult.message);
                 throw new Error(updateResult.message);
             }
-            // Re-fetch customer to get updated payment methods list
             braintreeCustomer = await gateway.customer.find(userId);
 
         } catch (error) {
-            // If the customer is not found, create a new one with the provided payment method.
+            // If not found, create a new Braintree customer with the provided payment method.
             const customerResult = await gateway.customer.create({
-                id: userId, // Use the Firebase UID as the Braintree Customer ID
+                id: userId, // Use the Firebase UID as the Braintree Customer ID for easy mapping.
                 paymentMethodNonce: nonce,
             });
 
@@ -151,7 +152,7 @@ export async function vaultPaymentMethod(data: { nonce: string; userId: string }
             throw new Error("No default payment method token was returned from Braintree.");
         }
 
-        // Store the Braintree payment method token in the user's Firestore document.
+        // Store the Braintree token in Firestore for future transactions.
         await db.collection("users").doc(userId).set({
             paymentMethodToken: token,
         }, { merge: true });
@@ -165,7 +166,8 @@ export async function vaultPaymentMethod(data: { nonce: string; userId: string }
 
 /**
  * Creates a transaction using a vaulted payment method from Braintree.
- * @param {object} data - An object containing the user ID and the transaction amount.
+ * It retrieves the user's payment token from Firestore to process the payment.
+ * @param {object} data - Contains the user ID and the transaction amount.
  * @returns {Promise<{ success: boolean; transactionId?: string }>} An object indicating success and the transaction ID.
  */
 export async function createTransaction(data: { userId: string; amount: string }): Promise<{ success: boolean; transactionId?: string }> {
@@ -182,11 +184,10 @@ export async function createTransaction(data: { userId: string; amount: string }
         throw new Error("No payment method on file for this user. Please add one in your profile.");
     }
 
-    // Create a "sale" transaction in Braintree.
     const result = await gateway.transaction.sale({
         amount,
         paymentMethodToken: token,
-        options: { submitForSettlement: true }, // Immediately submit the transaction for settlement.
+        options: { submitForSettlement: true }, // Immediately submit for settlement.
     });
 
     if (result.success) {
@@ -197,7 +198,7 @@ export async function createTransaction(data: { userId: string; amount: string }
     }
 }
 
-// Community Feature Actions
+// --- Community Feature Actions ---
 
 /**
  * Represents a user's data as displayed on the leaderboard.
@@ -211,6 +212,7 @@ export type LeaderboardUser = {
 
 /**
  * Fetches and ranks user data for the community leaderboard.
+ * It filters users based on their privacy settings and sorts them by portfolio gain.
  * @returns {Promise<{ success: boolean; data?: LeaderboardUser[]; error?: string; }>} Leaderboard data or an error.
  */
 export async function getLeaderboardData(): Promise<{ success: boolean; data?: LeaderboardUser[]; error?: string; }> {

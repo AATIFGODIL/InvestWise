@@ -1,5 +1,4 @@
-
-"use client";
+'use client';
 
 import React from "react";
 import Link from "next/link";
@@ -25,8 +24,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { useUserStore } from "@/store/user-store";
 
 /**
- * The main header component for the application.
- * It displays the app title, notification bell, and user profile dropdown.
+ * The main header component for the application, displayed on most pages.
+ * It provides navigation to the dashboard, a notifications center, and a user profile dropdown
+ * with links to profile, settings, and sign-out functionality.
  */
 export default function Header() {
   const { user, signOut } = useAuth();
@@ -36,7 +36,6 @@ export default function Header() {
     <header className="sticky top-0 z-30 flex h-20 items-center justify-between bg-primary px-4 sm:px-6 text-primary-foreground">
       <div className="flex items-center gap-2 font-semibold">
         <Link href="/dashboard" className="flex items-center gap-2">
-          {/* App Title */}
           <h1 className="text-xl font-bold">InvestWise</h1>
         </Link>
       </div>
@@ -51,7 +50,7 @@ export default function Header() {
           <DropdownMenuContent className="w-80" align="end">
              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
              <DropdownMenuSeparator />
-             {/* This is a placeholder. In a real app, you would map over notifications from a store. */}
+             {/* This is a placeholder. In a real app, this would map over notifications from a store. */}
              <DropdownMenuItem disabled className="p-3">You have no new notifications.</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

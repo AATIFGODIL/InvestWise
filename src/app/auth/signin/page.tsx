@@ -1,9 +1,8 @@
+'use client';
 
-"use client";
-
-import { useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -11,14 +10,14 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import Link from "next/link";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import useLoadingStore from "@/store/loading-store";
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import Link from 'next/link';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import useLoadingStore from '@/store/loading-store';
 
 // A simple SVG component for the Google icon.
 const GoogleIcon = () => (
@@ -39,12 +38,10 @@ const FinanceBackground = () => (
           patternUnits="userSpaceOnUse"
           patternTransform="rotate(45)"
         >
-          {/* Simple bar chart icon */}
+          {/* Decorative icons drawn with SVG paths */}
           <path d="M 20 120 V 90 M 30 120 V 80 M 40 120 V 100" stroke="hsl(var(--primary) / 0.12)" strokeWidth="2" fill="none" />
-          {/* Pie chart icon */}
           <path d="M 70 20 A 15 15 0 0 1 85 35 L 70 35 Z" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="hsl(var(--primary) / 0.05)" />
           <circle cx="70" cy="35" r="15" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" />
-          {/* Percentage sign icon */}
           <path d="M 110 80 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 120 100 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 110 98 L 122 82" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" />
         </pattern>
       </defs>
@@ -67,9 +64,6 @@ export default function SignInPage() {
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  /**
-   * Handles the email and password sign-in process.
-   */
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -84,15 +78,12 @@ export default function SignInPage() {
     }
   };
 
-  /**
-   * Handles the Google Sign-In process via a popup.
-   */
   const handleGoogleSignIn = async () => {
     setError(null);
     setIsGoogleLoading(true);
     try {
       await signInWithGoogle();
-      // Redirect is handled by the useAuth hook.
+      // Redirect is also handled by the useAuth hook.
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -100,12 +91,10 @@ export default function SignInPage() {
     }
   };
   
-  /**
-   * Smoothly transitions to the sign-up page by showing a loading spinner.
-   */
+  // This function shows a loading overlay for a smoother perceived transition between pages.
   const handleNavigateToSignUp = (e: React.MouseEvent) => {
     e.preventDefault();
-    showLoading(); // Show loading overlay for a smoother transition
+    showLoading();
     router.push('/auth/signup');
   };
 

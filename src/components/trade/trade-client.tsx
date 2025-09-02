@@ -1,5 +1,4 @@
-
-"use client";
+'use client';
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
@@ -45,10 +44,10 @@ export default function TradeClient() {
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
 
-  // State for the main TradingView widget symbol, managed independently
+  // The symbol for the main TradingView widget, which can be changed by the user inside the widget.
   const [widgetSymbol, setWidgetSymbol] = useState(initialSymbol);
   
-  // State for the search input and the symbol passed to other components
+  // The symbol used for searching and fetching data for the trade form and AI prediction.
   const [inputValue, setInputValue] = useState(initialSymbol);
   const [searchedSymbol, setSearchedSymbol] = useState(initialSymbol);
 
@@ -62,7 +61,7 @@ export default function TradeClient() {
   const isSymbolInWatchlist = watchlist.includes(searchedSymbol);
 
   useEffect(() => {
-    // This ensures the component is only rendered on the client side
+    // This ensures client-side only components and logic run after the component has mounted.
     setIsClient(true);
     fetchMarketStatus();
   }, [fetchMarketStatus]);
@@ -81,13 +80,14 @@ export default function TradeClient() {
     }
   };
 
-  // This callback is ONLY for the TradingView widget to update its own state
+  // Callback passed to the TradingView widget, which allows it to update the parent's state
+  // when the user changes the symbol within the chart itself.
   const handleWidgetSymbolChange = useCallback((newSymbol: string) => {
     if (!newSymbol) return;
     setWidgetSymbol(newSymbol.toUpperCase());
   }, []);
 
-  // Effect to fetch price when the *searchedSymbol* changes
+  // Effect to fetch price data whenever the user searches for a new symbol.
   useEffect(() => {
     if (!searchedSymbol) return;
 
@@ -95,20 +95,20 @@ export default function TradeClient() {
     setLoadingPrice(true);
     setError(null);
 
-    // --- Fallback for missing or placeholder API Key ---
+    // If the Finnhub API key isn't configured, use simulated data as a fallback.
+    // This allows the UI to remain functional for demonstration purposes.
     if (!API_KEY || API_KEY.startsWith("AIzaSy") || API_KEY === "your_finnhub_api_key_here") {
       console.warn("Finnhub API key not configured. Using simulated data.");
       setError("Live price data is unavailable. Using simulated data.");
-      // Simulate fetching a price
       setTimeout(() => {
         const simulatedPrice = parseFloat((Math.random() * (500 - 100) + 100).toFixed(2));
         setPrice(simulatedPrice);
         setLoadingPrice(false);
       }, 500);
-      return; // Stop execution to prevent WebSocket connection attempt
+      return;
     }
     
-    // --- Live Data Fetching ---
+    // Fetch the initial price via REST API before establishing a WebSocket connection.
     async function fetchInitialPrice() {
         try {
             const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${searchedSymbol}&token=${API_KEY}`);
@@ -129,13 +129,14 @@ export default function TradeClient() {
 
     fetchInitialPrice();
 
+    // Close any existing WebSocket connection before opening a new one.
     if (socketRef.current) socketRef.current.close();
 
+    // Establish a WebSocket connection for real-time price updates.
     const socket = new WebSocket(`wss://ws.finnhub.io?token=${API_KEY}`);
     socketRef.current = socket;
 
     socket.onopen = () => {
-      console.log(`✅ Connected to Finnhub WS for ${searchedSymbol}`);
       socket.send(JSON.stringify({ type: "subscribe", symbol: searchedSymbol }));
     };
 
@@ -151,8 +152,8 @@ export default function TradeClient() {
         setError("Could not connect to live price feed. The symbol may be invalid or delisted.");
         console.error("WebSocket error:", err);
     }
-    socket.onclose = () => console.log(`Finnhub WebSocket closed for ${searchedSymbol}`);
 
+    // Cleanup function to close the WebSocket connection when the component unmounts or the symbol changes.
     return () => {
       if (socketRef.current) {
         if (socketRef.current.readyState === WebSocket.OPEN) {
