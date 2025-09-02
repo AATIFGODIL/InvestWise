@@ -20,12 +20,14 @@ import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import useLoadingStore from "@/store/loading-store";
 
+// A simple SVG component for the Google icon.
 const GoogleIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512" className="h-5 w-5 mr-2">
     <path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 109.8 512 0 402.2 0 261.8 0 121.3 109.8 8.4 244 8.4c69.1 0 128.8 28.2 172.4 72.3l-66.5 64.2c-28.1-26.8-63.5-42.6-105.9-42.6-83.3 0-151.5 68.2-151.5 151.9s68.2 151.9 151.5 151.9c97.9 0 134.9-65.5 139.7-99.9H244V243.6h244v18.2z" />
   </svg>
 );
 
+// A decorative background component with subtle financial-themed patterns.
 const FinanceBackground = () => (
   <div className="absolute inset-0">
     <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
@@ -37,12 +39,12 @@ const FinanceBackground = () => (
           patternUnits="userSpaceOnUse"
           patternTransform="rotate(45)"
         >
-          {/* Simple bar chart */}
+          {/* Simple bar chart icon */}
           <path d="M 20 120 V 90 M 30 120 V 80 M 40 120 V 100" stroke="hsl(var(--primary) / 0.12)" strokeWidth="2" fill="none" />
-          {/* Pie chart */}
+          {/* Pie chart icon */}
           <path d="M 70 20 A 15 15 0 0 1 85 35 L 70 35 Z" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="hsl(var(--primary) / 0.05)" />
           <circle cx="70" cy="35" r="15" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" />
-          {/* Percentage sign */}
+          {/* Percentage sign icon */}
           <path d="M 110 80 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 120 100 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 110 98 L 122 82" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" />
         </pattern>
       </defs>
@@ -65,13 +67,16 @@ export default function SignInPage() {
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
+  /**
+   * Handles the email and password sign-in process.
+   */
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsEmailLoading(true);
     try {
       await signIn(email, password);
-      // Redirect is handled by onAuthStateChanged in useAuth hook
+      // Redirect is handled by the useAuth hook's onAuthStateChanged listener.
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -79,43 +84,49 @@ export default function SignInPage() {
     }
   };
 
+  /**
+   * Handles the Google Sign-In process via a popup.
+   */
   const handleGoogleSignIn = async () => {
     setError(null);
     setIsGoogleLoading(true);
     try {
       await signInWithGoogle();
-      // Redirect is handled by the hook
+      // Redirect is handled by the useAuth hook.
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsGoogleLoading(false);
     }
   };
-
+  
+  /**
+   * Smoothly transitions to the sign-up page by showing a loading spinner.
+   */
   const handleNavigateToSignUp = (e: React.MouseEvent) => {
     e.preventDefault();
-    showLoading();
+    showLoading(); // Show loading overlay for a smoother transition
     router.push('/auth/signup');
   };
 
   return (
     <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
       <FinanceBackground />
-      <Card className="w-full max-w-sm relative z-10">
+      <Card className="w-full max-w-sm relative z-10 shadow-xl">
           <div className="flex justify-center items-center pt-8 gap-2">
               <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
           </div>
           <CardHeader>
-            <CardTitle className="text-2xl">Welcome back</CardTitle>
+            <CardTitle className="text-2xl">Welcome Back!</CardTitle>
             <CardDescription>
-              Choose your preferred sign in method.
+              Sign in to continue your investment journey.
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
             {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Sign In Failed</AlertTitle>
+                <AlertTitle>Sign-In Failed</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
@@ -128,7 +139,7 @@ export default function SignInPage() {
                     </>
                   ) : (
                     <>
-                      <GoogleIcon /> Google
+                      <GoogleIcon /> Continue with Google
                     </>
                   )}
               </Button>
@@ -147,7 +158,7 @@ export default function SignInPage() {
                 <Input 
                   id="email" 
                   type="email" 
-                  placeholder="m@example.com" 
+                  placeholder="name@example.com" 
                   required 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -182,10 +193,10 @@ export default function SignInPage() {
                 {isEmailLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing in...
+                    Signing In...
                   </>
                 ) : (
-                  'Sign in with Email'
+                  'Sign In with Email'
                 )}
               </Button>
             </form>
@@ -193,7 +204,7 @@ export default function SignInPage() {
           <CardFooter className="text-center text-sm">
             Don&apos;t have an account?&nbsp;
             <Link href="/auth/signup" className="underline" onClick={handleNavigateToSignUp}>
-              Sign up
+              Sign Up
             </Link>
           </CardFooter>
       </Card>

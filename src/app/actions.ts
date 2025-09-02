@@ -1,6 +1,12 @@
 
 "use server";
 
+/**
+ * @fileOverview Server Actions for the application.
+ * This file contains asynchronous functions that can be called directly from client components.
+ * They handle tasks like interacting with AI flows, payment processing, and database operations.
+ */
+
 import { investmentChatbot } from "@/ai/flows/investment-chatbot";
 import { stockPrediction } from "@/ai/flows/stock-prediction";
 import type { StockPredictionOutput } from "@/ai/types/stock-prediction-types";
@@ -9,22 +15,32 @@ import { db } from "@/lib/firebase/admin";
 import { type BraintreeGateway, type Customer, type Transaction as BraintreeTransaction } from "braintree";
 import { type Transaction } from "@/store/transaction-store";
 
-
+/**
+ * A standardized result type for server actions to ensure consistent responses.
+ */
 type ActionResult = {
   success: boolean;
   response: string;
   error?: string;
 };
 
+/**
+ * A standardized result type for the stock prediction action.
+ */
 type StockPredictionResult = {
     success: boolean;
     prediction?: StockPredictionOutput;
     error?: string;
 }
 
+/**
+ * Handles a user's query by calling the investment chatbot AI flow.
+ * @param {string} query - The user's question about an investment term.
+ * @returns {Promise<ActionResult>} An object containing the success status and the chatbot's response or an error message.
+ */
 export async function handleInvestmentQuery(query: string): Promise<ActionResult> {
   if (!query) {
-    return { success: false, response: "", error: "Query cannot be empty." };
+    return { success: false, response: "", error: "Your question cannot be empty." };
   }
 
   try {
@@ -35,20 +51,25 @@ export async function handleInvestmentQuery(query: string): Promise<ActionResult
     return {
       success: false,
       response: "",
-      error: "An unexpected error occurred. Please try again later.",
+      error: "I'm sorry, but I encountered an unexpected issue. Please try asking again later.",
     };
   }
 }
 
+/**
+ * Handles a stock prediction request by calling the stock prediction AI flow.
+ * @param {string} symbol - The stock symbol (e.g., AAPL) to generate a prediction for.
+ * @returns {Promise<StockPredictionResult>} An object containing the success status and the prediction data or an error message.
+ */
 export async function handleStockPrediction(symbol: string): Promise<StockPredictionResult> {
     if (!symbol) {
-        return { success: false, error: "Symbol cannot be empty." };
+        return { success: false, error: "Stock symbol cannot be empty." };
     }
 
     try {
         const result = await stockPrediction({ symbol });
         if (!result) {
-             return { success: false, error: "You have reached the daily limit of predictions." };
+             return { success: false, error: "You have reached the daily limit for predictions. Please try again tomorrow." };
         }
         return { success: true, prediction: result };
     } catch (error: any) {
@@ -60,49 +81,58 @@ export async function handleStockPrediction(symbol: string): Promise<StockPredic
     }
 }
 
-// Braintree Actions
+// Braintree Payment Actions
 
+/**
+ * Generates a client token from Braintree to initialize the payment Drop-in UI.
+ * @returns {Promise<string>} A promise that resolves to the Braintree client token.
+ */
 export async function getClientToken(): Promise<string> {
     try {
         const response = await gateway.clientToken.generate({});
         return response.clientToken;
     } catch (error) {
-        console.error("Braintree token generation failed:", error);
-        throw new Error("Failed to get payment client token.");
+        console.error("Braintree client token generation failed:", error);
+        throw new Error("Failed to initialize the payment form.");
     }
 }
 
+/**
+ * Saves a payment method nonce to the Braintree vault, creating or updating a customer record.
+ * @param {object} data - An object containing the payment method nonce and the user's ID.
+ * @returns {Promise<{ success: boolean; token?: string }>} An object indicating success and the payment method token.
+ */
 export async function vaultPaymentMethod(data: { nonce: string; userId: string }): Promise<{ success: boolean; token?: string }> {
     const { nonce, userId } = data;
     if (!nonce || !userId) {
-        throw new Error("Nonce and User ID are required.");
+        throw new Error("Payment nonce and User ID are required to save a card.");
     }
 
     try {
         let braintreeCustomer: Customer;
         
         try {
-            // Try to find an existing customer
+            // Attempt to find an existing customer in Braintree.
             braintreeCustomer = await gateway.customer.find(userId);
-            // If found, update their payment method
+            
+            // If the customer exists, add the new payment method to their profile.
             const updateResult = await gateway.paymentMethod.create({
                 customerId: userId,
                 paymentMethodNonce: nonce,
-                options: {
-                    makeDefault: true
-                }
+                options: { makeDefault: true }
             });
 
             if (!updateResult.success) {
                 console.error("Braintree payment method update failed:", updateResult.message);
                 throw new Error(updateResult.message);
             }
-             braintreeCustomer = await gateway.customer.find(userId);
+            // Re-fetch customer to get updated payment methods list
+            braintreeCustomer = await gateway.customer.find(userId);
 
         } catch (error) {
-            // If customer not found, create a new one
+            // If the customer is not found, create a new one with the provided payment method.
             const customerResult = await gateway.customer.create({
-                id: userId,
+                id: userId, // Use the Firebase UID as the Braintree Customer ID
                 paymentMethodNonce: nonce,
             });
 
@@ -113,13 +143,15 @@ export async function vaultPaymentMethod(data: { nonce: string; userId: string }
             braintreeCustomer = customerResult.customer;
         }
 
+        // Find the default payment method and get its token.
         const defaultPaymentMethod = braintreeCustomer.paymentMethods?.find(pm => pm.default);
         const token = defaultPaymentMethod?.token;
 
         if (!token) {
-            throw new Error("No payment method token returned from Braintree.");
+            throw new Error("No default payment method token was returned from Braintree.");
         }
 
+        // Store the Braintree payment method token in the user's Firestore document.
         await db.collection("users").doc(userId).set({
             paymentMethodToken: token,
         }, { merge: true });
@@ -127,27 +159,34 @@ export async function vaultPaymentMethod(data: { nonce: string; userId: string }
         return { success: true, token };
     } catch (err: any) {
         console.error("Vaulting payment method failed:", err);
-        throw new Error(err.message || "An unexpected error occurred during vaulting.");
+        throw new Error(err.message || "An unexpected error occurred while saving your payment method.");
     }
 }
 
+/**
+ * Creates a transaction using a vaulted payment method from Braintree.
+ * @param {object} data - An object containing the user ID and the transaction amount.
+ * @returns {Promise<{ success: boolean; transactionId?: string }>} An object indicating success and the transaction ID.
+ */
 export async function createTransaction(data: { userId: string; amount: string }): Promise<{ success: boolean; transactionId?: string }> {
     const { userId, amount } = data;
     if (!userId || !amount) {
-        throw new Error("User ID and amount are required.");
+        throw new Error("User ID and transaction amount are required.");
     }
     
-    const doc = await db.collection("users").doc(userId).get();
-    const token = doc.data()?.paymentMethodToken;
+    // Retrieve the user's vaulted payment method token from Firestore.
+    const userDoc = await db.collection("users").doc(userId).get();
+    const token = userDoc.data()?.paymentMethodToken;
 
     if (!token) {
-        throw new Error("No payment method on file for this user.");
+        throw new Error("No payment method on file for this user. Please add one in your profile.");
     }
 
+    // Create a "sale" transaction in Braintree.
     const result = await gateway.transaction.sale({
         amount,
         paymentMethodToken: token,
-        options: { submitForSettlement: true },
+        options: { submitForSettlement: true }, // Immediately submit the transaction for settlement.
     });
 
     if (result.success) {
@@ -158,7 +197,11 @@ export async function createTransaction(data: { userId: string; amount: string }
     }
 }
 
-// Community Actions
+// Community Feature Actions
+
+/**
+ * Represents a user's data as displayed on the leaderboard.
+ */
 export type LeaderboardUser = {
   rank: number;
   uid: string;
@@ -166,6 +209,10 @@ export type LeaderboardUser = {
   gain: number;
 };
 
+/**
+ * Fetches and ranks user data for the community leaderboard.
+ * @returns {Promise<{ success: boolean; data?: LeaderboardUser[]; error?: string; }>} Leaderboard data or an error.
+ */
 export async function getLeaderboardData(): Promise<{ success: boolean; data?: LeaderboardUser[]; error?: string; }> {
     try {
         const usersSnapshot = await db.collection('users').get();
@@ -174,6 +221,7 @@ export async function getLeaderboardData(): Promise<{ success: boolean; data?: L
             return { success: true, data: [] };
         }
         
+        // Filter users based on their leaderboard visibility settings.
         const usersData = usersSnapshot.docs
             .map(doc => ({
                 uid: doc.id,
@@ -181,15 +229,17 @@ export async function getLeaderboardData(): Promise<{ success: boolean; data?: L
             }))
             .filter(user => user.leaderboardVisibility === 'public' || user.leaderboardVisibility === 'anonymous');
         
+        // Sort users by their total portfolio gain/loss in descending order.
         const sortedUsers = usersData.sort((a, b) => (b.portfolio?.summary?.totalGainLoss || 0) - (a.portfolio?.summary?.totalGainLoss || 0));
 
+        // Format the data for the leaderboard, anonymizing names where needed.
         const leaderboardData = sortedUsers.slice(0, 10).map((userData, index) => {
             const isAnonymous = userData.leaderboardVisibility === 'anonymous';
             
             return {
                 rank: index + 1,
                 uid: userData.uid,
-                name: isAnonymous ? 'Anonymous' : userData.username || 'Investor',
+                name: isAnonymous ? 'Anonymous Investor' : userData.username || 'Investor',
                 gain: userData.portfolio?.summary?.totalGainLoss || 0,
             };
         });
@@ -201,9 +251,14 @@ export async function getLeaderboardData(): Promise<{ success: boolean; data?: L
     }
 }
 
+/**
+ * Fetches the trade history for a specific user from Firestore.
+ * @param {string} userId - The UID of the user whose history is being requested.
+ * @returns {Promise<{ success: boolean; data?: Transaction[]; error?: string; }>} The user's trade history or an error.
+ */
 export async function getTradeHistory(userId: string): Promise<{ success: boolean; data?: Transaction[]; error?: string; }> {
     if (!userId) {
-        return { success: false, error: "User ID is required." };
+        return { success: false, error: "A User ID is required to fetch trade history." };
     }
 
     try {
@@ -214,7 +269,6 @@ export async function getTradeHistory(userId: string): Promise<{ success: boolea
         
         const transactions = userDoc.data()?.transactions || [];
 
-        // Timestamps are already stored as ISO strings, no conversion needed.
         return { success: true, data: transactions };
     } catch (error: any) {
         console.error("Error fetching trade history:", error);

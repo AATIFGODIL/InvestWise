@@ -3,7 +3,6 @@
 
 import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   Bell,
   LogOut,
@@ -25,19 +24,24 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { useUserStore } from "@/store/user-store";
 
+/**
+ * The main header component for the application.
+ * It displays the app title, notification bell, and user profile dropdown.
+ */
 export default function Header() {
   const { user, signOut } = useAuth();
   const { username, photoURL } = useUserStore();
-  const router = useRouter();
 
   return (
     <header className="sticky top-0 z-30 flex h-20 items-center justify-between bg-primary px-4 sm:px-6 text-primary-foreground">
       <div className="flex items-center gap-2 font-semibold">
         <Link href="/dashboard" className="flex items-center gap-2">
+          {/* App Title */}
           <h1 className="text-xl font-bold">InvestWise</h1>
         </Link>
       </div>
       <div className="flex items-center gap-2">
+        {/* Notifications Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full">
@@ -47,10 +51,12 @@ export default function Header() {
           <DropdownMenuContent className="w-80" align="end">
              <DropdownMenuLabel>Notifications</DropdownMenuLabel>
              <DropdownMenuSeparator />
+             {/* This is a placeholder. In a real app, you would map over notifications from a store. */}
              <DropdownMenuItem disabled className="p-3">You have no new notifications.</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
+        {/* User Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">

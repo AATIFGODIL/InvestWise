@@ -21,12 +21,14 @@ import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import useLoadingStore from "@/store/loading-store";
 
 
+// A simple SVG component for the Google icon.
 const GoogleIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512" className="h-5 w-5 mr-2">
     <path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 109.8 512 0 402.2 0 261.8 0 121.3 109.8 8.4 244 8.4c69.1 0 128.8 28.2 172.4 72.3l-66.5 64.2c-28.1-26.8-63.5-42.6-105.9-42.6-83.3 0-151.5 68.2-151.5 151.9s68.2 151.9 151.5 151.9c97.9 0 134.9-65.5 139.7-99.9H244V243.6h244v18.2z" />
   </svg>
 );
 
+// A decorative background component with subtle financial-themed patterns.
 const FinanceBackground = () => (
   <div className="absolute inset-0">
     <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
@@ -38,12 +40,12 @@ const FinanceBackground = () => (
           patternUnits="userSpaceOnUse"
           patternTransform="rotate(45)"
         >
-          {/* Simple bar chart */}
+          {/* Simple bar chart icon */}
           <path d="M 20 120 V 90 M 30 120 V 80 M 40 120 V 100" stroke="hsl(var(--primary) / 0.12)" strokeWidth="2" fill="none" />
-          {/* Pie chart */}
+          {/* Pie chart icon */}
           <path d="M 70 20 A 15 15 0 0 1 85 35 L 70 35 Z" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="hsl(var(--primary) / 0.05)" />
           <circle cx="70" cy="35" r="15" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" />
-          {/* Percentage sign */}
+          {/* Percentage sign icon */}
           <path d="M 110 80 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 120 100 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 110 98 L 122 82" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" />
         </pattern>
       </defs>
@@ -58,6 +60,7 @@ export default function SignUpPage() {
   const router = useRouter();
   const { signUp, signInWithGoogle } = useAuth();
   const { showLoading } = useLoadingStore();
+  
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -67,6 +70,9 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  /**
+   * Handles the user registration process.
+   */
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
@@ -77,7 +83,7 @@ export default function SignUpPage() {
     setLoading(true);
     try {
       await signUp(email, password, username);
-      // Redirect is now handled by onAuthStateChanged
+      // Redirect is handled by the useAuth hook after successful sign-up.
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -85,9 +91,12 @@ export default function SignUpPage() {
     }
   };
 
+  /**
+   * Smoothly transitions to the sign-in page by showing a loading spinner.
+   */
   const handleNavigateToSignIn = (e: React.MouseEvent) => {
     e.preventDefault();
-    showLoading();
+    showLoading(); // Show loading overlay for a smoother transition
     router.push('/auth/signin');
   };
 
@@ -95,12 +104,12 @@ export default function SignUpPage() {
   return (
     <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
       <FinanceBackground />
-      <Card className="w-full max-w-sm relative z-10">
+      <Card className="w-full max-w-sm relative z-10 shadow-xl">
         <div className="flex justify-center items-center pt-8 gap-2">
             <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
         </div>
         <CardHeader>
-          <CardTitle className="text-2xl">Create an account</CardTitle>
+          <CardTitle className="text-2xl">Create an Account</CardTitle>
           <CardDescription>
             Join InvestWise to start your investment journey today.
           </CardDescription>
@@ -109,13 +118,13 @@ export default function SignUpPage() {
           {error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Sign Up Failed</AlertTitle>
+                <AlertTitle>Sign-Up Failed</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
           )}
           <div className="grid gap-2">
             <Button variant="outline" onClick={signInWithGoogle} disabled={loading} className="w-full">
-                <GoogleIcon /> Google
+                <GoogleIcon /> Continue with Google
             </Button>
           </div>
           <div className="relative">
@@ -144,7 +153,7 @@ export default function SignUpPage() {
               <Input 
                 id="email" 
                 type="email" 
-                placeholder="m@example.com" 
+                placeholder="name@example.com" 
                 required 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -211,7 +220,7 @@ export default function SignUpPage() {
                   Creating Account...
                 </>
               ) : (
-                'Create account'
+                'Create Account'
               )}
             </Button>
           </form>
@@ -219,7 +228,7 @@ export default function SignUpPage() {
         <CardFooter className="text-center text-sm">
           Already have an account?&nbsp;
           <Link href="/auth/signin" className="underline" onClick={handleNavigateToSignIn}>
-            Sign in
+            Sign In
           </Link>
         </CardFooter>
       </Card>
