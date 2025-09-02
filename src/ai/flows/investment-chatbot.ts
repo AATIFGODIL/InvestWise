@@ -2,27 +2,18 @@
 
 /**
  * @fileOverview Defines an AI-powered chatbot flow for explaining investment terms.
- * This file contains the Genkit flow, prompt, and necessary types for the chatbot.
+ * This file contains the Genkit flow and prompt for the chatbot.
  *
  * - investmentChatbot: The primary function that clients call to interact with the chatbot.
- * - InvestmentChatbotInput: The Zod schema defining the input for the chatbot (a user's query).
- * - InvestmentChatbotOutput: The Zod schema defining the expected output from the chatbot (a helpful response).
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
-
-// Defines the expected input from the user.
-export const InvestmentChatbotInputSchema = z.object({
-  query: z.string().describe('The user\'s question about an investment term.'),
-});
-export type InvestmentChatbotInput = z.infer<typeof InvestmentChatbotInputSchema>;
-
-// Defines the expected output from the AI.
-export const InvestmentChatbotOutputSchema = z.object({
-  response: z.string().describe('The chatbot\'s helpful and clear explanation.'),
-});
-export type InvestmentChatbotOutput = z.infer<typeof InvestmentChatbotOutputSchema>;
+import {
+  InvestmentChatbotInputSchema,
+  type InvestmentChatbotInput,
+  InvestmentChatbotOutputSchema,
+  type InvestmentChatbotOutput,
+} from '@/ai/types/investment-chatbot-types';
 
 /**
  * An asynchronous function that serves as the entry point for the investment chatbot.

@@ -7,6 +7,7 @@
  */
 
 import { investmentChatbot } from "@/ai/flows/investment-chatbot";
+import type { InvestmentChatbotOutput } from "@/ai/types/investment-chatbot-types";
 import { stockPrediction } from "@/ai/flows/stock-prediction";
 import type { StockPredictionOutput } from "@/ai/types/stock-prediction-types";
 import { gateway } from "@/lib/braintree";
