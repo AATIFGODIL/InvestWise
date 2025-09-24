@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Home, Briefcase, BarChart, Users, Repeat } from "lucide-react";
@@ -34,8 +33,14 @@ export default function BottomNav() {
   }, [pathname]);
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur-sm">
-      <nav ref={navRef} className="relative flex h-16 items-center justify-around px-2">
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-2">
+      <nav ref={navRef} className="relative flex h-16 items-center justify-around rounded-full bg-background/70 p-1 shadow-lg ring-1 ring-black/5 backdrop-blur-lg">
+        {/* The Liquid Glass Glider */}
+        <div
+          className="absolute top-1 h-[calc(100%-8px)] rounded-full bg-primary/80 shadow transition-all duration-500 ease-[cubic-bezier(0.45,0,0.2,1)]"
+          style={indicatorStyle}
+        />
+        
         {navItems.map((item, index) => {
           const isActive = pathname.startsWith(item.href);
           return (
@@ -46,23 +51,18 @@ export default function BottomNav() {
               className="flex-1 z-10"
               prefetch={true}
             >
-              <Button
-                variant="ghost"
+              <div
                 className={cn(
                   "flex h-auto w-full flex-col items-center justify-center gap-1 p-2 transition-colors duration-300",
-                  isActive ? "text-primary" : "text-muted-foreground"
+                  isActive ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <item.icon className="h-6 w-6" />
                 <span className="text-xs font-medium">{item.label}</span>
-              </Button>
+              </div>
             </Link>
           );
         })}
-         <div
-          className="absolute bottom-0 left-0 h-1 bg-primary rounded-full transition-all duration-300 ease-in-out"
-          style={indicatorStyle}
-        />
       </nav>
     </div>
   );
