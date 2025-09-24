@@ -34,17 +34,17 @@ export default function Header() {
   const { username, photoURL } = useUserStore();
 
   return (
-    <header className="sticky top-2 z-30 mx-2 flex h-20 items-center justify-between rounded-full bg-primary px-4 text-primary-foreground shadow-lg sm:px-6">
+    <header className="sticky top-2 z-30 mx-2 flex h-20 items-center justify-between rounded-full bg-background/70 px-4 text-foreground shadow-lg ring-1 ring-black/5 backdrop-blur-sm sm:px-6">
       <div className="flex items-center gap-2 font-semibold">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <h1 className="text-xl font-bold text-primary-foreground">InvestWise</h1>
+          <h1 className="text-xl font-bold text-primary">InvestWise</h1>
         </Link>
       </div>
       <div className="flex items-center gap-2">
         {/* Notifications Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full hover:bg-primary/80">
+            <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full hover:bg-primary/10">
                 <Bell className="h-6 w-6" />
             </Button>
           </DropdownMenuTrigger>
@@ -59,8 +59,8 @@ export default function Header() {
         {/* User Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-primary/80">
-              <Avatar className="h-10 w-10 border-2 border-primary-foreground/50">
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-primary/10">
+              <Avatar className="h-10 w-10 border-2 border-primary/50">
                 <AvatarImage src={photoURL || ''} alt={username} />
                 <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
