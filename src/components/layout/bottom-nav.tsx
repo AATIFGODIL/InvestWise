@@ -15,24 +15,25 @@ const navItems = [
   { href: "/community", label: "Community", icon: Users },
 ];
 
+// NEW: A type for the animation sequence
 type AnimationState = "idle" | "rising" | "sliding" | "descending";
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const router = useRouter();
+  const router = useRouter(); // NEW: Need the router for programmatic navigation
+  
+  // NEW: Refs to measure the DOM elements for positioning
   const navRef = useRef<HTMLElement | null>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
+  // NEW: State to manage the glider's style and the animation sequence
   const [gliderStyle, setGliderStyle] = useState<CSSProperties>({});
   const [animationState, setAnimationState] = useState<AnimationState>("idle");
-  
-  // 1. SIMPLIFIED STATE: We only need one piece of state to track the active index.
   const [activeIndex, setActiveIndex] = useState(() => 
     navItems.findIndex((item) => pathname.startsWith(item.href))
   );
 
-  // 2. CONSOLIDATED EFFECT: This effect is now the single source of truth.
-  // It syncs the activeIndex with the URL and sets the glider's position on page loads or browser navigation.
+  // NEW: This effect syncs the glider's position with the URL on page load or back/forward navigation
   useEffect(() => {
     const currentPathIndex = navItems.findIndex((item) => pathname.startsWith(item.href));
     if (currentPathIndex !== -1 && itemRefs.current[currentPathIndex]) {
@@ -41,24 +42,21 @@ export default function BottomNav() {
       const itemRect = activeItem.getBoundingClientRect();
       const left = itemRect.left - navRect.left;
 
-      // Set glider position instantly without animation on load/direct navigation
       setGliderStyle({
         width: `${itemRect.width}px`,
         transform: `translateX(${left}px) scale(1)`,
         backgroundColor: 'hsl(var(--primary))',
         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-        transition: 'none', // Prevents animation on page load
+        transition: 'none', // Prevents animation on initial load
       });
       setActiveIndex(currentPathIndex);
     }
-  }, [pathname]); // This effect correctly re-syncs state whenever the URL changes.
+  }, [pathname]);
 
+  // NEW: Click handler to orchestrate the "rise-slide-descend" animation
   const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, newIndex: number) => {
     e.preventDefault();
-    // 3. UPDATED LOGIC: Check against the single activeIndex state.
-    if (newIndex === activeIndex || animationState !== "idle") {
-      return;
-    }
+    if (newIndex === activeIndex || animationState !== "idle") return;
 
     const startItem = itemRefs.current[activeIndex];
     const endItem = itemRefs.current[newIndex];
@@ -67,48 +65,28 @@ export default function BottomNav() {
     const navRect = navRef.current.getBoundingClientRect();
     const startRect = startItem.getBoundingClientRect();
     const endRect = endItem.getBoundingClientRect();
-
     const startLeft = startRect.left - navRect.left;
     const endLeft = endRect.left - navRect.left;
     
-    // Rise Animation
+    // 1. Rise
     setAnimationState("rising");
-    setGliderStyle({
-      ...gliderStyle,
-      transition: 'transform 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out',
-      transform: `translateX(${startLeft}px) scale(1.1)`,
-      backgroundColor: 'hsl(var(--primary) / 0.5)',
-      boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-    });
+    setGliderStyle({ ...gliderStyle, transition: 'transform 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out', transform: `translateX(${startLeft}px) scale(1.1)`, backgroundColor: 'hsl(var(--primary) / 0.5)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)', });
 
-    // Slide Animation
+    // 2. Slide
     setTimeout(() => {
       setAnimationState("sliding");
-      setGliderStyle({
-        width: `${endRect.width}px`,
-        transition: 'transform 300ms cubic-bezier(0.65, 0, 0.35, 1)',
-        transform: `translateX(${endLeft}px) scale(1.1)`,
-        backgroundColor: 'hsl(var(--primary) / 0.5)',
-        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-      });
+      setGliderStyle({ width: `${endRect.width}px`, transition: 'transform 300ms cubic-bezier(0.65, 0, 0.35, 1)', transform: `translateX(${endLeft}px) scale(1.1)`, backgroundColor: 'hsl(var(--primary) / 0.5)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)', });
     }, 150);
 
-    // Descend Animation
+    // 3. Descend
     setTimeout(() => {
       setAnimationState("descending");
-      setGliderStyle({
-        width: `${endRect.width}px`,
-        transition: 'transform 150ms ease-in, background-color 150ms ease-in, box-shadow 150ms ease-in',
-        transform: `translateX(${endLeft}px) scale(1)`,
-        backgroundColor: 'hsl(var(--primary))',
-        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-      });
+      setGliderStyle({ width: `${endRect.width}px`, transition: 'transform 150ms ease-in, background-color 150ms ease-in, box-shadow 150ms ease-in', transform: `translateX(${endLeft}px) scale(1)`, backgroundColor: 'hsl(var(--primary))', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', });
     }, 450);
 
-    // Reset state and navigate
+    // 4. Navigate and reset
     setTimeout(() => {
       setAnimationState("idle");
-      // 4. CLEANER NAVIGATION: We only push the route. The useEffect will handle the state update.
       router.push(endItem.href);
     }, 600);
   };
@@ -119,27 +97,28 @@ export default function BottomNav() {
         ref={navRef} 
         className="relative flex h-16 items-center justify-around rounded-full bg-background/70 p-1 shadow-lg ring-1 ring-black/5 backdrop-blur-sm"
       >
+        {/* NEW: The gliding indicator element */}
         <div
           className="absolute top-1 h-[calc(100%-8px)] rounded-full border-primary-foreground/10"
           style={gliderStyle}
         />
 
         {navItems.map((item, index) => {
-          // The `isActive` logic now correctly compares against the synced state.
           const isActive = index === activeIndex;
           return (
             <Link
               key={item.label}
               href={item.href}
               ref={(el) => (itemRefs.current[index] = el)}
-              onClick={(e) => handleNavClick(e, index)}
+              onClick={(e) => handleNavClick(e, index)} // MODIFIED: Use the animation handler
               className="z-10 flex-1"
               prefetch={true}
             >
               <div
                 className={cn(
-                  "flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2 transition-colors duration-300 ease-in-out",
-                   isActive
+                  "flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2 transition-colors duration-300",
+                  // MODIFIED: Text color is now independent of the background
+                  isActive
                     ? "text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 )}
@@ -153,4 +132,4 @@ export default function BottomNav() {
       </nav>
     </div>
   );
-}
+} 
