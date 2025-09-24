@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from "react";
@@ -33,7 +34,7 @@ export default function Header() {
   const { username, photoURL } = useUserStore();
 
   return (
-    <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b bg-background/70 px-4 backdrop-blur-sm sm:px-6 text-foreground">
+    <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b bg-background/70 px-4 backdrop-blur-sm sm:px-6 text-foreground shadow-lg ring-1 ring-black/5">
       <div className="flex items-center gap-2 font-semibold">
         <Link href="/dashboard" className="flex items-center gap-2">
           <h1 className="text-xl font-bold text-primary">InvestWise</h1>
