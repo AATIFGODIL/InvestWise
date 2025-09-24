@@ -26,8 +26,8 @@ export default function BottomNav() {
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // State to track the previous path to fix the animation starting point
-  const [previousPathname, setPreviousPathname] = useState(pathname);
+  // Hardcode the initial previous path to '/dashboard' (Explore) to fix the sync issue.
+  const [previousPathname, setPreviousPathname] = useState('/dashboard');
 
   const getIndexFromHref = useCallback((href: string) => {
     return navItems.findIndex((item) => href.startsWith(item.href));
@@ -48,7 +48,8 @@ export default function BottomNav() {
     if (pathname !== previousPathname) {
         setPreviousPathname(pathname);
     }
-  }, [pathname, getIndexFromHref, previousPathname]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname, getIndexFromHref]);
 
 
   const handleNavClick = (
