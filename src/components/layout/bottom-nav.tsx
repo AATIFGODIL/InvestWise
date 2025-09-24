@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Home, Briefcase, BarChart, Users, Repeat } from "lucide-react";
@@ -45,6 +46,7 @@ export default function BottomNav() {
         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
         opacity: 1, 
         transition: 'opacity 150ms ease-in-out', 
+        backdropFilter: 'blur(0px)',
       });
       setActiveIndex(currentPathIndex);
     }
@@ -65,16 +67,16 @@ export default function BottomNav() {
     const endLeft = endRect.left - navRect.left;
     
     setAnimationState("rising");
-    setGliderStyle({ ...gliderStyle, transition: 'transform 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out', transform: `translateX(${startLeft}px) scale(1.1)`, backgroundColor: 'hsl(var(--primary) / 0.5)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)', });
+    setGliderStyle({ ...gliderStyle, transition: 'transform 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out, backdrop-filter 150ms ease-out', transform: `translateX(${startLeft}px) scale(1.1)`, backgroundColor: 'hsl(var(--primary) / 0.5)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)', backdropFilter: 'blur(4px)' });
     
     setTimeout(() => {
       setAnimationState("sliding");
-      setGliderStyle({ width: `${endRect.width}px`, transition: 'transform 300ms cubic-bezier(0.65, 0, 0.35, 1)', transform: `translateX(${endLeft}px) scale(1.1)`, backgroundColor: 'hsl(var(--primary) / 0.5)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)', });
+      setGliderStyle({ width: `${endRect.width}px`, transition: 'transform 300ms cubic-bezier(0.65, 0, 0.35, 1), backdrop-filter 300ms ease-out', transform: `translateX(${endLeft}px) scale(1.1)`, backgroundColor: 'hsl(var(--primary) / 0.5)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)', backdropFilter: 'blur(4px)' });
     }, 150);
 
     setTimeout(() => {
       setAnimationState("descending");
-      setGliderStyle({ width: `${endRect.width}px`, transition: 'transform 150ms ease-in, background-color 150ms ease-in, box-shadow 150ms ease-in', transform: `translateX(${endLeft}px) scale(1)`, backgroundColor: 'hsl(var(--primary))', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', });
+      setGliderStyle({ width: `${endRect.width}px`, transition: 'transform 150ms ease-in, background-color 150ms ease-in, box-shadow 150ms ease-in, backdrop-filter 150ms ease-in', transform: `translateX(${endLeft}px) scale(1)`, backgroundColor: 'hsl(var(--primary))', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', backdropFilter: 'blur(0px)' });
     }, 450);
 
     setTimeout(() => {
