@@ -33,9 +33,9 @@ export default function BottomNav() {
             >
               <div
                 className={cn(
-                  "flex h-auto w-full flex-col items-center justify-center gap-1 p-2 rounded-full transition-colors duration-300",
+                  "flex h-auto w-full flex-col items-center justify-center gap-1 p-2 rounded-full transition-all duration-300 ease-in-out",
                   isActive
-                    ? "bg-primary text-primary-foreground"
+                    ? "text-primary-foreground bg-primary/80 shadow-inner shadow-black/20 -translate-y-1 scale-105 ring-2 ring-primary/50"
                     : "text-muted-foreground hover:text-foreground"
                 )}
               >
