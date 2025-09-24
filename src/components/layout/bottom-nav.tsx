@@ -26,39 +26,41 @@ export default function BottomNav() {
   const [gliderStyle, setGliderStyle] = useState<CSSProperties>({});
   const [animationState, setAnimationState] = useState<AnimationState>("idle");
   
-  const [initialActiveIndex, setInitialActiveIndex] = useState(() => 
+  // 1. SIMPLIFIED STATE: We only need one piece of state to track the active index.
+  const [activeIndex, setActiveIndex] = useState(() => 
     navItems.findIndex((item) => pathname.startsWith(item.href))
   );
-  const [previousActiveIndex, setPreviousActiveIndex] = useState(initialActiveIndex);
 
+  // 2. CONSOLIDATED EFFECT: This effect is now the single source of truth.
+  // It syncs the activeIndex with the URL and sets the glider's position on page loads or browser navigation.
   useEffect(() => {
-    // This effect sets the initial position of the glider when the component mounts.
-    // It runs only once and does not interfere with click-driven animations.
-    const activeIndex = navItems.findIndex((item) => pathname.startsWith(item.href));
-    if (activeIndex !== -1 && itemRefs.current[activeIndex]) {
-      const activeItem = itemRefs.current[activeIndex]!;
+    const currentPathIndex = navItems.findIndex((item) => pathname.startsWith(item.href));
+    if (currentPathIndex !== -1 && itemRefs.current[currentPathIndex]) {
+      const activeItem = itemRefs.current[currentPathIndex]!;
       const navRect = navRef.current!.getBoundingClientRect();
       const itemRect = activeItem.getBoundingClientRect();
       const left = itemRect.left - navRect.left;
 
+      // Set glider position instantly without animation on load/direct navigation
       setGliderStyle({
         width: `${itemRect.width}px`,
         transform: `translateX(${left}px) scale(1)`,
         backgroundColor: 'hsl(var(--primary))',
         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+        transition: 'none', // Prevents animation on page load
       });
-      setInitialActiveIndex(activeIndex);
-      setPreviousActiveIndex(activeIndex);
+      setActiveIndex(currentPathIndex);
     }
-  }, [pathname]); // Depend on pathname to correctly set the bar on page reload/direct navigation
+  }, [pathname]); // This effect correctly re-syncs state whenever the URL changes.
 
   const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, newIndex: number) => {
     e.preventDefault();
-    if (newIndex === previousActiveIndex || animationState !== "idle") {
+    // 3. UPDATED LOGIC: Check against the single activeIndex state.
+    if (newIndex === activeIndex || animationState !== "idle") {
       return;
     }
 
-    const startItem = itemRefs.current[previousActiveIndex];
+    const startItem = itemRefs.current[activeIndex];
     const endItem = itemRefs.current[newIndex];
     if (!startItem || !endItem || !navRef.current) return;
 
@@ -69,7 +71,7 @@ export default function BottomNav() {
     const startLeft = startRect.left - navRect.left;
     const endLeft = endRect.left - navRect.left;
     
-    // 1. Rise Animation
+    // Rise Animation
     setAnimationState("rising");
     setGliderStyle({
       ...gliderStyle,
@@ -79,69 +81,65 @@ export default function BottomNav() {
       boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
     });
 
-    // 2. Slide Animation
+    // Slide Animation
     setTimeout(() => {
       setAnimationState("sliding");
       setGliderStyle({
-        ...gliderStyle,
         width: `${endRect.width}px`,
         transition: 'transform 300ms cubic-bezier(0.65, 0, 0.35, 1)',
         transform: `translateX(${endLeft}px) scale(1.1)`,
         backgroundColor: 'hsl(var(--primary) / 0.5)',
         boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
       });
-    }, 150); // Wait for rise to complete
+    }, 150);
 
-    // 3. Descend Animation
+    // Descend Animation
     setTimeout(() => {
       setAnimationState("descending");
       setGliderStyle({
-        ...gliderStyle,
         width: `${endRect.width}px`,
         transition: 'transform 150ms ease-in, background-color 150ms ease-in, box-shadow 150ms ease-in',
         transform: `translateX(${endLeft}px) scale(1)`,
         backgroundColor: 'hsl(var(--primary))',
         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
       });
-    }, 450); // Wait for slide to complete
+    }, 450);
 
-    // 4. Reset state and navigate
+    // Reset state and navigate
     setTimeout(() => {
       setAnimationState("idle");
+      // 4. CLEANER NAVIGATION: We only push the route. The useEffect will handle the state update.
       router.push(endItem.href);
-      setPreviousActiveIndex(newIndex);
-    }, 600); // Wait for descend to complete
+    }, 600);
   };
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-2">
       <nav 
         ref={navRef} 
-        className="relative flex h-16 items-center justify-around rounded-full bg-background/70 p-1 shadow-lg ring-1 ring-black/5"
+        className="relative flex h-16 items-center justify-around rounded-full bg-background/70 p-1 shadow-lg ring-1 ring-black/5 backdrop-blur-sm"
       >
         <div
           className="absolute top-1 h-[calc(100%-8px)] rounded-full border-primary-foreground/10"
-          style={{
-            ...gliderStyle,
-            backdropFilter: 'blur(4px)',
-          }}
+          style={gliderStyle}
         />
 
         {navItems.map((item, index) => {
-          const isActive = pathname.startsWith(item.href);
+          // The `isActive` logic now correctly compares against the synced state.
+          const isActive = index === activeIndex;
           return (
             <Link
               key={item.label}
               href={item.href}
               ref={(el) => (itemRefs.current[index] = el)}
               onClick={(e) => handleNavClick(e, index)}
-              className="flex-1 z-10"
+              className="z-10 flex-1"
               prefetch={true}
             >
               <div
                 className={cn(
-                  "flex h-auto w-full flex-col items-center justify-center gap-1 p-2 rounded-full transition-all duration-300 ease-in-out",
-                   isActive && animationState === "idle"
+                  "flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2 transition-colors duration-300 ease-in-out",
+                   isActive
                     ? "text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
                 )}
@@ -156,5 +154,3 @@ export default function BottomNav() {
     </div>
   );
 }
-
-    
