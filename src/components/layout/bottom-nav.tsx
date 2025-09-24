@@ -26,28 +26,34 @@ export default function BottomNav() {
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Hardcode the initial previous path to '/dashboard' (Explore) to fix the sync issue.
   const [previousPathname, setPreviousPathname] = useState('/dashboard');
+  const isInitialMount = useRef(true);
 
   const getIndexFromHref = useCallback((href: string) => {
     return navItems.findIndex((item) => href.startsWith(item.href));
   }, []);
 
-  // Update the glider's position when the pathname changes (handles direct navigation)
+  // This useEffect is ONLY for setting the initial position or handling direct URL changes.
+  // The `isInitialMount` and `animationState` checks prevent it from interfering with the click animation.
   useEffect(() => {
+    if (animationState !== "idle" && !isInitialMount.current) {
+        return;
+    }
+
     const activeIndex = getIndexFromHref(pathname);
     if (activeIndex !== -1 && itemRefs.current[activeIndex]) {
       const activeItem = itemRefs.current[activeIndex]!;
       setGliderStyle({
         width: `${activeItem.offsetWidth}px`,
         transform: `translateX(${activeItem.offsetLeft}px)`,
-        transition: "transform 0.4s ease, width 0.4s ease",
+        transition: isInitialMount.current ? "none" : "transform 0.4s ease, width 0.4s ease",
       });
     }
-     // Update previousPathname after the main effect runs
+    
     if (pathname !== previousPathname) {
         setPreviousPathname(pathname);
     }
+    isInitialMount.current = false;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, getIndexFromHref]);
 
@@ -65,7 +71,6 @@ export default function BottomNav() {
       clearTimeout(animationTimeoutRef.current);
     }
     
-    // Use the stored previousPathname to find the correct starting index
     const oldIndex = getIndexFromHref(previousPathname);
     const newIndex = getIndexFromHref(newHref);
     
@@ -79,42 +84,20 @@ export default function BottomNav() {
 
     setAnimationState("rising");
 
-    // 1. Rise up
-    setGliderStyle(prev => ({
-        ...prev,
-        transform: `${(prev.transform as string)?.split(' ')[0]} translateY(-50px)`,
-        transition: 'transform 0.3s cubic-bezier(0.3, 0, 0.5, 1), background-color 0.3s ease-out',
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(10px)',
-    }));
-
     animationTimeoutRef.current = setTimeout(() => {
-      // 2. Slide
       setAnimationState("sliding");
-      setGliderStyle(prev => ({
-        ...prev,
+      setGliderStyle({
         width: `${newWidth}px`,
-        transform: `translateX(${newPosition}px) translateY(-50px)`,
+        transform: `translateX(${newPosition}px)`,
         transition: 'transform 0.5s cubic-bezier(0.65, 0, 0.35, 1), width 0.5s cubic-bezier(0.65, 0, 0.35, 1)',
-      }));
+      });
 
       animationTimeoutRef.current = setTimeout(() => {
-        // 3. Descend
         setAnimationState("descending");
-        setGliderStyle(prev => ({
-          ...prev,
-          transform: `translateX(${newPosition}px) translateY(0px)`,
-          transition: 'transform 0.35s cubic-bezier(0.5, 0, 0.7, 1), background-color 0.4s ease-in, backdrop-filter 0.4s ease-in',
-          backgroundColor: 'hsl(var(--primary) / 0.8)',
-          backdropFilter: 'blur(0px)',
-        }));
-
         animationTimeoutRef.current = setTimeout(() => {
             setAnimationState("idle");
         }, 350);
-
       }, 500);
-
     }, 300);
   };
   
@@ -126,10 +109,21 @@ export default function BottomNav() {
     }
   }, []);
 
+  const navStyles: React.CSSProperties = {
+    transition: 'transform 0.3s cubic-bezier(0.3, 0, 0.5, 1), background-color 0.3s ease-out',
+  };
+
+  if (animationState === 'rising' || animationState === 'sliding') {
+    navStyles.transform = 'translateY(-10px)';
+    navStyles.backgroundColor = 'rgba(var(--background-rgb), 0.5)'; 
+    navStyles.backdropFilter = 'blur(10px)';
+  }
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-2">
       <nav
         ref={navRef}
+        style={navStyles}
         className="relative flex h-16 items-center justify-around rounded-full bg-background/70 p-1 shadow-lg ring-1 ring-black/5"
       >
         <div
