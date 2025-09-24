@@ -20,48 +20,55 @@ type AnimationState = "idle" | "rising" | "sliding" | "descending";
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const [gliderStyle, setGliderStyle] = useState({});
+  const [gliderStyle, setGliderStyle] = useState<React.CSSProperties>({});
   const [animationState, setAnimationState] = useState<AnimationState>("idle");
   const navRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // State to track the previous path to fix the animation starting point
+  const [previousPathname, setPreviousPathname] = useState(pathname);
 
-  const getActiveIndex = useCallback(() => {
-    return navItems.findIndex((item) => pathname.startsWith(item.href));
-  }, [pathname]);
+  const getIndexFromHref = useCallback((href: string) => {
+    return navItems.findIndex((item) => href.startsWith(item.href));
+  }, []);
 
-  // Set initial position without animation on page load
+  // Update the glider's position when the pathname changes (handles direct navigation)
   useEffect(() => {
-    const activeIndex = getActiveIndex();
+    const activeIndex = getIndexFromHref(pathname);
     if (activeIndex !== -1 && itemRefs.current[activeIndex]) {
       const activeItem = itemRefs.current[activeIndex]!;
       setGliderStyle({
         width: `${activeItem.offsetWidth}px`,
-        transform: `translateX(${activeItem.offsetLeft}px) translateY(0px)`,
-        transition: "none", // No transition on initial load
+        transform: `translateX(${activeItem.offsetLeft}px)`,
+        transition: "transform 0.4s ease, width 0.4s ease",
       });
     }
-  }, []); // Run only once on mount
+     // Update previousPathname after the main effect runs
+    if (pathname !== previousPathname) {
+        setPreviousPathname(pathname);
+    }
+  }, [pathname, getIndexFromHref, previousPathname]);
+
 
   const handleNavClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
     newHref: string
   ) => {
-    // Prevent navigation if the animation is already running or if it's the active tab
     if (animationState !== "idle" || pathname.startsWith(newHref)) {
       e.preventDefault();
       return;
     }
     
-    // Clear any pending animations
     if (animationTimeoutRef.current) {
       clearTimeout(animationTimeoutRef.current);
     }
     
-    const activeIndex = getActiveIndex();
-    const newIndex = navItems.findIndex(item => item.href === newHref);
+    // Use the stored previousPathname to find the correct starting index
+    const oldIndex = getIndexFromHref(previousPathname);
+    const newIndex = getIndexFromHref(newHref);
     
-    if (newIndex === -1 || activeIndex === -1 || !itemRefs.current[newIndex]) {
+    if (newIndex === -1 || oldIndex === -1 || !itemRefs.current[newIndex] || !itemRefs.current[oldIndex]) {
         return;
     }
 
@@ -69,36 +76,35 @@ export default function BottomNav() {
     const newWidth = newActiveItem.offsetWidth;
     const newPosition = newActiveItem.offsetLeft;
 
-    // Start Animation Sequence
     setAnimationState("rising");
 
-    // 1. Rise up and fade to transparent
-    setGliderStyle({
-        ...gliderStyle,
-        transform: `translateY(-50px)`, // Rise up
+    // 1. Rise up
+    setGliderStyle(prev => ({
+        ...prev,
+        transform: `${(prev.transform as string)?.split(' ')[0]} translateY(-50px)`,
         transition: 'transform 0.3s cubic-bezier(0.3, 0, 0.5, 1), background-color 0.3s ease-out',
-        backgroundColor: 'rgba(255, 255, 255, 0.1)', // Transparent glass effect
+        backgroundColor: 'rgba(255, 255, 255, 0.1)',
         backdropFilter: 'blur(10px)',
-    });
+    }));
 
     animationTimeoutRef.current = setTimeout(() => {
-      // 2. Slide to new position while risen
+      // 2. Slide
       setAnimationState("sliding");
       setGliderStyle(prev => ({
         ...prev,
         width: `${newWidth}px`,
         transform: `translateX(${newPosition}px) translateY(-50px)`,
-        transition: 'transform 0.5s cubic-bezier(0.65, 0, 0.35, 1), width 0.5s cubic-bezier(0.65, 0, 0.35, 1), background-color 0.3s ease-out',
+        transition: 'transform 0.5s cubic-bezier(0.65, 0, 0.35, 1), width 0.5s cubic-bezier(0.65, 0, 0.35, 1)',
       }));
 
       animationTimeoutRef.current = setTimeout(() => {
-        // 3. Descend and fade back to purple
+        // 3. Descend
         setAnimationState("descending");
         setGliderStyle(prev => ({
           ...prev,
           transform: `translateX(${newPosition}px) translateY(0px)`,
-          transition: 'transform 0.35s cubic-bezier(0.5, 0, 0.7, 1), background-color 0.4s ease-in',
-          backgroundColor: 'hsl(var(--primary) / 0.8)', // Back to purple
+          transition: 'transform 0.35s cubic-bezier(0.5, 0, 0.7, 1), background-color 0.4s ease-in, backdrop-filter 0.4s ease-in',
+          backgroundColor: 'hsl(var(--primary) / 0.8)',
           backdropFilter: 'blur(0px)',
         }));
 
@@ -111,7 +117,6 @@ export default function BottomNav() {
     }, 300);
   };
   
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
         if (animationTimeoutRef.current) {
