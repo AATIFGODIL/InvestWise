@@ -34,10 +34,10 @@ export default function Header() {
   const { username, photoURL } = useUserStore();
 
   return (
-    <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b bg-background px-4 text-foreground sm:px-6">
+    <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b bg-primary px-4 text-primary-foreground sm:px-6">
       <div className="flex items-center gap-2 font-semibold">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <h1 className="text-xl font-bold text-foreground">InvestWise</h1>
+          <h1 className="text-xl font-bold text-primary-foreground">InvestWise</h1>
         </Link>
       </div>
       <div className="flex items-center gap-2">
