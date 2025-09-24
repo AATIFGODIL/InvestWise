@@ -34,17 +34,17 @@ export default function Header() {
   const { username, photoURL } = useUserStore();
 
   return (
-    <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b bg-background/70 px-4 backdrop-blur-sm sm:px-6 text-foreground shadow-lg ring-1 ring-black/5">
+    <header className="sticky top-0 z-30 flex h-20 items-center justify-between bg-primary px-4 sm:px-6 text-primary-foreground shadow-lg rounded-b-2xl">
       <div className="flex items-center gap-2 font-semibold">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <h1 className="text-xl font-bold text-primary">InvestWise</h1>
+          <h1 className="text-xl font-bold">InvestWise</h1>
         </Link>
       </div>
       <div className="flex items-center gap-2">
         {/* Notifications Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full">
+            <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full hover:bg-primary/80">
                 <Bell className="h-6 w-6" />
             </Button>
           </DropdownMenuTrigger>
@@ -59,8 +59,8 @@ export default function Header() {
         {/* User Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-              <Avatar className="h-10 w-10 border-2 border-primary">
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-primary/80">
+              <Avatar className="h-10 w-10 border-2 border-primary-foreground/50">
                 <AvatarImage src={photoURL || ''} alt={username} />
                 <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
