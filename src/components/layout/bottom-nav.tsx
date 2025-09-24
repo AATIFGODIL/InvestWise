@@ -23,6 +23,8 @@ export default function BottomNav() {
   
   const [gliderStyle, setGliderStyle] = useState<React.CSSProperties>({});
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+
+  // Hardcode initial index to 0 (Explore tab) to ensure a reliable starting point.
   const [previousActiveIndex, setPreviousActiveIndex] = useState(0);
 
   useEffect(() => {
@@ -33,7 +35,9 @@ export default function BottomNav() {
       const { offsetWidth, offsetLeft } = activeItem;
       setGliderStyle({
         width: `${offsetWidth}px`,
-        transform: `translateX(${offsetLeft}px)`,
+        transform: `translateX(${offsetLeft}px) scale(1)`,
+        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+        backgroundColor: 'hsl(var(--primary))',
         transition: "none", // No transition on initial set
       });
       setPreviousActiveIndex(activeIndex);
@@ -57,13 +61,14 @@ export default function BottomNav() {
     
     // --- Animation Sequence ---
     
-    // 1. Rise and Fade
+    // 1. Rise and Fade (Scale up, change shadow, become transparent)
     setGliderStyle({
       ...gliderStyle,
-      transform: `translateX(${startRect.left}px) translateY(-20px)`,
-      backgroundColor: 'hsla(var(--primary) / 0.3)',
-      backdropFilter: 'blur(10px)',
-      transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, backdrop-filter 0.3s ease',
+      transform: `translateX(${startRect.left}px) scale(1.1)`,
+      boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+      backgroundColor: 'hsla(var(--primary) / 0.5)',
+      backdropFilter: 'blur(4px)',
+      transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease',
     });
 
     // 2. Slide to new position (while risen)
@@ -71,19 +76,20 @@ export default function BottomNav() {
       setGliderStyle(prevStyle => ({
         ...prevStyle,
         width: `${endRect.width}px`,
-        transform: `translateX(${endRect.left}px) translateY(-20px)`,
-        transition: 'transform 0.5s cubic-bezier(0.65, 0, 0.35, 1), width 0.5s cubic-bezier(0.65, 0, 0.35, 1), background-color 0.3s ease, backdrop-filter 0.3s ease',
+        transform: `translateX(${endRect.left}px) scale(1.1)`,
+        transition: 'transform 0.5s cubic-bezier(0.65, 0, 0.35, 1), width 0.5s cubic-bezier(0.65, 0, 0.35, 1), background-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease',
       }));
     }, 300); // Wait for rise to complete
 
-    // 3. Descend and solidify
+    // 3. Descend and solidify (Scale down, revert shadow, become opaque)
     setTimeout(() => {
       setGliderStyle(prevStyle => ({
         ...prevStyle,
-        transform: `translateX(${endRect.left}px) translateY(0px)`,
+        transform: `translateX(${endRect.left}px) scale(1)`,
+        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
         backgroundColor: 'hsl(var(--primary))',
         backdropFilter: 'blur(0px)',
-        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, backdrop-filter 0.3s ease',
+        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease',
       }));
 
       // Navigate after the animation is mostly complete
@@ -100,7 +106,7 @@ export default function BottomNav() {
         
         {/* The Liquid Glider */}
         <div
-          className="absolute top-1 h-[calc(100%-8px)] rounded-full bg-primary shadow-lg border border-primary-foreground/10"
+          className="absolute top-1 h-[calc(100%-8px)] rounded-full border border-primary-foreground/10"
           style={gliderStyle}
         />
 
