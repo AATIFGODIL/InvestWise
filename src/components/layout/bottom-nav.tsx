@@ -4,7 +4,7 @@
 import { Home, Briefcase, BarChart, Users, Repeat } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, MouseEvent } from "react";
 
 const navItems = [
@@ -17,6 +17,7 @@ const navItems = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const router = useRouter();
   const navRef = useRef<HTMLElement | null>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   
@@ -45,7 +46,6 @@ export default function BottomNav() {
     if (isInitialLoad || newIndex === previousActiveIndex) return;
 
     e.preventDefault();
-    const router = (e.currentTarget.ownerDocument.defaultView as any).__next_router;
     
     const startItem = itemRefs.current[previousActiveIndex];
     const endItem = itemRefs.current[newIndex];
