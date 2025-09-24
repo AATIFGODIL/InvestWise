@@ -4,8 +4,8 @@
 import { Home, Briefcase, BarChart, Users, Repeat } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState, MouseEvent } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 const navItems = [
   { href: "/dashboard", label: "Explore", icon: Home },
@@ -17,97 +17,51 @@ const navItems = [
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const router = useRouter();
   const navRef = useRef<HTMLElement | null>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
+  const [gliderStyle, setGliderStyle] = useState<CSSProperties>({});
   
-  const [gliderStyle, setGliderStyle] = useState<React.CSSProperties>({});
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
-
-  // Hardcode initial index to 0 (Explore tab) to ensure a reliable starting point.
-  const [previousActiveIndex, setPreviousActiveIndex] = useState(0);
+  // Find the index of the currently active navigation item.
+  // This is the single source of truth for the glider's position.
+  const activeIndex = navItems.findIndex((item) => pathname.startsWith(item.href));
 
   useEffect(() => {
-    // Set the initial position of the glider without animation on the first load.
-    const activeIndex = navItems.findIndex((item) => pathname.startsWith(item.href));
+    // This effect runs whenever the active tab changes.
     if (activeIndex !== -1 && itemRefs.current[activeIndex]) {
       const activeItem = itemRefs.current[activeIndex]!;
-      const { offsetWidth, offsetLeft } = activeItem;
+      const navRect = navRef.current!.getBoundingClientRect();
+      const itemRect = activeItem.getBoundingClientRect();
+      
+      // Calculate the position relative to the nav container.
+      const left = itemRect.left - navRect.left;
+
       setGliderStyle({
-        width: `${offsetWidth}px`,
-        transform: `translateX(${offsetLeft}px) scale(1)`,
-        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-        backgroundColor: 'hsl(var(--primary))',
-        transition: "none", // No transition on initial set
+        width: `${itemRect.width}px`,
+        transform: `translateX(${left}px)`,
       });
-      setPreviousActiveIndex(activeIndex);
-      // Use a timeout to enable transitions for subsequent user interactions
-      setTimeout(() => setIsInitialLoad(false), 500);
     }
-  }, [pathname]);
+  }, [activeIndex, pathname]); // Rerun whenever the active page changes.
 
-  const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, newIndex: number) => {
-    if (isInitialLoad || newIndex === previousActiveIndex) return;
-
-    e.preventDefault();
-    
-    const startItem = itemRefs.current[previousActiveIndex];
-    const endItem = itemRefs.current[newIndex];
-
-    if (!startItem || !endItem) return;
-
-    const startRect = startItem.getBoundingClientRect();
-    const endRect = endItem.getBoundingClientRect();
-    
-    // --- Animation Sequence ---
-    
-    // 1. Rise and Fade (Scale up, change shadow, become transparent)
-    setGliderStyle({
-      ...gliderStyle,
-      transform: `translateX(${startRect.left}px) scale(1.1)`,
-      boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-      backgroundColor: 'hsla(var(--primary) / 0.5)',
-      backdropFilter: 'blur(4px)',
-      transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease',
-    });
-
-    // 2. Slide to new position (while risen)
-    setTimeout(() => {
-      setGliderStyle(prevStyle => ({
-        ...prevStyle,
-        width: `${endRect.width}px`,
-        transform: `translateX(${endRect.left}px) scale(1.1)`,
-        transition: 'transform 0.5s cubic-bezier(0.65, 0, 0.35, 1), width 0.5s cubic-bezier(0.65, 0, 0.35, 1), background-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease',
-      }));
-    }, 300); // Wait for rise to complete
-
-    // 3. Descend and solidify (Scale down, revert shadow, become opaque)
-    setTimeout(() => {
-      setGliderStyle(prevStyle => ({
-        ...prevStyle,
-        transform: `translateX(${endRect.left}px) scale(1)`,
-        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-        backgroundColor: 'hsl(var(--primary))',
-        backdropFilter: 'blur(0px)',
-        transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, box-shadow 0.3s ease, backdrop-filter 0.3s ease',
-      }));
-
-      // Navigate after the animation is mostly complete
-      router.push(endItem.href);
-      setPreviousActiveIndex(newIndex);
-    }, 800); // Wait for slide to complete
-  };
-
-  const activeIndex = navItems.findIndex((item) => pathname.startsWith(item.href));
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-2">
-      <nav ref={navRef} className="relative flex h-16 items-center justify-around rounded-full bg-background/70 p-1 shadow-lg ring-1 ring-black/5">
+      <nav 
+        ref={navRef} 
+        className="relative flex h-16 items-center justify-around rounded-full bg-background/70 p-1 shadow-lg ring-1 ring-black/5"
+      >
         
-        {/* The Liquid Glider */}
+        {/* The Glider: The moving highlight element */}
         <div
           className="absolute top-1 h-[calc(100%-8px)] rounded-full border border-primary-foreground/10"
-          style={gliderStyle}
+          style={{
+            ...gliderStyle,
+            // Fast, fluid transition for movement and watery color effect.
+            transition: 'transform 150ms cubic-bezier(0.65, 0, 0.35, 1), width 150ms cubic-bezier(0.65, 0, 0.35, 1), background-color 250ms ease-in-out',
+            // The "watery" glass effect: semi-transparent with a blur.
+            backgroundColor: 'hsl(var(--primary) / 0.85)',
+            backdropFilter: 'blur(4px)',
+            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+          }}
         />
 
         {navItems.map((item, index) => {
@@ -117,7 +71,6 @@ export default function BottomNav() {
               key={item.label}
               href={item.href}
               ref={(el) => (itemRefs.current[index] = el)}
-              onClick={(e) => handleNavClick(e, index)}
               className="flex-1 z-10"
               prefetch={true}
             >
