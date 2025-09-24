@@ -33,10 +33,10 @@ export default function Header() {
   const { username, photoURL } = useUserStore();
 
   return (
-    <header className="sticky top-0 z-30 flex h-20 items-center justify-between bg-primary px-4 sm:px-6 text-primary-foreground">
+    <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b bg-background/70 px-4 backdrop-blur-sm sm:px-6 text-foreground">
       <div className="flex items-center gap-2 font-semibold">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <h1 className="text-xl font-bold">InvestWise</h1>
+          <h1 className="text-xl font-bold text-primary">InvestWise</h1>
         </Link>
       </div>
       <div className="flex items-center gap-2">
@@ -59,7 +59,7 @@ export default function Header() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-              <Avatar className="h-10 w-10 border-2 border-primary-foreground">
+              <Avatar className="h-10 w-10 border-2 border-primary">
                 <AvatarImage src={photoURL || ''} alt={username} />
                 <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
