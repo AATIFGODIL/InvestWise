@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Home, Briefcase, BarChart, Users, Repeat } from "lucide-react";
@@ -15,31 +14,28 @@ const navItems = [
   { href: "/community", label: "Community", icon: Users },
 ];
 
-// NEW: A type for the animation sequence
 type AnimationState = "idle" | "rising" | "sliding" | "descending";
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const router = useRouter(); // NEW: Need the router for programmatic navigation
-  
-  // NEW: Refs to measure the DOM elements for positioning
+  const router = useRouter();
   const navRef = useRef<HTMLElement | null>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
-  // NEW: State to manage the glider's style and the animation sequence
-  const [gliderStyle, setGliderStyle] = useState<CSSProperties>({});
+  const [gliderStyle, setGliderStyle] = useState<CSSProperties>({ opacity: 0 });
   const [animationState, setAnimationState] = useState<AnimationState>("idle");
-  const [activeIndex, setActiveIndex] = useState(() => 
-    navItems.findIndex((item) => pathname.startsWith(item.href))
-  );
+  const [activeIndex, setActiveIndex] = useState(-1);
 
-  // NEW: This effect syncs the glider's position with the URL on page load or back/forward navigation
   useEffect(() => {
     const currentPathIndex = navItems.findIndex((item) => pathname.startsWith(item.href));
+    
     if (currentPathIndex !== -1 && itemRefs.current[currentPathIndex]) {
       const activeItem = itemRefs.current[currentPathIndex]!;
       const navRect = navRef.current!.getBoundingClientRect();
       const itemRect = activeItem.getBoundingClientRect();
+      
+      if (itemRect.width === 0) return;
+
       const left = itemRect.left - navRect.left;
 
       setGliderStyle({
@@ -47,16 +43,16 @@ export default function BottomNav() {
         transform: `translateX(${left}px) scale(1)`,
         backgroundColor: 'hsl(var(--primary))',
         boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-        transition: 'none', // Prevents animation on initial load
+        opacity: 1, 
+        transition: 'opacity 150ms ease-in-out', 
       });
       setActiveIndex(currentPathIndex);
     }
   }, [pathname]);
 
-  // NEW: Click handler to orchestrate the "rise-slide-descend" animation
   const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, newIndex: number) => {
     e.preventDefault();
-    if (newIndex === activeIndex || animationState !== "idle") return;
+    if (newIndex === activeIndex || animationState !== "idle" || activeIndex === -1) return;
 
     const startItem = itemRefs.current[activeIndex];
     const endItem = itemRefs.current[newIndex];
@@ -68,23 +64,19 @@ export default function BottomNav() {
     const startLeft = startRect.left - navRect.left;
     const endLeft = endRect.left - navRect.left;
     
-    // 1. Rise
     setAnimationState("rising");
     setGliderStyle({ ...gliderStyle, transition: 'transform 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out', transform: `translateX(${startLeft}px) scale(1.1)`, backgroundColor: 'hsl(var(--primary) / 0.5)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)', });
-
-    // 2. Slide
+    
     setTimeout(() => {
       setAnimationState("sliding");
       setGliderStyle({ width: `${endRect.width}px`, transition: 'transform 300ms cubic-bezier(0.65, 0, 0.35, 1)', transform: `translateX(${endLeft}px) scale(1.1)`, backgroundColor: 'hsl(var(--primary) / 0.5)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)', });
     }, 150);
 
-    // 3. Descend
     setTimeout(() => {
       setAnimationState("descending");
       setGliderStyle({ width: `${endRect.width}px`, transition: 'transform 150ms ease-in, background-color 150ms ease-in, box-shadow 150ms ease-in', transform: `translateX(${endLeft}px) scale(1)`, backgroundColor: 'hsl(var(--primary))', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', });
     }, 450);
 
-    // 4. Navigate and reset
     setTimeout(() => {
       setAnimationState("idle");
       router.push(endItem.href);
@@ -97,7 +89,6 @@ export default function BottomNav() {
         ref={navRef} 
         className="relative flex h-16 items-center justify-around rounded-full bg-background/70 p-1 shadow-lg ring-1 ring-black/5 backdrop-blur-sm"
       >
-        {/* NEW: The gliding indicator element */}
         <div
           className="absolute top-1 h-[calc(100%-8px)] rounded-full border-primary-foreground/10"
           style={gliderStyle}
@@ -110,14 +101,13 @@ export default function BottomNav() {
               key={item.label}
               href={item.href}
               ref={(el) => (itemRefs.current[index] = el)}
-              onClick={(e) => handleNavClick(e, index)} // MODIFIED: Use the animation handler
+              onClick={(e) => handleNavClick(e, index)}
               className="z-10 flex-1"
               prefetch={true}
             >
               <div
                 className={cn(
                   "flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2 transition-colors duration-300",
-                  // MODIFIED: Text color is now independent of the background
                   isActive
                     ? "text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground"
@@ -132,4 +122,4 @@ export default function BottomNav() {
       </nav>
     </div>
   );
-} 
+}
