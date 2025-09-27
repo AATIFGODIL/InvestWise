@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Home, Briefcase, BarChart, Users, Repeat } from "lucide-react";
@@ -64,21 +63,17 @@ export default function BottomNav() {
 
       const navRect = navEl.getBoundingClientRect();
       const itemRect = activeItem.getBoundingClientRect();
-      
-      if (itemRect.width === 0 && tries < 6) {
-        requestAnimationFrame(() => attemptSet(tries + 1));
-        return;
-      }
+      if (itemRect.width === 0) return;
 
       const left = itemRect.left - navRect.left;
-      
-      clearAllTimeouts();
-      setAnimationState("idle");
       setGliderStyle({
         width: `${itemRect.width}px`,
-        transform: `translateX(${left}px)`,
+        transform: `translateX(${left}px) scale(1)`,
+        backgroundColor: "hsl(var(--primary))",
+        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
         opacity: 1,
-        transition: 'opacity 300ms ease',
+        transition: "opacity 150ms ease-in-out, transform 200ms ease",
+        backdropFilter: "blur(0px)",
       });
       setActiveIndex(currentPathIndex);
     };
@@ -87,72 +82,100 @@ export default function BottomNav() {
 
     return () => {
       cancelled = true;
-      clearAllTimeouts();
     };
   }, [pathname]);
 
   const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, newIndex: number) => {
     e.preventDefault();
-    if (newIndex === activeIndex || animationState !== "idle") return;
+    if (animationState !== "idle") return; // prevent spamming while animating
 
-    const startItem = itemRefs.current[activeIndex];
+    const navEl = navRef.current;
     const endItem = itemRefs.current[newIndex];
-    if (!startItem || !endItem || !navRef.current) return;
-    
-    clearAllTimeouts();
+    if (!endItem || !navEl) {
+      // fallback navigation
+      router.push(navItems[newIndex].href);
+      return;
+    }
 
-    const navRect = navRef.current.getBoundingClientRect();
-    const startRect = startItem.getBoundingClientRect();
+    const navRect = navEl.getBoundingClientRect();
     const endRect = endItem.getBoundingClientRect();
-    const startLeft = startRect.left - navRect.left;
     const endLeft = endRect.left - navRect.left;
 
-    const t = (fn: () => void, delay: number) => timeouts.current.push(window.setTimeout(fn, delay));
+    // determine start position: if we have an activeIndex use it, else start at end (so animation still plays)
+    let startLeft = endLeft;
+    if (activeIndex !== -1) {
+      const startItem = itemRefs.current[activeIndex];
+      if (startItem) {
+        const startRect = startItem.getBoundingClientRect();
+        startLeft = startRect.left - navRect.left;
+      }
+    }
 
+    // rising
     setAnimationState("rising");
-    setGliderStyle({
-      ...gliderStyle,
+    setGliderStyle((prev) => ({
+      ...prev,
+      width: `${endRect.width}px`,
+      transition: "transform 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out, backdrop-filter 150ms ease-out",
       transform: `translateX(${startLeft}px) scale(1.1)`,
-      backgroundColor: 'hsl(var(--primary) / 0.5)',
-      boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-      backdropFilter: 'blur(4px)',
-      transition: 'transform 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out, backdrop-filter 150ms ease-out',
-    });
+      backgroundColor: "hsl(var(--primary) / 0.5)",
+      boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+      backdropFilter: "blur(4px)",
+      opacity: 1,
+    }));
 
-    t(() => {
-      setAnimationState("sliding");
-      setGliderStyle({
-        width: `${endRect.width}px`,
-        transform: `translateX(${endLeft}px) scale(1.1)`,
-        backgroundColor: 'hsl(var(--primary) / 0.5)',
-        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-        backdropFilter: 'blur(4px)',
-        transition: 'transform 300ms cubic-bezier(0.65, 0, 0.35, 1), width 300ms cubic-bezier(0.65, 0, 0.35, 1), backdrop-filter 300ms ease-out',
-      });
-    }, 150);
+    // sliding
+    timeouts.current.push(
+      window.setTimeout(() => {
+        setAnimationState("sliding");
+        setGliderStyle((prev) => ({
+          ...prev,
+          width: `${endRect.width}px`,
+          transition: "transform 300ms cubic-bezier(0.65, 0, 0.35, 1), backdrop-filter 300ms ease-out",
+          transform: `translateX(${endLeft}px) scale(1.1)`,
+          backgroundColor: "hsl(var(--primary) / 0.5)",
+        }));
+      }, 150)
+    );
 
-    t(() => {
-      setAnimationState("descending");
-      setGliderStyle({
-        width: `${endRect.width}px`,
-        transform: `translateX(${endLeft}px) scale(1)`,
-        backgroundColor: 'hsl(var(--primary))',
-        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-        backdropFilter: 'blur(0px)',
-        transition: 'transform 150ms ease-in, background-color 150ms ease-in, box-shadow 150ms ease-in, backdrop-filter 150ms ease-in',
-      });
-    }, 450);
+    // descending + finalize & navigate
+    timeouts.current.push(
+      window.setTimeout(() => {
+        setAnimationState("descending");
+        setGliderStyle((prev) => ({
+          ...prev,
+          width: `${endRect.width}px`,
+          transition: "transform 150ms ease-in, background-color 150ms ease-in, box-shadow 150ms ease-in, backdrop-filter 150ms ease-in",
+          transform: `translateX(${endLeft}px) scale(1)`,
+          backgroundColor: "hsl(var(--primary))",
+          boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+          backdropFilter: "blur(0px)",
+        }));
+      }, 450)
+    );
 
-    t(() => {
-      setAnimationState("idle");
-      router.push(endItem.href);
-    }, 600);
+    timeouts.current.push(
+      window.setTimeout(() => {
+        setAnimationState("idle");
+        clearAllTimeouts();
+        // update activeIndex and navigate
+        setActiveIndex(newIndex);
+        router.push(navItems[newIndex].href);
+      }, 600)
+    );
   };
+
+  // cleanup on unmount
+  useLayoutEffect(() => {
+    return () => {
+      clearAllTimeouts();
+    };
+  }, []);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-2">
-      <nav 
-        ref={navRef} 
+      <nav
+        ref={navRef}
         className="relative flex h-16 items-center justify-around rounded-full bg-background/70 p-1 shadow-lg ring-1 ring-black/5 backdrop-blur-sm"
       >
         <div
@@ -174,9 +197,7 @@ export default function BottomNav() {
               <div
                 className={cn(
                   "flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2 transition-colors duration-300",
-                  isActive
-                    ? "text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
+                  isActive ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <item.icon className="h-6 w-6" />
