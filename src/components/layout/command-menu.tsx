@@ -28,6 +28,7 @@ import {
   TrendingUp,
   TrendingDown,
   Building,
+  Search,
 } from "lucide-react";
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
@@ -97,13 +98,10 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   // --- Data Fetching ---
 
   useEffect(() => {
-    async function fetchAllStockQuotes() {
+    async function fetchStockData() {
       if (!open || stocks.length > 0) return;
       
-      const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy");
-      if (!isApiKeyValid) {
-        console.warn("Finnhub API key not configured. Using placeholder data for command menu stocks.");
-      }
+      const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
 
       setIsFetchingStocks(true);
       const promises = stockList.map(async (stock) => {
@@ -118,18 +116,26 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
           };
         }
         try {
-          const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
-          if (!res.ok) return null; // Skip failed fetches
-          const quote = await res.json();
-          return {
-            symbol: stock.symbol,
-            name: stock.name,
-            price: quote.c || 0,
-            change: quote.d || 0,
-            changePercent: quote.dp || 0,
-          };
-        } catch {
-          return null; // Skip on network error
+            const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
+            if (!res.ok) throw new Error(`Failed for ${stock.symbol}`);
+            const quote = await res.json();
+            return {
+                symbol: stock.symbol,
+                name: stock.name,
+                price: quote.c || 0,
+                change: quote.d || 0,
+                changePercent: quote.dp || 0,
+            };
+        } catch(error) {
+            console.error(`Error fetching data for ${stock.symbol}:`, error);
+            // Return placeholder data on fetch failure for a single stock
+            return {
+                symbol: stock.symbol,
+                name: stock.name,
+                price: 0,
+                change: 0,
+                changePercent: 0,
+            };
         }
       });
 
@@ -138,7 +144,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
       setIsFetchingStocks(false);
     }
     
-    fetchAllStockQuotes();
+    fetchStockData();
   }, [open, stocks.length]);
 
   const fetchStockDetails = async (stock: StockData) => {
@@ -269,8 +275,8 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
             <CommandList>
                 {view === "search" && (
                     <>
-                        {isFetchingStocks && query.length > 0 && (
-                            <div className="py-6 text-center text-sm">Loading stocks...</div>
+                        {isFetchingStocks && query.length === 0 && (
+                            <div className="p-4 text-center text-sm text-muted-foreground">Loading stocks...</div>
                         )}
                         {filteredStocks.length === 0 && !isFetchingStocks && <CommandEmpty>No results found.</CommandEmpty>}
 
@@ -441,3 +447,5 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     </>
   );
 }
+
+    
