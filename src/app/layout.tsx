@@ -88,6 +88,14 @@ export default function RootLayout({
         <Script src="https://s3.tradingview.com/tv.js" strategy="beforeInteractive" />
       </head>
       <body className={`${poppins.variable} font-body antialiased`}>
+        <svg className="absolute -z-10 h-0 w-0">
+          <defs>
+            <filter id="frosted">
+              <feTurbulence type="fractalNoise" baseFrequency="0.02 0.08" numOctaves="4" seed="0" result="noise" />
+              <feDisplacementMap in="SourceGraphic" in2="noise" scale="20" />
+            </filter>
+          </defs>
+        </svg>
         <ThemeProvider>
           <AuthProvider>
             <LayoutContent>{children}</LayoutContent>
