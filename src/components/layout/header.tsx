@@ -38,7 +38,7 @@ export default function Header() {
           <div className="flex h-full items-center font-semibold">
             <Link 
               href="/dashboard" 
-              className="flex h-full items-center rounded-full bg-primary px-4 shadow-md"
+              className="flex h-[calc(100%-8px)] items-center rounded-full bg-primary px-4 shadow-md"
             >
               <h1 className="text-xl font-bold text-primary-foreground">
                 InvestWise
