@@ -10,6 +10,8 @@ import { investmentChatbot } from "@/ai/flows/investment-chatbot";
 import type { InvestmentChatbotOutput } from "@/ai/types/investment-chatbot-types";
 import { stockPrediction } from "@/ai/flows/stock-prediction";
 import type { StockPredictionOutput } from "@/ai/types/stock-prediction-types";
+import { fetchStockNews } from "@/ai/flows/fetch-stock-news";
+import type { StockNewsOutput } from "@/ai/flows/fetch-stock-news";
 import { gateway } from "@/lib/braintree";
 import { db } from "@/lib/firebase/admin";
 import { type BraintreeGateway, type Customer, type Transaction as BraintreeTransaction } from "braintree";
@@ -30,6 +32,12 @@ type ActionResult = {
 type StockPredictionResult = {
     success: boolean;
     prediction?: StockPredictionOutput;
+    error?: string;
+}
+
+type StockNewsResult = {
+    success: boolean;
+    news?: StockNewsOutput;
     error?: string;
 }
 
@@ -80,6 +88,32 @@ export async function handleStockPrediction(symbol: string): Promise<StockPredic
         };
     }
 }
+
+/**
+ * Calls the stock news AI flow to get recent news for a given stock symbol.
+ * @param {string} symbol - The stock symbol (e.g., AAPL).
+ * @returns {Promise<StockNewsResult>} An object with the news data or an error.
+ */
+export async function handleStockNews(symbol: string): Promise<StockNewsResult> {
+    if (!symbol) {
+        return { success: false, error: "Stock symbol cannot be empty." };
+    }
+
+    try {
+        const result = await fetchStockNews({ symbol });
+        if (!result) {
+             return { success: false, error: "Could not fetch news at this time. Please try again later." };
+        }
+        return { success: true, news: result };
+    } catch (error: any) {
+        console.error("Error calling stock news flow:", error);
+        return {
+            success: false,
+            error: error.message || "An unexpected error occurred while fetching news.",
+        };
+    }
+}
+
 
 // --- Braintree Payment Actions ---
 

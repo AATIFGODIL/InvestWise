@@ -11,6 +11,7 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
+  Command,
 } from "@/components/ui/command";
 import {
   Home,
@@ -20,23 +21,28 @@ import {
   Users,
   BrainCircuit,
   Star,
-  PlusCircle,
-  MinusCircle,
   Newspaper,
   Loader2,
   ArrowLeft,
-  ExternalLink,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Building,
 } from "lucide-react";
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
 import useLoadingStore from "@/store/loading-store";
-import { handleStockPrediction } from "@/app/actions";
+import { handleStockPrediction, handleStockNews } from "@/app/actions";
 import { type StockPredictionOutput } from "@/ai/types/stock-prediction-types";
+import { type StockNewsOutput } from "@/ai/flows/fetch-stock-news";
 import { Button } from "../ui/button";
 import { stockList } from "@/data/stocks";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
+import { usePortfolioStore } from "@/store/portfolio-store";
+import TradeDialogCMDK from "../trade/trade-dialog-cmdk";
+import TradingViewMiniChart from "../shared/trading-view-mini-chart";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -50,13 +56,6 @@ interface StockData {
   marketCap?: number;
   pe?: number;
   nextEarning?: string;
-}
-
-interface NewsArticle {
-  headline: string;
-  source: string;
-  url: string;
-  datetime: number;
 }
 
 interface CommandMenuProps {
@@ -79,78 +78,106 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   const { toast } = useToast();
   const { showLoading } = useLoadingStore();
   const { watchlist, addSymbol, removeSymbol } = useWatchlistStore();
+  const { holdings } = usePortfolioStore();
 
   const [view, setView] = useState<CommandView>("search");
   const [query, setQuery] = useState("");
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [selectedStock, setSelectedStock] = useState<StockData | null>(null);
-  const [news, setNews] = useState<NewsArticle[]>([]);
+  
+  const [prediction, setPrediction] = useState<StockPredictionOutput | null>(null);
+  const [news, setNews] = useState<StockNewsOutput | null>(null);
   
   const [isFetchingStocks, setIsFetchingStocks] = useState(false);
   const [isFetchingDetails, setIsFetchingDetails] = useState(false);
+  const [isTradeDialogOpen, setIsTradeDialogOpen] = useState(false);
+  const [tradeAction, setTradeAction] = useState<"buy" | "sell">("buy");
+
 
   // --- Data Fetching ---
 
   useEffect(() => {
     async function fetchAllStockQuotes() {
-        if (!open || stocks.length > 0) return;
-        if (!API_KEY || API_KEY.startsWith("AIzaSy")) return;
+      if (!open || stocks.length > 0) return;
+      
+      const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy");
+      if (!isApiKeyValid) {
+        console.warn("Finnhub API key not configured. Using placeholder data for command menu stocks.");
+      }
 
-        setIsFetchingStocks(true);
-        const promises = stockList.map(async (stock) => {
-            try {
-                const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
-                if (!res.ok) return null;
-                const quote = await res.json();
-                return {
-                    symbol: stock.symbol,
-                    name: stock.name,
-                    price: quote.c || 0,
-                    change: quote.d || 0,
-                    changePercent: quote.dp || 0,
-                };
-            } catch {
-                return null;
-            }
-        });
+      setIsFetchingStocks(true);
+      const promises = stockList.map(async (stock) => {
+        if (!isApiKeyValid) {
+          // Fallback to simulated data if no API key
+          return {
+            symbol: stock.symbol,
+            name: stock.name,
+            price: parseFloat((Math.random() * 500).toFixed(2)),
+            change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
+            changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
+          };
+        }
+        try {
+          const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
+          if (!res.ok) return null; // Skip failed fetches
+          const quote = await res.json();
+          return {
+            symbol: stock.symbol,
+            name: stock.name,
+            price: quote.c || 0,
+            change: quote.d || 0,
+            changePercent: quote.dp || 0,
+          };
+        } catch {
+          return null; // Skip on network error
+        }
+      });
 
-        const results = (await Promise.all(promises)).filter(Boolean) as StockData[];
-        setStocks(results);
-        setIsFetchingStocks(false);
+      const results = (await Promise.all(promises)).filter(Boolean) as StockData[];
+      setStocks(results);
+      setIsFetchingStocks(false);
     }
     
     fetchAllStockQuotes();
   }, [open, stocks.length]);
 
   const fetchStockDetails = async (stock: StockData) => {
-    if (!API_KEY || API_KEY.startsWith("AIzaSy")) return;
-    
     setIsFetchingDetails(true);
-    
-    // Fetch Profile & News in parallel
-    const [profileRes, newsRes] = await Promise.all([
-      fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${stock.symbol}&token=${API_KEY}`),
-      fetch(`https://finnhub.io/api/v1/company-news?symbol=${stock.symbol}&from=2023-01-01&to=2024-01-01&token=${API_KEY}`)
-    ]);
+    setPrediction(null);
+    setNews(null);
 
+    const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy");
+
+    // --- Fetch Profile, Prediction, and News in parallel ---
+    const [profileResult, predictionResult, newsResult] = await Promise.all([
+      isApiKeyValid ? fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${stock.symbol}&token=${API_KEY}`) : Promise.resolve(null),
+      handleStockPrediction(stock.symbol),
+      handleStockNews(stock.symbol)
+    ]);
+    
     let updatedStock = { ...stock };
 
-    if (profileRes.ok) {
-      const profile = await profileRes.json();
+    // Process Profile
+    if (profileResult && profileResult.ok) {
+      const profile = await profileResult.json();
       updatedStock = {
         ...updatedStock,
         logo: profile.logo,
         marketCap: profile.marketCapitalization,
         pe: profile.metric?.pe,
-        nextEarning: profile.earningsCalendar?.[0]?.date,
       };
     }
     
-    if (newsRes.ok) {
-      const newsData = await newsRes.json();
-      setNews(newsData.slice(0, 2)); // Get top 2 articles
+    // Process Prediction
+    if (predictionResult.success && predictionResult.prediction) {
+      setPrediction(predictionResult.prediction);
     }
 
+    // Process News
+    if (newsResult.success && newsResult.news) {
+      setNews(newsResult.news);
+    }
+    
     setSelectedStock(updatedStock);
     setIsFetchingDetails(false);
   };
@@ -180,18 +207,22 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
 
   const handleGoBack = () => {
     setView("search");
+    setQuery("");
     setSelectedStock(null);
-    setNews([]);
+    setPrediction(null);
+    setNews(null);
   };
+
+  const handleBuySellClick = (action: "buy" | "sell") => {
+    setTradeAction(action);
+    setIsTradeDialogOpen(true);
+  }
 
   // Reset view when dialog is closed
   useEffect(() => {
     if (!open) {
       const timer = setTimeout(() => {
-        setQuery("");
-        setView("search");
-        setSelectedStock(null);
-        setNews([]);
+        handleGoBack();
       }, 150); // Delay to allow animation
       return () => clearTimeout(timer);
     }
@@ -209,133 +240,204 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
       .slice(0, 5);
   }, [query, stocks]);
 
+  const selectedStockHolding = useMemo(() => {
+    if (!selectedStock) return null;
+    return holdings.find(h => h.symbol === selectedStock.symbol);
+  }, [selectedStock, holdings]);
+
 
   return (
+    <>
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-        {view === "stock-detail" && (
-            <Button variant="ghost" size="icon" className="mr-2 h-8 w-8" onClick={handleGoBack}>
-                <ArrowLeft className="h-4 w-4" />
-            </Button>
-        )}
-        <CommandInput
-            placeholder={view === 'search' ? "Search for a stock or action..." : selectedStock?.name}
-            value={query}
-            onValueChange={setQuery}
-            disabled={view === 'stock-detail'}
-        />
-      </div>
-
-      <CommandList>
-        {view === "search" && (
-            <>
-                {isFetchingStocks && query.length > 0 && (
-                    <div className="py-6 text-center text-sm">Loading stocks...</div>
-                )}
-                {filteredStocks.length === 0 && !isFetchingStocks && <CommandEmpty>No results found.</CommandEmpty>}
-
-                {filteredStocks.length > 0 && (
-                <CommandGroup heading="Stocks">
-                    {filteredStocks.map((stock) => (
-                    <CommandItem
-                        key={stock.symbol}
-                        onSelect={() => handleStockSelect(stock.symbol)}
-                        value={`${stock.symbol} - ${stock.name}`}
-                    >
-                        <div className="flex justify-between items-center w-full">
-                        <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                                <AvatarFallback>{stock.symbol.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <span>{stock.name} ({stock.symbol})</span>
-                        </div>
-                        <span className="font-mono">${stock.price.toFixed(2)}</span>
-                        </div>
-                    </CommandItem>
-                    ))}
-                </CommandGroup>
-                )}
-
-                <CommandGroup heading="App Actions">
-                    {appActions
-                        .filter((action) =>
-                        action.name.toLowerCase().includes(query.toLowerCase())
-                        )
-                        .map((action) => (
-                        <CommandItem
-                            key={action.href}
-                            onSelect={() => runCommand(() => router.push(action.href))}
-                        >
-                            <action.icon className="mr-2 h-4 w-4" />
-                            <span>{action.name}</span>
-                        </CommandItem>
-                        ))}
-                </CommandGroup>
-            </>
-        )}
-        {view === 'stock-detail' && selectedStock && (
-            <div className="p-3 text-sm">
-                {isFetchingDetails ? (
-                    <div className="flex items-center justify-center h-48">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    </div>
+        <Command shouldFilter={false} className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+            <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
+                {view === "stock-detail" ? (
+                    <Button variant="ghost" size="icon" className="mr-2 h-8 w-8 shrink-0" onClick={handleGoBack}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
                 ) : (
-                    <div className="space-y-4">
-                        {/* Stock Header */}
-                        <div className="flex items-center gap-4 p-4 rounded-lg bg-muted">
-                             <Avatar className="h-14 w-14">
-                                <AvatarImage src={selectedStock.logo} alt={selectedStock.name} />
-                                <AvatarFallback>{selectedStock.symbol.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <h3 className="text-lg font-bold">{selectedStock.name}</h3>
-                                <div className="flex items-baseline gap-2">
-                                    <p className="text-2xl font-bold">${selectedStock.price.toFixed(2)}</p>
-                                    <p className={cn("font-semibold", selectedStock.change >= 0 ? "text-green-500" : "text-red-500")}>
-                                        {selectedStock.changePercent.toFixed(2)}%
-                                    </p>
-                                </div>
-                                <p className="text-xs text-muted-foreground">
-                                    Mkt Cap: {(selectedStock.marketCap / 1000).toFixed(1)}T | P/E: {selectedStock.pe?.toFixed(1)} | Next Earnings: {selectedStock.nextEarning || 'N/A'}
-                                </p>
-                            </div>
-                        </div>
-                        
-                        {/* Action Buttons */}
-                         <div className="grid grid-cols-2 gap-2">
-                            <Button variant="outline" size="sm" onClick={() => runCommand(() => handleTradeNavigation(selectedStock.symbol))}>
-                                <Repeat className="mr-2 h-4 w-4" /> Trade
-                            </Button>
-                            <Button variant="outline" size="sm" onClick={() => {
-                                const isInWatchlist = watchlist.includes(selectedStock.symbol);
-                                if (isInWatchlist) { removeSymbol(selectedStock.symbol); toast({description: "Removed from watchlist."}); }
-                                else { addSymbol(selectedStock.symbol); toast({description: "Added to watchlist."}); }
-                            }}>
-                                <Star className={cn("mr-2 h-4 w-4", watchlist.includes(selectedStock.symbol) ? 'text-yellow-400 fill-yellow-400' : '')} /> Watchlist
-                            </Button>
-                        </div>
-                        
-                        {/* News Section */}
-                        <div>
-                            <h4 className="font-semibold mb-2 flex items-center gap-2"><Newspaper className="h-4 w-4" /> News & Analysis</h4>
-                            <div className="space-y-2">
-                                {news.map((article, i) => (
-                                    <a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-muted">
-                                        <p className="font-medium truncate">{article.headline}</p>
-                                        <p className="text-xs text-muted-foreground">{article.source}</p>
-                                    </a>
-                                ))}
-                                {news.length === 0 && <p className="text-xs text-muted-foreground p-2">No recent news found.</p>}
-                            </div>
-                        </div>
-
-                    </div>
+                    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                 )}
+                <CommandInput
+                    placeholder={view === 'search' ? "Search for a stock or action..." : `${selectedStock?.name} (${selectedStock?.symbol})`}
+                    value={query}
+                    onValueChange={setQuery}
+                    disabled={view === 'stock-detail'}
+                />
             </div>
-        )}
-      </CommandList>
+
+            <CommandList>
+                {view === "search" && (
+                    <>
+                        {isFetchingStocks && query.length > 0 && (
+                            <div className="py-6 text-center text-sm">Loading stocks...</div>
+                        )}
+                        {filteredStocks.length === 0 && !isFetchingStocks && <CommandEmpty>No results found.</CommandEmpty>}
+
+                        {filteredStocks.length > 0 && (
+                        <CommandGroup heading="Stocks">
+                            {filteredStocks.map((stock) => (
+                            <CommandItem
+                                key={stock.symbol}
+                                onSelect={() => handleStockSelect(stock.symbol)}
+                                value={`${stock.symbol} - ${stock.name}`}
+                            >
+                                <div className="flex justify-between items-center w-full">
+                                    <div className="flex items-center gap-3">
+                                        <Avatar className="h-8 w-8">
+                                            <AvatarFallback>{stock.symbol.charAt(0)}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p>{stock.name}</p>
+                                            <p className="text-xs text-muted-foreground">{stock.symbol}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-mono">${stock.price.toFixed(2)}</p>
+                                        <p className={cn("text-xs", stock.change >= 0 ? "text-green-500" : "text-red-500")}>
+                                            {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+                                        </p>
+                                    </div>
+                                </div>
+                            </CommandItem>
+                            ))}
+                        </CommandGroup>
+                        )}
+
+                        <CommandSeparator />
+
+                        <CommandGroup heading="App Actions">
+                            {appActions
+                                .filter((action) => action.name.toLowerCase().includes(query.toLowerCase()))
+                                .map((action) => (
+                                <CommandItem
+                                    key={action.href}
+                                    onSelect={() => runCommand(() => router.push(action.href))}
+                                    value={action.name}
+                                >
+                                    <action.icon className="mr-2 h-4 w-4" />
+                                    <span>{action.name}</span>
+                                </CommandItem>
+                                ))}
+                        </CommandGroup>
+                    </>
+                )}
+                
+            </CommandList>
+
+            {view === 'stock-detail' && selectedStock && (
+                <div className="p-2 text-sm overflow-y-auto max-h-[70vh]">
+                    {isFetchingDetails ? (
+                        <div className="flex items-center justify-center h-96">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {/* Stock Header */}
+                            <div className="flex items-start gap-4 p-2 rounded-lg">
+                                <Avatar className="h-14 w-14 border">
+                                    <AvatarImage src={selectedStock.logo} alt={selectedStock.name} />
+                                    <AvatarFallback>{selectedStock.symbol.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <h3 className="text-lg font-bold">{selectedStock.name}</h3>
+                                    <div className="flex items-baseline gap-2">
+                                        <p className="text-2xl font-bold">${selectedStock.price.toFixed(2)}</p>
+                                        <p className={cn("font-semibold flex items-center", selectedStock.change >= 0 ? "text-green-500" : "text-red-500")}>
+                                            {selectedStock.change >= 0 ? <TrendingUp className="h-4 w-4 mr-1"/> : <TrendingDown className="h-4 w-4 mr-1" />}
+                                            {selectedStock.change.toFixed(2)} ({selectedStock.changePercent.toFixed(2)}%)
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {/* Mini Chart */}
+                            <div className="h-40 w-full">
+                                <TradingViewMiniChart symbol={selectedStock.symbol} />
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="grid grid-cols-2 gap-2">
+                                <Button variant="outline" size="sm" onClick={() => handleBuySellClick('buy')}>
+                                    Buy
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleBuySellClick('sell')}>
+                                    Sell
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => runCommand(() => handleTradeNavigation(selectedStock.symbol))}>
+                                    <Repeat className="mr-2 h-4 w-4" /> Go to Trade Page
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => {
+                                    if (watchlist.includes(selectedStock.symbol)) { removeSymbol(selectedStock.symbol); toast({description: "Removed from watchlist."}); }
+                                    else { addSymbol(selectedStock.symbol); toast({description: "Added to watchlist."}); }
+                                }}>
+                                    <Star className={cn("mr-2 h-4 w-4", watchlist.includes(selectedStock.symbol) ? 'text-yellow-400 fill-yellow-400' : '')} /> Watchlist
+                                </Button>
+                            </div>
+                            
+                            {/* Your Holdings */}
+                            {selectedStockHolding && (
+                                <div>
+                                    <h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Building className="h-4 w-4" /> Your Holdings</h4>
+                                     <div className="p-3 rounded-lg bg-muted/50">
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-medium">{selectedStockHolding.qty} Shares</span>
+                                            <span className="font-medium">Value: ${(selectedStockHolding.qty * selectedStock.price).toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                            
+                            {/* Prediction Section */}
+                            <div>
+                                <h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><BrainCircuit className="h-4 w-4" /> AI Prediction</h4>
+                                <div className="p-3 rounded-lg bg-muted/50 text-xs">
+                                {prediction ? (
+                                    <>
+                                        <div className="flex justify-between items-center mb-1">
+                                            <Badge className={cn("text-white", prediction.confidence === "High" ? "bg-green-500" : prediction.confidence === "Medium" ? "bg-yellow-500" : "bg-red-500")}>
+                                                {prediction.confidence} Confidence
+                                            </Badge>
+                                        </div>
+                                        <p>{prediction.prediction}</p>
+                                    </>
+                                ) : (
+                                    <p>Loading AI prediction...</p>
+                                )}
+                                </div>
+                            </div>
+
+                            {/* News Section */}
+                            <div>
+                                <h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Newspaper className="h-4 w-4" /> Recent News</h4>
+                                <div className="space-y-2">
+                                    {news?.articles && news.articles.length > 0 ? (
+                                        news.articles.map((article, i) => (
+                                        <a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-muted/50">
+                                            <p className="font-medium truncate leading-tight">{article.headline}</p>
+                                            <p className="text-xs text-muted-foreground">{article.source}</p>
+                                        </a>
+                                    ))) : (
+                                        <div className="p-2 text-xs text-muted-foreground">Loading news...</div>
+                                    )}
+                                </div>
+                            </div>
+
+                        </div>
+                    )}
+                </div>
+            )}
+        </Command>
     </CommandDialog>
+    {selectedStock && (
+        <TradeDialogCMDK
+            isOpen={isTradeDialogOpen}
+            onOpenChange={setIsTradeDialogOpen}
+            symbol={selectedStock.symbol}
+            price={selectedStock.price}
+            action={tradeAction}
+        />
+    )}
+    </>
   );
 }
-
-    
