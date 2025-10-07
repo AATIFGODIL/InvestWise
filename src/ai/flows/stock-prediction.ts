@@ -24,68 +24,40 @@ export async function stockPrediction(input: StockPredictionInput): Promise<Stoc
   return stockPredictionFlow(input);
 }
 
-/**
- * Zod schema for the input required by the interpretation prompt.
- * This is internal to the flow and combines data from the external API call.
- */
-const InterpretationPromptSchema = z.object({
-    symbol: z.string().describe("The stock ticker symbol, e.g., 'AAPL' for Apple."),
-    forecast: z.string().describe("A JSON string representing an array of forecasted prices for the next 5 months."),
-    accuracy: z.number().describe("A score from 0 to 1 indicating the prediction model's accuracy."),
-});
-
 // This prompt instructs the AI to act as a financial analyst. Its role is to translate
 // raw, numerical forecast data into a clear, beginner-friendly summary.
 // The prompt specifies the exact structure of the output (prediction and confidence)
 // to ensure consistent and parseable results.
-const prompt = ai.definePrompt({
+const interpretStockPredictionPrompt = ai.definePrompt({
     name: 'interpretStockPredictionPrompt',
-    input: { schema: InterpretationPromptSchema },
+    input: { schema: StockPredictionInputSchema },
     output: { schema: StockPredictionOutputSchema },
-    prompt: `You are a financial analyst AI. Your task is to interpret raw stock forecast data and present a clear, concise, and easy-to-understand prediction for a beginner investor.
-    Use a friendly and informative tone. Start the prediction with an engaging sentence.
+    tools: [getPredictionFromApi], // Make the tool available to the LLM
+    prompt: `You are a financial analyst AI. Your task is to provide a clear, concise, and easy-to-understand stock prediction for a beginner investor.
+    
+    1. First, use the getPredictionFromApi tool to fetch the raw forecast data for the given stock symbol: {{{symbol}}}.
+    2. Then, interpret the received forecast data and present a human-readable summary.
+    
+    In your summary (the 'prediction' field), explain the overall trend (e.g., "appears to be trending upwards," "is expected to dip slightly," "might remain volatile"). Mention potential highs and lows based on the forecast data. Calculate the percentage change between the first and second month, and the first and third month, and include it in your summary to give a clearer picture of the short-term movement.
 
-    Here is the data for the stock symbol {{{symbol}}}:
-    - 5-month price forecast (as a JSON array): {{{forecast}}}
-    - Prediction model accuracy score: {{{accuracy}}}
-
-    Based on this data, please provide the following analysis:
-    1.  **prediction**: Write a human-readable summary of the 5-month forecast. Explain the overall trend (e.g., "appears to be trending upwards," "is expected to dip slightly," "might remain volatile"). Mention potential highs and lows based on the forecast data. Calculate the percentage change between the first and second month, and the first and third month, and include it in your summary to give a clearer picture of the short-term movement.
-    2.  **confidence**: Assign a confidence level based on the model's accuracy score. Use these specific mappings:
-        - accuracy > 0.85 should be "High"
-        - accuracy > 0.70 should be "Medium"
-        - otherwise, it should be "Low"
+    Finally, assign a confidence level ('confidence' field) based on the model's accuracy score from the API response. Use these specific mappings:
+    - accuracy > 0.85 should be "High"
+    - accuracy > 0.70 should be "Medium"
+    - otherwise, it should be "Low"
     `,
 });
 
-// This flow chains together a tool call (to an external API) and a prompt call (to an LLM).
-// It first fetches raw prediction data and then passes it to the LLM for interpretation.
+// This flow executes the prompt, which in turn will use the provided tool to get the data it needs.
 const stockPredictionFlow = ai.defineFlow(
   {
     name: 'stockPredictionFlow',
     inputSchema: StockPredictionInputSchema,
     outputSchema: z.nullable(StockPredictionOutputSchema),
-    tools: [getPredictionFromApi], // Makes the external API tool available to this flow.
   },
   async (input) => {
     try {
-        // Step 1: Call the external prediction API via the Genkit tool.
-        const predictionResult = await getPredictionFromApi(input);
-
-        if (!predictionResult || !predictionResult.forecast || predictionResult.forecast.length === 0) {
-            console.error("Prediction API returned no forecast data.");
-            return null;
-        }
-        
-        // Step 2: Use the LLM to interpret the raw data from the API.
-        const { output } = await prompt({
-            symbol: predictionResult.symbol,
-            forecast: JSON.stringify(predictionResult.forecast), // Convert array to JSON string for the prompt
-            accuracy: predictionResult.accuracy,
-        });
-        
+        const { output } = await interpretStockPredictionPrompt(input);
         return output || null;
-
     } catch (error) {
         // Log errors for debugging and return null to the client for graceful handling.
         console.error("An error occurred during the stock prediction flow:", error);
