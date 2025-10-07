@@ -17,11 +17,11 @@ export default function MainContent({ children }: MainContentProps) {
 
   if (isLoading) {
     return (
-       <div className="flex items-center justify-center h-full w-full bg-background">
+       <div className="flex items-center justify-center h-full w-full bg-background pt-20">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
        </div>
     );
   }
 
-  return <div className="flex-1 overflow-y-auto">{children}</div>;
+  return <div className="flex-1 overflow-y-auto pt-20">{children}</div>;
 }

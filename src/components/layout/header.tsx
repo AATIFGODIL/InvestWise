@@ -34,13 +34,16 @@ export default function Header() {
   const { username, photoURL } = useUserStore();
 
   return (
-    <div className="sticky top-0 z-30 p-2">
+    <div className="fixed top-0 left-0 right-0 z-30 p-2">
       <nav 
-        className="relative flex h-16 items-center justify-between rounded-full bg-white/10 p-1 px-4 text-primary-foreground shadow-2xl shadow-black/20 ring-1 ring-white/60"
+        className="relative flex h-16 items-center justify-between rounded-full bg-white/10 p-1 px-4 shadow-2xl shadow-black/20 ring-1 ring-white/60"
         style={{ backdropFilter: "url(#frosted) blur(1px)" }}
       >
-        <div className="flex items-center gap-2 font-semibold">
-          <Link href="/dashboard" className="flex items-center gap-2 rounded-full bg-primary px-4 py-1">
+        <div className="flex h-full items-center font-semibold">
+          <Link 
+            href="/dashboard" 
+            className="flex h-[calc(100%-8px)] items-center rounded-full bg-primary px-4 shadow-md"
+          >
             <h1 
               className="text-xl font-bold text-primary-foreground"
             >
