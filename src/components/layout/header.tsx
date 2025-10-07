@@ -32,27 +32,34 @@ export default function Header() {
     <>
       <div className="fixed top-0 left-0 right-0 z-30 p-2">
         <nav 
-          className="relative flex h-16 items-center justify-between rounded-full bg-background/80 p-1 px-4 shadow-lg border border-white/20"
-          style={{ backdropFilter: "blur(8px)" }}
+          className="relative flex h-16 items-center justify-between rounded-full bg-white/10 p-1 px-2 text-primary-foreground shadow-2xl shadow-black/20 ring-1 ring-white/60"
+          style={{ backdropFilter: "url(#frosted) blur(1px)" }}
         >
-          <Link href="/dashboard" className="text-xl font-bold text-primary pl-2">
-            InvestWise
-          </Link>
+          <div className="flex h-full items-center font-semibold">
+            <Link 
+              href="/dashboard" 
+              className="flex h-full items-center rounded-full bg-primary px-4 shadow-md"
+            >
+              <h1 className="text-xl font-bold text-primary-foreground">
+                InvestWise
+              </h1>
+            </Link>
+          </div>
           
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <Button 
               variant="outline" 
-              className="w-64 md:w-80 lg:w-96 h-12 rounded-full bg-background/80 hover:bg-background text-muted-foreground hover:text-foreground shadow-inner border"
+              className="w-48 md:w-72 h-12 rounded-full bg-background/50 hover:bg-background/70 text-muted-foreground hover:text-foreground shadow-inner border"
               onClick={() => setOpen(true)}
             >
                 <div className="flex items-center gap-2">
                   <Search className="h-5 w-5" />
-                  <span>Spotlight Search</span>
+                  <span className="hidden md:inline">Spotlight Search</span>
                 </div>
             </Button>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative h-12 w-12 rounded-full hover:bg-white/10">
