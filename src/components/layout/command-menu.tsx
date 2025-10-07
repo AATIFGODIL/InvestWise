@@ -72,7 +72,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
         if (!open || stocks.length > 0) return; // Don't refetch if already loaded
 
         setIsFetchingStocks(true);
-        if (!API_KEY || API_KEY.startsWith("AIzaSy")) {
+        if (!API_KEY || API_KEY.startsWith("AIzaSy") || API_KEY === "your_finnhub_api_key_here") {
             console.warn("Finnhub API key not configured. Using simulated data for command menu.");
             const simulatedData = stockList.map(stock => ({
                 symbol: stock.symbol,
@@ -259,5 +259,3 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     </CommandDialog>
   );
 }
-
-    
