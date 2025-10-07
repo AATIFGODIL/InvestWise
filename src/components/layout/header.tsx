@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from "react";
@@ -40,7 +39,7 @@ export default function Header() {
         style={{ backdropFilter: "url(#frosted) blur(1px)" }}
       >
         <div className="flex items-center gap-2 font-semibold">
-          <Link href="/dashboard" className="flex items-center gap-2">
+          <Link href="/dashboard" className="flex items-center gap-2 rounded-full bg-primary/20 px-4 py-1">
             <h1 
               className="text-xl font-bold text-primary-foreground"
               style={{ textShadow: '0 0 8px hsl(var(--primary))' }}
