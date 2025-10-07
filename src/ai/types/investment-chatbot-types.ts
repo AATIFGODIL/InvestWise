@@ -1,9 +1,10 @@
+
 /**
  * @fileOverview Defines the TypeScript types and Zod schemas for the investment chatbot flow.
  * Using Zod schemas ensures type safety and data validation.
  */
 
-import { z } from 'genkit';
+import { z } from 'zod';
 
 // Defines the expected input from the user.
 export const InvestmentChatbotInputSchema = z.object({

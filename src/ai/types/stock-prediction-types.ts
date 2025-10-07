@@ -1,10 +1,11 @@
+
 /**
  * @fileOverview Defines the TypeScript types and Zod schemas for the stock prediction flow.
  * Using Zod schemas ensures type safety and data validation throughout the AI agent's operations,
  * from user input to the final structured output.
  */
 
-import { z } from 'genkit';
+import { z } from 'zod';
 
 /**
  * Schema for the input provided by the user to the main stock prediction flow.
