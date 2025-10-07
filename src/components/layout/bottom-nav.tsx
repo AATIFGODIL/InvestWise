@@ -1,10 +1,27 @@
 "use client";
 
-import { Home, Briefcase, BarChart, Users, Repeat } from "lucide-react";
+import { Home, Briefcase, BarChart, Users, Repeat, Bell, Settings, LogOut, User as UserIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { useUserStore } from "@/store/user-store";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger
+} from "@/components/ui/dropdown-menu";
 
 const navItems = [
   { href: "/dashboard", label: "Explore", icon: Home },
@@ -26,6 +43,10 @@ export default function BottomNav() {
   const [gliderStyle, setGliderStyle] = useState<CSSProperties>({ opacity: 0 });
   const [animationState, setAnimationState] = useState<AnimationState>("idle");
   const [activeIndex, setActiveIndex] = useState(-1);
+  
+  const { user, signOut } = useAuth();
+  const { username, photoURL } = useUserStore();
+
 
   // helper to clear scheduled timeouts
   const clearAllTimeouts = () => {
@@ -183,6 +204,51 @@ export default function BottomNav() {
           className="absolute top-1 h-[calc(100%-8px)] rounded-full border-primary-foreground/10"
           style={gliderStyle}
         />
+        
+        {/* User Profile & Notifications */}
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 flex items-center pl-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-12 w-12 rounded-full hover:bg-white/10">
+                  <Avatar className="h-12 w-12 border-2 border-primary/50">
+                    <AvatarImage src={photoURL || ''} alt={username} />
+                    <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="start" side="top" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{username}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {user?.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <Link href="/profile">
+                    <DropdownMenuItem>
+                      <UserIcon className="mr-2 h-4 w-4" />
+                      <span>Profile</span>
+                    </DropdownMenuItem>
+                  </Link>
+                  <Link href="/settings">
+                    <DropdownMenuItem>
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Settings</span>
+                    </DropdownMenuItem>
+                  </Link>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={signOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+
 
         {navItems.map((item, index) => {
           const isActive = index === activeIndex;
@@ -207,6 +273,22 @@ export default function BottomNav() {
             </Link>
           );
         })}
+        
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 flex items-center pr-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative h-12 w-12 rounded-full hover:bg-white/10">
+                    <Bell className="h-6 w-6 text-white" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-80" align="end" side="top">
+                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem disabled className="p-3">You have no new notifications.</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+
       </nav>
     </div>
   );
