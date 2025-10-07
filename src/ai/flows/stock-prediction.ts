@@ -36,9 +36,9 @@ const interpretStockPredictionPrompt = ai.definePrompt({
     prompt: `You are a financial analyst AI. Your task is to provide a clear, concise, and easy-to-understand stock prediction for a beginner investor.
     
     1. First, use the getPredictionFromApi tool to fetch the raw forecast data for the given stock symbol: {{{symbol}}}.
-    2. Then, interpret the received forecast data and present a human-readable summary.
+    2. Then, analyze the raw forecast data, which consists of an array of 5 predicted prices for the next 5 months.
     
-    In your summary (the 'prediction' field), explain the overall trend (e.g., "appears to be trending upwards," "is expected to dip slightly," "might remain volatile"). Mention potential highs and lows based on the forecast data. Calculate the percentage change between the first and second month, and the first and third month, and include it in your summary to give a clearer picture of the short-term movement.
+    In your summary (the 'prediction' field), provide a human-readable analysis of these 5 monthly price points. Explain the overall trend (e.g., "appears to be trending upwards," "is expected to dip slightly," "might remain volatile"). Mention potential highs and lows based on the forecast data to give a clear picture of the expected short-term movement over the next five months.
 
     Finally, assign a confidence level ('confidence' field) based on the model's accuracy score from the API response. Use these specific mappings:
     - accuracy > 0.85 should be "High"
