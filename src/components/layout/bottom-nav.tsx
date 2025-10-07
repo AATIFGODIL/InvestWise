@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Home, Briefcase, BarChart, Users, Repeat } from "lucide-react";
