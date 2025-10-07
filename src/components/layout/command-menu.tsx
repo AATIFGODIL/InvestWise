@@ -10,6 +10,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "@/components/ui/command";
 import {
   Home,
@@ -258,3 +259,5 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     </CommandDialog>
   );
 }
+
+    
