@@ -35,7 +35,7 @@ export default function Header() {
 
   return (
     <header 
-      className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-white/20 bg-primary/80 px-4 text-primary-foreground sm:px-6 shadow-2xl shadow-black/20"
+      className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-white/10 bg-white/10 px-4 text-primary-foreground sm:px-6 shadow-2xl shadow-black/20"
       style={{ backdropFilter: "url(#frosted) blur(1px)" }}
     >
       <div className="flex items-center gap-2 font-semibold">
@@ -47,7 +47,7 @@ export default function Header() {
         {/* Notifications Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full hover:bg-primary/10">
+            <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full hover:bg-white/10">
                 <Bell className="h-6 w-6" />
             </Button>
           </DropdownMenuTrigger>
@@ -62,7 +62,7 @@ export default function Header() {
         {/* User Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-primary/10">
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-white/10">
               <Avatar className="h-10 w-10 border-2 border-primary/50">
                 <AvatarImage src={photoURL || ''} alt={username} />
                 <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
