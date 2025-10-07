@@ -22,8 +22,8 @@
     --muted: 240 10% 95%;
     --muted-foreground: 240 3.8% 46.1%;
 
-    --accent: 251 82% 90%; /* Lighter indigo */
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 251 82% 60%; /* Changed to match primary */
+    --accent-foreground: 210 40% 98%; /* Changed to match primary-foreground for contrast */
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -54,8 +54,8 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 251 82% 60%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 251 82% 65%; /* Changed to match primary */
+    --accent-foreground: 210 40% 98%; /* Changed to match primary-foreground for contrast */
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
