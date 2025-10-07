@@ -1,9 +1,23 @@
+
 'use client';
 
 import React, { useState } from "react";
-import { Search } from "lucide-react";
+import { Search, Bell, Settings, LogOut, User as UserIcon } from "lucide-react";
 import { CommandMenu } from "./command-menu";
 import { Button } from "../ui/button";
+import Link from "next/link";
+import { useAuth } from "@/hooks/use-auth";
+import { useUserStore } from "@/store/user-store";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 /**
  * The main header component for the application, displayed on most pages.
@@ -11,24 +25,88 @@ import { Button } from "../ui/button";
  */
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const { username, photoURL } = useUserStore();
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 z-30 p-2 flex justify-center">
+      <div className="fixed top-0 left-0 right-0 z-30 p-2">
         <nav 
-          className="relative flex h-16 items-center justify-center rounded-full p-1 px-4"
+          className="relative flex h-16 items-center justify-between rounded-full bg-background/80 p-1 px-4 shadow-lg border border-white/20"
+          style={{ backdropFilter: "blur(8px)" }}
         >
-          <Button 
-            variant="outline" 
-            className="w-64 md:w-80 lg:w-96 h-12 rounded-full bg-background/80 hover:bg-background text-muted-foreground hover:text-foreground shadow-lg border-white/20"
-            style={{ backdropFilter: "blur(8px)" }}
-            onClick={() => setOpen(true)}
-          >
-              <div className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
-                <span>Spotlight Search</span>
-              </div>
-          </Button>
+          <Link href="/dashboard" className="text-xl font-bold text-primary pl-2">
+            InvestWise
+          </Link>
+          
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <Button 
+              variant="outline" 
+              className="w-64 md:w-80 lg:w-96 h-12 rounded-full bg-background/80 hover:bg-background text-muted-foreground hover:text-foreground shadow-inner border"
+              onClick={() => setOpen(true)}
+            >
+                <div className="flex items-center gap-2">
+                  <Search className="h-5 w-5" />
+                  <span>Spotlight Search</span>
+                </div>
+            </Button>
+          </div>
+          
+          <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="relative h-12 w-12 rounded-full hover:bg-white/10">
+                      <Bell className="h-6 w-6" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-80" align="end">
+                  <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem disabled className="p-3">You have no new notifications.</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-12 w-12 rounded-full hover:bg-white/10">
+                    <Avatar className="h-12 w-12 border-2 border-primary/50">
+                      <AvatarImage src={photoURL || ''} alt={username} />
+                      <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{username}</p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <Link href="/profile">
+                      <DropdownMenuItem>
+                        <UserIcon className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                      </DropdownMenuItem>
+                    </Link>
+                    <Link href="/settings">
+                      <DropdownMenuItem>
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Settings</span>
+                      </DropdownMenuItem>
+                    </Link>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+          </div>
         </nav>
       </div>
       <CommandMenu open={open} onOpenChange={setOpen} />
