@@ -35,7 +35,7 @@ export default function Header() {
 
   return (
     <div className="sticky top-0 z-30 p-2">
-      <header 
+      <nav 
         className="relative flex h-16 items-center justify-between rounded-full bg-white/10 p-1 px-4 text-primary-foreground shadow-2xl shadow-black/20 ring-1 ring-white/60"
         style={{ backdropFilter: "url(#frosted) blur(1px)" }}
       >
@@ -106,7 +106,7 @@ export default function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      </header>
+      </nav>
     </div>
   );
 }
