@@ -34,7 +34,10 @@ export default function Header() {
   const { username, photoURL } = useUserStore();
 
   return (
-    <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b bg-primary px-4 text-primary-foreground sm:px-6 rounded-t-2xl rounded-b-2xl">
+    <header 
+      className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-white/20 bg-primary/80 px-4 text-primary-foreground sm:px-6 shadow-2xl shadow-black/20"
+      style={{ backdropFilter: "url(#frosted) blur(1px)" }}
+    >
       <div className="flex items-center gap-2 font-semibold">
         <Link href="/dashboard" className="flex items-center gap-2">
           <h1 className="text-xl font-bold text-primary-foreground">InvestWise</h1>
