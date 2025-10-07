@@ -74,12 +74,13 @@ export default function Chatbot() {
       <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-40">
         <Button 
           variant="outline" 
-          className="w-full justify-between items-center p-3 h-auto rounded-xl shadow-lg bg-card border-primary/10"
+          className="w-full justify-between items-center p-3 h-auto rounded-full bg-white/10 shadow-2xl shadow-black/20 ring-1 ring-white/60 text-foreground"
+          style={{ backdropFilter: "url(#frosted) blur(1px)" }}
           onClick={() => openChatbot()}
         >
           <div className="flex items-center gap-3">
             <Bot className="h-6 w-6 text-primary" />
-            <span className="text-sm font-semibold text-foreground">Hi! How can I assist you today?</span>
+            <span className="text-sm font-semibold">Hi! How can I assist you today?</span>
           </div>
           <div className="p-2 bg-primary rounded-lg">
             <MessageCircleQuestion className="h-5 w-5 text-primary-foreground" />
