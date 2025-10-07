@@ -357,17 +357,16 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                                         Sell
                                     </Button>
                                 </div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    <Button variant="outline" size="sm" className="bg-white/10 border-white/20 hover:bg-white/20 text-xs" onClick={() => runCommand(() => handleTradeNavigation(selectedStock.symbol))}>
-                                        <Repeat className="mr-1 h-3 w-3" /> Go to Trade Page
-                                    </Button>
-                                    <Button variant="outline" size="sm" className="bg-white/10 border-white/20 hover:bg-white/20 text-xs" onClick={() => {
-                                        if (watchlist.includes(selectedStock.symbol)) { removeSymbol(selectedStock.symbol); toast({description: "Removed from watchlist."}); }
-                                        else { addSymbol(selectedStock.symbol); toast({description: "Added to watchlist."}); }
-                                    }}>
-                                        <Star className={cn("mr-1 h-3 w-3", watchlist.includes(selectedStock.symbol) ? 'text-yellow-400 fill-yellow-400' : '')} /> Watchlist
-                                    </Button>
-                                </div>
+                                <Button variant="outline" size="sm" className="w-full bg-white/10 border-white/20 hover:bg-white/20" onClick={() => runCommand(() => handleTradeNavigation(selectedStock.symbol))}>
+                                    <Repeat className="mr-2 h-4 w-4" /> Go to Trade Page
+                                </Button>
+                                <Button variant="outline" size="sm" className="w-full bg-white/10 border-white/20 hover:bg-white/20" onClick={() => {
+                                    if (watchlist.includes(selectedStock.symbol)) { removeSymbol(selectedStock.symbol); toast({description: "Removed from watchlist."}); }
+                                    else { addSymbol(selectedStock.symbol); toast({description: "Added to watchlist."}); }
+                                }}>
+                                    <Star className={cn("mr-2 h-4 w-4", watchlist.includes(selectedStock.symbol) ? 'text-yellow-400 fill-yellow-400' : '')} /> 
+                                    {watchlist.includes(selectedStock.symbol) ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                                </Button>
                             </div>
                             
                             {/* Your Holdings */}
@@ -442,3 +441,6 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     
 
 
+
+
+    
