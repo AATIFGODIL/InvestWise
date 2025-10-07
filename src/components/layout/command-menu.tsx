@@ -53,10 +53,6 @@ interface StockData {
   price: number;
   change: number;
   changePercent: number;
-  logo?: string;
-  marketCap?: number;
-  pe?: number;
-  nextEarning?: string;
 }
 
 interface CommandMenuProps {
@@ -152,27 +148,11 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     setPrediction(null);
     setNews(null);
 
-    const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy");
-
-    // --- Fetch Profile, Prediction, and News in parallel ---
-    const [profileResult, predictionResult, newsResult] = await Promise.all([
-      isApiKeyValid ? fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${stock.symbol}&token=${API_KEY}`) : Promise.resolve(null),
+    // --- Fetch Prediction, and News in parallel ---
+    const [predictionResult, newsResult] = await Promise.all([
       handleStockPrediction(stock.symbol),
       handleStockNews(stock.symbol)
     ]);
-    
-    let updatedStock = { ...stock };
-
-    // Process Profile
-    if (profileResult && profileResult.ok) {
-      const profile = await profileResult.json();
-      updatedStock = {
-        ...updatedStock,
-        logo: profile.logo,
-        marketCap: profile.marketCapitalization,
-        pe: profile.metric?.pe,
-      };
-    }
     
     // Process Prediction
     if (predictionResult.success && predictionResult.prediction) {
@@ -184,7 +164,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
       setNews(newsResult.news);
     }
     
-    setSelectedStock(updatedStock);
+    setSelectedStock(stock);
     setIsFetchingDetails(false);
   };
 
@@ -342,7 +322,6 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                             {/* Stock Header */}
                             <div className="flex items-start gap-4 p-2 rounded-lg">
                                 <Avatar className="h-14 w-14 border">
-                                    <AvatarImage src={selectedStock.logo} alt={selectedStock.name} />
                                     <AvatarFallback>{selectedStock.symbol.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div>
@@ -447,5 +426,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     </>
   );
 }
+
+    
 
     
