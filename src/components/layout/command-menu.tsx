@@ -100,17 +100,13 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
       const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
 
       setIsFetchingStocks(true);
+      if (!isApiKeyValid) {
+        console.warn("Finnhub API key not configured. Cannot fetch live stock data.");
+        setIsFetchingStocks(false);
+        return; // Do not proceed if API key is invalid
+      }
+      
       const promises = stockList.map(async (stock) => {
-        if (!isApiKeyValid) {
-          // Fallback to simulated data if no API key
-          return {
-            symbol: stock.symbol,
-            name: stock.name,
-            price: parseFloat((Math.random() * 500).toFixed(2)),
-            change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
-            changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
-          };
-        }
         try {
             const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
             if (!res.ok) throw new Error(`Failed for ${stock.symbol}`);
@@ -236,9 +232,9 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     <>
     <CommandDialog open={open} onOpenChange={onOpenChange}>
         <Command shouldFilter={false} className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
-            <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
+            <div className="flex items-center border-b border-border/50 px-3" cmdk-input-wrapper="">
                 {view === "stock-detail" ? (
-                    <Button variant="ghost" size="icon" className="mr-2 h-8 w-8 shrink-0" onClick={handleGoBack}>
+                    <Button variant="ghost" size="icon" className="mr-2 h-8 w-8 shrink-0 hover:bg-white/10" onClick={handleGoBack}>
                         <ArrowLeft className="h-4 w-4" />
                     </Button>
                 ) : (
@@ -249,6 +245,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                     value={query}
                     onValueChange={setQuery}
                     disabled={view === 'stock-detail'}
+                    className="placeholder:text-slate-400 text-primary-foreground"
                 />
             </div>
 
@@ -256,12 +253,12 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                 {view === "search" && (
                     <>
                         {isFetchingStocks && query.length === 0 && (
-                            <div className="p-4 text-center text-sm text-muted-foreground">Loading stocks...</div>
+                            <div className="p-4 text-center text-sm text-slate-400">Loading stocks...</div>
                         )}
                         {filteredStocks.length === 0 && !isFetchingStocks && <CommandEmpty>No results found.</CommandEmpty>}
 
                         {filteredStocks.length > 0 && (
-                        <CommandGroup heading="Stocks">
+                        <CommandGroup heading="Stocks" className="text-slate-400">
                             {filteredStocks.map((stock) => (
                             <CommandItem
                                 key={stock.symbol}
@@ -270,17 +267,17 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                             >
                                 <div className="flex justify-between items-center w-full">
                                     <div className="flex items-center gap-3">
-                                        <Avatar className="h-8 w-8">
-                                            <AvatarFallback>{stock.symbol.charAt(0)}</AvatarFallback>
+                                        <Avatar className="h-8 w-8 bg-slate-800">
+                                            <AvatarFallback className="bg-transparent">{stock.symbol.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                         <div>
                                             <p>{stock.name}</p>
-                                            <p className="text-xs text-muted-foreground">{stock.symbol}</p>
+                                            <p className="text-xs text-slate-400">{stock.symbol}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
                                         <p className="font-mono">${stock.price.toFixed(2)}</p>
-                                        <p className={cn("text-xs", stock.change >= 0 ? "text-green-500" : "text-red-500")}>
+                                        <p className={cn("text-xs", stock.change >= 0 ? "text-green-400" : "text-red-400")}>
                                             {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
                                         </p>
                                     </div>
@@ -292,7 +289,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
 
                         <CommandSeparator />
 
-                        <CommandGroup heading="App Actions">
+                        <CommandGroup heading="App Actions" className="text-slate-400">
                             {appActions
                                 .filter((action) => action.name.toLowerCase().includes(query.toLowerCase()))
                                 .map((action) => (
@@ -315,20 +312,20 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                 <div className="p-2 text-sm overflow-y-auto max-h-[70vh]">
                     {isFetchingDetails ? (
                         <div className="flex items-center justify-center h-96">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <Loader2 className="h-8 w-8 animate-spin" />
                         </div>
                     ) : (
                         <div className="space-y-4">
                             {/* Stock Header */}
                             <div className="flex items-start gap-4 p-2 rounded-lg">
-                                <Avatar className="h-14 w-14 border">
-                                    <AvatarFallback>{selectedStock.symbol.charAt(0)}</AvatarFallback>
+                                <Avatar className="h-14 w-14 border-2 border-white/20 bg-slate-800">
+                                    <AvatarFallback className="text-2xl bg-transparent">{selectedStock.symbol.charAt(0)}</AvatarFallback>
                                 </Avatar>
                                 <div>
                                     <h3 className="text-lg font-bold">{selectedStock.name}</h3>
                                     <div className="flex items-baseline gap-2">
                                         <p className="text-2xl font-bold">${selectedStock.price.toFixed(2)}</p>
-                                        <p className={cn("font-semibold flex items-center", selectedStock.change >= 0 ? "text-green-500" : "text-red-500")}>
+                                        <p className={cn("font-semibold flex items-center", selectedStock.change >= 0 ? "text-green-400" : "text-red-400")}>
                                             {selectedStock.change >= 0 ? <TrendingUp className="h-4 w-4 mr-1"/> : <TrendingDown className="h-4 w-4 mr-1" />}
                                             {selectedStock.change.toFixed(2)} ({selectedStock.changePercent.toFixed(2)}%)
                                         </p>
@@ -343,16 +340,16 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
 
                             {/* Action Buttons */}
                             <div className="grid grid-cols-2 gap-2">
-                                <Button variant="outline" size="sm" onClick={() => handleBuySellClick('buy')}>
+                                <Button variant="outline" size="sm" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => handleBuySellClick('buy')}>
                                     Buy
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={() => handleBuySellClick('sell')}>
+                                <Button variant="outline" size="sm" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => handleBuySellClick('sell')}>
                                     Sell
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={() => runCommand(() => handleTradeNavigation(selectedStock.symbol))}>
+                                <Button variant="outline" size="sm" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => runCommand(() => handleTradeNavigation(selectedStock.symbol))}>
                                     <Repeat className="mr-2 h-4 w-4" /> Go to Trade Page
                                 </Button>
-                                <Button variant="outline" size="sm" onClick={() => {
+                                <Button variant="outline" size="sm" className="bg-white/10 border-white/20 hover:bg-white/20" onClick={() => {
                                     if (watchlist.includes(selectedStock.symbol)) { removeSymbol(selectedStock.symbol); toast({description: "Removed from watchlist."}); }
                                     else { addSymbol(selectedStock.symbol); toast({description: "Added to watchlist."}); }
                                 }}>
@@ -363,8 +360,8 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                             {/* Your Holdings */}
                             {selectedStockHolding && (
                                 <div>
-                                    <h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Building className="h-4 w-4" /> Your Holdings</h4>
-                                     <div className="p-3 rounded-lg bg-muted/50">
+                                    <h4 className="font-semibold mb-2 flex items-center gap-2 text-slate-400"><Building className="h-4 w-4" /> Your Holdings</h4>
+                                     <div className="p-3 rounded-lg bg-black/20">
                                         <div className="flex justify-between items-center">
                                             <span className="font-medium">{selectedStockHolding.qty} Shares</span>
                                             <span className="font-medium">Value: ${(selectedStockHolding.qty * selectedStock.price).toFixed(2)}</span>
@@ -375,8 +372,8 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                             
                             {/* Prediction Section */}
                             <div>
-                                <h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><BrainCircuit className="h-4 w-4" /> AI Prediction</h4>
-                                <div className="p-3 rounded-lg bg-muted/50 text-xs">
+                                <h4 className="font-semibold mb-2 flex items-center gap-2 text-slate-400"><BrainCircuit className="h-4 w-4" /> AI Prediction</h4>
+                                <div className="p-3 rounded-lg bg-black/20 text-xs">
                                 {prediction ? (
                                     <>
                                         <div className="flex justify-between items-center mb-1">
@@ -394,16 +391,16 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
 
                             {/* News Section */}
                             <div>
-                                <h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Newspaper className="h-4 w-4" /> Recent News</h4>
+                                <h4 className="font-semibold mb-2 flex items-center gap-2 text-slate-400"><Newspaper className="h-4 w-4" /> Recent News</h4>
                                 <div className="space-y-2">
                                     {news?.articles && news.articles.length > 0 ? (
                                         news.articles.map((article, i) => (
-                                        <a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-muted/50">
+                                        <a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-black/20">
                                             <p className="font-medium truncate leading-tight">{article.headline}</p>
-                                            <p className="text-xs text-muted-foreground">{article.source}</p>
+                                            <p className="text-xs text-slate-400">{article.source}</p>
                                         </a>
                                     ))) : (
-                                        <div className="p-2 text-xs text-muted-foreground">Loading news...</div>
+                                        <div className="p-2 text-xs text-slate-400">Loading news...</div>
                                     )}
                                 </div>
                             </div>
