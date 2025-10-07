@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -28,7 +29,6 @@ import {
   TrendingUp,
   TrendingDown,
   Building,
-  Search,
 } from "lucide-react";
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +44,7 @@ import { Badge } from "../ui/badge";
 import { usePortfolioStore } from "@/store/portfolio-store";
 import TradeDialogCMDK from "../trade/trade-dialog-cmdk";
 import TradingViewMiniChart from "../shared/trading-view-mini-chart";
+import { Search } from "lucide-react";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -101,9 +102,16 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
 
       setIsFetchingStocks(true);
       if (!isApiKeyValid) {
-        console.warn("Finnhub API key not configured. Cannot fetch live stock data.");
+        console.warn("Finnhub API key not configured. Using simulated stock data for search.");
+        const simulatedStocks = stockList.map(stock => ({
+            ...stock,
+            price: parseFloat((Math.random() * 500).toFixed(2)),
+            change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
+            changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
+        }))
+        setStocks(simulatedStocks);
         setIsFetchingStocks(false);
-        return; // Do not proceed if API key is invalid
+        return;
       }
       
       const promises = stockList.map(async (stock) => {
@@ -264,6 +272,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                                 key={stock.symbol}
                                 onSelect={() => handleStockSelect(stock.symbol)}
                                 value={`${stock.symbol} - ${stock.name}`}
+                                cmdk-item=""
                             >
                                 <div className="flex justify-between items-center w-full">
                                     <div className="flex items-center gap-3">
@@ -427,3 +436,4 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     
 
     
+
