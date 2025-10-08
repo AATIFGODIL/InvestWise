@@ -163,9 +163,9 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   }, [open, stocks.length]);
 
   const runCommand = useCallback((command: () => void) => {
+    command();
     onOpenChange(false);
     setQuery("");
-    command();
   }, [onOpenChange]);
 
   const handleTradeNavigation = (symbol: string) => {
@@ -550,3 +550,4 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     </>
   );
 }
+
