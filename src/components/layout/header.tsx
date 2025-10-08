@@ -18,6 +18,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useThemeStore } from "@/store/theme-store";
+import { cn } from "@/lib/utils";
 
 /**
  * The main header component for the application, displayed on most pages.
@@ -27,13 +29,20 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { username, photoURL } = useUserStore();
+  const { theme } = useThemeStore();
+  const isClearTheme = theme === 'clear';
 
   return (
     <>
       <div className="fixed top-0 left-0 right-0 z-30 p-2">
         <nav 
-          className="relative flex h-16 items-center justify-between rounded-full bg-white/10 p-1 px-2 text-primary-foreground shadow-2xl shadow-black/20 ring-1 ring-white/60"
-          style={{ backdropFilter: "url(#frosted) blur(1px)" }}
+          className={cn(
+            "relative flex h-16 items-center justify-between rounded-full p-1 px-2 text-primary-foreground shadow-lg",
+             isClearTheme 
+                ? "bg-white/10 ring-1 ring-white/60" 
+                : "bg-card"
+          )}
+          style={{ backdropFilter: isClearTheme ? "url(#frosted) blur(1px)" : "none" }}
         >
           <div className="flex h-full items-center font-semibold">
             <Link 
@@ -48,9 +57,14 @@ export default function Header() {
           
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <button
-              className="flex h-12 w-48 items-center justify-center gap-2 rounded-full bg-white/10 text-slate-100 shadow-lg ring-1 ring-white/60 transition-colors hover:bg-white/20 hover:text-white md:w-72"
+              className={cn(
+                "flex h-12 w-48 items-center justify-center gap-2 rounded-full shadow-lg transition-colors md:w-72",
+                isClearTheme
+                    ? "bg-white/10 text-slate-100 ring-1 ring-white/60 hover:bg-white/20 hover:text-white"
+                    : "bg-background text-foreground ring-1 ring-border hover:bg-muted"
+              )}
               onClick={() => setOpen(true)}
-              style={{ backdropFilter: "blur(2px)" }}
+              style={{ backdropFilter: isClearTheme ? "blur(2px)" : "none" }}
             >
                 <Search className="h-5 w-5" />
                 <span className="hidden text-sm md:inline">Spotlight Search</span>
@@ -60,7 +74,7 @@ export default function Header() {
           <div className="flex items-center gap-1">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative h-12 w-12 rounded-full hover:bg-white/10">
+                  <Button variant="ghost" size="icon" className={cn("relative h-12 w-12 rounded-full", isClearTheme ? "hover:bg-white/10" : "")}>
                       <Bell className="h-6 w-6" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -73,7 +87,7 @@ export default function Header() {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-12 w-12 rounded-full hover:bg-white/10">
+                  <Button variant="ghost" className={cn("relative h-12 w-12 rounded-full", isClearTheme ? "hover:bg-white/10" : "")}>
                     <Avatar className="h-12 w-12 border-2 border-primary/50">
                       <AvatarImage src={photoURL || ''} alt={username} />
                       <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>

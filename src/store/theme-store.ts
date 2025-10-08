@@ -1,7 +1,7 @@
 
 import { create } from 'zustand';
 
-type Theme = "light" | "dark";
+export type Theme = "light" | "dark" | "clear";
 
 interface ThemeState {
   theme: Theme;
@@ -11,7 +11,7 @@ interface ThemeState {
 const getInitialTheme = (): Theme => {
   if (typeof window !== 'undefined') {
     const storedTheme = localStorage.getItem('theme');
-    if (storedTheme === 'light' || storedTheme === 'dark') {
+    if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'clear') {
       return storedTheme;
     }
   }
@@ -25,7 +25,11 @@ export const useThemeStore = create<ThemeState>((set) => ({
     if (typeof window !== 'undefined') {
       localStorage.setItem('theme', theme);
       const root = document.documentElement;
-      root.classList.remove('light', 'dark');
+      root.classList.remove('light', 'dark', 'clear');
+      if (theme === 'clear') {
+        // For clear theme, we might want a dark background as base
+        root.classList.add('dark'); 
+      }
       root.classList.add(theme);
     }
     set({ theme });

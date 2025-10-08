@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Home, Briefcase, BarChart, Users, Repeat } from "lucide-react";
@@ -12,6 +13,7 @@ import {
   type MouseEvent,
   useCallback,
 } from "react";
+import { useThemeStore } from "@/store/theme-store";
 
 const navItems = [
   { href: "/dashboard", label: "Explore", icon: Home },
@@ -29,6 +31,9 @@ export default function BottomNav() {
   const navRef = useRef<HTMLElement | null>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const timeouts = useRef<number[]>([]);
+  
+  const { theme } = useThemeStore();
+  const isClearTheme = theme === 'clear';
 
   const [gliderStyle, setGliderStyle] = useState<CSSProperties>({
     opacity: 0,
@@ -178,8 +183,11 @@ export default function BottomNav() {
     <div className="fixed bottom-0 left-0 right-0 z-50 p-2">
       <nav
         ref={navRef}
-        className="relative flex h-16 items-center justify-around rounded-full bg-white/10 p-1 shadow-2xl shadow-black/20 ring-1 ring-white/60"
-        style={{ backdropFilter: "url(#frosted) blur(1px)" }}
+        className={cn(
+            "relative flex h-16 items-center justify-around rounded-full p-1 shadow-2xl shadow-black/20",
+            isClearTheme ? "bg-white/10 ring-1 ring-white/60" : "bg-card text-card-foreground border"
+        )}
+        style={{ backdropFilter: isClearTheme ? "url(#frosted) blur(1px)" : "none" }}
       >
         <div
           className="absolute rounded-full pointer-events-none"
@@ -203,8 +211,9 @@ export default function BottomNav() {
               <div
                 className={cn(
                   "flex flex-col items-center",
-                  "text-slate-100",
-                  isActive ? "!text-primary-foreground" : "hover:text-white"
+                   isClearTheme 
+                    ? (isActive ? "text-primary-foreground" : "text-slate-100 hover:text-white")
+                    : (isActive ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground")
                 )}
               >
                 <item.icon className="h-6 w-6" />

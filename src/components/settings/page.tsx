@@ -13,7 +13,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Shield, Sun, Moon, Eye, LogOut, ShieldBan, FileUp, ArrowLeft } from "lucide-react";
+import { Shield, Sun, Moon, Eye, LogOut, ShieldBan, FileUp, ArrowLeft, Droplets } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useThemeStore } from "@/store/theme-store";
@@ -34,7 +34,7 @@ export default function SettingsClient() {
     setIsClient(true);
   }, []);
   
-  const handleThemeChange = (newTheme: "light" | "dark") => {
+  const handleThemeChange = (newTheme: "light" | "dark" | "clear") => {
     setTheme(newTheme);
     updateUserTheme(newTheme);
   };
@@ -110,9 +110,10 @@ export default function SettingsClient() {
                 <div className="space-y-2">
                     <Skeleton className="h-12 w-full" />
                     <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
                 </div>
             ) : (
-                <RadioGroup value={theme} onValueChange={(v) => handleThemeChange(v as "light" | "dark")} className="space-y-2">
+                <RadioGroup value={theme} onValueChange={(v) => handleThemeChange(v as "light" | "dark" | "clear")} className="space-y-2">
                     <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                         <Label htmlFor="theme-light" className="flex items-center gap-2 cursor-pointer"><Sun className="h-4 w-4"/> Light Mode</Label>
                         <RadioGroupItem value="light" id="theme-light" />
@@ -120,6 +121,10 @@ export default function SettingsClient() {
                     <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                         <Label htmlFor="theme-dark" className="flex items-center gap-2 cursor-pointer"><Moon className="h-4 w-4"/> Dark Mode</Label>
                         <RadioGroupItem value="dark" id="theme-dark" />
+                    </div>
+                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                        <Label htmlFor="theme-clear" className="flex items-center gap-2 cursor-pointer"><Droplets className="h-4 w-4"/> Clear Mode</Label>
+                        <RadioGroupItem value="clear" id="theme-clear" />
                     </div>
                 </RadioGroup>
             )}

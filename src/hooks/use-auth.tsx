@@ -32,7 +32,7 @@ import { useUserStore } from "@/store/user-store";
 import { usePortfolioStore } from "@/store/portfolio-store";
 import { useGoalStore } from "@/store/goal-store";
 import { useAutoInvestStore } from "@/store/auto-invest-store";
-import { useThemeStore } from "@/store/theme-store";
+import { useThemeStore, type Theme } from "@/store/theme-store";
 import { usePrivacyStore, type PrivacyState } from "@/store/privacy-store";
 import useLoadingStore from "@/store/loading-store";
 import { useToast } from "./use-toast";
@@ -52,7 +52,7 @@ interface AuthContextType {
   signInWithApple: () => Promise<void>;
   signOut: () => void;
   updateUserProfile: (data: { username?: string, photoURL?: string }) => Promise<void>;
-  updateUserTheme: (theme: "light" | "dark") => Promise<void>;
+  updateUserTheme: (theme: Theme) => Promise<void>;
   updatePrivacySettings: (settings: Partial<Omit<PrivacyState, 'setLeaderboardVisibility' | 'setShowQuests' | 'loadPrivacySettings' | 'resetPrivacySettings'>>) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   verifyPasswordResetCode: (code: string) => Promise<string | null>;
@@ -228,7 +228,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Persists the user's theme preference to Firestore.
-  const updateUserTheme = async (theme: "light" | "dark") => {
+  const updateUserTheme = async (theme: Theme) => {
     useThemeStore.getState().setTheme(theme);
     if (!user) return;
     const userDocRef = doc(db, "users", user.uid);
@@ -281,5 +281,3 @@ export function useAuth() {
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }
-
-    
