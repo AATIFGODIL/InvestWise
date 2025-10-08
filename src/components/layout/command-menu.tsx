@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
@@ -140,6 +139,11 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   }, [open, stocks.length]);
 
   const fetchStockDetails = (stock: StockData) => {
+    // Show detail view immediately
+    setView("stock-detail");
+    setSelectedStock(stock);
+
+    // Fetch prediction in the background
     setIsFetchingPrediction(true);
     setPrediction(null);
     handleStockPrediction(stock.symbol).then(predictionResult => {
@@ -149,6 +153,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
         setIsFetchingPrediction(false);
     });
 
+    // Fetch news in the background
     setIsFetchingNews(true);
     setNews(null);
     handleStockNews(stock.symbol).then(newsResult => {
@@ -174,8 +179,6 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   const handleStockSelect = useCallback((stockSymbol: string) => {
     const stock = stocks.find(s => s.symbol === stockSymbol);
     if (stock) {
-        setView("stock-detail");
-        setSelectedStock(stock);
         fetchStockDetails(stock);
     }
   }, [stocks]);
@@ -238,7 +241,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                 )}
                 <CommandInput
                     placeholder={view === 'search' ? "Search for a stock or action..." : `${selectedStock?.name} (${selectedStock?.symbol})`}
-                    onValueChange={setQuery}
+                    onChange={(e) => setQuery(e.target.value)}
                     value={query}
                     disabled={view === 'stock-detail'}
                 />
@@ -260,7 +263,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                     {filteredStocks.map((stock) => (
                     <CommandItem
                         key={stock.symbol}
-                        onSelect={() => handleStockSelect(stock.symbol)}
+                        onClick={() => handleStockSelect(stock.symbol)}
                     >
                         <div className="flex justify-between items-center w-full">
                             <div className="flex items-center gap-3">
@@ -293,7 +296,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                         .map((action) => (
                         <CommandItem
                             key={action.href}
-                            onSelect={() => runCommand(() => router.push(action.href))}
+                            onClick={() => runCommand(() => router.push(action.href))}
                         >
                             <action.icon className="mr-2 h-4 w-4" />
                             <span>{action.name}</span>
@@ -397,8 +400,8 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                                     </div>
                                 ) : news?.articles && news.articles.length > 0 ? (
                                     news.articles.map((article, i) => (
-                                    <a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-black/20">
-                                        <p className="font-medium truncate leading-tight">{article.headline}</p>
+                                    <a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-black/20 text-white no-underline">
+                                        <p className="font-medium truncate leading-tight whitespace-pre-wrap">{article.headline}</p>
                                         <p className="text-xs text-slate-400">{article.source}</p>
                                     </a>
                                 ))) : (
@@ -428,5 +431,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     
 
 
+
+    
 
     
