@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -8,6 +9,7 @@
  */
 
 import { ai } from '@/ai/genkit';
+import { googleSearch } from '@genkit-ai/google-genai';
 import { z } from 'zod';
 
 const StockNewsInputSchema = z.object({
@@ -37,7 +39,8 @@ const prompt = ai.definePrompt({
   name: 'fetchStockNewsPrompt',
   input: { schema: StockNewsInputSchema },
   output: { schema: StockNewsOutputSchema },
-  prompt: `You are a financial news aggregator. Your task is to find the 3 most recent, relevant news articles for the stock symbol {{{symbol}}} from Google News.
+  tools: [googleSearch],
+  prompt: `You are a financial news aggregator. Your task is to find the 3 most recent, relevant news articles for the stock symbol {{{symbol}}}.
   
   For each article, provide the headline, the source, and a direct URL. Present the output in the required JSON format. Do not include articles that are not directly related to the company's financial performance, products, or major corporate news.`,
 });
