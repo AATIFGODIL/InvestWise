@@ -353,7 +353,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                     {filteredStocks.map((stock) => (
                     <CommandItem
                         key={stock.symbol}
-                        onSelect={() => handleStockSelect(stock.symbol)}
+                        onClick={() => handleStockSelect(stock.symbol)}
                     >
                         <div className="flex justify-between items-center w-full">
                             <div className="flex items-center gap-3">
@@ -383,7 +383,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                     {filteredAppActions.map((action) => (
                       <CommandItem
                         key={action.name}
-                        onSelect={action.onSelect}
+                        onClick={action.onSelect}
                       >
                         <action.icon className="mr-2 h-4 w-4" />
                         <span>{action.name}</span>
@@ -550,5 +550,3 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     </>
   );
 }
-
-    
