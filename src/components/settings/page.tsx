@@ -12,8 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Shield, Sun, Moon, Eye, LogOut, ShieldBan, FileUp, ArrowLeft, Droplets } from "lucide-react";
+import { Shield, Sun, Moon, Eye, LogOut, ShieldBan, FileUp, ArrowLeft, Droplets, CheckCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useThemeStore } from "@/store/theme-store";
@@ -21,6 +20,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { usePrivacyStore, type LeaderboardVisibility } from "@/store/privacy-store";
 import PaymentMethods from "@/components/profile/payment-methods";
 import { useRouter } from "next/navigation";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { cn } from "@/lib/utils";
 
 export default function SettingsClient() {
   const router = useRouter();
@@ -114,34 +115,56 @@ export default function SettingsClient() {
           <CardContent>
             {!isClient ? (
                 <div className="space-y-2">
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-20 w-full" />
                 </div>
             ) : (
-              <div className="space-y-4">
-                <RadioGroup value={theme} onValueChange={(v) => handleThemeChange(v as "light" | "dark")} className="space-y-2">
-                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                        <Label htmlFor="theme-light" className="flex items-center gap-2 cursor-pointer"><Sun className="h-4 w-4"/> Light Mode</Label>
-                        <RadioGroupItem value="light" id="theme-light" />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {/* Light Theme Box */}
+                    <div
+                        className={cn(
+                            "relative rounded-lg border-2 p-4 flex flex-col items-center justify-center cursor-pointer transition-all",
+                            theme === 'light' ? 'border-primary ring-2 ring-primary' : 'border-border'
+                        )}
+                        onClick={() => handleThemeChange('light')}
+                    >
+                        <div className="w-16 h-10 rounded bg-gray-100 border border-gray-300 mb-2 flex items-center justify-center">
+                            <span className="text-xs font-bold text-black">Aa</span>
+                        </div>
+                        <Label>Light</Label>
+                        {theme === 'light' && <CheckCircle className="absolute top-2 right-2 h-5 w-5 text-primary" />}
                     </div>
-                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                        <Label htmlFor="theme-dark" className="flex items-center gap-2 cursor-pointer"><Moon className="h-4 w-4"/> Dark Mode</Label>
-                        <RadioGroupItem value="dark" id="theme-dark" />
+
+                    {/* Dark Theme Box */}
+                    <div
+                        className={cn(
+                            "relative rounded-lg border-2 p-4 flex flex-col items-center justify-center cursor-pointer transition-all",
+                             theme === 'dark' ? 'border-primary ring-2 ring-primary' : 'border-border'
+                        )}
+                        onClick={() => handleThemeChange('dark')}
+                    >
+                        <div className="w-16 h-10 rounded bg-gray-800 border border-gray-600 mb-2 flex items-center justify-center">
+                             <span className="text-xs font-bold text-white">Aa</span>
+                        </div>
+                        <Label>Dark</Label>
+                         {theme === 'dark' && <CheckCircle className="absolute top-2 right-2 h-5 w-5 text-primary" />}
                     </div>
-                </RadioGroup>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                    <Label htmlFor="clear-mode" className="flex items-center gap-2 cursor-pointer">
-                        <Droplets className="h-4 w-4"/> Clear
-                        <span className="text-xs text-muted-foreground">(Liquid Glass UI)</span>
-                    </Label>
-                    <Switch
-                        id="clear-mode"
-                        checked={isClearMode}
-                        onCheckedChange={handleClearModeChange}
-                    />
+                    
+                    {/* Clear Theme Box */}
+                    <div
+                         className={cn(
+                            "relative rounded-lg border-2 p-4 flex flex-col items-center justify-center cursor-pointer transition-all",
+                            isClearMode ? 'border-primary ring-2 ring-primary' : 'border-border'
+                        )}
+                        onClick={() => handleClearModeChange(!isClearMode)}
+                    >
+                        <div className="w-16 h-10 rounded border border-gray-400 mb-2 flex items-center justify-center bg-white/10" style={{backdropFilter: 'blur(4px)'}}>
+                             <span className="text-xs font-bold text-primary">Aa</span>
+                        </div>
+                        <Label>Clear</Label>
+                        <span className="text-xs text-muted-foreground">(Liquid Glass)</span>
+                        {isClearMode && <CheckCircle className="absolute top-2 right-2 h-5 w-5 text-primary" />}
+                    </div>
                 </div>
-              </div>
             )}
           </CardContent>
         </Card>
