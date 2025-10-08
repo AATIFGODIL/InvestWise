@@ -12,6 +12,7 @@ import { Clock } from "lucide-react";
 import Watchlist from "@/components/dashboard/watchlist";
 import EducationalContent from "./educational-content";
 import { educationalContent } from "@/data/education";
+import MarketNews from "@/components/community/market-news";
 
 // These components are loaded dynamically to improve initial page load performance.
 // They will only be loaded when they are needed, reducing the client-side JavaScript bundle size.
@@ -93,16 +94,17 @@ export default function DashboardClient() {
         <PortfolioSummary />
         <Watchlist />
         <AutoInvest />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <GoalProgress />
             <CommunityLeaderboard />
+            <CommunityTrends limit={5} showViewAllButton={false} />
         </div>
         <div className="space-y-4 pt-4">
             <h2 className="text-xl font-bold">Educational Content</h2>
             <EducationalContent content={educationalContent} />
         </div>
         <InvestmentBundles {...bundleProps} />
-        <CommunityTrends limit={5} />
+        <MarketNews limit={3} />
         <AiPrediction />
         <Chatbot />
         </div>

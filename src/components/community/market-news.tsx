@@ -4,16 +4,24 @@
 import { useState, useEffect } from "react";
 import { handleMarketNews } from "@/app/actions";
 import type { StockNewsOutput } from "@/ai/flows/fetch-stock-news";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Newspaper, Loader2, AlertCircle, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { useThemeStore } from "@/store/theme-store";
+import { cn } from "@/lib/utils";
 
-export default function MarketNews() {
+interface MarketNewsProps {
+  limit?: number;
+}
+
+export default function MarketNews({ limit }: MarketNewsProps) {
   const [news, setNews] = useState<StockNewsOutput | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
 
   useEffect(() => {
     async function fetchNews() {
@@ -34,6 +42,8 @@ export default function MarketNews() {
 
     fetchNews();
   }, []);
+
+  const articlesToDisplay = limit ? news?.articles.slice(0, limit) : news?.articles;
 
   return (
     <Card>
@@ -56,13 +66,13 @@ export default function MarketNews() {
                 <AlertCircle className="h-8 w-8 mb-2" />
                 <p>{error}</p>
             </div>
-        ) : news?.articles.length === 0 ? (
+        ) : articlesToDisplay?.length === 0 ? (
           <div className="text-center p-8 text-muted-foreground">
             <p>No recent news found.</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {news?.articles.map((article) => (
+            {articlesToDisplay?.map((article) => (
                 <Link key={article.headline} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                     <div className="flex flex-col sm:flex-row gap-4">
                         {article.image && (
@@ -86,6 +96,20 @@ export default function MarketNews() {
           </div>
         )}
       </CardContent>
+      {limit && (news?.articles.length ?? 0) > limit && (
+        <CardFooter>
+          <Button asChild variant="outline" className={cn(
+                  "w-full ring-1 ring-white/60",
+                   isClearMode
+                      ? isLightClear
+                          ? "bg-card/60 text-foreground"
+                          : "bg-white/10 text-white"
+                      : ""
+                )}>
+            <Link href="/community">View All News</Link>
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
 }
