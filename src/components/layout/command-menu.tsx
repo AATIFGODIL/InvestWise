@@ -320,7 +320,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
     <>
       <div className="fixed inset-0 z-50 bg-black/80" onClick={() => onOpenChange(false)} />
       <div 
-        className="fixed top-1/4 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg overflow-hidden rounded-xl shadow-2xl shadow-black/20 bg-white/10 ring-1 ring-white/60 border-0"
+        className="fixed top-[15%] left-1/2 -translate-x-1/2 z-50 w-full max-w-lg overflow-hidden rounded-xl shadow-2xl shadow-black/20 bg-white/10 ring-1 ring-white/60 border-0"
         style={{ backdropFilter: "url(#frosted) blur(1px)" }}
       >
         <div className="text-primary-foreground">
