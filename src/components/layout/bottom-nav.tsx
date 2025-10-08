@@ -5,7 +5,7 @@ import { Home, Briefcase, BarChart, Users, Repeat } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
+import { useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, useEffect } from "react";
 
 const navItems = [
   { href: "/dashboard", label: "Explore", icon: Home },
@@ -22,21 +22,20 @@ export default function BottomNav() {
   const router = useRouter();
   const navRef = useRef<HTMLElement | null>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
-  const timeouts = useRef<number[]>([]);
+  const timeouts = useRef<NodeJS.Timeout[]>([]);
 
   const [gliderStyle, setGliderStyle] = useState<CSSProperties>({ opacity: 0 });
   const [animationState, setAnimationState] = useState<AnimationState>("idle");
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [hoverIndex, setHoverIndex] = useState(-1);
 
-  // helper to clear scheduled timeouts
+  // Helper to clear all scheduled timeouts
   const clearAllTimeouts = () => {
-    timeouts.current.forEach((id) => window.clearTimeout(id));
+    timeouts.current.forEach(clearTimeout);
     timeouts.current = [];
   };
 
   // Function to calculate and set glider position
-  const setGliderTo = (index: number, options: { immediate?: boolean, isHover?: boolean } = {}) => {
+  const setGliderTo = (index: number, options: { immediate?: boolean } = {}) => {
     const navEl = navRef.current;
     const targetItem = itemRefs.current[index];
 
@@ -44,130 +43,102 @@ export default function BottomNav() {
 
     const navRect = navEl.getBoundingClientRect();
     const itemRect = targetItem.getBoundingClientRect();
-
     const left = itemRect.left - navRect.left;
-    const isImmediate = options.immediate || false;
-    const isHover = options.isHover || false;
 
-    setGliderStyle((prev) => ({
-      ...prev,
+    setGliderStyle({
       width: `${itemRect.width}px`,
       transform: `translateX(${left}px)`,
-      transition: isImmediate
-        ? 'none'
-        : 'transform 300ms ease, background-color 300ms ease, opacity 200ms ease',
       opacity: 1,
-      backgroundColor: isHover ? 'hsl(var(--primary) / 0.5)' : 'hsl(var(--primary))',
-    }));
+      transition: options.immediate ? 'none' : 'transform 300ms ease, opacity 200ms ease',
+      backgroundColor: 'hsl(var(--primary))',
+    });
   };
 
-  // Effect to set initial position based on pathname
+  // Effect to set the initial glider position based on the current URL path
   useLayoutEffect(() => {
-    let cancelled = false;
-    const attemptSet = (tries = 0) => {
-      if (cancelled) return;
-      const currentPathIndex = navItems.findIndex((item) => pathname.startsWith(item.href));
-      
-      if (currentPathIndex !== -1) {
-        if (itemRefs.current[currentPathIndex]) {
-          setActiveIndex(currentPathIndex);
-          setGliderTo(currentPathIndex, { immediate: true });
-        } else if (tries < 10) {
-          requestAnimationFrame(() => attemptSet(tries + 1));
-        }
-      } else {
-        setGliderStyle({ opacity: 0 });
-        setActiveIndex(-1);
-      }
-    };
-    attemptSet();
-    return () => { cancelled = true; };
+    const currentPathIndex = navItems.findIndex((item) => pathname.startsWith(item.href));
+    if (currentPathIndex !== -1) {
+      setActiveIndex(currentPathIndex);
+      // We use a short delay to ensure all refs are populated before calculating position
+      const timeoutId = setTimeout(() => setGliderTo(currentPathIndex, { immediate: true }), 50);
+      return () => clearTimeout(timeoutId);
+    } else {
+      // If no item is active, hide the glider
+      setGliderStyle({ opacity: 0 });
+      setActiveIndex(-1);
+    }
   }, [pathname]);
-
 
   const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, newIndex: number) => {
     e.preventDefault();
     if (animationState !== "idle" || newIndex === activeIndex) return;
 
     const navEl = navRef.current;
+    const startItem = itemRefs.current[activeIndex];
     const endItem = itemRefs.current[newIndex];
-    if (!endItem || !navEl) {
+    if (!endItem || !startItem || !navEl) {
       router.push(navItems[newIndex].href);
       return;
     }
 
     const navRect = navEl.getBoundingClientRect();
+    const startRect = startItem.getBoundingClientRect();
     const endRect = endItem.getBoundingClientRect();
+    const startLeft = startRect.left - navRect.left;
     const endLeft = endRect.left - navRect.left;
-    const startItem = itemRefs.current[activeIndex];
-    const startLeft = startItem ? startItem.getBoundingClientRect().left - navRect.left : endLeft;
     
+    // 1. Rise up
     setAnimationState("rising");
-    setHoverIndex(-1); // Stop hover effect
-
     setGliderStyle({
-      width: `${startItem?.getBoundingClientRect().width}px`,
+      width: `${startRect.width}px`,
       transform: `translateX(${startLeft}px) scale(1.1)`,
-      backgroundColor: "hsl(var(--primary) / 0.5)",
+      backgroundColor: "hsl(var(--primary) / 0.8)",
       boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
       opacity: 1,
       transition: "transform 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out",
     });
 
+    // 2. Slide across
     timeouts.current.push(
-      window.setTimeout(() => {
+      setTimeout(() => {
         setAnimationState("sliding");
-        setGliderStyle((prev) => ({
+        setGliderStyle(prev => ({
           ...prev,
           width: `${endRect.width}px`,
           transform: `translateX(${endLeft}px) scale(1.1)`,
-          transition: "transform 300ms cubic-bezier(0.65, 0, 0.35, 1)",
+          transition: "transform 300ms cubic-bezier(0.65, 0, 0.35, 1), width 300ms cubic-bezier(0.65, 0, 0.35, 1)",
         }));
       }, 150)
     );
 
+    // 3. Drop down
     timeouts.current.push(
-      window.setTimeout(() => {
+      setTimeout(() => {
         setAnimationState("descending");
-        router.push(navItems[newIndex].href); // Navigate when it's about to land
-        setGliderStyle((prev) => ({
+        router.push(navItems[newIndex].href); // Navigate when it lands
+        setGliderStyle(prev => ({
           ...prev,
           transform: `translateX(${endLeft}px) scale(1)`,
           backgroundColor: "hsl(var(--primary))",
           boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
           transition: "transform 150ms ease-in, background-color 150ms ease-in, box-shadow 150ms ease-in",
         }));
-      }, 450)
+      }, 450) // 150ms (rise) + 300ms (slide)
     );
 
+    // 4. Return to idle state
     timeouts.current.push(
-      window.setTimeout(() => {
+      setTimeout(() => {
         setAnimationState("idle");
-        clearAllTimeouts();
         setActiveIndex(newIndex);
-      }, 600)
+        clearAllTimeouts();
+      }, 600) // 450ms + 150ms (drop)
     );
   };
-  
-  const handleMouseEnter = (index: number) => {
-    if (index !== activeIndex && animationState === 'idle') {
-      setHoverIndex(index);
-      setGliderTo(index, { isHover: true });
-    }
-  };
 
-  const handleMouseLeave = () => {
-    if (hoverIndex !== -1 && animationState === 'idle') {
-      setHoverIndex(-1);
-      setGliderTo(activeIndex);
-    }
-  };
-
-  // cleanup on unmount
-  useLayoutEffect(() => {
-    return () => {
-      clearAllTimeouts();
-    };
+  // Cleanup timeouts on component unmount
+  useEffect(() => {
+    return () => clearAllTimeouts();
   }, []);
 
   return (
@@ -176,7 +147,6 @@ export default function BottomNav() {
         ref={navRef}
         className="relative flex h-16 items-center justify-around rounded-full bg-white/10 p-1 shadow-2xl shadow-black/20 ring-1 ring-white/60"
         style={{ backdropFilter: "url(#frosted) blur(1px)" }}
-        onMouseLeave={handleMouseLeave}
       >
         <div
           className="absolute top-1 h-[calc(100%-8px)] rounded-full border-primary-foreground/10"
@@ -191,14 +161,14 @@ export default function BottomNav() {
               href={item.href}
               ref={(el) => (itemRefs.current[index] = el)}
               onClick={(e) => handleNavClick(e, index)}
-              onMouseEnter={() => handleMouseEnter(index)}
               className="z-10 flex-1"
               prefetch={true}
             >
               <div
                 className={cn(
                   "flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2 transition-colors duration-300",
-                  isActive ? "text-primary-foreground" : "text-slate-100 hover:text-white"
+                  "text-slate-100", // Default text color
+                  isActive ? "!text-primary-foreground" : "hover:text-white"
                 )}
               >
                 <item.icon className="h-6 w-6" />
