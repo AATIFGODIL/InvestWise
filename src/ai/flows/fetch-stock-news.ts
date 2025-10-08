@@ -2,24 +2,24 @@
 'use server';
 
 /**
- * @fileOverview A Genkit flow that fetches and summarizes recent news for a given stock symbol.
- * This flow uses the Gemini model to search Google News and provide a structured output.
+ * @fileOverview A flow that fetches recent news for a given stock symbol using the Finnhub API.
  *
  * - fetchStockNews: The main function that clients call to get news for a stock.
  */
 
-import { ai } from '@/ai/genkit';
-import { googleSearch } from '@genkit-ai/google-genai';
 import { z } from 'zod';
+import { ai } from '@/ai/genkit';
 
-const StockNewsInputSchema = z.object({
-  symbol: z.string().describe("The stock ticker symbol, e.g., 'AAPL' for Apple."),
-});
+const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY;
 
 const ArticleSchema = z.object({
   headline: z.string().describe("The headline of the news article."),
   source: z.string().describe("The source of the news article (e.g., 'Reuters')."),
   url: z.string().url().describe("The URL to the full article."),
+});
+
+const StockNewsInputSchema = z.object({
+  symbol: z.string().describe("The stock ticker symbol, e.g., 'AAPL' for Apple."),
 });
 
 const StockNewsOutputSchema = z.object({
@@ -29,22 +29,14 @@ const StockNewsOutputSchema = z.object({
 export type StockNewsInput = z.infer<typeof StockNewsInputSchema>;
 export type StockNewsOutput = z.infer<typeof StockNewsOutputSchema>;
 
-
+/**
+ * Fetches recent news for a stock symbol using the Finnhub API.
+ * @param input An object containing the stock symbol.
+ * @returns A promise that resolves to a list of articles or null if an error occurs.
+ */
 export async function fetchStockNews(input: StockNewsInput): Promise<StockNewsOutput | null> {
   return fetchStockNewsFlow(input);
 }
-
-
-const prompt = ai.definePrompt({
-  name: 'fetchStockNewsPrompt',
-  input: { schema: StockNewsInputSchema },
-  output: { schema: StockNewsOutputSchema },
-  tools: [googleSearch],
-  prompt: `You are a financial news aggregator. Your task is to use the googleSearch tool to find the 3 most recent, relevant news articles from Google News for the stock symbol {{{symbol}}}.
-  
-  For each article, provide the headline, the source, and a direct URL. Present the output in the required JSON format. Do not include articles that are not directly related to the company's financial performance, products, or major corporate news.`,
-});
-
 
 const fetchStockNewsFlow = ai.defineFlow(
   {
@@ -53,9 +45,49 @@ const fetchStockNewsFlow = ai.defineFlow(
     outputSchema: z.nullable(StockNewsOutputSchema),
   },
   async (input) => {
+    if (!API_KEY) {
+      console.error("Finnhub API key not configured.");
+      return null;
+    }
+    
     try {
-      const { output } = await prompt(input);
-      return output;
+      const to = new Date();
+      const from = new Date();
+      from.setDate(to.getDate() - 30); // Get news from the last 30 days
+
+      const fromDateStr = from.toISOString().split('T')[0];
+      const toDateStr = to.toISOString().split('T')[0];
+      
+      const url = `https://finnhub.io/api/v1/company-news?symbol=${input.symbol}&from=${fromDateStr}&to=${toDateStr}&token=${API_KEY}`;
+      
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`Finnhub API request failed with status ${response.status}`);
+      }
+      
+      const data = await response.json();
+
+      if (!Array.isArray(data) || data.length === 0) {
+        return { articles: [] };
+      }
+      
+      // Map the Finnhub response to our ArticleSchema and take the top 5
+      const articles = data.slice(0, 5).map((item: any) => ({
+        headline: item.headline,
+        source: item.source,
+        url: item.url,
+      }));
+
+      // Validate the output against our schema
+      const result = StockNewsOutputSchema.safeParse({ articles });
+      if (result.success) {
+        return result.data;
+      } else {
+        console.error("Failed to parse news data from Finnhub:", result.error);
+        return null;
+      }
+
     } catch (error) {
       console.error("Error in fetchStockNewsFlow:", error);
       return null;
