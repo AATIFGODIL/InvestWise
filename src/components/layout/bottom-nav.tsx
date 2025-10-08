@@ -37,7 +37,7 @@ export default function BottomNav() {
   const [hasMounted, setHasMounted] = useState(false);
 
   // make the glider narrower horizontally
-  const WIDTH_FACTOR = 0.45; // try 0.45; lower -> smaller
+  const WIDTH_FACTOR = 0.55;   // try 0.45; lower -> smaller
   const MIN_GLIDER_WIDTH = 28; // minimum width in px so it doesn't collapse
 
   const activeIndex = navItems.findIndex((item) =>
