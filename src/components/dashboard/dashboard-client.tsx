@@ -14,6 +14,7 @@ import EducationalContent from "./educational-content";
 import { educationalContent } from "@/data/education";
 import CommunityLeaderboard from "@/components/dashboard/community-leaderboard";
 import MarketNews from "@/components/community/market-news";
+import HoldingsSummary from "@/components/dashboard/holdings-summary";
 
 // These components are loaded dynamically to improve initial page load performance.
 // They will only be loaded when they are needed, reducing the client-side JavaScript bundle size.
@@ -89,7 +90,11 @@ export default function DashboardClient() {
         <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
         <PortfolioValue />
         <Watchlist />
-        <AutoInvest />
+        <HoldingsSummary />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <AutoInvest />
+            <AiPrediction />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <GoalProgress />
             <CommunityLeaderboard />
@@ -100,7 +105,6 @@ export default function DashboardClient() {
             <EducationalContent content={educationalContent} />
         </div>
         <InvestmentBundles {...bundleProps} />
-        <AiPrediction />
         <Chatbot />
         </div>
     </main>
