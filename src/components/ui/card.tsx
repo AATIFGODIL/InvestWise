@@ -8,19 +8,18 @@ const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, style, ...props }, ref) => {
-    const { theme } = useThemeStore();
-    const isClearTheme = theme === 'clear';
+    const { isClearMode } = useThemeStore();
 
     return (
         <div
             ref={ref}
             className={cn(
                 "rounded-lg border text-card-foreground shadow-sm",
-                isClearTheme ? "border-0 bg-white/10 shadow-lg ring-1 ring-white/60" : "bg-card",
+                isClearMode ? "border-0 bg-white/10 shadow-lg ring-1 ring-white/60" : "bg-card",
                 className
             )}
             style={{
-                backdropFilter: isClearTheme ? "blur(16px)" : "none",
+                backdropFilter: isClearMode ? "blur(16px)" : "none",
                 ...style,
             }}
             {...props}

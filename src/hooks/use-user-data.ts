@@ -48,6 +48,7 @@ export default function useUserData(user: User | null) {
           // Hydrate all Zustand stores with the fetched data.
           // Using getState() here is safe because this effect runs once after the stores are initialized.
           useThemeStore.getState().setTheme(userData.theme || "light");
+          useThemeStore.getState().setClearMode(userData.isClearMode || false);
           useUserStore.getState().setUsername(userData.username || "Investor");
           useUserStore.getState().setPhotoURL(userData.photoURL || "");
           usePortfolioStore.getState().loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);

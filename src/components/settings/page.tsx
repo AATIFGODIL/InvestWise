@@ -25,7 +25,7 @@ import { useRouter } from "next/navigation";
 export default function SettingsClient() {
   const router = useRouter();
   const [parentalControl, setParentalControl] = useState(false);
-  const { theme, setTheme } = useThemeStore();
+  const { theme, setTheme, isClearMode, setClearMode } = useThemeStore();
   const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
   const { user, updateUserTheme, signOut: firebaseSignOut, updatePrivacySettings } = useAuth();
   const [isClient, setIsClient] = useState(false);
@@ -34,10 +34,16 @@ export default function SettingsClient() {
     setIsClient(true);
   }, []);
   
-  const handleThemeChange = (newTheme: "light" | "dark" | "clear") => {
+  const handleThemeChange = (newTheme: "light" | "dark") => {
     setTheme(newTheme);
-    updateUserTheme(newTheme);
+    updateUserTheme({ theme: newTheme });
   };
+
+  const handleClearModeChange = (isClear: boolean) => {
+    setClearMode(isClear);
+    updateUserTheme({ isClearMode: isClear });
+  };
+
 
   const handleLeaderboardChange = (visibility: LeaderboardVisibility) => {
     setLeaderboardVisibility(visibility);
@@ -113,7 +119,8 @@ export default function SettingsClient() {
                     <Skeleton className="h-12 w-full" />
                 </div>
             ) : (
-                <RadioGroup value={theme} onValueChange={(v) => handleThemeChange(v as "light" | "dark" | "clear")} className="space-y-2">
+              <div className="space-y-4">
+                <RadioGroup value={theme} onValueChange={(v) => handleThemeChange(v as "light" | "dark")} className="space-y-2">
                     <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                         <Label htmlFor="theme-light" className="flex items-center gap-2 cursor-pointer"><Sun className="h-4 w-4"/> Light Mode</Label>
                         <RadioGroupItem value="light" id="theme-light" />
@@ -122,11 +129,19 @@ export default function SettingsClient() {
                         <Label htmlFor="theme-dark" className="flex items-center gap-2 cursor-pointer"><Moon className="h-4 w-4"/> Dark Mode</Label>
                         <RadioGroupItem value="dark" id="theme-dark" />
                     </div>
-                    <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                        <Label htmlFor="theme-clear" className="flex items-center gap-2 cursor-pointer"><Droplets className="h-4 w-4"/> Clear Mode</Label>
-                        <RadioGroupItem value="clear" id="theme-clear" />
-                    </div>
                 </RadioGroup>
+                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                    <Label htmlFor="clear-mode" className="flex items-center gap-2 cursor-pointer">
+                        <Droplets className="h-4 w-4"/> Clear Mode
+                        <span className="text-xs text-muted-foreground">(Frosted Glass UI)</span>
+                    </Label>
+                    <Switch
+                        id="clear-mode"
+                        checked={isClearMode}
+                        onCheckedChange={handleClearModeChange}
+                    />
+                </div>
+              </div>
             )}
           </CardContent>
         </Card>

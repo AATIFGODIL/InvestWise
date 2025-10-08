@@ -52,7 +52,7 @@ interface AuthContextType {
   signInWithApple: () => Promise<void>;
   signOut: () => void;
   updateUserProfile: (data: { username?: string, photoURL?: string }) => Promise<void>;
-  updateUserTheme: (theme: Theme) => Promise<void>;
+  updateUserTheme: (themeData: { theme?: Theme, isClearMode?: boolean }) => Promise<void>;
   updatePrivacySettings: (settings: Partial<Omit<PrivacyState, 'setLeaderboardVisibility' | 'setShowQuests' | 'loadPrivacySettings' | 'resetPrivacySettings'>>) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   verifyPasswordResetCode: (code: string) => Promise<string | null>;
@@ -85,6 +85,7 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
     username: displayName,
     photoURL: user.photoURL || "",
     theme: "light",
+    isClearMode: false,
     leaderboardVisibility: "public",
     showQuests: true,
     createdAt: new Date(),
@@ -126,6 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useGoalStore.getState().resetGoals();
     useAutoInvestStore.getState().resetAutoInvest();
     useThemeStore.getState().setTheme("light");
+    useThemeStore.getState().setClearMode(false);
     usePrivacyStore.getState().resetPrivacySettings();
     useWatchlistStore.getState().resetWatchlist();
     useTransactionStore.getState().resetTransactions();
@@ -228,11 +230,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Persists the user's theme preference to Firestore.
-  const updateUserTheme = async (theme: Theme) => {
-    useThemeStore.getState().setTheme(theme);
+  const updateUserTheme = async (themeData: { theme?: Theme, isClearMode?: boolean }) => {
+    if ('theme' in themeData && themeData.theme) {
+      useThemeStore.getState().setTheme(themeData.theme);
+    }
+    if ('isClearMode' in themeData && typeof themeData.isClearMode === 'boolean') {
+      useThemeStore.getState().setClearMode(themeData.isClearMode);
+    }
     if (!user) return;
     const userDocRef = doc(db, "users", user.uid);
-    await updateDoc(userDocRef, { theme });
+    await updateDoc(userDocRef, themeData);
   };
 
   // Persists the user's privacy settings to Firestore.

@@ -29,8 +29,7 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { username, photoURL } = useUserStore();
-  const { theme } = useThemeStore();
-  const isClearTheme = theme === 'clear';
+  const { isClearMode } = useThemeStore();
 
   return (
     <>
@@ -38,11 +37,11 @@ export default function Header() {
         <nav 
           className={cn(
             "relative flex h-16 items-center justify-between rounded-full p-1 px-2 text-primary-foreground shadow-lg",
-             isClearTheme 
+             isClearMode 
                 ? "bg-white/10 ring-1 ring-white/60" 
                 : "bg-card"
           )}
-          style={{ backdropFilter: isClearTheme ? "url(#frosted) blur(1px)" : "none" }}
+          style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
         >
           <div className="flex h-full items-center font-semibold">
             <Link 
@@ -59,12 +58,12 @@ export default function Header() {
             <button
               className={cn(
                 "flex h-12 w-48 items-center justify-center gap-2 rounded-full shadow-lg transition-colors md:w-72",
-                isClearTheme
+                isClearMode
                     ? "bg-white/10 text-slate-100 ring-1 ring-white/60 hover:bg-white/20 hover:text-white"
                     : "bg-background text-foreground ring-1 ring-border hover:bg-muted"
               )}
               onClick={() => setOpen(true)}
-              style={{ backdropFilter: isClearTheme ? "blur(2px)" : "none" }}
+              style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
             >
                 <Search className="h-5 w-5" />
                 <span className="hidden text-sm md:inline">Spotlight Search</span>
@@ -74,7 +73,7 @@ export default function Header() {
           <div className="flex items-center gap-1">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className={cn("relative h-12 w-12 rounded-full", isClearTheme ? "hover:bg-white/10" : "")}>
+                  <Button variant="ghost" size="icon" className={cn("relative h-12 w-12 rounded-full", isClearMode ? "hover:bg-white/10" : "")}>
                       <Bell className="h-6 w-6" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -87,7 +86,7 @@ export default function Header() {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className={cn("relative h-12 w-12 rounded-full", isClearTheme ? "hover:bg-white/10" : "")}>
+                  <Button variant="ghost" className={cn("relative h-12 w-12 rounded-full", isClearMode ? "hover:bg-white/10" : "")}>
                     <Avatar className="h-12 w-12 border-2 border-primary/50">
                       <AvatarImage src={photoURL || ''} alt={username} />
                       <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
