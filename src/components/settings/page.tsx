@@ -132,7 +132,7 @@ export default function SettingsClient() {
                 </RadioGroup>
                 <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                     <Label htmlFor="clear-mode" className="flex items-center gap-2 cursor-pointer">
-                        <Droplets className="h-4 w-4"/> Clear Mode
+                        <Droplets className="h-4 w-4"/> Clear
                         <span className="text-xs text-muted-foreground">(Liquid Glass UI)</span>
                     </Label>
                     <Switch
