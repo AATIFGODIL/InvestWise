@@ -5,16 +5,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
-  CommandDialog,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-  Command,
-} from "@/components/ui/command";
-import {
   Home,
   Briefcase,
   Repeat,
@@ -45,6 +35,8 @@ import { Badge } from "../ui/badge";
 import { usePortfolioStore } from "@/store/portfolio-store";
 import TradeDialogCMDK from "../trade/trade-dialog-cmdk";
 import TradingViewMiniChart from "../shared/trading-view-mini-chart";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { CommandInput, CommandItem, CommandList, CommandSeparator } from "../ui/command";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -189,13 +181,11 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   const handleStockSelect = useCallback((stockSymbol: string) => {
     const stock = stocks.find(s => s.symbol === stockSymbol);
     if (stock) {
-      runCommand(() => {
         setView("stock-detail");
         setSelectedStock(stock);
         fetchStockDetails(stock);
-      });
     }
-  }, [stocks, runCommand]);
+  }, [stocks]);
 
   const handleGoBack = () => {
     setView("search");
@@ -240,9 +230,14 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
 
   return (
     <>
-    <CommandDialog open={open} onOpenChange={onOpenChange}>
-        <Command shouldFilter={false} className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
-            <div className="flex items-center border-b border-border/50 px-3" cmdk-input-wrapper="">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent 
+        className="overflow-hidden p-0 shadow-2xl shadow-black/20 bg-white/10 ring-1 ring-white/60 border-0"
+        style={{ backdropFilter: "url(#frosted) blur(1px)" }}
+      >
+        <DialogTitle className="sr-only">Spotlight Search</DialogTitle>
+        <div className="text-primary-foreground">
+             <div className="flex items-center border-b border-border/50 px-3">
                 {view === "stock-detail" ? (
                     <Button variant="ghost" size="icon" className="mr-2 h-8 w-8 shrink-0 hover:bg-white/10" onClick={handleGoBack}>
                         <ArrowLeft className="h-4 w-4" />
@@ -255,70 +250,67 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                     value={query}
                     onValueChange={setQuery}
                     disabled={view === 'stock-detail'}
-                    className="placeholder:text-slate-400 text-primary-foreground"
+                    className="placeholder:text-slate-400 text-primary-foreground h-12"
                 />
             </div>
-
+            
+            {view === "search" && (
             <CommandList>
-                {view === "search" && (
-                    <>
-                        {isFetchingStocks && query.length === 0 && (
-                            <div className="p-4 text-center text-sm text-slate-400">Loading stocks...</div>
-                        )}
-                        {filteredStocks.length === 0 && !isFetchingStocks && <CommandEmpty>No results found.</CommandEmpty>}
-
-                        {filteredStocks.length > 0 && (
-                        <CommandGroup heading="Stocks" className="text-slate-400">
-                            {filteredStocks.map((stock) => (
-                            <CommandItem
-                                key={stock.symbol}
-                                onSelect={() => handleStockSelect(stock.symbol)}
-                                onClick={() => handleStockSelect(stock.symbol)}
-                                value={`${stock.symbol} - ${stock.name}`}
-                                cmdk-item=""
-                            >
-                                <div className="flex justify-between items-center w-full">
-                                    <div className="flex items-center gap-3">
-                                        <Avatar className="h-8 w-8 bg-slate-800">
-                                            <AvatarFallback className="bg-transparent">{stock.symbol.charAt(0)}</AvatarFallback>
-                                        </Avatar>
-                                        <div>
-                                            <p>{stock.name}</p>
-                                            <p className="text-xs text-slate-400">{stock.symbol}</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="font-mono">${stock.price.toFixed(2)}</p>
-                                        <p className={cn("text-xs", stock.change >= 0 ? "text-green-400" : "text-red-400")}>
-                                            {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
-                                        </p>
-                                    </div>
-                                </div>
-                            </CommandItem>
-                            ))}
-                        </CommandGroup>
-                        )}
-
-                        <CommandSeparator />
-
-                        <CommandGroup heading="App Actions" className="text-slate-400">
-                            {appActions
-                                .filter((action) => action.name.toLowerCase().includes(query.toLowerCase()))
-                                .map((action) => (
-                                <CommandItem
-                                    key={action.href}
-                                    onSelect={() => runCommand(() => router.push(action.href))}
-                                    value={action.name}
-                                >
-                                    <action.icon className="mr-2 h-4 w-4" />
-                                    <span>{action.name}</span>
-                                </CommandItem>
-                                ))}
-                        </CommandGroup>
-                    </>
+                {isFetchingStocks && query.length === 0 && (
+                    <div className="p-4 text-center text-sm text-slate-400">Loading stocks...</div>
                 )}
-                
+                {filteredStocks.length === 0 && !isFetchingStocks && <div className="py-6 text-center text-sm">No results found.</div>}
+
+                {filteredStocks.length > 0 && (
+                <div className="p-1 text-foreground">
+                    <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Stocks</div>
+                    {filteredStocks.map((stock) => (
+                    <CommandItem
+                        key={stock.symbol}
+                        onMouseOver={(e) => e.currentTarget.classList.add('aria-selected:bg-white/20')}
+                        onMouseOut={(e) => e.currentTarget.classList.remove('aria-selected:bg-white/20')}
+                        onClick={() => handleStockSelect(stock.symbol)}
+                    >
+                        <div className="flex justify-between items-center w-full">
+                            <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8 bg-slate-800">
+                                    <AvatarFallback className="bg-transparent">{stock.symbol.charAt(0)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <p>{stock.name}</p>
+                                    <p className="text-xs text-slate-400">{stock.symbol}</p>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <p className="font-mono">${stock.price.toFixed(2)}</p>
+                                <p className={cn("text-xs", stock.change >= 0 ? "text-green-400" : "text-red-400")}>
+                                    {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+                                </p>
+                            </div>
+                        </div>
+                    </CommandItem>
+                    ))}
+                </div>
+                )}
+
+                <CommandSeparator />
+
+                <div className="p-1 text-foreground">
+                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">App Actions</div>
+                    {appActions
+                        .filter((action) => action.name.toLowerCase().includes(query.toLowerCase()))
+                        .map((action) => (
+                        <CommandItem
+                            key={action.href}
+                            onClick={() => runCommand(() => router.push(action.href))}
+                        >
+                            <action.icon className="mr-2 h-4 w-4" />
+                            <span>{action.name}</span>
+                        </CommandItem>
+                        ))}
+                </div>
             </CommandList>
+            )}
 
             {view === 'stock-detail' && selectedStock && (
                 <div className="p-2 text-sm overflow-y-auto max-h-[70vh]">
@@ -424,8 +416,9 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                     )}
                 </div>
             )}
-        </Command>
-    </CommandDialog>
+        </div>
+      </DialogContent>
+    </Dialog>
     {selectedStock && (
         <TradeDialogCMDK
             isOpen={isTradeDialogOpen}
@@ -438,14 +431,5 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     </>
   );
 }
-
-    
-
-    
-
-
-
-
-    
 
     
