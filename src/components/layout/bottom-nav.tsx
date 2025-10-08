@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Home, Briefcase, BarChart, Users, Repeat } from "lucide-react";
@@ -48,7 +49,10 @@ export default function BottomNav() {
   const getRef = (index: number) => (el: HTMLDivElement | null) => {
     itemRefs.current[index] = el;
   };
-  
+
+  // horizontal padding removed from the logical clickable width to make the glider narrower
+  const H_PADDING = 24; // tune between ~12-36 for desired look
+
   const updateHighlight = useCallback(() => {
     if (activeIndex === -1 || !navRef.current) {
       setGliderStyle({ width: 0, left: 0, opacity: 0 });
@@ -63,19 +67,19 @@ export default function BottomNav() {
 
     const navRect = navRef.current.getBoundingClientRect();
     const itemRect = activeItem.getBoundingClientRect();
-    const horizontalPadding = 24; // Increased padding for a shorter highlight
-    const left = itemRect.left - navRect.left + horizontalPadding / 2;
-    const width = itemRect.width - horizontalPadding;
+
+    // compute glider width and center it within the item's rect
+    const gliderWidth = Math.max(itemRect.width - H_PADDING, 36);
+    const left = itemRect.left - navRect.left + (itemRect.width - gliderWidth) / 2;
 
     setGliderStyle({
-      width: `${width}px`,
+      width: `${gliderWidth}px`,
       transform: `translateX(${left}px)`,
       opacity: 1,
       transition: hasMounted ? "transform 300ms ease, width 300ms ease, opacity 200ms ease" : "none",
       backgroundColor: "hsl(var(--primary))",
     });
   }, [activeIndex, hasMounted]);
-
 
   useEffect(() => {
     setHasMounted(true);
@@ -86,7 +90,6 @@ export default function BottomNav() {
     window.addEventListener("resize", updateHighlight);
     return () => window.removeEventListener("resize", updateHighlight);
   }, [pathname, updateHighlight]);
-
 
   const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, newIndex: number) => {
     e.preventDefault();
@@ -108,13 +111,13 @@ export default function BottomNav() {
     const navRect = navEl.getBoundingClientRect();
     const startRect = startItem.getBoundingClientRect();
     const endRect = endItem.getBoundingClientRect();
-    
-    const horizontalPadding = 24;
 
-    const startLeft = startRect.left - navRect.left + horizontalPadding / 2;
-    const startWidth = startRect.width - horizontalPadding;
-    const endLeft = endRect.left - navRect.left + horizontalPadding / 2;
-    const endWidth = endRect.width - horizontalPadding;
+    // compute centered glider geometry for start & end
+    const startWidth = Math.max(startRect.width - H_PADDING, 36);
+    const startLeft = startRect.left - navRect.left + (startRect.width - startWidth) / 2;
+
+    const endWidth = Math.max(endRect.width - H_PADDING, 36);
+    const endLeft = endRect.left - navRect.left + (endRect.width - endWidth) / 2;
 
     // 1. Rise
     setGliderStyle({
