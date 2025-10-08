@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Home, Briefcase, BarChart, Users, Repeat } from "lucide-react";
@@ -24,12 +23,16 @@ const navItems = [
 
 type AnimationState = "idle" | "rising" | "sliding" | "descending";
 
+// This padding constant can be tuned to adjust the highlight's width.
+// Higher values make the highlight tighter. Recommended: 16-28.
+const H_PADDING = 24;
+
 export default function BottomNav() {
   const pathname = usePathname() ?? "/";
   const router = useRouter();
   const navRef = useRef<HTMLElement | null>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const timeouts = useRef<number[]>([]); // browser setTimeout returns number
+  const timeouts = useRef<number[]>([]);
 
   const [gliderStyle, setGliderStyle] = useState<CSSProperties>({
     opacity: 0,
@@ -50,12 +53,9 @@ export default function BottomNav() {
     itemRefs.current[index] = el;
   };
 
-  // horizontal padding removed from the logical clickable width to make the glider narrower
-  const H_PADDING = 24; // tune between ~12-36 for desired look
-
   const updateHighlight = useCallback(() => {
     if (activeIndex === -1 || !navRef.current) {
-      setGliderStyle({ width: 0, left: 0, opacity: 0 });
+      setGliderStyle({ width: 0, transform: 'translateX(0px)', opacity: 0 });
       return;
     }
 
@@ -67,8 +67,8 @@ export default function BottomNav() {
 
     const navRect = navRef.current.getBoundingClientRect();
     const itemRect = activeItem.getBoundingClientRect();
-
-    // compute glider width and center it within the item's rect
+    
+    // Correctly calculate width and centered position
     const gliderWidth = Math.max(itemRect.width - H_PADDING, 36);
     const left = itemRect.left - navRect.left + (itemRect.width - gliderWidth) / 2;
 
@@ -112,7 +112,7 @@ export default function BottomNav() {
     const startRect = startItem.getBoundingClientRect();
     const endRect = endItem.getBoundingClientRect();
 
-    // compute centered glider geometry for start & end
+    // Use the correct centering math for the animation
     const startWidth = Math.max(startRect.width - H_PADDING, 36);
     const startLeft = startRect.left - navRect.left + (startRect.width - startWidth) / 2;
 
