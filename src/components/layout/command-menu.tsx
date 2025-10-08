@@ -174,26 +174,28 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
 
   // --- UI and Action Handlers ---
 
-  const runCommand = (command: () => void) => {
+  const runCommand = useCallback((command: () => void) => {
     onOpenChange(false);
     setQuery("");
     setView("search");
     command();
-  };
+  }, [onOpenChange]);
   
   const handleTradeNavigation = (symbol: string) => {
     showLoading();
     router.push(`/trade?symbol=${symbol}`);
   };
 
-  const handleStockSelect = (stockSymbol: string) => {
+  const handleStockSelect = useCallback((stockSymbol: string) => {
     const stock = stocks.find(s => s.symbol === stockSymbol);
     if (stock) {
-      setView("stock-detail");
-      setSelectedStock(stock); // Set basic data immediately
-      fetchStockDetails(stock); // Fetch detailed data
+      runCommand(() => {
+        setView("stock-detail");
+        setSelectedStock(stock);
+        fetchStockDetails(stock);
+      });
     }
-  };
+  }, [stocks, runCommand]);
 
   const handleGoBack = () => {
     setView("search");
@@ -271,6 +273,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                             <CommandItem
                                 key={stock.symbol}
                                 onSelect={() => handleStockSelect(stock.symbol)}
+                                onClick={() => handleStockSelect(stock.symbol)}
                                 value={`${stock.symbol} - ${stock.name}`}
                                 cmdk-item=""
                             >
@@ -442,5 +445,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
 
 
 
+
+    
 
     
