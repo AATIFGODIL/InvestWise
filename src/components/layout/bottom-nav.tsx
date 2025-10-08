@@ -23,15 +23,11 @@ const navItems = [
 
 type AnimationState = "idle" | "rising" | "sliding" | "descending";
 
-// This padding constant can be tuned to adjust the highlight's width.
-// Higher values make the highlight tighter. Recommended: 16-28.
-const H_PADDING = 24;
-
 export default function BottomNav() {
   const pathname = usePathname() ?? "/";
   const router = useRouter();
   const navRef = useRef<HTMLElement | null>(null);
-  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const timeouts = useRef<number[]>([]);
 
   const [gliderStyle, setGliderStyle] = useState<CSSProperties>({
@@ -39,6 +35,10 @@ export default function BottomNav() {
   });
   const [animationState, setAnimationState] = useState<AnimationState>("idle");
   const [hasMounted, setHasMounted] = useState(false);
+
+  // make the glider narrower horizontally
+  const WIDTH_FACTOR = 0.45; // try 0.45; lower -> smaller
+  const MIN_GLIDER_WIDTH = 28; // minimum width in px so it doesn't collapse
 
   const activeIndex = navItems.findIndex((item) =>
     pathname.startsWith(item.href)
@@ -49,47 +49,47 @@ export default function BottomNav() {
     timeouts.current = [];
   };
 
-  const getRef = (index: number) => (el: HTMLDivElement | null) => {
+  const getRef = (index: number) => (el: HTMLAnchorElement | null) => {
     itemRefs.current[index] = el;
   };
 
-  const updateHighlight = useCallback(() => {
-    if (activeIndex === -1 || !navRef.current) {
-      setGliderStyle({ width: 0, transform: 'translateX(0px)', opacity: 0 });
-      return;
-    }
+  const setGliderTo = useCallback((index: number, options: { immediate?: boolean } = {}) => {
+    const navEl = navRef.current;
+    const target = itemRefs.current[index];
 
-    const activeItem = itemRefs.current[activeIndex];
-    if (!activeItem) {
-      requestAnimationFrame(updateHighlight);
-      return;
-    }
+    if (!navEl || !target) return false;
 
-    const navRect = navRef.current.getBoundingClientRect();
-    const itemRect = activeItem.getBoundingClientRect();
-    
-    // Correctly calculate width and centered position
-    const gliderWidth = Math.max(itemRect.width - H_PADDING, 36);
+    const navRect = navEl.getBoundingClientRect();
+    const itemRect = target.getBoundingClientRect();
+
+    const gliderWidth = Math.max(Math.round(itemRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
     const left = itemRect.left - navRect.left + (itemRect.width - gliderWidth) / 2;
 
     setGliderStyle({
       width: `${gliderWidth}px`,
-      transform: `translateX(${left}px)`,
+      transform: `translateX(${left}px) translateY(-50%)`,
       opacity: 1,
-      transition: hasMounted ? "transform 300ms ease, width 300ms ease, opacity 200ms ease" : "none",
+      transition: options.immediate ? "none" : "transform 300ms ease, width 300ms ease, opacity 200ms ease",
       backgroundColor: "hsl(var(--primary))",
+      height: gliderStyle.height ?? "calc(100% - 12px)",
+      top: "50%",
+      left: 0,
+      position: "absolute",
     });
-  }, [activeIndex, hasMounted]);
+    return true;
+  }, [gliderStyle.height]);
 
   useEffect(() => {
     setHasMounted(true);
   }, []);
 
   useEffect(() => {
-    updateHighlight();
-    window.addEventListener("resize", updateHighlight);
-    return () => window.removeEventListener("resize", updateHighlight);
-  }, [pathname, updateHighlight]);
+    if(activeIndex !== -1) {
+      setGliderTo(activeIndex, { immediate: !hasMounted });
+    }
+    window.addEventListener("resize", () => setGliderTo(activeIndex, {immediate: true}));
+    return () => window.removeEventListener("resize", () => setGliderTo(activeIndex, {immediate: true}));
+  }, [pathname, activeIndex, hasMounted, setGliderTo]);
 
   const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, newIndex: number) => {
     e.preventDefault();
@@ -112,23 +112,24 @@ export default function BottomNav() {
     const startRect = startItem.getBoundingClientRect();
     const endRect = endItem.getBoundingClientRect();
 
-    // Use the correct centering math for the animation
-    const startWidth = Math.max(startRect.width - H_PADDING, 36);
+    const startWidth = Math.max(Math.round(startRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
     const startLeft = startRect.left - navRect.left + (startRect.width - startWidth) / 2;
 
-    const endWidth = Math.max(endRect.width - H_PADDING, 36);
+    const endWidth = Math.max(Math.round(endRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
     const endLeft = endRect.left - navRect.left + (endRect.width - endWidth) / 2;
+    
 
     // 1. Rise
-    setGliderStyle({
+    setGliderStyle(prev => ({
+      ...prev,
       width: `${startWidth}px`,
-      transform: `translateX(${startLeft}px) scale(1.08)`,
+      transform: `translateX(${startLeft}px) translateY(-50%) scale(1.08)`,
       backgroundColor: "hsl(var(--background) / 0.1)",
       boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
       opacity: 1,
       transition: "transform 140ms ease-out, background-color 140ms ease-out, box-shadow 140ms ease-out, border 140ms ease-out",
       border: '1px solid hsla(0, 0%, 100%, 0.6)',
-    });
+    }));
 
     // 2. Slide
     timeouts.current.push(
@@ -137,7 +138,7 @@ export default function BottomNav() {
         setGliderStyle((prev) => ({
           ...prev,
           width: `${endWidth}px`,
-          transform: `translateX(${endLeft}px) scale(1.08)`,
+          transform: `translateX(${endLeft}px) translateY(-50%) scale(1.08)`,
           transition:
             "transform 320ms cubic-bezier(0.22, 0.9, 0.35, 1), width 320ms cubic-bezier(0.22, 0.9, 0.35, 1), border 320ms ease-out",
         }));
@@ -151,7 +152,7 @@ export default function BottomNav() {
         router.push(navItems[newIndex].href);
         setGliderStyle((prev) => ({
           ...prev,
-          transform: `translateX(${endLeft}px) scale(1)`,
+          transform: `translateX(${endLeft}px) translateY(-50%) scale(1)`,
           backgroundColor: "hsl(var(--primary))",
           boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
           transition: "transform 160ms ease-in, background-color 160ms ease-in, box-shadow 160ms ease-in, border 160ms ease-in",
@@ -181,7 +182,7 @@ export default function BottomNav() {
         style={{ backdropFilter: "url(#frosted) blur(1px)" }}
       >
         <div
-          className="absolute top-1 h-[calc(100%-8px)] rounded-full"
+          className="absolute rounded-full pointer-events-none"
           style={{
             ...gliderStyle,
             visibility: hasMounted ? "visible" : "hidden",
@@ -194,14 +195,14 @@ export default function BottomNav() {
             <Link
               key={item.label}
               href={item.href}
+              ref={getRef(index)}
               onClick={(e) => handleNavClick(e, index)}
-              className="z-10 flex-1"
+              className="z-10 flex-1 flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2 transition-colors duration-300"
               prefetch={true}
             >
               <div
-                ref={getRef(index)}
                 className={cn(
-                  "flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2 transition-colors duration-300",
+                  "flex flex-col items-center",
                   "text-slate-100",
                   isActive ? "!text-primary-foreground" : "hover:text-white"
                 )}
