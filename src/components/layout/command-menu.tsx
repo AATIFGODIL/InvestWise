@@ -320,191 +320,195 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
     <>
       <div className="fixed inset-0 z-50 bg-black/80" onClick={() => onOpenChange(false)} />
       <div 
-        className="fixed top-[15%] left-1/2 -translate-x-1/2 z-50 w-full max-w-lg overflow-hidden rounded-xl shadow-2xl shadow-black/20 bg-white/10 ring-1 ring-white/60 border-0"
-        style={{ backdropFilter: "url(#frosted) blur(1px)" }}
+        className="fixed inset-x-0 inset-y-0 z-50 flex items-center justify-center p-4 pt-24 pb-24"
       >
-        <div className="text-primary-foreground">
-             <div className="flex items-center border-b border-border/50 px-3">
-                {view === "stock-detail" ? (
-                    <Button variant="ghost" size="icon" className="mr-2 h-8 w-8 shrink-0 hover:bg-white/10" onClick={handleGoBack}>
-                        <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                ) : (
-                    <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-                )}
-                <CommandInput
-                    placeholder={view === 'search' ? "Search stocks or commands..." : `${selectedStock?.name} (${selectedStock?.symbol})`}
-                    onValueChange={setQuery}
-                    value={query}
-                    disabled={view === 'stock-detail'}
-                />
-                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 hover:bg-white/10" onClick={() => onOpenChange(false)}>
-                    <X className="h-4 w-4" />
-                </Button>
-            </div>
-            
-            {view === "search" && (
-            <CommandList>
-                {isFetchingStocks && query.length === 0 && (
-                    <div className="p-4 text-center text-sm text-slate-400">Loading stocks...</div>
-                )}
-                
-                {filteredStocks.length === 0 && filteredAppActions.length === 0 && !isFetchingStocks && <div className="py-6 text-center text-sm">No results found.</div>}
+        <div 
+          className="w-full max-w-lg overflow-hidden rounded-xl shadow-2xl shadow-black/20 bg-white/10 ring-1 ring-white/60 border-0"
+          style={{ backdropFilter: "url(#frosted) blur(1px)" }}
+        >
+          <div className="text-primary-foreground">
+              <div className="flex items-center border-b border-border/50 px-3">
+                  {view === "stock-detail" ? (
+                      <Button variant="ghost" size="icon" className="mr-2 h-8 w-8 shrink-0 hover:bg-white/10" onClick={handleGoBack}>
+                          <ArrowLeft className="h-4 w-4" />
+                      </Button>
+                  ) : (
+                      <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                  )}
+                  <CommandInput
+                      placeholder={view === 'search' ? "Search stocks or commands..." : `${selectedStock?.name} (${selectedStock?.symbol})`}
+                      onValueChange={setQuery}
+                      value={query}
+                      disabled={view === 'stock-detail'}
+                  />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 hover:bg-white/10" onClick={() => onOpenChange(false)}>
+                      <X className="h-4 w-4" />
+                  </Button>
+              </div>
+              
+              {view === "search" && (
+              <CommandList>
+                  {isFetchingStocks && query.length === 0 && (
+                      <div className="p-4 text-center text-sm text-slate-400">Loading stocks...</div>
+                  )}
+                  
+                  {filteredStocks.length === 0 && filteredAppActions.length === 0 && !isFetchingStocks && <div className="py-6 text-center text-sm">No results found.</div>}
 
-                {filteredStocks.length > 0 && (
-                <div className="p-1 text-foreground">
-                    <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Stocks</div>
-                    {filteredStocks.map((stock) => (
-                    <CommandItem
-                        key={stock.symbol}
-                        onClick={() => handleStockSelect(stock.symbol)}
-                    >
-                        <div className="flex justify-between items-center w-full">
-                            <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8 bg-slate-800">
-                                    <AvatarFallback className="bg-transparent">{stock.symbol.charAt(0)}</AvatarFallback>
-                                </Avatar>
-                                <div>
-                                    <p>{stock.name}</p>
-                                    <p className="text-xs text-slate-400">{stock.symbol}</p>
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <p className="font-mono">${stock.price.toFixed(2)}</p>
-                                <p className={cn("text-xs", stock.change >= 0 ? "text-green-400" : "text-red-400")}>
-                                    {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
-                                </p>
-                            </div>
-                        </div>
-                    </CommandItem>
-                    ))}
-                </div>
-                )}
-
-                {filteredAppActions.length > 0 && (
+                  {filteredStocks.length > 0 && (
                   <div className="p-1 text-foreground">
-                    <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">App Actions</div>
-                    {filteredAppActions.map((action) => (
+                      <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Stocks</div>
+                      {filteredStocks.map((stock) => (
                       <CommandItem
-                        key={action.name}
-                        onClick={action.onSelect}
+                          key={stock.symbol}
+                          onClick={() => handleStockSelect(stock.symbol)}
                       >
-                        <action.icon className="mr-2 h-4 w-4" />
-                        <span>{action.name}</span>
+                          <div className="flex justify-between items-center w-full">
+                              <div className="flex items-center gap-3">
+                                  <Avatar className="h-8 w-8 bg-slate-800">
+                                      <AvatarFallback className="bg-transparent">{stock.symbol.charAt(0)}</AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                      <p>{stock.name}</p>
+                                      <p className="text-xs text-slate-400">{stock.symbol}</p>
+                                  </div>
+                              </div>
+                              <div className="text-right">
+                                  <p className="font-mono">${stock.price.toFixed(2)}</p>
+                                  <p className={cn("text-xs", stock.change >= 0 ? "text-green-400" : "text-red-400")}>
+                                      {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+                                  </p>
+                              </div>
+                          </div>
                       </CommandItem>
-                    ))}
+                      ))}
                   </div>
-                )}
-            </CommandList>
-            )}
+                  )}
 
-            {view === 'stock-detail' && selectedStock && (
-                <div className="p-2 text-sm overflow-y-auto max-h-[calc(75vh-50px)]">
-                    <div className="space-y-4">
-                        {/* Stock Header */}
-                        <div className="flex items-start gap-4 p-2 rounded-lg">
-                            <Avatar className="h-14 w-14 border-2 border-white/20 bg-slate-800">
-                                <AvatarFallback className="text-2xl bg-transparent">{selectedStock.symbol.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <h3 className="text-lg font-bold">{selectedStock.name}</h3>
-                                <div className="flex items-baseline gap-2">
-                                    <p className="text-2xl font-bold">${selectedStock.price.toFixed(2)}</p>
-                                    <p className={cn("font-semibold flex items-center", selectedStock.change >= 0 ? "text-green-400" : "text-red-400")}>
-                                        {selectedStock.change >= 0 ? <TrendingUp className="h-4 w-4 mr-1"/> : <TrendingDown className="h-4 w-4 mr-1" />}
-                                        {selectedStock.change.toFixed(2)} ({selectedStock.changePercent.toFixed(2)}%)
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        {/* Mini Chart */}
-                        <div className="h-40 w-full">
-                            <TradingViewMiniChart symbol={selectedStock.symbol} />
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="space-y-2">
-                            <div className="grid grid-cols-2 gap-2">
-                                <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white" onClick={() => handleBuySellClick('buy')}>
-                                    Buy
-                                </Button>
-                                <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => handleBuySellClick('sell')}>
-                                    Sell
-                                </Button>
-                            </div>
-                            <Button variant="outline" size="sm" className="w-full bg-white/10 border-white/20 hover:bg-white/20" onClick={() => runCommand(() => handleTradeNavigation(selectedStock.symbol))}>
-                                <Repeat className="mr-2 h-4 w-4" /> Go to Trade Page
-                            </Button>
-                            <Button variant="outline" size="sm" className="w-full bg-white/10 border-white/20 hover:bg-white/20" onClick={() => {
-                                if (watchlist.includes(selectedStock.symbol)) { removeSymbol(selectedStock.symbol); toast({description: "Removed from watchlist."}); }
-                                else { addSymbol(selectedStock.symbol); toast({description: "Added to watchlist."}); }
-                            }}>
-                                <Star className={cn("mr-2 h-4 w-4", watchlist.includes(selectedStock.symbol) ? 'text-yellow-400 fill-yellow-400' : '')} /> 
-                                {watchlist.includes(selectedStock.symbol) ? 'Remove from Watchlist' : 'Add to Watchlist'}
-                            </Button>
-                        </div>
-                        
-                        {selectedStockHolding && (
-                            <div>
-                                <h4 className="font-semibold mb-2 flex items-center gap-2 text-slate-400"><Building className="h-4 w-4" /> Your Holdings</h4>
-                                 <div className="p-3 rounded-lg bg-black/20">
-                                    <div className="flex justify-between items-center">
-                                        <span className="font-medium">{selectedStockHolding.qty} Shares</span>
-                                        <span className="font-medium">Value: ${(selectedStockHolding.qty * selectedStock.price).toFixed(2)}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        
-                        {/* Prediction Section */}
-                        <div>
-                            <h4 className="font-semibold mb-2 flex items-center gap-2 text-slate-400"><BrainCircuit className="h-4 w-4" /> AI Prediction</h4>
-                            <div className="p-3 rounded-lg bg-black/20 text-xs min-h-[60px] relative">
-                            {isFetchingPrediction ? (
-                                <div className="flex items-center gap-2 text-slate-400">
-                                    <Loader2 className="h-4 w-4 animate-spin"/>
-                                    <span>Generating prediction...</span>
-                                </div>
-                            ) : prediction ? (
-                                <>
-                                    <div className="flex justify-between items-center mb-1">
-                                        <Badge className={cn("text-white", prediction.confidence === "High" ? "bg-green-500" : prediction.confidence === "Medium" ? "bg-yellow-500" : "bg-red-500")}>
-                                            {prediction.confidence} Confidence
-                                        </Badge>
-                                    </div>
-                                    <p className="whitespace-pre-wrap">{prediction.prediction}</p>
-                                </>
-                            ) : (
-                                <p className="text-slate-400">Could not load AI prediction.</p>
-                            )}
-                            </div>
-                        </div>
-
-                        {/* News Section */}
-                        <div>
-                            <h4 className="font-semibold mb-2 flex items-center gap-2 text-slate-400"><Newspaper className="h-4 w-4" /> Recent News</h4>
-                            <div className="space-y-2">
-                                {isFetchingNews ? (
-                                    <div className="flex items-center gap-2 text-slate-400 text-xs p-2">
-                                        <Loader2 className="h-4 w-4 animate-spin"/>
-                                        <span>Fetching recent news...</span>
-                                    </div>
-                                ) : news?.articles && news.articles.length > 0 ? (
-                                    news.articles.map((article, i) => (
-                                    <a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-black/20 text-white no-underline">
-                                        <p className="font-medium truncate leading-tight whitespace-pre-wrap">{article.headline}</p>
-                                        <p className="text-xs text-slate-400">{article.source}</p>
-                                    </a>
-                                ))) : (
-                                    <div className="p-2 text-xs text-slate-400">No recent news found.</div>
-                                )}
-                            </div>
-                        </div>
-
+                  {filteredAppActions.length > 0 && (
+                    <div className="p-1 text-foreground">
+                      <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">App Actions</div>
+                      {filteredAppActions.map((action) => (
+                        <CommandItem
+                          key={action.name}
+                          onClick={action.onSelect}
+                        >
+                          <action.icon className="mr-2 h-4 w-4" />
+                          <span>{action.name}</span>
+                        </CommandItem>
+                      ))}
                     </div>
-                </div>
-            )}
+                  )}
+              </CommandList>
+              )}
+
+              {view === 'stock-detail' && selectedStock && (
+                  <div className="p-2 text-sm overflow-y-auto max-h-[calc(70vh-50px)]">
+                      <div className="space-y-4">
+                          {/* Stock Header */}
+                          <div className="flex items-start gap-4 p-2 rounded-lg">
+                              <Avatar className="h-14 w-14 border-2 border-white/20 bg-slate-800">
+                                  <AvatarFallback className="text-2xl bg-transparent">{selectedStock.symbol.charAt(0)}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                  <h3 className="text-lg font-bold">{selectedStock.name}</h3>
+                                  <div className="flex items-baseline gap-2">
+                                      <p className="text-2xl font-bold">${selectedStock.price.toFixed(2)}</p>
+                                      <p className={cn("font-semibold flex items-center", selectedStock.change >= 0 ? "text-green-400" : "text-red-400")}>
+                                          {selectedStock.change >= 0 ? <TrendingUp className="h-4 w-4 mr-1"/> : <TrendingDown className="h-4 w-4 mr-1" />}
+                                          {selectedStock.change.toFixed(2)} ({selectedStock.changePercent.toFixed(2)}%)
+                                      </p>
+                                  </div>
+                              </div>
+                          </div>
+                          
+                          {/* Mini Chart */}
+                          <div className="h-40 w-full">
+                              <TradingViewMiniChart symbol={selectedStock.symbol} />
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="space-y-2">
+                              <div className="grid grid-cols-2 gap-2">
+                                  <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white" onClick={() => handleBuySellClick('buy')}>
+                                      Buy
+                                  </Button>
+                                  <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => handleBuySellClick('sell')}>
+                                      Sell
+                                  </Button>
+                              </div>
+                              <Button variant="outline" size="sm" className="w-full bg-white/10 border-white/20 hover:bg-white/20" onClick={() => runCommand(() => handleTradeNavigation(selectedStock.symbol))}>
+                                  <Repeat className="mr-2 h-4 w-4" /> Go to Trade Page
+                              </Button>
+                              <Button variant="outline" size="sm" className="w-full bg-white/10 border-white/20 hover:bg-white/20" onClick={() => {
+                                  if (watchlist.includes(selectedStock.symbol)) { removeSymbol(selectedStock.symbol); toast({description: "Removed from watchlist."}); }
+                                  else { addSymbol(selectedStock.symbol); toast({description: "Added to watchlist."}); }
+                              }}>
+                                  <Star className={cn("mr-2 h-4 w-4", watchlist.includes(selectedStock.symbol) ? 'text-yellow-400 fill-yellow-400' : '')} /> 
+                                  {watchlist.includes(selectedStock.symbol) ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                              </Button>
+                          </div>
+                          
+                          {selectedStockHolding && (
+                              <div>
+                                  <h4 className="font-semibold mb-2 flex items-center gap-2 text-slate-400"><Building className="h-4 w-4" /> Your Holdings</h4>
+                                  <div className="p-3 rounded-lg bg-black/20">
+                                      <div className="flex justify-between items-center">
+                                          <span className="font-medium">{selectedStockHolding.qty} Shares</span>
+                                          <span className="font-medium">Value: ${(selectedStockHolding.qty * selectedStock.price).toFixed(2)}</span>
+                                      </div>
+                                  </div>
+                              </div>
+                          )}
+                          
+                          {/* Prediction Section */}
+                          <div>
+                              <h4 className="font-semibold mb-2 flex items-center gap-2 text-slate-400"><BrainCircuit className="h-4 w-4" /> AI Prediction</h4>
+                              <div className="p-3 rounded-lg bg-black/20 text-xs min-h-[60px] relative">
+                              {isFetchingPrediction ? (
+                                  <div className="flex items-center gap-2 text-slate-400">
+                                      <Loader2 className="h-4 w-4 animate-spin"/>
+                                      <span>Generating prediction...</span>
+                                  </div>
+                              ) : prediction ? (
+                                  <>
+                                      <div className="flex justify-between items-center mb-1">
+                                          <Badge className={cn("text-white", prediction.confidence === "High" ? "bg-green-500" : prediction.confidence === "Medium" ? "bg-yellow-500" : "bg-red-500")}>
+                                              {prediction.confidence} Confidence
+                                          </Badge>
+                                      </div>
+                                      <p className="whitespace-pre-wrap">{prediction.prediction}</p>
+                                  </>
+                              ) : (
+                                  <p className="text-slate-400">Could not load AI prediction.</p>
+                              )}
+                              </div>
+                          </div>
+
+                          {/* News Section */}
+                          <div>
+                              <h4 className="font-semibold mb-2 flex items-center gap-2 text-slate-400"><Newspaper className="h-4 w-4" /> Recent News</h4>
+                              <div className="space-y-2">
+                                  {isFetchingNews ? (
+                                      <div className="flex items-center gap-2 text-slate-400 text-xs p-2">
+                                          <Loader2 className="h-4 w-4 animate-spin"/>
+                                          <span>Fetching recent news...</span>
+                                      </div>
+                                  ) : news?.articles && news.articles.length > 0 ? (
+                                      news.articles.map((article, i) => (
+                                      <a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-black/20 text-white no-underline">
+                                          <p className="font-medium truncate leading-tight whitespace-pre-wrap">{article.headline}</p>
+                                          <p className="text-xs text-slate-400">{article.source}</p>
+                                      </a>
+                                  ))) : (
+                                      <div className="p-2 text-xs text-slate-400">No recent news found.</div>
+                                  )}
+                              </div>
+                          </div>
+
+                      </div>
+                  </div>
+              )}
+          </div>
         </div>
       </div>
 
@@ -554,3 +558,4 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
     </>
   );
 }
+
