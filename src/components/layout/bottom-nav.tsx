@@ -49,6 +49,10 @@ export default function BottomNav() {
     timeouts.current = [];
   };
 
+  const getRef = (index: number) => (el: HTMLDivElement | null) => {
+    itemRefs.current[index] = el;
+  };
+  
   // Measure & set glider position for index
   const setGliderTo = (index: number, options: { immediate?: boolean } = {}) => {
     const navEl = navRef.current;
@@ -58,7 +62,7 @@ export default function BottomNav() {
 
     const navRect = navEl.getBoundingClientRect();
     const itemRect = target.getBoundingClientRect();
-    const horizontalPadding = 8;
+    const horizontalPadding = 16; // Increased padding for a shorter highlight
     const left = itemRect.left - navRect.left + horizontalPadding / 2;
     const width = itemRect.width - horizontalPadding;
 
@@ -91,9 +95,8 @@ export default function BottomNav() {
     return () => {
       if (rafId) cancelAnimationFrame(rafId);
     };
-    // intentionally only on mount/pathname change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [/* mount only; we do separate effects for resize and pathname */]);
+  }, []);
 
   // Update activeIndex when pathname changes (handles browser back/forward)
   useEffect(() => {
@@ -101,15 +104,13 @@ export default function BottomNav() {
     setActiveIndex(idx === -1 ? 0 : idx);
     // After updating active index, attempt to move glider (use RAF to wait for layout)
     requestAnimationFrame(() => setGliderTo(idx === -1 ? 0 : idx, { immediate: false }));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   // Use ResizeObserver to recompute whenever nav or any item size changes
   useEffect(() => {
-    if (!navRef.current) return;
-    // create one observer that watches nav and items
+    if (!navRef.current || !hasMounted) return;
+    
     const ro = new ResizeObserver(() => {
-      // recompute glider position on resize/DOM size changes
       setGliderTo(activeIndex, { immediate: false });
     });
     resizeObservers.current = ro;
@@ -119,29 +120,12 @@ export default function BottomNav() {
       if (el) ro.observe(el);
     });
 
-    const onWindowResize = () => setGliderTo(activeIndex, { immediate: false });
-    window.addEventListener("orientationchange", onWindowResize);
-    window.addEventListener("resize", onWindowResize);
-
     return () => {
       ro.disconnect();
-      window.removeEventListener("orientationchange", onWindowResize);
-      window.removeEventListener("resize", onWindowResize);
       resizeObservers.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasMounted, activeIndex]);
 
-  // Logging for deterministic console filtering
-  useEffect(() => {
-    const refsSnapshot = itemRefs.current.map((r) =>
-      r ? (r.tagName?.toLowerCase() || r.nodeName || "node") : null
-    );
-    // console.log("Current pathname:", pathname);
-    // console.log("Active index:", activeIndex);
-    // console.log("Refs array:", refsSnapshot);
-    // console.log(JSON.stringify({ pathname, activeIndex, refs: refsSnapshot }));
-  }, [pathname, activeIndex]);
 
   // Click handler with animated glider sequence
   const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, newIndex: number) => {
@@ -165,7 +149,7 @@ export default function BottomNav() {
     const startRect = startItem.getBoundingClientRect();
     const endRect = endItem.getBoundingClientRect();
     
-    const horizontalPadding = 8;
+    const horizontalPadding = 16;
 
     const startLeft = startRect.left - navRect.left + horizontalPadding / 2;
     const startWidth = startRect.width - horizontalPadding;
@@ -201,7 +185,6 @@ export default function BottomNav() {
     timeouts.current.push(
       window.setTimeout(() => {
         setAnimationState("descending");
-        // push to route — do this before final style so route change can render new page
         router.push(navItems[newIndex].href);
         setGliderStyle((prev) => ({
           ...prev,
@@ -230,10 +213,6 @@ export default function BottomNav() {
       if (resizeObservers.current) resizeObservers.current.disconnect();
     };
   }, []);
-  
-  const getRef = (index: number) => (el: HTMLDivElement | null) => {
-    itemRefs.current[index] = el;
-  };
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-2">
