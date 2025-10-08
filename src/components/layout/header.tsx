@@ -79,8 +79,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           <div className="flex items-center gap-1">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className={cn("relative h-12 w-12 rounded-full", isClearMode ? "hover:bg-white/10" : "")}>
-                      <Bell className={cn("h-6 w-6", isClearMode && !isLightClear && "text-white")} />
+                   <Button variant="ghost" size="icon" className="group h-12 w-12 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0">
+                      <Bell className={cn("h-5 w-5 transition-all bell-icon-glow", isClearMode && !isLightClear && "text-white")} />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-80" align="end">
