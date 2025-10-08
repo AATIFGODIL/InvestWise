@@ -58,10 +58,12 @@ export default function BottomNav() {
 
     const navRect = navEl.getBoundingClientRect();
     const itemRect = target.getBoundingClientRect();
-    const left = itemRect.left - navRect.left;
+    const horizontalPadding = 8;
+    const left = itemRect.left - navRect.left + horizontalPadding / 2;
+    const width = itemRect.width - horizontalPadding;
 
     setGliderStyle({
-      width: `${itemRect.width}px`,
+      width: `${width}px`,
       transform: `translateX(${left}px)`,
       opacity: 1,
       transition: options.immediate ? "none" : "transform 300ms ease, opacity 200ms ease",
@@ -135,10 +137,10 @@ export default function BottomNav() {
     const refsSnapshot = itemRefs.current.map((r) =>
       r ? (r.tagName?.toLowerCase() || r.nodeName || "node") : null
     );
-    console.log("Current pathname:", pathname);
-    console.log("Active index:", activeIndex);
-    console.log("Refs array:", refsSnapshot);
-    console.log(JSON.stringify({ pathname, activeIndex, refs: refsSnapshot }));
+    // console.log("Current pathname:", pathname);
+    // console.log("Active index:", activeIndex);
+    // console.log("Refs array:", refsSnapshot);
+    // console.log(JSON.stringify({ pathname, activeIndex, refs: refsSnapshot }));
   }, [pathname, activeIndex]);
 
   // Click handler with animated glider sequence
@@ -162,14 +164,20 @@ export default function BottomNav() {
     const navRect = navEl.getBoundingClientRect();
     const startRect = startItem.getBoundingClientRect();
     const endRect = endItem.getBoundingClientRect();
-    const startLeft = startRect.left - navRect.left;
-    const endLeft = endRect.left - navRect.left;
+    
+    const horizontalPadding = 8;
+
+    const startLeft = startRect.left - navRect.left + horizontalPadding / 2;
+    const startWidth = startRect.width - horizontalPadding;
+    const endLeft = endRect.left - navRect.left + horizontalPadding / 2;
+    const endWidth = endRect.width - horizontalPadding;
+
 
     // 1. Rise
     setGliderStyle({
-      width: `${startRect.width}px`,
+      width: `${startWidth}px`,
       transform: `translateX(${startLeft}px) scale(1.08)`,
-      backgroundColor: "hsl(var(--primary) / 0.85)",
+      backgroundColor: "hsl(var(--background) / 0.1)",
       boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
       opacity: 1,
       transition: "transform 140ms ease-out, background-color 140ms ease-out, box-shadow 140ms ease-out",
@@ -181,7 +189,7 @@ export default function BottomNav() {
         setAnimationState("sliding");
         setGliderStyle((prev) => ({
           ...prev,
-          width: `${endRect.width}px`,
+          width: `${endWidth}px`,
           transform: `translateX(${endLeft}px) scale(1.08)`,
           transition:
             "transform 320ms cubic-bezier(0.22, 0.9, 0.35, 1), width 320ms cubic-bezier(0.22, 0.9, 0.35, 1)",
