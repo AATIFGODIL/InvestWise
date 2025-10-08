@@ -30,6 +30,8 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import useLoadingStore from "@/store/loading-store";
+import { useThemeStore } from "@/store/theme-store";
+import { cn } from "@/lib/utils";
 
 
 const trends = [
@@ -72,6 +74,8 @@ export default function CommunityTrends({ showViewAllButton = true, limit }: Com
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedBundle, setSelectedBundle] = useState<(typeof trends[number] & {category: 'Bundle'}) | null>(null);
   const { showLoading } = useLoadingStore();
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
 
   const handleTrendClick = (trend: typeof trends[number]) => {
     if (trend.category === 'Bundle') {
@@ -139,7 +143,14 @@ export default function CommunityTrends({ showViewAllButton = true, limit }: Com
         </CardContent>
         {showViewAllButton && (
             <div className="p-4 mt-auto">
-                <Button asChild variant="outline" className="w-full">
+                <Button asChild variant="outline" className={cn(
+                  "w-full ring-1 ring-white/60",
+                   isClearMode
+                      ? isLightClear
+                          ? "bg-card/60 text-foreground"
+                          : "bg-white/10 text-white"
+                      : ""
+                )}>
                     <Link href="/community?tab=trends">
                         View All Trends
                     </Link>
