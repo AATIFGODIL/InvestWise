@@ -72,8 +72,21 @@ const fetchStockNewsFlow = ai.defineFlow(
         return { articles: [] };
       }
       
-      // Map the Finnhub response to our ArticleSchema and take the top 5
-      const articles = data.slice(0, 5).map((item: any) => ({
+      // Filter to ensure no more than two articles from the same source, up to a max of 5 articles
+      const sourceCounts: { [key: string]: number } = {};
+      const filteredData: any[] = [];
+      for (const item of data) {
+        if (filteredData.length >= 5) break;
+
+        const source = item.source;
+        if ((sourceCounts[source] || 0) < 2) {
+            filteredData.push(item);
+            sourceCounts[source] = (sourceCounts[source] || 0) + 1;
+        }
+      }
+
+      // Map the filtered data to our ArticleSchema
+      const articles = filteredData.map((item: any) => ({
         headline: item.headline,
         source: item.source,
         url: item.url,
