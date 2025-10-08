@@ -12,18 +12,13 @@ import { Clock } from "lucide-react";
 import Watchlist from "@/components/dashboard/watchlist";
 import EducationalContent from "./educational-content";
 import { educationalContent } from "@/data/education";
-import MarketNews from "@/components/community/market-news";
+import CommunityTrends from "@/components/dashboard/community-trends";
 
 // These components are loaded dynamically to improve initial page load performance.
 // They will only be loaded when they are needed, reducing the client-side JavaScript bundle size.
-const PortfolioSummary = dynamic(() => import("@/components/dashboard/portfolio-summary"), { 
+const PortfolioValue = dynamic(() => import("@/components/portfolio/portfolio-value"), { 
     ssr: false,
-});
-const CommunityLeaderboard = dynamic(() => import("@/components/dashboard/community-leaderboard"), { 
-    ssr: false,
-});
-const CommunityTrends = dynamic(() => import("@/components/dashboard/community-trends"), { 
-    ssr: false,
+    loading: () => <div className="h-[550px] w-full animate-pulse rounded-lg bg-muted" />,
 });
 const GoalProgress = dynamic(() => import("@/components/dashboard/goal-progress"), {
     ssr: false,
@@ -91,12 +86,11 @@ export default function DashboardClient() {
         </div>
         
         <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
-        <PortfolioSummary />
+        <PortfolioValue />
         <Watchlist />
         <AutoInvest />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <GoalProgress />
-            <CommunityLeaderboard />
             <CommunityTrends limit={5} showViewAllButton={false} />
         </div>
         <div className="space-y-4 pt-4">
@@ -104,7 +98,6 @@ export default function DashboardClient() {
             <EducationalContent content={educationalContent} />
         </div>
         <InvestmentBundles {...bundleProps} />
-        <MarketNews limit={3} />
         <AiPrediction />
         <Chatbot />
         </div>
