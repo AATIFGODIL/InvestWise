@@ -133,7 +133,7 @@ export default function SettingsClient() {
                 <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                     <Label htmlFor="clear-mode" className="flex items-center gap-2 cursor-pointer">
                         <Droplets className="h-4 w-4"/> Clear Mode
-                        <span className="text-xs text-muted-foreground">(Frosted Glass UI)</span>
+                        <span className="text-xs text-muted-foreground">(Liquid Glass UI)</span>
                     </Label>
                     <Switch
                         id="clear-mode"

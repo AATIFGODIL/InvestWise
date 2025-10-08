@@ -32,7 +32,8 @@ export default function BottomNav() {
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const timeouts = useRef<number[]>([]);
   
-  const { isClearMode } = useThemeStore();
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
 
   const [gliderStyle, setGliderStyle] = useState<CSSProperties>({
     opacity: 0,
@@ -184,7 +185,11 @@ export default function BottomNav() {
         ref={navRef}
         className={cn(
             "relative flex h-16 items-center justify-around rounded-full p-1 shadow-2xl shadow-black/20",
-            isClearMode ? "bg-white/10 ring-1 ring-white/60" : "bg-card text-card-foreground border"
+            isClearMode 
+                ? isLightClear 
+                    ? "bg-card/60 ring-1 ring-white/10" // Light Clear
+                    : "bg-white/10 ring-1 ring-white/60" // Dark Clear
+                : "bg-card text-card-foreground border" // Solid
         )}
         style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
       >

@@ -29,7 +29,9 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { username, photoURL } = useUserStore();
-  const { isClearMode } = useThemeStore();
+  const { isClearMode, theme } = useThemeStore();
+  
+  const isLightClear = isClearMode && theme === 'light';
 
   return (
     <>
@@ -38,8 +40,10 @@ export default function Header() {
           className={cn(
             "relative flex h-16 items-center justify-between rounded-full p-1 px-2 text-primary-foreground shadow-lg",
              isClearMode 
-                ? "bg-white/10 ring-1 ring-white/60" 
-                : "bg-card"
+                ? isLightClear
+                    ? "bg-card/60 ring-1 ring-white/10" // Light Clear
+                    : "bg-white/10 ring-1 ring-white/60" // Dark Clear
+                : "bg-card" // Solid
           )}
           style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
         >
@@ -59,8 +63,10 @@ export default function Header() {
               className={cn(
                 "flex h-12 w-48 items-center justify-center gap-2 rounded-full shadow-lg transition-colors md:w-72",
                 isClearMode
-                    ? "bg-white/10 text-slate-100 ring-1 ring-white/60 hover:bg-white/20 hover:text-white"
-                    : "bg-background text-foreground ring-1 ring-border hover:bg-muted"
+                    ? isLightClear
+                        ? "bg-card/60 text-foreground ring-1 ring-white/20 hover:bg-card/80" // Light Clear
+                        : "bg-white/10 text-slate-100 ring-1 ring-white/60 hover:bg-white/20 hover:text-white" // Dark Clear
+                    : "bg-background text-foreground ring-1 ring-border hover:bg-muted" // Solid
               )}
               onClick={() => setOpen(true)}
               style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
@@ -74,7 +80,7 @@ export default function Header() {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className={cn("relative h-12 w-12 rounded-full", isClearMode ? "hover:bg-white/10" : "")}>
-                      <Bell className="h-6 w-6" />
+                      <Bell className={cn("h-6 w-6", isClearMode && !isLightClear && "text-white")} />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-80" align="end">
