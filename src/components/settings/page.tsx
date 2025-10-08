@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Shield, Sun, Eye, ShieldBan, FileUp, ArrowLeft, CheckCircle } from "lucide-react";
+import { Shield, Sun, Eye, ShieldBan, FileUp, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useThemeStore } from "@/store/theme-store";
@@ -123,7 +123,7 @@ export default function SettingsClient() {
                     <div className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleThemeChange('light')}>
                         <div
                             className={cn(
-                                "relative w-24 h-16 rounded-lg border-2 p-2 flex items-center justify-center transition-all",
+                                "w-24 h-16 rounded-lg border-2 p-2 flex items-center justify-center transition-all",
                                 theme === 'light' ? 'border-primary ring-2 ring-primary' : 'border-border'
                             )}
                         >
@@ -134,7 +134,6 @@ export default function SettingsClient() {
                                     <rect x="16" y="4" width="4" height="16" fill="currentColor" />
                                 </svg>
                             </div>
-                            {theme === 'light' && <CheckCircle className="absolute -top-2 -right-2 h-5 w-5 text-primary bg-background rounded-full" />}
                         </div>
                         <Label>Light</Label>
                     </div>
@@ -143,7 +142,7 @@ export default function SettingsClient() {
                     <div className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleThemeChange('dark')}>
                         <div
                              className={cn(
-                                "relative w-24 h-16 rounded-lg border-2 p-2 flex items-center justify-center transition-all",
+                                "w-24 h-16 rounded-lg border-2 p-2 flex items-center justify-center transition-all",
                                 theme === 'dark' ? 'border-primary ring-2 ring-primary' : 'border-border'
                             )}
                         >
@@ -154,7 +153,6 @@ export default function SettingsClient() {
                                     <rect x="16" y="4" width="4" height="16" fill="currentColor" />
                                 </svg>
                             </div>
-                            {theme === 'dark' && <CheckCircle className="absolute -top-2 -right-2 h-5 w-5 text-primary bg-background rounded-full" />}
                         </div>
                         <Label>Dark</Label>
                     </div>
@@ -163,7 +161,7 @@ export default function SettingsClient() {
                     <div className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleClearModeChange(!isClearMode)}>
                         <div
                             className={cn(
-                                "relative w-24 h-16 rounded-lg border-2 p-2 flex items-center justify-center transition-all",
+                                "w-24 h-16 rounded-lg border-2 p-2 flex items-center justify-center transition-all",
                                 isClearMode ? 'border-primary ring-2 ring-primary' : 'border-border'
                             )}
                         >
@@ -174,7 +172,6 @@ export default function SettingsClient() {
                                     <rect x="16" y="4" width="4" height="16" fill="currentColor" />
                                 </svg>
                             </div>
-                            {isClearMode && <CheckCircle className="absolute -top-2 -right-2 h-5 w-5 text-primary bg-background rounded-full" />}
                         </div>
                         <Label>Clear</Label>
                         <span className="text-xs text-muted-foreground">(Liquid Glass)</span>
@@ -228,3 +225,5 @@ export default function SettingsClient() {
       </main>
   );
 }
+
+    
