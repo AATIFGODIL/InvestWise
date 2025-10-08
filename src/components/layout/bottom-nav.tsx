@@ -169,7 +169,7 @@ export default function BottomNav() {
     setGliderStyle({
       width: `${startRect.width}px`,
       transform: `translateX(${startLeft}px) scale(1.08)`,
-      backgroundColor: "rgba(255, 255, 255, 0.1)", // Match the frosted glass theme
+      backgroundColor: "hsl(var(--primary) / 0.85)",
       boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
       opacity: 1,
       transition: "transform 140ms ease-out, background-color 140ms ease-out, box-shadow 140ms ease-out",
@@ -198,7 +198,7 @@ export default function BottomNav() {
         setGliderStyle((prev) => ({
           ...prev,
           transform: `translateX(${endLeft}px) scale(1)`,
-          backgroundColor: "hsl(var(--primary))", // Return to solid primary color
+          backgroundColor: "hsl(var(--primary))",
           boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
           transition: "transform 160ms ease-in, background-color 160ms ease-in, box-shadow 160ms ease-in",
         }));
@@ -222,6 +222,10 @@ export default function BottomNav() {
       if (resizeObservers.current) resizeObservers.current.disconnect();
     };
   }, []);
+  
+  const getRef = (index: number) => (el: HTMLDivElement | null) => {
+    itemRefs.current[index] = el;
+  };
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-2">
@@ -241,26 +245,25 @@ export default function BottomNav() {
         {navItems.map((item, index) => {
           const isActive = index === activeIndex;
           return (
-            <Link key={item.label} href={item.href} legacyBehavior prefetch={true}>
-              <a
-                onClick={(e) => handleNavClick(e as unknown as MouseEvent<HTMLAnchorElement>, index)}
-                ref={(el) => {
-                  itemRefs.current[index] = el as HTMLDivElement | null;
-                }}
-                className="z-10 flex-1"
-                aria-current={isActive ? "page" : undefined}
+            <Link
+              key={item.label}
+              href={item.href}
+              onClick={(e) => handleNavClick(e, index)}
+              className="z-10 flex-1"
+              aria-current={isActive ? "page" : undefined}
+              prefetch={true}
+            >
+              <div
+                ref={getRef(index)}
+                className={cn(
+                  "flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2 transition-colors duration-300",
+                  "text-slate-100",
+                  isActive ? "!text-primary-foreground" : "hover:text-white"
+                )}
               >
-                <div
-                  className={cn(
-                    "flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2 transition-colors duration-300",
-                    "text-slate-100",
-                    isActive ? "!text-primary-foreground" : "hover:text-white"
-                  )}
-                >
-                  <item.icon className="h-6 w-6" />
-                  <span className="text-xs font-medium">{item.label}</span>
-                </div>
-              </a>
+                <item.icon className="h-6 w-6" />
+                <span className="text-xs font-medium">{item.label}</span>
+              </div>
             </Link>
           );
         })}
