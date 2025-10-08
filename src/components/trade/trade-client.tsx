@@ -179,7 +179,7 @@ export default function TradeClient() {
 
   return (
       <main>
-        <div className="p-4 space-y-6">
+        <div className="p-4 space-y-6 pb-24">
         <h1 className="text-2xl font-bold">Trade</h1>
         
         <Card>
@@ -265,4 +265,3 @@ export default function TradeClient() {
       </main>
   );
 }
-
