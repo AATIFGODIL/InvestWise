@@ -84,7 +84,7 @@ export default function Chatbot() {
                 ? isLightClear
                     ? "bg-card/60 ring-1 ring-white/10 text-foreground" // Light Clear
                     : "bg-white/10 ring-1 ring-white/60 text-foreground" // Dark Clear
-                : "bg-card text-card-foreground ring-1 ring-border/50" // Solid
+                : "bg-card text-card-foreground ring-1 ring-white/60" // Solid
           )}
           style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
           onClick={() => openChatbot()}
