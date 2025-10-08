@@ -32,6 +32,7 @@ import {
   TrendingUpIcon,
   BookOpen,
   Award,
+  PartyPopper,
 } from "lucide-react";
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
@@ -71,11 +72,12 @@ interface StockData {
 interface CommandMenuProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onTriggerRain: () => void;
 }
 
 type CommandView = "search" | "stock-detail";
 
-export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
+export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuProps) {
   const router = useRouter();
   const { toast } = useToast();
   const { showLoading } = useLoadingStore();
@@ -250,6 +252,8 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   }
 
   const appActions = useMemo(() => [
+      // Easter Egg
+      { name: "Make it rain", keywords: "celebrate money win", onSelect: () => runCommand(onTriggerRain), icon: PartyPopper },
       // Navigation
       { name: "Dashboard", keywords: "home explore main", onSelect: () => runCommand(() => router.push('/dashboard')), icon: Home },
       { name: "Portfolio", keywords: "holdings assets", onSelect: () => runCommand(() => router.push('/portfolio')), icon: Briefcase },
@@ -275,7 +279,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
       { name: "Ask InvestWise AI", keywords: "chatbot help question", onSelect: () => runCommand(() => openChatbot()), icon: BrainCircuit },
       { name: "Educational Content", keywords: "learn video articles", onSelect: () => runCommand(() => router.push('/dashboard')), icon: BookOpen },
       { name: "View My Certificate", keywords: "award achievement", onSelect: () => runCommand(() => router.push('/certificate')), icon: Award },
-    ], [router, runCommand, signOut, theme, isClearMode, setTheme, setClearMode, openChatbot]);
+    ], [router, runCommand, signOut, theme, isClearMode, setTheme, setClearMode, openChatbot, onTriggerRain]);
 
   useEffect(() => {
     if (!open) {

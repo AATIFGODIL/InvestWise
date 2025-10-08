@@ -2,7 +2,7 @@
 "use client";
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Poppins } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import ThemeProvider from "@/components/layout/theme-provider";
@@ -15,6 +15,7 @@ import '../lib/firebase/config';
 import { Loader2 } from 'lucide-react';
 import useLoadingStore from '@/store/loading-store';
 import Header from '@/components/layout/header';
+import MoneyRain from '@/components/shared/money-rain';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -28,6 +29,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, hydrating } = useAuth();
   const { isLoading, hideLoading } = useLoadingStore();
+  const [isRaining, setIsRaining] = useState(false);
 
   const isAuthOrOnboardingRoute = pathname.startsWith('/auth') || pathname.startsWith('/onboarding');
   const isSpecialLayoutRoute = pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/certificate');
@@ -42,6 +44,11 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         router.push('/auth/signin');
     }
   }, [user, hydrating, isAuthOrOnboardingRoute, router]);
+
+  const handleTriggerRain = () => {
+    setIsRaining(true);
+    setTimeout(() => setIsRaining(false), 5000); // Let it rain for 5 seconds
+  };
   
   if (hydrating || isLoading) {
     return (
@@ -55,6 +62,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       return (
         <div className="flex flex-col h-screen">
           <MainContent>{children}</MainContent>
+          <MoneyRain isActive={isRaining} />
         </div>
       );
   }
@@ -62,9 +70,10 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   if (user) {
        return (
         <div className="flex flex-col h-screen">
-          <Header />
+          <Header onTriggerRain={handleTriggerRain} />
           <MainContent>{children}</MainContent>
           <BottomNav />
+          <MoneyRain isActive={isRaining} />
         </div>
       );
   }

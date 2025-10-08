@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
  * The main header component for the application, displayed on most pages.
  * It provides a central search bar to open the command menu.
  */
-export default function Header() {
+export default function Header({ onTriggerRain }: { onTriggerRain: () => void }) {
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
   const { username, photoURL } = useUserStore();
@@ -133,7 +133,7 @@ export default function Header() {
           </div>
         </nav>
       </div>
-      <CommandMenu open={open} onOpenChange={setOpen} />
+      <CommandMenu open={open} onOpenChange={setOpen} onTriggerRain={onTriggerRain} />
     </>
   );
 }
