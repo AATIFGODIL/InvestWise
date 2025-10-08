@@ -20,6 +20,8 @@ import {
   OAuthProvider,
   sendPasswordResetEmail,
   sendEmailVerification,
+  verifyPasswordResetCode,
+  confirmPasswordReset,
   type AuthProvider as FirebaseAuthProvider,
   type User,
 } from "firebase/auth";
@@ -53,6 +55,8 @@ interface AuthContextType {
   updateUserTheme: (theme: "light" | "dark") => Promise<void>;
   updatePrivacySettings: (settings: Partial<Omit<PrivacyState, 'setLeaderboardVisibility' | 'setShowQuests' | 'loadPrivacySettings' | 'resetPrivacySettings'>>) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
+  verifyPasswordResetCode: (code: string) => Promise<string | null>;
+  confirmPasswordReset: (code: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -262,6 +266,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updateUserTheme,
         updatePrivacySettings,
         sendPasswordReset,
+        verifyPasswordResetCode,
+        confirmPasswordReset,
       }}
     >
       {children}
@@ -275,3 +281,5 @@ export function useAuth() {
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }
+
+    
