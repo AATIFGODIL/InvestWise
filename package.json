@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "concurrently \"npm:genkit:watch\" \"next dev --port 9002 --hostname 0.0.0.0\"",
     "genkit:dev": "npx genkit start src/ai/dev.ts",
-    "genkit:watch": "npx genkit start src/ai/dev.ts",
+    "genkit:watch": "npx genkit start --non-interactive src/ai/dev.ts",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
