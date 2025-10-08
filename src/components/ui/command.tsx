@@ -6,19 +6,34 @@ import * as React from "react"
 import { Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+// Define the props for CommandInput, including our custom onValueChange
+interface CommandInputProps extends Omit<React.ComponentPropsWithoutRef<'input'>, 'onChange'> {
+  onValueChange?: (value: string) => void;
+}
+
 const CommandInput = React.forwardRef<
-  React.ElementRef<'input'>,
-  React.ComponentPropsWithoutRef<'input'>
->(({ className, ...props }, ref) => (
+  HTMLInputElement,
+  CommandInputProps
+>(({ className, onValueChange, ...props }, ref) => {
+  // Handle the change event and call onValueChange with the input's value
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (onValueChange) {
+      onValueChange(event.target.value);
+    }
+  };
+
+  return (
     <input
       ref={ref}
       className={cn(
         "flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
+      onChange={handleChange} // Use the standard onChange event
       {...props}
     />
-))
+  );
+});
 CommandInput.displayName = "CommandInput"
 
 const CommandList = React.forwardRef<
@@ -68,5 +83,3 @@ export {
   CommandItem,
   CommandSeparator,
 }
-
-    
