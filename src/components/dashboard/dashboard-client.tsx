@@ -12,7 +12,7 @@ import { Clock } from "lucide-react";
 import Watchlist from "@/components/dashboard/watchlist";
 import EducationalContent from "./educational-content";
 import { educationalContent } from "@/data/education";
-import CommunityTrends from "@/components/dashboard/community-trends";
+import CommunityLeaderboard from "@/components/dashboard/community-leaderboard";
 import MarketNews from "@/components/community/market-news";
 
 // These components are loaded dynamically to improve initial page load performance.
@@ -49,7 +49,7 @@ export default function DashboardClient() {
         case "Student":
         case "Beginner":
             return {
-                title: "Recommended For You",
+                title: "Recommended Bundles",
                 description: "Start with these popular, diversified bundles.",
                 bundles: recommendedBundles,
             };
@@ -73,7 +73,7 @@ export default function DashboardClient() {
   const bundleProps = useMemo(() => getBundlesForProfile(userProfile), [userProfile]);
 
   // The congratulations banner is shown only to users who are still in the early stages of their investment journey.
-  const showCongrats = userProfile === "Student" || userProfile === "Beginger" || userProfile === "Amateur";
+  const showCongrats = userProfile === "Student" || userProfile === "Beginner" || userProfile === "Amateur";
 
   return (
     <main>
@@ -92,7 +92,7 @@ export default function DashboardClient() {
         <AutoInvest />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <GoalProgress />
-            <CommunityTrends limit={5} showViewAllButton={false} />
+            <CommunityLeaderboard />
         </div>
         <MarketNews limit={3} />
         <div className="space-y-4 pt-4">
