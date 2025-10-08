@@ -10,6 +10,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Image from 'next/image';
 import Link from 'next/link';
 import { Badge } from '../ui/badge';
+import { useThemeStore } from '@/store/theme-store';
+import { cn } from '@/lib/utils';
 
 interface YouTubePlayerProps {
   youtubeUrl: string;
@@ -30,6 +32,8 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ youtubeUrl, videoTitle, d
   const { watchedVideos, markVideoAsWatched } = useVideoProgressStore();
   const isWatched = watchedVideos.has(videoTitle);
   const videoId = getYouTubeId(youtubeUrl);
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
 
   if (isChannel) {
     return (
@@ -50,7 +54,14 @@ const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ youtubeUrl, videoTitle, d
                 <p className="text-sm text-muted-foreground mt-1">{description}</p>
             </CardContent>
             <CardFooter className="p-4 pt-0">
-                <Button asChild variant="outline" className="w-full">
+                <Button asChild className={cn(
+                  "w-full ring-1 ring-white/60",
+                  isClearMode
+                      ? isLightClear
+                          ? "bg-card/60 text-foreground"
+                          : "bg-white/10 text-white"
+                      : ""
+                )}>
                     <Link href={youtubeUrl} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="mr-2 h-4 w-4" />
                         Visit Channel
