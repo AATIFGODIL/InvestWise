@@ -201,7 +201,10 @@ export default function ResetPasswordPage() {
     return (
         <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
             <FinanceBackground />
-            <Card className="w-full max-w-md relative z-10 shadow-xl">
+            <Card
+                className="w-full max-w-md relative z-10 bg-card/60 ring-1 ring-white/10"
+                style={{ backdropFilter: "blur(16px)" }}
+            >
                 <div className="flex justify-center items-center pt-8 gap-2">
                     <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
                 </div>

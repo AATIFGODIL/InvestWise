@@ -121,7 +121,10 @@ export default function SignInPage() {
   return (
     <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
       <FinanceBackground />
-      <Card className="w-full max-w-sm relative z-10 shadow-xl">
+      <Card
+        className="w-full max-w-sm relative z-10 bg-card/60 ring-1 ring-white/10"
+        style={{ backdropFilter: "blur(16px)" }}
+      >
           <div className="flex justify-center items-center pt-8 gap-2">
               <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
           </div>
@@ -158,7 +161,7 @@ export default function SignInPage() {
                   <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+                  <span className="bg-card/60 px-2 text-muted-foreground">Or continue with</span>
               </div>
             </div>
             <form onSubmit={handleEmailSignIn} className="grid gap-4">
