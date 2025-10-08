@@ -10,6 +10,7 @@ import {
   useState,
   type CSSProperties,
   type MouseEvent,
+  useCallback,
 } from "react";
 
 const navItems = [
@@ -28,21 +29,16 @@ export default function BottomNav() {
   const navRef = useRef<HTMLElement | null>(null);
   const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
   const timeouts = useRef<number[]>([]); // browser setTimeout returns number
-  const resizeObservers = useRef<ResizeObserver | null>(null);
 
   const [gliderStyle, setGliderStyle] = useState<CSSProperties>({
     opacity: 0,
   });
   const [animationState, setAnimationState] = useState<AnimationState>("idle");
+  const [hasMounted, setHasMounted] = useState(false);
 
-  const currentPathIndex = navItems.findIndex((item) =>
+  const activeIndex = navItems.findIndex((item) =>
     pathname.startsWith(item.href)
   );
-  const [activeIndex, setActiveIndex] = useState<number>(
-    currentPathIndex === -1 ? 0 : currentPathIndex
-  );
-
-  const [hasMounted, setHasMounted] = useState(false);
 
   const clearAllTimeouts = () => {
     timeouts.current.forEach((t) => clearTimeout(t));
@@ -53,16 +49,21 @@ export default function BottomNav() {
     itemRefs.current[index] = el;
   };
   
-  // Measure & set glider position for index
-  const setGliderTo = (index: number, options: { immediate?: boolean } = {}) => {
-    const navEl = navRef.current;
-    const target = itemRefs.current[index];
+  const updateHighlight = useCallback(() => {
+    if (activeIndex === -1 || !navRef.current) {
+      setGliderStyle({ width: 0, left: 0, opacity: 0 });
+      return;
+    }
 
-    if (!navEl || !target) return false;
+    const activeItem = itemRefs.current[activeIndex];
+    if (!activeItem) {
+      requestAnimationFrame(updateHighlight);
+      return;
+    }
 
-    const navRect = navEl.getBoundingClientRect();
-    const itemRect = target.getBoundingClientRect();
-    const horizontalPadding = 16; // Increased padding for a shorter highlight
+    const navRect = navRef.current.getBoundingClientRect();
+    const itemRect = activeItem.getBoundingClientRect();
+    const horizontalPadding = 24; // Increased padding for a shorter highlight
     const left = itemRect.left - navRect.left + horizontalPadding / 2;
     const width = itemRect.width - horizontalPadding;
 
@@ -70,64 +71,23 @@ export default function BottomNav() {
       width: `${width}px`,
       transform: `translateX(${left}px)`,
       opacity: 1,
-      transition: options.immediate ? "none" : "transform 300ms ease, opacity 200ms ease",
+      transition: hasMounted ? "transform 300ms ease, width 300ms ease, opacity 200ms ease" : "none",
       backgroundColor: "hsl(var(--primary))",
     });
-    return true;
-  };
+  }, [activeIndex, hasMounted]);
 
-  // Robust initial positioning: try RAF until items exist (but stop after a few tries)
+
   useEffect(() => {
-    let tries = 0;
-    let rafId = 0;
-
-    const tryPosition = () => {
-      tries += 1;
-      const ok = setGliderTo(activeIndex, { immediate: true });
-      if (!ok && tries < 10) {
-        rafId = requestAnimationFrame(tryPosition);
-      } else {
-        setHasMounted(true);
-      }
-    };
-
-    tryPosition();
-    return () => {
-      if (rafId) cancelAnimationFrame(rafId);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setHasMounted(true);
   }, []);
 
-  // Update activeIndex when pathname changes (handles browser back/forward)
   useEffect(() => {
-    const idx = navItems.findIndex((item) => pathname.startsWith(item.href));
-    setActiveIndex(idx === -1 ? 0 : idx);
-    // After updating active index, attempt to move glider (use RAF to wait for layout)
-    requestAnimationFrame(() => setGliderTo(idx === -1 ? 0 : idx, { immediate: false }));
-  }, [pathname]);
-
-  // Use ResizeObserver to recompute whenever nav or any item size changes
-  useEffect(() => {
-    if (!navRef.current || !hasMounted) return;
-    
-    const ro = new ResizeObserver(() => {
-      setGliderTo(activeIndex, { immediate: false });
-    });
-    resizeObservers.current = ro;
-
-    ro.observe(navRef.current);
-    itemRefs.current.forEach((el) => {
-      if (el) ro.observe(el);
-    });
-
-    return () => {
-      ro.disconnect();
-      resizeObservers.current = null;
-    };
-  }, [hasMounted, activeIndex]);
+    updateHighlight();
+    window.addEventListener("resize", updateHighlight);
+    return () => window.removeEventListener("resize", updateHighlight);
+  }, [pathname, updateHighlight]);
 
 
-  // Click handler with animated glider sequence
   const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, newIndex: number) => {
     e.preventDefault();
     if (animationState !== "idle" || newIndex === activeIndex) return;
@@ -149,13 +109,12 @@ export default function BottomNav() {
     const startRect = startItem.getBoundingClientRect();
     const endRect = endItem.getBoundingClientRect();
     
-    const horizontalPadding = 16;
+    const horizontalPadding = 24;
 
     const startLeft = startRect.left - navRect.left + horizontalPadding / 2;
     const startWidth = startRect.width - horizontalPadding;
     const endLeft = endRect.left - navRect.left + horizontalPadding / 2;
     const endWidth = endRect.width - horizontalPadding;
-
 
     // 1. Rise
     setGliderStyle({
@@ -164,7 +123,8 @@ export default function BottomNav() {
       backgroundColor: "hsl(var(--background) / 0.1)",
       boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
       opacity: 1,
-      transition: "transform 140ms ease-out, background-color 140ms ease-out, box-shadow 140ms ease-out",
+      transition: "transform 140ms ease-out, background-color 140ms ease-out, box-shadow 140ms ease-out, border 140ms ease-out",
+      border: '1px solid hsla(0, 0%, 100%, 0.6)',
     });
 
     // 2. Slide
@@ -176,7 +136,7 @@ export default function BottomNav() {
           width: `${endWidth}px`,
           transform: `translateX(${endLeft}px) scale(1.08)`,
           transition:
-            "transform 320ms cubic-bezier(0.22, 0.9, 0.35, 1), width 320ms cubic-bezier(0.22, 0.9, 0.35, 1)",
+            "transform 320ms cubic-bezier(0.22, 0.9, 0.35, 1), width 320ms cubic-bezier(0.22, 0.9, 0.35, 1), border 320ms ease-out",
         }));
       }, 150)
     );
@@ -191,7 +151,8 @@ export default function BottomNav() {
           transform: `translateX(${endLeft}px) scale(1)`,
           backgroundColor: "hsl(var(--primary))",
           boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
-          transition: "transform 160ms ease-in, background-color 160ms ease-in, box-shadow 160ms ease-in",
+          transition: "transform 160ms ease-in, background-color 160ms ease-in, box-shadow 160ms ease-in, border 160ms ease-in",
+          border: '1px solid transparent',
         }));
       }, 470)
     );
@@ -200,18 +161,13 @@ export default function BottomNav() {
     timeouts.current.push(
       window.setTimeout(() => {
         setAnimationState("idle");
-        setActiveIndex(newIndex);
         clearAllTimeouts();
       }, 640)
     );
   };
 
-  // cleanup timeouts on unmount
   useEffect(() => {
-    return () => {
-      clearAllTimeouts();
-      if (resizeObservers.current) resizeObservers.current.disconnect();
-    };
+    return () => clearAllTimeouts();
   }, []);
 
   return (
@@ -237,7 +193,6 @@ export default function BottomNav() {
               href={item.href}
               onClick={(e) => handleNavClick(e, index)}
               className="z-10 flex-1"
-              aria-current={isActive ? "page" : undefined}
               prefetch={true}
             >
               <div
