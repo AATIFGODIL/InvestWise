@@ -22,6 +22,7 @@ import { Crown, Loader2 } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { getLeaderboardData, type LeaderboardUser } from "@/app/actions";
 import { useAuth } from "@/hooks/use-auth";
+import { cn } from "@/lib/utils";
 
 export default function Leaderboard() {
   const { user } = useAuth();
@@ -75,8 +76,8 @@ export default function Leaderboard() {
                 const gainFormatted = `${investor.gain >= 0 ? '+' : '-'}$${Math.abs(investor.gain).toFixed(2)}`;
                 
                 return (
-                  <TableRow key={investor.rank} className={isYou ? "bg-accent" : ""}>
-                      <TableCell className="font-bold text-lg">
+                  <TableRow key={investor.rank} className={cn(isYou ? "bg-accent" : "")}>
+                      <TableCell className={cn("font-bold text-lg", isYou ? "rounded-l-lg" : "")}>
                         <div className="flex items-center gap-2">
                           {investor.rank === 1 ? <Crown className="h-5 w-5 text-yellow-500" /> : <span>{investor.rank}</span>}
                         </div>
@@ -90,7 +91,7 @@ export default function Leaderboard() {
                           {isYou && <Badge>You</Badge>}
                         </div>
                       </TableCell>
-                      <TableCell className={`text-right font-medium ${investor.gain >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      <TableCell className={cn("text-right font-medium", isYou ? "rounded-r-lg" : "", investor.gain >= 0 ? 'text-green-500' : 'text-red-500')}>
                           {gainFormatted}
                       </TableCell>
                   </TableRow>
