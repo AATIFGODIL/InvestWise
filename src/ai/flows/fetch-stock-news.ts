@@ -40,7 +40,7 @@ const prompt = ai.definePrompt({
   input: { schema: StockNewsInputSchema },
   output: { schema: StockNewsOutputSchema },
   tools: [googleSearch],
-  prompt: `You are a financial news aggregator. Your task is to find the 3 most recent, relevant news articles for the stock symbol {{{symbol}}}.
+  prompt: `You are a financial news aggregator. Your task is to use the googleSearch tool to find the 3 most recent, relevant news articles from Google News for the stock symbol {{{symbol}}}.
   
   For each article, provide the headline, the source, and a direct URL. Present the output in the required JSON format. Do not include articles that are not directly related to the company's financial performance, products, or major corporate news.`,
 });
