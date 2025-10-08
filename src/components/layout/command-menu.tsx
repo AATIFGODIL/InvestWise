@@ -55,6 +55,8 @@ import CreateGoal from "../goals/create-goal";
 import { useGoalStore } from "@/store/goal-store";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../ui/dialog";
 import { useUserStore } from "@/store/user-store";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -548,3 +550,5 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     </>
   );
 }
+
+    
