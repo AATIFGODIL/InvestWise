@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Shield, Sun, Moon, Eye, LogOut, ShieldBan, FileUp, ArrowLeft, Droplets, CheckCircle } from "lucide-react";
+import { Shield, Sun, Eye, ShieldBan, FileUp, ArrowLeft, CheckCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useThemeStore } from "@/store/theme-store";
@@ -28,7 +28,7 @@ export default function SettingsClient() {
   const [parentalControl, setParentalControl] = useState(false);
   const { theme, setTheme, isClearMode, setClearMode } = useThemeStore();
   const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
-  const { user, updateUserTheme, signOut: firebaseSignOut, updatePrivacySettings } = useAuth();
+  const { user, updateUserTheme, updatePrivacySettings } = useAuth();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -118,51 +118,63 @@ export default function SettingsClient() {
                     <Skeleton className="h-20 w-full" />
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
                     {/* Light Theme Box */}
-                    <div
-                        className={cn(
-                            "relative rounded-lg border-2 p-4 flex flex-col items-center justify-center cursor-pointer transition-all",
-                            theme === 'light' ? 'border-primary ring-2 ring-primary' : 'border-border'
-                        )}
+                    <div 
+                        className="flex flex-col items-center gap-2 cursor-pointer"
                         onClick={() => handleThemeChange('light')}
                     >
-                        <div className="w-16 h-10 rounded bg-gray-100 border border-gray-300 mb-2 flex items-center justify-center">
-                            <span className="text-xs font-bold text-black">Aa</span>
+                        <div
+                            className={cn(
+                                "relative w-24 h-16 rounded-lg border-2 p-2 flex items-center justify-center transition-all",
+                                theme === 'light' ? 'border-primary ring-2 ring-primary' : 'border-border'
+                            )}
+                        >
+                            <div className="w-full h-full rounded bg-gray-100 flex items-center justify-center">
+                                <span className="text-xs font-bold text-black">Aa</span>
+                            </div>
+                            {theme === 'light' && <CheckCircle className="absolute -top-2 -right-2 h-5 w-5 text-primary bg-background rounded-full" />}
                         </div>
                         <Label>Light</Label>
-                        {theme === 'light' && <CheckCircle className="absolute top-2 right-2 h-5 w-5 text-primary" />}
                     </div>
 
                     {/* Dark Theme Box */}
-                    <div
-                        className={cn(
-                            "relative rounded-lg border-2 p-4 flex flex-col items-center justify-center cursor-pointer transition-all",
-                             theme === 'dark' ? 'border-primary ring-2 ring-primary' : 'border-border'
-                        )}
+                    <div 
+                        className="flex flex-col items-center gap-2 cursor-pointer"
                         onClick={() => handleThemeChange('dark')}
                     >
-                        <div className="w-16 h-10 rounded bg-gray-800 border border-gray-600 mb-2 flex items-center justify-center">
-                             <span className="text-xs font-bold text-white">Aa</span>
+                        <div
+                            className={cn(
+                                "relative w-24 h-16 rounded-lg border-2 p-2 flex items-center justify-center transition-all",
+                                theme === 'dark' ? 'border-primary ring-2 ring-primary' : 'border-border'
+                            )}
+                        >
+                             <div className="w-full h-full rounded bg-gray-800 flex items-center justify-center">
+                                <span className="text-xs font-bold text-white">Aa</span>
+                            </div>
+                            {theme === 'dark' && <CheckCircle className="absolute -top-2 -right-2 h-5 w-5 text-primary bg-background rounded-full" />}
                         </div>
                         <Label>Dark</Label>
-                         {theme === 'dark' && <CheckCircle className="absolute top-2 right-2 h-5 w-5 text-primary" />}
                     </div>
                     
                     {/* Clear Theme Box */}
-                    <div
-                         className={cn(
-                            "relative rounded-lg border-2 p-4 flex flex-col items-center justify-center cursor-pointer transition-all",
-                            isClearMode ? 'border-primary ring-2 ring-primary' : 'border-border'
-                        )}
+                    <div 
+                        className="flex flex-col items-center gap-2 cursor-pointer"
                         onClick={() => handleClearModeChange(!isClearMode)}
                     >
-                        <div className="w-16 h-10 rounded border border-gray-400 mb-2 flex items-center justify-center bg-white/10" style={{backdropFilter: 'blur(4px)'}}>
-                             <span className="text-xs font-bold text-primary">Aa</span>
+                        <div
+                            className={cn(
+                                "relative w-24 h-16 rounded-lg border-2 p-2 flex items-center justify-center transition-all",
+                                isClearMode ? 'border-primary ring-2 ring-primary' : 'border-border'
+                            )}
+                        >
+                            <div className="w-full h-full rounded bg-white/10 border border-white/20 flex items-center justify-center" style={{backdropFilter: 'blur(4px)'}}>
+                                <span className="text-xs font-bold text-primary">Aa</span>
+                            </div>
+                            {isClearMode && <CheckCircle className="absolute -top-2 -right-2 h-5 w-5 text-primary bg-background rounded-full" />}
                         </div>
                         <Label>Clear</Label>
                         <span className="text-xs text-muted-foreground">(Liquid Glass)</span>
-                        {isClearMode && <CheckCircle className="absolute top-2 right-2 h-5 w-5 text-primary" />}
                     </div>
                 </div>
             )}
