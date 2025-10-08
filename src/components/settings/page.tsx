@@ -120,18 +120,19 @@ export default function SettingsClient() {
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
                     {/* Light Theme Box */}
-                    <div 
-                        className="flex flex-col items-center gap-2 cursor-pointer"
-                        onClick={() => handleThemeChange('light')}
-                    >
+                    <div className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleThemeChange('light')}>
                         <div
                             className={cn(
                                 "relative w-24 h-16 rounded-lg border-2 p-2 flex items-center justify-center transition-all",
                                 theme === 'light' ? 'border-primary ring-2 ring-primary' : 'border-border'
                             )}
                         >
-                            <div className="w-full h-full rounded bg-gray-100 flex items-center justify-center">
-                                <span className="text-xs font-bold text-black">Aa</span>
+                            <div className="w-full h-full rounded bg-gray-100 flex items-center justify-center p-2">
+                                <svg viewBox="0 0 24 24" className="w-8 h-8 text-black">
+                                    <rect x="4" y="6" width="4" height="12" fill="currentColor" />
+                                    <rect x="10" y="10" width="4" height="6" fill="currentColor" />
+                                    <rect x="16" y="4" width="4" height="16" fill="currentColor" />
+                                </svg>
                             </div>
                             {theme === 'light' && <CheckCircle className="absolute -top-2 -right-2 h-5 w-5 text-primary bg-background rounded-full" />}
                         </div>
@@ -139,18 +140,19 @@ export default function SettingsClient() {
                     </div>
 
                     {/* Dark Theme Box */}
-                    <div 
-                        className="flex flex-col items-center gap-2 cursor-pointer"
-                        onClick={() => handleThemeChange('dark')}
-                    >
+                    <div className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleThemeChange('dark')}>
                         <div
-                            className={cn(
+                             className={cn(
                                 "relative w-24 h-16 rounded-lg border-2 p-2 flex items-center justify-center transition-all",
                                 theme === 'dark' ? 'border-primary ring-2 ring-primary' : 'border-border'
                             )}
                         >
-                             <div className="w-full h-full rounded bg-gray-800 flex items-center justify-center">
-                                <span className="text-xs font-bold text-white">Aa</span>
+                             <div className="w-full h-full rounded bg-gray-800 flex items-center justify-center p-2">
+                                <svg viewBox="0 0 24 24" className="w-8 h-8 text-white">
+                                    <rect x="4" y="6" width="4" height="12" fill="currentColor" />
+                                    <rect x="10" y="10" width="4" height="6" fill="currentColor" />
+                                    <rect x="16" y="4" width="4" height="16" fill="currentColor" />
+                                </svg>
                             </div>
                             {theme === 'dark' && <CheckCircle className="absolute -top-2 -right-2 h-5 w-5 text-primary bg-background rounded-full" />}
                         </div>
@@ -158,18 +160,19 @@ export default function SettingsClient() {
                     </div>
                     
                     {/* Clear Theme Box */}
-                    <div 
-                        className="flex flex-col items-center gap-2 cursor-pointer"
-                        onClick={() => handleClearModeChange(!isClearMode)}
-                    >
+                    <div className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleClearModeChange(!isClearMode)}>
                         <div
                             className={cn(
                                 "relative w-24 h-16 rounded-lg border-2 p-2 flex items-center justify-center transition-all",
                                 isClearMode ? 'border-primary ring-2 ring-primary' : 'border-border'
                             )}
                         >
-                            <div className="w-full h-full rounded bg-white/10 border border-white/20 flex items-center justify-center" style={{backdropFilter: 'blur(4px)'}}>
-                                <span className="text-xs font-bold text-primary">Aa</span>
+                            <div className="w-full h-full rounded bg-white/10 border border-white/20 flex items-center justify-center p-2" style={{backdropFilter: 'blur(4px)'}}>
+                                <svg viewBox="0 0 24 24" className="w-8 h-8 text-primary">
+                                    <rect x="4" y="6" width="4" height="12" fill="currentColor" />
+                                    <rect x="10" y="10" width="4" height="6" fill="currentColor" />
+                                    <rect x="16" y="4" width="4" height="16" fill="currentColor" />
+                                </svg>
                             </div>
                             {isClearMode && <CheckCircle className="absolute -top-2 -right-2 h-5 w-5 text-primary bg-background rounded-full" />}
                         </div>
