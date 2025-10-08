@@ -20,10 +20,14 @@ import { BookOpen, Trophy, ShieldCheck } from "lucide-react";
 import { useQuestStore } from "@/store/quest-store";
 import { useEffect } from "react";
 import Link from "next/link";
+import { useThemeStore } from "@/store/theme-store";
+import { cn } from "@/lib/utils";
 
 export default function Quests() {
   const { questData, updateQuestProgress } = useQuestStore();
   const beginnerQuestsComplete = questData.beginner.every(q => q.progress === 100);
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
 
   useEffect(() => {
     // This will trigger a re-calculation of quest progress whenever a user visits the community page.
@@ -55,7 +59,14 @@ export default function Quests() {
                 </div>
               ))}
                {beginnerQuestsComplete && (
-                  <Button asChild className="w-full mt-2">
+                  <Button asChild className={cn(
+                      "w-full mt-2 ring-1 ring-white/60",
+                      isClearMode
+                        ? isLightClear
+                            ? "bg-card/60 text-foreground"
+                            : "bg-white/10 text-white"
+                        : ""
+                  )}>
                       <Link href="/certificate">View Certificate</Link>
                   </Button>
               )}
