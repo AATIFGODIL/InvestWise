@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Home,
@@ -20,6 +20,7 @@ import {
   TrendingDown,
   Building,
   Search,
+  X,
 } from "lucide-react";
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
@@ -35,7 +36,6 @@ import { Badge } from "../ui/badge";
 import { usePortfolioStore } from "@/store/portfolio-store";
 import TradeDialogCMDK from "../trade/trade-dialog-cmdk";
 import TradingViewMiniChart from "../shared/trading-view-mini-chart";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { CommandInput, CommandItem, CommandList, CommandSeparator } from "../ui/command";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
@@ -121,7 +121,6 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
             };
         } catch(error) {
             console.error(`Error fetching data for ${stock.symbol}:`, error);
-            // Return placeholder data on fetch failure for a single stock
             return {
                 symbol: stock.symbol,
                 name: stock.name,
@@ -141,7 +140,6 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   }, [open, stocks.length]);
 
   const fetchStockDetails = (stock: StockData) => {
-    // Fetch Prediction
     setIsFetchingPrediction(true);
     setPrediction(null);
     handleStockPrediction(stock.symbol).then(predictionResult => {
@@ -151,7 +149,6 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
         setIsFetchingPrediction(false);
     });
 
-    // Fetch News
     setIsFetchingNews(true);
     setNews(null);
     handleStockNews(stock.symbol).then(newsResult => {
@@ -161,8 +158,6 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
         setIsFetchingNews(false);
     });
   };
-
-  // --- UI and Action Handlers ---
 
   const runCommand = useCallback((command: () => void) => {
     onOpenChange(false);
@@ -198,19 +193,17 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     setIsTradeDialogOpen(true);
   }
 
-  // Reset view when dialog is closed
   useEffect(() => {
     if (!open) {
       const timer = setTimeout(() => {
         handleGoBack();
-      }, 150); // Delay to allow animation
+      }, 150);
       return () => clearTimeout(timer);
     }
   }, [open]);
 
-  // Filtered stocks for search view
   const filteredStocks = useMemo(() => {
-    if (!query) return stocks.slice(0, 5); // Show top 5 if no query
+    if (!query) return stocks.slice(0, 5);
     return stocks
       .filter(
         (stock) =>
@@ -225,15 +218,15 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     return holdings.find(h => h.symbol === selectedStock.symbol);
   }, [selectedStock, holdings]);
 
+  if (!open) return null;
 
   return (
     <>
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
-        className="overflow-hidden p-0 shadow-2xl shadow-black/20 bg-white/10 ring-1 ring-white/60 border-0"
+      <div className="fixed inset-0 z-50 bg-black/80" onClick={() => onOpenChange(false)} />
+      <div 
+        className="fixed top-1/4 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg overflow-hidden rounded-xl shadow-2xl shadow-black/20 bg-white/10 ring-1 ring-white/60 border-0"
         style={{ backdropFilter: "url(#frosted) blur(1px)" }}
       >
-        <DialogTitle className="sr-only">Spotlight Search</DialogTitle>
         <div className="text-primary-foreground">
              <div className="flex items-center border-b border-border/50 px-3">
                 {view === "stock-detail" ? (
@@ -245,11 +238,13 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                 )}
                 <CommandInput
                     placeholder={view === 'search' ? "Search for a stock or action..." : `${selectedStock?.name} (${selectedStock?.symbol})`}
+                    onValueChange={setQuery}
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
                     disabled={view === 'stock-detail'}
-                    className="placeholder:text-slate-400 text-primary-foreground h-12"
                 />
+                <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 hover:bg-white/10" onClick={() => onOpenChange(false)}>
+                    <X className="h-4 w-4" />
+                </Button>
             </div>
             
             {view === "search" && (
@@ -265,7 +260,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                     {filteredStocks.map((stock) => (
                     <CommandItem
                         key={stock.symbol}
-                        onClick={() => handleStockSelect(stock.symbol)}
+                        onSelect={() => handleStockSelect(stock.symbol)}
                     >
                         <div className="flex justify-between items-center w-full">
                             <div className="flex items-center gap-3">
@@ -298,7 +293,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                         .map((action) => (
                         <CommandItem
                             key={action.href}
-                            onClick={() => runCommand(() => router.push(action.href))}
+                            onSelect={() => runCommand(() => router.push(action.href))}
                         >
                             <action.icon className="mr-2 h-4 w-4" />
                             <span>{action.name}</span>
@@ -309,7 +304,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
             )}
 
             {view === 'stock-detail' && selectedStock && (
-                <div className="p-2 text-sm overflow-y-auto max-h-[70vh]">
+                <div className="p-2 text-sm overflow-y-auto max-h-[calc(75vh-50px)]">
                     <div className="space-y-4">
                         {/* Stock Header */}
                         <div className="flex items-start gap-4 p-2 rounded-lg">
@@ -355,7 +350,6 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                             </Button>
                         </div>
                         
-                        {/* Your Holdings */}
                         {selectedStockHolding && (
                             <div>
                                 <h4 className="font-semibold mb-2 flex items-center gap-2 text-slate-400"><Building className="h-4 w-4" /> Your Holdings</h4>
@@ -371,7 +365,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                         {/* Prediction Section */}
                         <div>
                             <h4 className="font-semibold mb-2 flex items-center gap-2 text-slate-400"><BrainCircuit className="h-4 w-4" /> AI Prediction</h4>
-                            <div className="p-3 rounded-lg bg-black/20 text-xs min-h-[60px]">
+                            <div className="p-3 rounded-lg bg-black/20 text-xs min-h-[60px] relative">
                             {isFetchingPrediction ? (
                                 <div className="flex items-center gap-2 text-slate-400">
                                     <Loader2 className="h-4 w-4 animate-spin"/>
@@ -384,7 +378,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                                             {prediction.confidence} Confidence
                                         </Badge>
                                     </div>
-                                    <p>{prediction.prediction}</p>
+                                    <p className="whitespace-pre-wrap">{prediction.prediction}</p>
                                 </>
                             ) : (
                                 <p className="text-slate-400">Could not load AI prediction.</p>
@@ -417,8 +411,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                 </div>
             )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
     {selectedStock && (
         <TradeDialogCMDK
             isOpen={isTradeDialogOpen}
@@ -434,3 +427,6 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
 
     
 
+
+
+    
