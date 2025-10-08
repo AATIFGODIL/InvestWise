@@ -38,8 +38,8 @@ import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
 import useLoadingStore from "@/store/loading-store";
 import { handleStockPrediction, handleStockNews, createTransaction } from "@/app/actions";
-import { type StockPredictionOutput } from "@/ai/types/stock-prediction-types";
-import { type StockNewsOutput } from "@/ai/flows/fetch-stock-news";
+import type { StockPredictionOutput } from "@/ai/types/stock-prediction-types";
+import type { StockNewsOutput } from "@/ai/flows/fetch-stock-news";
 import { Button } from "../ui/button";
 import { stockList } from "@/data/stocks";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -83,8 +83,8 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
   const { showLoading } = useLoadingStore();
   const { watchlist, addSymbol, removeSymbol } = useWatchlistStore();
   const { holdings } = usePortfolioStore();
-  const { user, signOut } = useAuth();
-  const { theme, isClearMode, setTheme, setClearMode } = useThemeStore();
+  const { user, signOut, updateUserTheme } = useAuth();
+  const { theme, isClearMode } = useThemeStore();
   const { openChatbot } = useChatbotStore();
   const { addGoal } = useGoalStore();
   const { paymentMethodToken } = useUserStore();
@@ -268,8 +268,8 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
       { name: "Profile", keywords: "account my info", onSelect: () => runCommand(() => router.push('/profile')), icon: User },
       { name: "Settings", keywords: "preferences options", onSelect: () => runCommand(() => router.push('/settings')), icon: Settings },
       // Theme
-      { name: `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`, keywords: "theme appearance", onSelect: () => runCommand(() => setTheme(theme === 'dark' ? 'light' : 'dark')), icon: theme === 'dark' ? Sun : Moon },
-      { name: `${isClearMode ? 'Disable' : 'Enable'} Clear Mode`, keywords: "theme glass liquid transparent", onSelect: () => runCommand(() => setClearMode(!isClearMode)), icon: Sparkles },
+      { name: `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`, keywords: "theme appearance", onSelect: () => runCommand(() => updateUserTheme({ theme: theme === 'dark' ? 'light' : 'dark' })), icon: theme === 'dark' ? Sun : Moon },
+      { name: `${isClearMode ? 'Disable' : 'Enable'} Clear Mode`, keywords: "theme glass liquid transparent", onSelect: () => runCommand(() => updateUserTheme({ isClearMode: !isClearMode })), icon: Sparkles },
       // Financial Actions
       { name: "Add Funds", keywords: "deposit money wallet", onSelect: () => runCommand(() => setIsFundsDialogOpen(true)), icon: CreditCard },
       { name: "Create New Goal", keywords: "new savings target", onSelect: () => runCommand(() => setIsGoalDialogOpen(true)), icon: Target },
@@ -279,7 +279,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
       { name: "Ask InvestWise AI", keywords: "chatbot help question", onSelect: () => runCommand(() => openChatbot()), icon: BrainCircuit },
       { name: "Educational Content", keywords: "learn video articles", onSelect: () => runCommand(() => router.push('/dashboard')), icon: BookOpen },
       { name: "View My Certificate", keywords: "award achievement", onSelect: () => runCommand(() => router.push('/certificate')), icon: Award },
-    ], [router, runCommand, signOut, theme, isClearMode, setTheme, setClearMode, openChatbot, onTriggerRain]);
+    ], [router, runCommand, signOut, theme, isClearMode, updateUserTheme, openChatbot, onTriggerRain]);
 
   useEffect(() => {
     if (!open) {
