@@ -145,7 +145,7 @@ export default function BottomNav() {
           width: `${endWidth}px`,
           transform: `translateX(${endLeft}px) translateY(-50%) scale(1.08)`,
           transition:
-            "transform 320ms cubic-bezier(0.22, 0.9, 0.35, 1), width 320ms cubic-bezier(0.22, 0.9, 0.35, 1), border 320ms ease-out",
+            "transform 500ms cubic-bezier(0.22, 0.9, 0.35, 1), width 500ms cubic-bezier(0.22, 0.9, 0.35, 1), border 320ms ease-out",
         }));
       }, 150)
     );
@@ -163,7 +163,7 @@ export default function BottomNav() {
           transition: "transform 160ms ease-in, background-color 160ms ease-in, box-shadow 160ms ease-in, border 160ms ease-in",
           border: '1px solid transparent',
         }));
-      }, 470)
+      }, 650)
     );
 
     // 4. Finish
@@ -171,7 +171,7 @@ export default function BottomNav() {
       window.setTimeout(() => {
         setAnimationState("idle");
         clearAllTimeouts();
-      }, 640)
+      }, 820)
     );
   };
 
@@ -184,12 +184,12 @@ export default function BottomNav() {
       <nav
         ref={navRef}
         className={cn(
-            "relative flex h-16 items-center justify-around rounded-full p-1 shadow-2xl shadow-black/20",
+            "relative flex h-16 items-center justify-around rounded-full p-1 shadow-2xl shadow-black/20 ring-1 ring-white/60",
             isClearMode 
                 ? isLightClear 
-                    ? "bg-card/60 ring-1 ring-white/10" // Light Clear
-                    : "bg-white/10 ring-1 ring-white/60" // Dark Clear
-                : "bg-card ring-1 ring-white/60" // Solid
+                    ? "bg-card/60" // Light Clear
+                    : "bg-white/10" // Dark Clear
+                : "bg-card" // Solid
         )}
         style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
       >
