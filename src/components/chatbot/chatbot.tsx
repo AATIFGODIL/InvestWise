@@ -17,6 +17,7 @@ import { handleInvestmentQuery } from "@/app/actions";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import useChatbotStore from "@/store/chatbot-store";
+import { useThemeStore } from "@/store/theme-store";
 
 interface Message {
   role: "user" | "ai" | "loading";
@@ -28,6 +29,8 @@ export default function Chatbot() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const { isOpen, openChatbot, closeChatbot, initialMessage } = useChatbotStore();
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -72,10 +75,17 @@ export default function Chatbot() {
   return (
     <>
       <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-40">
-        <Button 
-          variant="outline" 
-          className="w-full justify-between items-center p-3 h-auto rounded-full bg-white/10 shadow-2xl shadow-black/20 ring-1 ring-white/60 text-foreground"
-          style={{ backdropFilter: "url(#frosted) blur(1px)" }}
+        <Button
+          variant="outline"
+          className={cn(
+              "w-full justify-between items-center p-3 h-auto rounded-full shadow-2xl shadow-black/20",
+               isClearMode 
+                ? isLightClear
+                    ? "bg-card/60 ring-1 ring-white/10 text-foreground" // Light Clear
+                    : "bg-white/10 ring-1 ring-white/60 text-foreground" // Dark Clear
+                : "bg-card text-card-foreground border" // Solid
+          )}
+          style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
           onClick={() => openChatbot()}
         >
           <div className="flex items-center gap-3">

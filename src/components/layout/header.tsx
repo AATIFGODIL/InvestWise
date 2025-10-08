@@ -43,7 +43,7 @@ export default function Header() {
                 ? isLightClear
                     ? "bg-card/60 ring-1 ring-white/10" // Light Clear
                     : "bg-white/10 ring-1 ring-white/60" // Dark Clear
-                : "bg-card" // Solid
+                : "bg-card border" // Solid
           )}
           style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
         >
