@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import * as React from "react"
@@ -8,19 +7,13 @@ import { cn } from "@/lib/utils"
 
 // Define the props for CommandInput, including our custom onValueChange
 interface CommandInputProps extends Omit<React.ComponentPropsWithoutRef<'input'>, 'onChange'> {
-  onValueChange?: (value: string) => void;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const CommandInput = React.forwardRef<
   HTMLInputElement,
   CommandInputProps
->(({ className, onValueChange, ...props }, ref) => {
-  // Handle the change event and call onValueChange with the input's value
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (onValueChange) {
-      onValueChange(event.target.value);
-    }
-  };
+>(({ className, onChange, ...props }, ref) => {
 
   return (
     <input
@@ -29,7 +22,7 @@ const CommandInput = React.forwardRef<
         "flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
-      onChange={handleChange} // Use the standard onChange event
+      onChange={onChange} // Use the standard onChange event
       {...props}
     />
   );
@@ -68,7 +61,7 @@ const CommandItem = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-white/20 aria-selected:text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent/20 aria-selected:text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
     {...props}
