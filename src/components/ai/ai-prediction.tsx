@@ -11,12 +11,15 @@ import { handleStockPrediction } from "@/app/actions";
 import { type StockPredictionOutput } from "@/ai/types/stock-prediction-types";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useThemeStore } from "@/store/theme-store";
 
 export default function AiPrediction() {
   const [symbol, setSymbol] = useState<string>("");
   const [prediction, setPrediction] = useState<StockPredictionOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
 
   const handleGetPrediction = async () => {
     if (!symbol) return;
@@ -66,7 +69,14 @@ export default function AiPrediction() {
                 />
             </div>
             <div className="self-end">
-                <Button onClick={handleGetPrediction} disabled={isLoading || !symbol} className="w-full">
+                <Button onClick={handleGetPrediction} disabled={isLoading || !symbol} className={cn(
+                  "w-full ring-1 ring-white/60",
+                   isClearMode
+                      ? isLightClear
+                          ? "bg-card/60 text-foreground"
+                          : "bg-white/10 text-white"
+                      : ""
+                )}>
                 {isLoading ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (

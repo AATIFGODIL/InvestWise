@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/dialog";
 import { type Bundle } from "@/data/bundles";
 import useLoadingStore from "@/store/loading-store";
+import { useThemeStore } from "@/store/theme-store";
+import { cn } from "@/lib/utils";
 
 interface InvestmentBundlesProps {
   bundles: Bundle[];
@@ -44,6 +46,8 @@ export default function InvestmentBundles({ bundles, title, description, showDis
   const [selectedBundle, setSelectedBundle] = useState<Bundle | null>(null);
   const { showLoading } = useLoadingStore();
   const explorationBundles: Bundle[] = [];
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
 
   const handleStockLinkClick = (symbol: string) => {
     showLoading();
@@ -95,7 +99,14 @@ export default function InvestmentBundles({ bundles, title, description, showDis
                       </CardContent>
                       <CardFooter className="p-4 pt-0">
                          <DialogTrigger asChild>
-                           <Button variant="outline" size="sm" className="w-full" onClick={() => setSelectedBundle(bundle)}>
+                           <Button variant="outline" size="sm" className={cn(
+                               "w-full ring-1 ring-white/60",
+                                isClearMode
+                                ? isLightClear
+                                    ? "bg-card/60 text-foreground"
+                                    : "bg-white/10 text-white"
+                                : ""
+                           )} onClick={() => setSelectedBundle(bundle)}>
                               Learn More
                             </Button>
                          </DialogTrigger>

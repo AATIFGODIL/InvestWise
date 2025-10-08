@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
@@ -5,6 +6,8 @@ import { ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import YouTubePlayer from '../shared/youtube-player';
+import { useThemeStore } from '@/store/theme-store';
+import { cn } from '@/lib/utils';
 
 interface EducationalContentItem {
   title: string;
@@ -19,6 +22,9 @@ interface EducationalContentProps {
 }
 
 const EducationalContent: React.FC<EducationalContentProps> = ({ content }) => {
+    const { isClearMode, theme } = useThemeStore();
+    const isLightClear = isClearMode && theme === 'light';
+
   return (
     <div className="grid gap-6 md:grid-cols-2">
       {content.map((item, index) => (
@@ -53,7 +59,14 @@ const EducationalContent: React.FC<EducationalContentProps> = ({ content }) => {
           )}
           {item.type !== 'video' && item.filePath && (
             <CardFooter className='p-4 pt-0 mt-auto'>
-              <Button asChild className="w-full">
+              <Button asChild className={cn(
+                  "w-full ring-1 ring-white/60",
+                  isClearMode
+                      ? isLightClear
+                          ? "bg-card/60 text-foreground"
+                          : "bg-white/10 text-white"
+                      : ""
+              )}>
                 <Link href={item.filePath} target="_blank" rel="noopener noreferrer">
                   Read Document
                   <ArrowUpRight className="ml-2 h-4 w-4" />
