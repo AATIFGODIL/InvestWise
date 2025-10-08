@@ -5,7 +5,7 @@ import { Home, Briefcase, BarChart, Users, Repeat } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useLayoutEffect, useRef, useState, type CSSProperties, type MouseEvent, useEffect } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent } from "react";
 
 const navItems = [
   { href: "/dashboard", label: "Explore", icon: Home },
@@ -26,7 +26,13 @@ export default function BottomNav() {
 
   const [gliderStyle, setGliderStyle] = useState<CSSProperties>({ opacity: 0 });
   const [animationState, setAnimationState] = useState<AnimationState>("idle");
-  const [activeIndex, setActiveIndex] = useState(-1);
+  
+  // Find the initial active index based on the current URL path
+  const initialActiveIndex = navItems.findIndex((item) => pathname.startsWith(item.href));
+  const [activeIndex, setActiveIndex] = useState(initialActiveIndex);
+  
+  // This state ensures we only run the positioning logic after the component has mounted
+  const [hasMounted, setHasMounted] = useState(false);
 
   // Helper to clear all scheduled timeouts
   const clearAllTimeouts = () => {
@@ -53,21 +59,20 @@ export default function BottomNav() {
       backgroundColor: 'hsl(var(--primary))',
     });
   };
-
-  // Effect to set the initial glider position based on the current URL path
-  useLayoutEffect(() => {
+  
+  // This effect runs ONCE after the component has mounted to set the initial glider position correctly.
+  useEffect(() => {
     const currentPathIndex = navItems.findIndex((item) => pathname.startsWith(item.href));
     if (currentPathIndex !== -1) {
       setActiveIndex(currentPathIndex);
-      // We use a short delay to ensure all refs are populated before calculating position
-      const timeoutId = setTimeout(() => setGliderTo(currentPathIndex, { immediate: true }), 50);
-      return () => clearTimeout(timeoutId);
+      setGliderTo(currentPathIndex, { immediate: true });
     } else {
-      // If no item is active, hide the glider
       setGliderStyle({ opacity: 0 });
-      setActiveIndex(-1);
     }
-  }, [pathname]);
+    setHasMounted(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]); // Rerun if the path changes (e.g., browser back/forward)
+
 
   const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, newIndex: number) => {
     e.preventDefault();
@@ -76,6 +81,7 @@ export default function BottomNav() {
     const navEl = navRef.current;
     const startItem = itemRefs.current[activeIndex];
     const endItem = itemRefs.current[newIndex];
+
     if (!endItem || !startItem || !navEl) {
       router.push(navItems[newIndex].href);
       return;
@@ -111,11 +117,11 @@ export default function BottomNav() {
       }, 150)
     );
 
-    // 3. Drop down
+    // 3. Drop down and navigate
     timeouts.current.push(
       setTimeout(() => {
         setAnimationState("descending");
-        router.push(navItems[newIndex].href); // Navigate when it lands
+        router.push(navItems[newIndex].href);
         setGliderStyle(prev => ({
           ...prev,
           transform: `translateX(${endLeft}px) scale(1)`,
@@ -123,7 +129,7 @@ export default function BottomNav() {
           boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
           transition: "transform 150ms ease-in, background-color 150ms ease-in, box-shadow 150ms ease-in",
         }));
-      }, 450) // 150ms (rise) + 300ms (slide)
+      }, 450)
     );
 
     // 4. Return to idle state
@@ -132,7 +138,7 @@ export default function BottomNav() {
         setAnimationState("idle");
         setActiveIndex(newIndex);
         clearAllTimeouts();
-      }, 600) // 450ms + 150ms (drop)
+      }, 600)
     );
   };
 
@@ -150,7 +156,7 @@ export default function BottomNav() {
       >
         <div
           className="absolute top-1 h-[calc(100%-8px)] rounded-full border-primary-foreground/10"
-          style={gliderStyle}
+          style={{ ...gliderStyle, visibility: hasMounted ? 'visible' : 'hidden' }}
         />
         
         {navItems.map((item, index) => {
@@ -167,7 +173,7 @@ export default function BottomNav() {
               <div
                 className={cn(
                   "flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2 transition-colors duration-300",
-                  "text-slate-100", // Default text color
+                  "text-slate-100",
                   isActive ? "!text-primary-foreground" : "hover:text-white"
                 )}
               >
