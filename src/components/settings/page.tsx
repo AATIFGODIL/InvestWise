@@ -128,10 +128,8 @@ export default function SettingsClient() {
                             )}
                         >
                             <div className="w-full h-full rounded bg-gray-100 flex items-center justify-center p-2">
-                                <svg viewBox="0 0 24 24" className="w-8 h-8 text-black">
-                                    <rect x="4" y="6" width="4" height="12" fill="currentColor" />
-                                    <rect x="10" y="10" width="4" height="6" fill="currentColor" />
-                                    <rect x="16" y="4" width="4" height="16" fill="currentColor" />
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-black">
+                                    <path d="M4 18l6-6 4 2 6-8" />
                                 </svg>
                             </div>
                         </div>
@@ -147,10 +145,8 @@ export default function SettingsClient() {
                             )}
                         >
                              <div className="w-full h-full rounded bg-gray-800 flex items-center justify-center p-2">
-                                <svg viewBox="0 0 24 24" className="w-8 h-8 text-white">
-                                    <rect x="4" y="6" width="4" height="12" fill="currentColor" />
-                                    <rect x="10" y="10" width="4" height="6" fill="currentColor" />
-                                    <rect x="16" y="4" width="4" height="16" fill="currentColor" />
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-white">
+                                    <path d="M4 18l6-6 4 2 6-8" />
                                 </svg>
                             </div>
                         </div>
@@ -166,10 +162,8 @@ export default function SettingsClient() {
                             )}
                         >
                             <div className="w-full h-full rounded bg-white/10 border border-white/20 flex items-center justify-center p-2" style={{backdropFilter: 'blur(4px)'}}>
-                                <svg viewBox="0 0 24 24" className="w-8 h-8 text-primary">
-                                    <rect x="4" y="6" width="4" height="12" fill="currentColor" />
-                                    <rect x="10" y="10" width="4" height="6" fill="currentColor" />
-                                    <rect x="16" y="4" width="4" height="16" fill="currentColor" />
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-primary">
+                                    <path d="M4 18l6-6 4 2 6-8" />
                                 </svg>
                             </div>
                         </div>
@@ -225,5 +219,3 @@ export default function SettingsClient() {
       </main>
   );
 }
-
-    
