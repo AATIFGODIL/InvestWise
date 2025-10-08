@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -51,7 +52,7 @@ interface AuthContextType {
   updateUserProfile: (data: { username?: string, photoURL?: string }) => Promise<void>;
   updateUserTheme: (theme: "light" | "dark") => Promise<void>;
   updatePrivacySettings: (settings: Partial<Omit<PrivacyState, 'setLeaderboardVisibility' | 'setShowQuests' | 'loadPrivacySettings' | 'resetPrivacySettings'>>) => Promise<void>;
-  sendPasswordReset: () => Promise<void>;
+  sendPasswordReset: (email: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -237,9 +238,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await updateDoc(userDocRef, settings);
   };
 
-  const sendPasswordReset = async () => {
-    if (!user?.email) throw new Error("No email associated with user.");
-    await sendPasswordResetEmail(auth, user.email);
+  const sendPasswordReset = async (email: string) => {
+    await sendPasswordResetEmail(auth, email);
   };
 
   const signOut = async () => {

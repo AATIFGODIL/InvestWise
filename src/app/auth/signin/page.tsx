@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -18,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import useLoadingStore from '@/store/loading-store';
+import { useToast } from '@/hooks/use-toast';
 
 // A simple SVG component for the Google icon.
 const GoogleIcon = () => (
@@ -53,9 +55,10 @@ const FinanceBackground = () => (
 
 
 export default function SignInPage() {
-  const { signIn, signInWithGoogle } = useAuth();
+  const { signIn, signInWithGoogle, sendPasswordReset } = useAuth();
   const router = useRouter();
   const { showLoading } = useLoadingStore();
+  const { toast } = useToast();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -91,6 +94,23 @@ export default function SignInPage() {
     }
   };
   
+  const handlePasswordReset = async () => {
+    if (!email) {
+      setError("Please enter your email address to reset your password.");
+      return;
+    }
+    setError(null);
+    try {
+      await sendPasswordReset(email);
+      toast({
+        title: "Password Reset Email Sent",
+        description: "Check your inbox for a link to reset your password.",
+      });
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
   // This function shows a loading overlay for a smoother perceived transition between pages.
   const handleNavigateToSignUp = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -155,7 +175,16 @@ export default function SignInPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
+                 <div className="flex items-center justify-between">
+                    <Label htmlFor="password">Password</Label>
+                    <button
+                        type="button"
+                        onClick={handlePasswordReset}
+                        className="text-sm underline"
+                    >
+                        Forgot password?
+                    </button>
+                 </div>
                 <div className="relative">
                   <Input 
                     id="password" 
