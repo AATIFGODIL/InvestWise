@@ -13,6 +13,7 @@ import { usePrivacyStore } from "@/store/privacy-store";
 import YouTubePlayer from "../shared/youtube-player";
 import { useThemeStore } from "@/store/theme-store";
 import { cn } from "@/lib/utils";
+import MarketNews from "./market-news";
 
 const videos = [
     {
@@ -83,6 +84,7 @@ export default function CommunityClient() {
               ))}
           </div>
       </div>
+      <MarketNews />
       <Chatbot />
       </div>
     </main>

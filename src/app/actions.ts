@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -110,6 +111,26 @@ export async function handleStockNews(symbol: string): Promise<StockNewsResult> 
         return {
             success: false,
             error: error.message || "An unexpected error occurred while fetching news.",
+        };
+    }
+}
+
+/**
+ * Calls the news flow to get recent general market news.
+ * @returns {Promise<StockNewsResult>} An object with the news data or an error.
+ */
+export async function handleMarketNews(): Promise<StockNewsResult> {
+    try {
+        const result = await fetchStockNews({ category: 'general' });
+        if (!result) {
+             return { success: false, error: "Could not fetch market news at this time. Please try again later." };
+        }
+        return { success: true, news: result };
+    } catch (error: any) {
+        console.error("Error calling market news flow:", error);
+        return {
+            success: false,
+            error: error.message || "An unexpected error occurred while fetching market news.",
         };
     }
 }
