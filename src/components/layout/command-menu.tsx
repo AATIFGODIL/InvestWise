@@ -267,8 +267,6 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                     {filteredStocks.map((stock) => (
                     <CommandItem
                         key={stock.symbol}
-                        onMouseOver={(e) => e.currentTarget.classList.add('aria-selected:bg-white/20')}
-                        onMouseOut={(e) => e.currentTarget.classList.remove('aria-selected:bg-white/20')}
                         onClick={() => handleStockSelect(stock.symbol)}
                     >
                         <div className="flex justify-between items-center w-full">
