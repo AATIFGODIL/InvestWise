@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
@@ -85,6 +86,8 @@ export default function TradeClient() {
   const handleWidgetSymbolChange = useCallback((newSymbol: string) => {
     if (!newSymbol) return;
     setWidgetSymbol(newSymbol.toUpperCase());
+    setInputValue(newSymbol.toUpperCase());
+    setSearchedSymbol(newSymbol.toUpperCase());
   }, []);
 
   // Effect to fetch price data whenever the user searches for a new symbol.
@@ -169,6 +172,7 @@ export default function TradeClient() {
     if (inputValue) {
         const upperCaseSymbol = inputValue.toUpperCase();
         setSearchedSymbol(upperCaseSymbol);
+        setWidgetSymbol(upperCaseSymbol);
     }
   };
 
@@ -180,59 +184,58 @@ export default function TradeClient() {
         
         <Card>
             <CardHeader>
-            <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                    <CardTitle>Stock Chart & Trading</CardTitle>
-                    <Button variant="ghost" size="icon" onClick={handleToggleWatchlist} className="h-8 w-8">
-                        <Star className={cn("h-5 w-5", isSymbolInWatchlist ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
+                <div className="flex justify-between items-center flex-wrap gap-4">
+                    <div className="flex items-center gap-2">
+                        <CardTitle>Stock Chart</CardTitle>
+                        <Button variant="ghost" size="icon" onClick={handleToggleWatchlist} className="h-8 w-8">
+                            <Star className={cn("h-5 w-5", isSymbolInWatchlist ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
+                        </Button>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-primary">
+                        <Clock className="h-4 w-4" />
+                        <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="relative flex-grow">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value.toUpperCase())}
+                            placeholder="e.g., AAPL, TSLA"
+                            className="pl-10 h-10"
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleSearch();
+                                }
+                            }}
+                        />
+                    </div>
+                    <Button onClick={handleSearch}>
+                        {loadingPrice && searchedSymbol === inputValue.toUpperCase() ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                        Search
                     </Button>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-primary">
-                    <Clock className="h-4 w-4" />
-                    <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
-                </div>
-            </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-            <div className="flex flex-col sm:flex-row gap-2">
-                <div className="relative flex-grow">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <Input
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value.toUpperCase())}
-                        placeholder="e.g., AAPL, TSLA"
-                        className="pl-10 h-10"
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                handleSearch();
-                            }
-                        }}
-                    />
-                </div>
-                <Button onClick={handleSearch}>
-                {loadingPrice && searchedSymbol === inputValue.toUpperCase() ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                Search
-                </Button>
-            </div>
                 {error && <p className="text-destructive text-sm">{error}</p>}
-            <div className="space-y-6">
                 <div className="h-[400px] md:h-[500px] w-full">
                     {isClient && <TradingViewWidget symbol={widgetSymbol} onSymbolChange={handleWidgetSymbolChange}/>}
                 </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="space-y-6">
-                        <Watchlist />
-                        <AiPredictionTrade initialSymbol={searchedSymbol} />
-                    </div>
-                    <TradeForm 
-                        selectedSymbol={searchedSymbol}
-                        selectedPrice={price}
-                        loadingPrice={loadingPrice}
-                    />
-                </div>
-            </div>
             </CardContent>
         </Card>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <TradeForm 
+                selectedSymbol={searchedSymbol}
+                selectedPrice={price}
+                loadingPrice={loadingPrice}
+            />
+            <div className="space-y-6">
+                <Watchlist />
+                <AiPredictionTrade initialSymbol={searchedSymbol} />
+            </div>
+        </div>
 
         <InvestmentBundles
             title="Explore Specialized Bundles"
@@ -262,3 +265,4 @@ export default function TradeClient() {
       </main>
   );
 }
+
