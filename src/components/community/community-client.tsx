@@ -11,6 +11,8 @@ import CommunityTrends from "@/components/dashboard/community-trends";
 import Chatbot from "@/components/chatbot/chatbot";
 import { usePrivacyStore } from "@/store/privacy-store";
 import YouTubePlayer from "../shared/youtube-player";
+import { useThemeStore } from "@/store/theme-store";
+import { cn } from "@/lib/utils";
 
 const videos = [
     {
@@ -33,15 +35,32 @@ export default function CommunityClient() {
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get('tab') || 'feed';
   const { showQuests } = usePrivacyStore();
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
 
   return (
     <main>
       <div className="p-4 space-y-6 pb-24">
       <h1 className="text-2xl font-bold">Community</h1>
       <Tabs defaultValue={defaultTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="feed">Feed</TabsTrigger>
-              <TabsTrigger value="trends">Trends</TabsTrigger>
+          <TabsList className={cn(
+              "grid w-full grid-cols-2",
+               isClearMode 
+                ? isLightClear
+                    ? "bg-card/60 ring-1 ring-white/10"
+                    : "bg-white/10 ring-1 ring-white/60"
+                : ""
+          )}>
+              <TabsTrigger value="feed" className={cn(
+                  isClearMode
+                    ? "data-[state=active]:bg-primary/80 data-[state=active]:text-primary-foreground"
+                    : ""
+              )}>Feed</TabsTrigger>
+              <TabsTrigger value="trends" className={cn(
+                  isClearMode
+                    ? "data-[state=active]:bg-primary/80 data-[state=active]:text-primary-foreground"
+                    : ""
+              )}>Trends</TabsTrigger>
           </TabsList>
           <TabsContent value="feed" className="mt-6 space-y-6">
               <Leaderboard />
