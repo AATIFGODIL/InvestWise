@@ -20,23 +20,11 @@ import {
   Building,
   Search,
   X,
-  LogOut,
-  User,
-  Settings,
-  Sun,
-  Moon,
-  Sparkles,
-  CreditCard,
-  Target,
-  History,
-  TrendingUpIcon,
-  BookOpen,
-  Award,
 } from "lucide-react";
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
 import useLoadingStore from "@/store/loading-store";
-import { handleStockPrediction, handleStockNews, createTransaction } from "@/app/actions";
+import { handleStockPrediction, handleStockNews } from "@/app/actions";
 import { type StockPredictionOutput } from "@/ai/types/stock-prediction-types";
 import { type StockNewsOutput } from "@/ai/flows/fetch-stock-news";
 import { Button } from "../ui/button";
@@ -48,13 +36,6 @@ import { usePortfolioStore } from "@/store/portfolio-store";
 import TradeDialogCMDK from "../trade/trade-dialog-cmdk";
 import TradingViewMiniChart from "../shared/trading-view-mini-chart";
 import { CommandInput, CommandItem, CommandList, CommandSeparator } from "../ui/command";
-import { useAuth } from "@/hooks/use-auth";
-import { useThemeStore } from "@/store/theme-store";
-import useChatbotStore from "@/store/chatbot-store";
-import CreateGoal from "../goals/create-goal";
-import { useGoalStore } from "@/store/goal-store";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../ui/dialog";
-import { useUserStore } from "@/store/user-store";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -73,17 +54,20 @@ interface CommandMenuProps {
 
 type CommandView = "search" | "stock-detail";
 
+const appActions = [
+  { name: "Dashboard", href: "/dashboard", icon: Home },
+  { name: "Portfolio", href: "/portfolio", icon: Briefcase },
+  { name: "Trade", href: "/trade", icon: Repeat },
+  { name: "Goals", href: "/goals", icon: BarChart },
+  { name: "Community", href: "/community", icon: Users },
+];
+
 export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   const router = useRouter();
   const { toast } = useToast();
   const { showLoading } = useLoadingStore();
   const { watchlist, addSymbol, removeSymbol } = useWatchlistStore();
   const { holdings } = usePortfolioStore();
-  const { user, signOut } = useAuth();
-  const { theme, isClearMode, setTheme, setClearMode } = useThemeStore();
-  const { openChatbot } = useChatbotStore();
-  const { addGoal } = useGoalStore();
-  const { paymentMethodToken } = useUserStore();
 
   const [view, setView] = useState<CommandView>("search");
   const [query, setQuery] = useState("");
@@ -96,14 +80,8 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
   const [isFetchingStocks, setIsFetchingStocks] = useState(false);
   const [isFetchingPrediction, setIsFetchingPrediction] = useState(false);
   const [isFetchingNews, setIsFetchingNews] = useState(false);
-  
-  // State for dialogs triggered by commands
   const [isTradeDialogOpen, setIsTradeDialogOpen] = useState(false);
   const [tradeAction, setTradeAction] = useState<"buy" | "sell">("buy");
-  const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
-  const [isFundsDialogOpen, setIsFundsDialogOpen] = useState(false);
-  const [fundsAmount, setFundsAmount] = useState("100.00");
-  const [isAddingFunds, setIsAddingFunds] = useState(false);
 
 
   // --- Data Fetching ---
@@ -160,17 +138,6 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     fetchStockData();
   }, [open, stocks.length]);
 
-  const runCommand = useCallback((command: () => void) => {
-    onOpenChange(false);
-    setQuery("");
-    command();
-  }, [onOpenChange]);
-
-  const handleTradeNavigation = (symbol: string) => {
-    showLoading();
-    router.push(`/trade?symbol=${symbol}`);
-  };
-
   const fetchStockDetails = (stock: StockData) => {
     // Show detail view immediately
     setView("stock-detail");
@@ -197,6 +164,18 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     });
   };
 
+  const runCommand = useCallback((command: () => void) => {
+    onOpenChange(false);
+    setQuery("");
+    setView("search");
+    command();
+  }, [onOpenChange]);
+  
+  const handleTradeNavigation = (symbol: string) => {
+    showLoading();
+    router.push(`/trade?symbol=${symbol}`);
+  };
+
   const handleStockSelect = useCallback((stockSymbol: string) => {
     const stock = stocks.find(s => s.symbol === stockSymbol);
     if (stock) {
@@ -217,64 +196,6 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
     setIsTradeDialogOpen(true);
   }
 
-  const handleAddFunds = async () => {
-    if (!paymentMethodToken) {
-      toast({
-        variant: "destructive",
-        title: "No Payment Method",
-        description: "Please add a payment method in your profile first.",
-        action: <Button onClick={() => runCommand(() => router.push('/profile'))}>Go to Profile</Button>
-      });
-      return;
-    }
-    if (!user) return;
-    setIsAddingFunds(true);
-    try {
-      await createTransaction({ userId: user.uid, amount: fundsAmount });
-       toast({
-        title: "Funds Added!",
-        description: `$${fundsAmount} has been added to your account.`,
-      });
-      setIsFundsDialogOpen(false);
-    } catch (error: any) {
-       toast({
-        variant: "destructive",
-        title: "Failed to Add Funds",
-        description: error.message || "An unexpected error occurred.",
-      });
-    } finally {
-        setIsAddingFunds(false);
-    }
-  }
-
-  const appActions = useMemo(() => [
-      // Navigation
-      { name: "Dashboard", keywords: "home explore main", onSelect: () => runCommand(() => router.push('/dashboard')), icon: Home },
-      { name: "Portfolio", keywords: "holdings assets", onSelect: () => runCommand(() => router.push('/portfolio')), icon: Briefcase },
-      { name: "Trade", keywords: "buy sell chart", onSelect: () => runCommand(() => router.push('/trade')), icon: Repeat },
-      { name: "Goals", keywords: "savings targets", onSelect: () => runCommand(() => router.push('/goals')), icon: BarChart },
-      { name: "Community", keywords: "leaderboard social", onSelect: () => runCommand(() => router.push('/community')), icon: Users },
-      { name: "View Leaderboard", keywords: "rankings top investors", onSelect: () => runCommand(() => router.push('/community?tab=feed')), icon: Users },
-      { name: "View Community Trends", keywords: "popular stocks", onSelect: () => runCommand(() => router.push('/community?tab=trends')), icon: TrendingUpIcon },
-      { name: "View Watchlist", keywords: "saved stocks favorites", onSelect: () => runCommand(() => router.push('/portfolio')), icon: Star },
-      // Account & Settings
-      { name: "Sign Out", keywords: "log out exit", onSelect: () => runCommand(signOut), icon: LogOut },
-      { name: "Profile", keywords: "account my info", onSelect: () => runCommand(() => router.push('/profile')), icon: User },
-      { name: "Settings", keywords: "preferences options", onSelect: () => runCommand(() => router.push('/settings')), icon: Settings },
-      // Theme
-      { name: `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`, keywords: "theme appearance", onSelect: () => runCommand(() => setTheme(theme === 'dark' ? 'light' : 'dark')), icon: theme === 'dark' ? Sun : Moon },
-      { name: `${isClearMode ? 'Disable' : 'Enable'} Clear Mode`, keywords: "theme glass liquid transparent", onSelect: () => runCommand(() => setClearMode(!isClearMode)), icon: Sparkles },
-      // Financial Actions
-      { name: "Add Funds", keywords: "deposit money wallet", onSelect: () => runCommand(() => setIsFundsDialogOpen(true)), icon: CreditCard },
-      { name: "Create New Goal", keywords: "new savings target", onSelect: () => runCommand(() => setIsGoalDialogOpen(true)), icon: Target },
-      { name: "Set Up Auto-Invest", keywords: "recurring investment", onSelect: () => runCommand(() => router.push('/dashboard')), icon: Repeat },
-      { name: "View Trade History", keywords: "transactions log", onSelect: () => runCommand(() => router.push('/portfolio')), icon: History },
-      // AI & Content
-      { name: "Ask InvestWise AI", keywords: "chatbot help question", onSelect: () => runCommand(() => openChatbot()), icon: BrainCircuit },
-      { name: "Educational Content", keywords: "learn video articles", onSelect: () => runCommand(() => router.push('/dashboard')), icon: BookOpen },
-      { name: "View My Certificate", keywords: "award achievement", onSelect: () => runCommand(() => router.push('/certificate')), icon: Award },
-    ], [router, runCommand, signOut, theme, isClearMode, setTheme, setClearMode, openChatbot]);
-
   useEffect(() => {
     if (!open) {
       const timer = setTimeout(() => {
@@ -294,14 +215,6 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
       )
       .slice(0, 5);
   }, [query, stocks]);
-
-  const filteredAppActions = useMemo(() => {
-    if (!query) return [];
-    return appActions.filter(action => 
-        action.name.toLowerCase().includes(query.toLowerCase()) || 
-        action.keywords.toLowerCase().includes(query.toLowerCase())
-    );
-  }, [query, appActions]);
 
   const selectedStockHolding = useMemo(() => {
     if (!selectedStock) return null;
@@ -327,8 +240,8 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                     <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                 )}
                 <CommandInput
-                    placeholder={view === 'search' ? "Search stocks or commands..." : `${selectedStock?.name} (${selectedStock?.symbol})`}
-                    onValueChange={setQuery}
+                    placeholder={view === 'search' ? "Search for a stock or action..." : `${selectedStock?.name} (${selectedStock?.symbol})`}
+                    onChange={(e) => setQuery(e.target.value)}
                     value={query}
                     disabled={view === 'stock-detail'}
                 />
@@ -342,8 +255,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                 {isFetchingStocks && query.length === 0 && (
                     <div className="p-4 text-center text-sm text-slate-400">Loading stocks...</div>
                 )}
-                
-                {filteredStocks.length === 0 && filteredAppActions.length === 0 && !isFetchingStocks && <div className="py-6 text-center text-sm">No results found.</div>}
+                {filteredStocks.length === 0 && !isFetchingStocks && <div className="py-6 text-center text-sm">No results found.</div>}
 
                 {filteredStocks.length > 0 && (
                 <div className="p-1 text-foreground">
@@ -351,7 +263,7 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                     {filteredStocks.map((stock) => (
                     <CommandItem
                         key={stock.symbol}
-                        onSelect={() => handleStockSelect(stock.symbol)}
+                        onClick={() => handleStockSelect(stock.symbol)}
                     >
                         <div className="flex justify-between items-center w-full">
                             <div className="flex items-center gap-3">
@@ -375,20 +287,22 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
                 </div>
                 )}
 
-                {filteredAppActions.length > 0 && (
-                  <div className="p-1 text-foreground">
-                    <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">App Actions</div>
-                    {filteredAppActions.map((action) => (
-                      <CommandItem
-                        key={action.name}
-                        onSelect={action.onSelect}
-                      >
-                        <action.icon className="mr-2 h-4 w-4" />
-                        <span>{action.name}</span>
-                      </CommandItem>
-                    ))}
-                  </div>
-                )}
+                <CommandSeparator />
+
+                <div className="p-1 text-foreground">
+                  <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">App Actions</div>
+                    {appActions
+                        .filter((action) => action.name.toLowerCase().includes(query.toLowerCase()))
+                        .map((action) => (
+                        <CommandItem
+                            key={action.href}
+                            onClick={() => runCommand(() => router.push(action.href))}
+                        >
+                            <action.icon className="mr-2 h-4 w-4" />
+                            <span>{action.name}</span>
+                        </CommandItem>
+                        ))}
+                </div>
             </CommandList>
             )}
 
@@ -501,8 +415,6 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
             )}
         </div>
       </div>
-
-    {/* Dialogs for Actions */}
     {selectedStock && (
         <TradeDialogCMDK
             isOpen={isTradeDialogOpen}
@@ -512,39 +424,14 @@ export function CommandMenu({ open, onOpenChange }: CommandMenuProps) {
             action={tradeAction}
         />
     )}
-
-    <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}>
-        <DialogContent>
-            <CreateGoal onAddGoal={(goal) => {
-                addGoal(goal);
-                setIsGoalDialogOpen(false);
-            }} />
-        </DialogContent>
-    </Dialog>
-
-     <Dialog open={isFundsDialogOpen} onOpenChange={setIsFundsDialogOpen}>
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Add Funds</DialogTitle>
-                <DialogDescription>
-                    Your saved payment method will be charged.
-                </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                    <Label htmlFor="amount">Amount</Label>
-                    <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="amount" type="number" value={fundsAmount} onChange={(e) => setFundsAmount(e.target.value)} className="pl-8"/>
-                    </div>
-                </div>
-                <Button onClick={handleAddFunds} disabled={isAddingFunds} className="w-full">
-                    {isAddingFunds ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                    Confirm Deposit
-                </Button>
-            </div>
-        </DialogContent>
-    </Dialog>
     </>
   );
 }
+
+    
+
+
+
+    
+
+    
