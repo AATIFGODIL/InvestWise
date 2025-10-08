@@ -6,7 +6,7 @@ import { handleMarketNews } from "@/app/actions";
 import type { StockNewsOutput } from "@/ai/flows/fetch-stock-news";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Newspaper, Loader2, AlertCircle, ExternalLink } from "lucide-react";
+import { Newspaper, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useThemeStore } from "@/store/theme-store";

@@ -13,6 +13,7 @@ import Watchlist from "@/components/dashboard/watchlist";
 import EducationalContent from "./educational-content";
 import { educationalContent } from "@/data/education";
 import CommunityTrends from "@/components/dashboard/community-trends";
+import MarketNews from "@/components/community/market-news";
 
 // These components are loaded dynamically to improve initial page load performance.
 // They will only be loaded when they are needed, reducing the client-side JavaScript bundle size.
@@ -93,6 +94,7 @@ export default function DashboardClient() {
             <GoalProgress />
             <CommunityTrends limit={5} showViewAllButton={false} />
         </div>
+        <MarketNews limit={3} />
         <div className="space-y-4 pt-4">
             <h2 className="text-xl font-bold">Educational Content</h2>
             <EducationalContent content={educationalContent} />
