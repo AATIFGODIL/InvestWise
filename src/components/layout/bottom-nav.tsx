@@ -47,7 +47,7 @@ export default function BottomNav() {
   const [itemTransforms, setItemTransforms] = useState<Record<number, string>>({});
 
 
-  const WIDTH_FACTOR = isMobile ? 0.9 : 0.55;
+  const WIDTH_FACTOR = isMobile ? 0.95 : 0.55;
   const MIN_GLIDER_WIDTH = 28;
 
   const activeIndex = navItems.findIndex((item) =>
@@ -86,7 +86,7 @@ export default function BottomNav() {
       position: "absolute",
     });
     return true;
-  }, [WIDTH_FACTOR, isMobile]);
+  }, [WIDTH_FACTOR, MIN_GLIDER_WIDTH]);
 
   useEffect(() => {
     setHasMounted(true);
