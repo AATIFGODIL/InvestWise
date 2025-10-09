@@ -23,46 +23,44 @@ const navItems = [
   { href: "/community", label: "Community", icon: Users },
 ];
 
-type AnimationState = "idle" | "rising" | "sliding" | "descending";
+type AnimationState = "idle" | "rising" | "sliding" | "descending" | "dragging";
 
 export default function BottomNav() {
   const pathname = usePathname() ?? "/";
   const router = useRouter();
   const navRef = useRef<HTMLElement | null>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
-  const timeouts = useRef<number[]>([]);
-  
+  const animationStateRef = useRef<AnimationState>("idle");
+  const dragStartInfo = useRef<{ x: number; left: number; width: number } | null>(null);
+
   const { isClearMode, theme } = useThemeStore();
-  const isLightClear = isClearMode && theme === 'light';
+  const isLightClear = isClearMode && theme === "light";
 
   const [gliderStyle, setGliderStyle] = useState<CSSProperties>({
     opacity: 0,
   });
-  const [animationState, setAnimationState] = useState<AnimationState>("idle");
   const [hasMounted, setHasMounted] = useState(false);
 
-  // make the glider narrower horizontally
-  const WIDTH_FACTOR = 0.55;   // try 0.45; lower -> smaller
-  const MIN_GLIDER_WIDTH = 28; // minimum width in px so it doesn't collapse
+  const WIDTH_FACTOR = 0.55;
+  const MIN_GLIDER_WIDTH = 28;
 
   const activeIndex = navItems.findIndex((item) =>
     pathname.startsWith(item.href)
   );
 
-  const clearAllTimeouts = () => {
-    timeouts.current.forEach((t) => clearTimeout(t));
-    timeouts.current = [];
-  };
-
   const getRef = (index: number) => (el: HTMLAnchorElement | null) => {
     itemRefs.current[index] = el;
+  };
+  
+  const setAnimationState = (state: AnimationState) => {
+    animationStateRef.current = state;
   };
 
   const setGliderTo = useCallback((index: number, options: { immediate?: boolean } = {}) => {
     const navEl = navRef.current;
     const target = itemRefs.current[index];
 
-    if (!navEl || !target) return false;
+    if (!navEl || !target || index === -1) return false;
 
     const navRect = navEl.getBoundingClientRect();
     const itemRect = target.getBoundingClientRect();
@@ -72,17 +70,17 @@ export default function BottomNav() {
 
     setGliderStyle({
       width: `${gliderWidth}px`,
+      height: "calc(100% - 12px)",
       transform: `translateX(${left}px) translateY(-50%)`,
       opacity: 1,
       transition: options.immediate ? "none" : "transform 300ms ease, width 300ms ease, opacity 200ms ease",
       backgroundColor: "hsl(var(--primary))",
-      height: gliderStyle.height ?? "calc(100% - 12px)",
       top: "50%",
       left: 0,
       position: "absolute",
     });
     return true;
-  }, [gliderStyle.height]);
+  }, []);
 
   useEffect(() => {
     setHasMounted(true);
@@ -92,92 +90,189 @@ export default function BottomNav() {
     if(activeIndex !== -1) {
       setGliderTo(activeIndex, { immediate: !hasMounted });
     }
-    window.addEventListener("resize", () => setGliderTo(activeIndex, {immediate: true}));
-    return () => window.removeEventListener("resize", () => setGliderTo(activeIndex, {immediate: true}));
+    const handleResize = () => setGliderTo(activeIndex, { immediate: true });
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, [pathname, activeIndex, hasMounted, setGliderTo]);
 
-  const handleNavClick = (e: MouseEvent<HTMLAnchorElement>, newIndex: number) => {
+
+  const handleMouseDown = (e: MouseEvent<HTMLAnchorElement>, clickedIndex: number) => {
     e.preventDefault();
-    if (animationState !== "idle" || newIndex === activeIndex) return;
+    if (animationStateRef.current !== "idle") return;
 
-    const navEl = navRef.current;
-    const startItem = itemRefs.current[activeIndex];
-    const endItem = itemRefs.current[newIndex];
+    if (clickedIndex === activeIndex) {
+      // Start drag interaction
+      const navEl = navRef.current;
+      const targetItem = itemRefs.current[clickedIndex];
+      if (!navEl || !targetItem) return;
 
-    if (!navEl || !startItem || !endItem) {
-      clearAllTimeouts();
-      router.push(navItems[newIndex].href);
-      return;
-    }
+      const navRect = navEl.getBoundingClientRect();
+      const itemRect = targetItem.getBoundingClientRect();
+      
+      const gliderWidth = Math.max(Math.round(itemRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
+      const startLeft = itemRect.left - navRect.left + (itemRect.width - gliderWidth) / 2;
 
-    clearAllTimeouts();
-    setAnimationState("rising");
+      dragStartInfo.current = {
+        x: e.clientX,
+        left: startLeft,
+        width: gliderWidth,
+      };
 
-    const navRect = navEl.getBoundingClientRect();
-    const startRect = startItem.getBoundingClientRect();
-    const endRect = endItem.getBoundingClientRect();
+      // Instantly lift up and change style
+      setAnimationState("dragging");
+      setGliderStyle(prev => ({
+        ...prev,
+        height: 'calc(100% + 16px)',
+        transform: `translateX(${startLeft}px) translateY(-50%)`,
+        backgroundColor: "hsl(var(--background) / 0.1)",
+        boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
+        transition: "height 200ms ease, background-color 200ms ease, box-shadow 200ms ease, border 200ms ease",
+        border: '1px solid hsla(0, 0%, 100%, 0.6)',
+      }));
 
-    const startWidth = Math.max(Math.round(startRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
-    const startLeft = startRect.left - navRect.left + (startRect.width - startWidth) / 2;
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp, { once: true });
 
-    const endWidth = Math.max(Math.round(endRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
-    const endLeft = endRect.left - navRect.left + (endRect.width - endWidth) / 2;
-    
+    } else {
+      // Perform the original "rise, glide, settle" animation
+      const navEl = navRef.current;
+      const startItem = itemRefs.current[activeIndex];
+      const endItem = itemRefs.current[clickedIndex];
 
-    // 1. Rise
-    setGliderStyle(prev => ({
-      ...prev,
-      width: `${startWidth}px`,
-      transform: `translateX(${startLeft}px) translateY(-50%) scale(1.08)`,
-      backgroundColor: "hsl(var(--background) / 0.1)",
-      boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
-      opacity: 1,
-      transition: "transform 140ms ease-out, background-color 140ms ease-out, box-shadow 140ms ease-out, border 140ms ease-out",
-      border: '1px solid hsla(0, 0%, 100%, 0.6)',
-    }));
+      if (!navEl || !startItem || !endItem) {
+        router.push(navItems[clickedIndex].href);
+        return;
+      }
+      
+      setAnimationState("rising");
+      const navRect = navEl.getBoundingClientRect();
+      const startRect = startItem.getBoundingClientRect();
+      const endRect = endItem.getBoundingClientRect();
 
-    // 2. Slide
-    timeouts.current.push(
-      window.setTimeout(() => {
+      const startWidth = Math.max(Math.round(startRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
+      const startLeft = startRect.left - navRect.left + (startRect.width - startWidth) / 2;
+      const endWidth = Math.max(Math.round(endRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
+      const endLeft = endRect.left - navRect.left + (endRect.width - endWidth) / 2;
+
+      setGliderStyle(prev => ({
+        ...prev,
+        width: `${startWidth}px`,
+        transform: `translateX(${startLeft}px) translateY(-50%)`,
+        backgroundColor: "hsl(var(--background) / 0.1)",
+        boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
+        transition: "transform 140ms ease-out, background-color 140ms ease-out, box-shadow 140ms ease-out, border 140ms ease-out, height 140ms ease-out",
+        border: '1px solid hsla(0, 0%, 100%, 0.6)',
+        height: 'calc(100% + 16px)',
+      }));
+
+      const slideTimeout = setTimeout(() => {
         setAnimationState("sliding");
-        setGliderStyle((prev) => ({
+        setGliderStyle(prev => ({
           ...prev,
           width: `${endWidth}px`,
-          transform: `translateX(${endLeft}px) translateY(-50%) scale(1.08)`,
-          transition:
-            "transform 500ms cubic-bezier(0.22, 0.9, 0.35, 1), width 500ms cubic-bezier(0.22, 0.9, 0.35, 1), border 320ms ease-out",
+          transform: `translateX(${endLeft}px) translateY(-50%)`,
+          transition: "transform 500ms cubic-bezier(0.22, 0.9, 0.35, 1), width 500ms cubic-bezier(0.22, 0.9, 0.35, 1), border 320ms ease-out",
         }));
-      }, 150)
-    );
+      }, 150);
 
-    // 3. Drop & navigate
-    timeouts.current.push(
-      window.setTimeout(() => {
+      const settleTimeout = setTimeout(() => {
         setAnimationState("descending");
-        router.push(navItems[newIndex].href);
-        setGliderStyle((prev) => ({
+        router.push(navItems[clickedIndex].href);
+        setGliderStyle(prev => ({
           ...prev,
-          transform: `translateX(${endLeft}px) translateY(-50%) scale(1)`,
+          transform: `translateX(${endLeft}px) translateY(-50%)`,
           backgroundColor: "hsl(var(--primary))",
           boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
-          transition: "transform 160ms ease-in, background-color 160ms ease-in, box-shadow 160ms ease-in, border 160ms ease-in",
+          transition: "transform 160ms ease-in, background-color 160ms ease-in, box-shadow 160ms ease-in, border 160ms ease-in, height 160ms ease-in",
           border: '1px solid transparent',
+          height: 'calc(100% - 12px)',
         }));
-      }, 650)
-    );
+      }, 650);
 
-    // 4. Finish
-    timeouts.current.push(
-      window.setTimeout(() => {
+      const idleTimeout = setTimeout(() => {
         setAnimationState("idle");
-        clearAllTimeouts();
-      }, 820)
-    );
+      }, 820);
+      
+      return () => {
+          clearTimeout(slideTimeout);
+          clearTimeout(settleTimeout);
+          clearTimeout(idleTimeout);
+      }
+    }
   };
 
-  useEffect(() => {
-    return () => clearAllTimeouts();
-  }, []);
+  const handleMouseMove = (e: globalThis.MouseEvent) => {
+    if (animationStateRef.current !== "dragging" || !dragStartInfo.current) return;
+    
+    const dx = e.clientX - dragStartInfo.current.x;
+    const newLeft = dragStartInfo.current.left + dx;
+
+    setGliderStyle(prev => ({
+      ...prev,
+      transform: `translateX(${newLeft}px) translateY(-50%)`,
+      transition: "none", // No transition while dragging
+    }));
+  };
+
+  const handleMouseUp = (e: globalThis.MouseEvent) => {
+    window.removeEventListener("mousemove", handleMouseMove);
+    if (animationStateRef.current !== "dragging" || !dragStartInfo.current) return;
+    
+    const navEl = navRef.current;
+    if (!navEl) return;
+    const navRect = navEl.getBoundingClientRect();
+    const dropX = e.clientX - navRect.left;
+
+    let closestIndex = 0;
+    let minDistance = Infinity;
+
+    itemRefs.current.forEach((itemEl, index) => {
+      if (itemEl) {
+        const itemRect = itemEl.getBoundingClientRect();
+        const itemCenter = (itemRect.left - navRect.left) + itemRect.width / 2;
+        const distance = Math.abs(dropX - itemCenter);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestIndex = index;
+        }
+      }
+    });
+
+    const endItem = itemRefs.current[closestIndex];
+    if (endItem) {
+        const endRect = endItem.getBoundingClientRect();
+        const endWidth = Math.max(Math.round(endRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
+        const endLeft = endRect.left - navRect.left + (endRect.width - endWidth) / 2;
+        
+        setAnimationState("descending");
+
+        setGliderStyle(prev => ({
+            ...prev,
+            width: `${endWidth}px`,
+            transform: `translateX(${endLeft}px) translateY(-50%)`,
+            backgroundColor: "hsl(var(--primary))",
+            boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
+            transition: "transform 350ms cubic-bezier(0.22, 1, 0.36, 1), background-color 200ms ease-in, box-shadow 200ms ease-in, border 200ms ease-in, height 200ms ease-in, width 350ms cubic-bezier(0.22, 1, 0.36, 1)",
+            border: '1px solid transparent',
+            height: 'calc(100% - 12px)',
+        }));
+        
+        const navigationTimeout = setTimeout(() => {
+            if(closestIndex !== activeIndex) {
+                router.push(navItems[closestIndex].href);
+            }
+             setAnimationState("idle");
+        }, 350)
+
+        return () => clearTimeout(navigationTimeout);
+    }
+    
+    dragStartInfo.current = null;
+    if (animationStateRef.current !== "descending") {
+       setAnimationState("idle");
+    }
+  };
+
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-2">
@@ -187,9 +282,9 @@ export default function BottomNav() {
             "relative flex h-16 items-center justify-around rounded-full p-1 shadow-2xl shadow-black/20 ring-1 ring-white/60",
             isClearMode 
                 ? isLightClear 
-                    ? "bg-card/60" // Light Clear
-                    : "bg-white/10" // Dark Clear
-                : "bg-card" // Solid
+                    ? "bg-card/60"
+                    : "bg-white/10"
+                : "bg-card"
         )}
         style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
       >
@@ -198,6 +293,7 @@ export default function BottomNav() {
           style={{
             ...gliderStyle,
             visibility: hasMounted ? "visible" : "hidden",
+            willChange: 'transform, width, height, background-color',
           }}
         />
 
@@ -208,16 +304,17 @@ export default function BottomNav() {
               key={item.label}
               href={item.href}
               ref={getRef(index)}
-              onClick={(e) => handleNavClick(e, index)}
-              className="z-10 flex-1 flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2 transition-colors duration-300"
+              onMouseDown={(e) => handleMouseDown(e, index)}
+              onClick={(e) => e.preventDefault()} // Prevent default navigation
+              className="z-10 flex-1 flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2"
               prefetch={true}
             >
               <div
                 className={cn(
-                  "flex flex-col items-center",
+                  "flex flex-col items-center transition-colors duration-300",
                    isClearMode 
-                    ? (isActive ? "text-primary-foreground" : "text-slate-100 hover:text-white")
-                    : (isActive ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground")
+                    ? (isActive ? "text-primary-foreground" : "text-slate-100")
+                    : (isActive ? "text-primary-foreground" : "text-muted-foreground")
                 )}
               >
                 <item.icon className="h-6 w-6" />
