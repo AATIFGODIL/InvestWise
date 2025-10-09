@@ -171,7 +171,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice,
                   <Input
                     id="symbol"
                     placeholder="Select a symbol"
-                    className="pl-10"
+                    className="pl-10 focus-visible:ring-primary"
                     {...register("symbol")}
                     readOnly
                   />
@@ -195,8 +195,8 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice,
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+               <div className="space-y-2">
                 <Label htmlFor="action">Action</Label>
                 <Controller
                     name="action"
@@ -216,7 +216,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice,
               </div>
               <div className="space-y-2">
                 <Label htmlFor="quantity">Quantity</Label>
-                <Input id="quantity" type="number" step="any" {...register("quantity")} />
+                <Input id="quantity" type="number" step="any" {...register("quantity")} className="focus-visible:ring-primary" />
                  {errors.quantity && <p className="text-sm text-destructive">{errors.quantity.message}</p>}
               </div>
             </div>
