@@ -69,7 +69,7 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [isSigningUp, setIsSigningUp] = useState(false);
 
   const isLightClear = isClearMode && theme === 'light';
 
@@ -80,13 +80,17 @@ export default function SignUpPage() {
         return;
     }
     setError(null);
-    setLoading(true);
+    setIsSigningUp(true);
+    showLoading(); // Show global loading overlay immediately
+
     try {
+      // The signUp function will handle redirection on success.
+      // The loading overlay will be hidden by the layout component on navigation.
       await signUp(email, password, username);
-      // Redirect is handled by the useAuth hook after successful sign-up.
     } catch (err: any) {
+      // If there's an error, hide the loading screen and show the error message.
+      setIsSigningUp(false);
       setError(err.message);
-      setLoading(false);
     }
   };
 
@@ -130,7 +134,7 @@ export default function SignUpPage() {
               </Alert>
           )}
           <div className="grid gap-2">
-            <Button variant="outline" onClick={signInWithGoogle} disabled={loading} className="w-full">
+            <Button variant="outline" onClick={signInWithGoogle} disabled={isSigningUp} className="w-full">
                 <GoogleIcon /> Continue with Google
             </Button>
           </div>
@@ -152,7 +156,7 @@ export default function SignUpPage() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                disabled={loading}
+                disabled={isSigningUp}
               />
             </div>
             <div className="grid gap-2">
@@ -164,7 +168,7 @@ export default function SignUpPage() {
                 required 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
+                disabled={isSigningUp}
               />
             </div>
             <div className="grid gap-2">
@@ -177,7 +181,7 @@ export default function SignUpPage() {
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)}
                   className="pr-10"
-                  disabled={loading}
+                  disabled={isSigningUp}
                 />
                  <Button 
                   type="button" 
@@ -200,7 +204,7 @@ export default function SignUpPage() {
                   value={confirmPassword} 
                   onChange={(e) => setConfirmPassword(e.target.value)} 
                   className="pr-10"
-                  disabled={loading}
+                  disabled={isSigningUp}
                 />
                  <Button 
                   type="button" 
@@ -220,8 +224,8 @@ export default function SignUpPage() {
                 </Link>
                 .
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
+            <Button type="submit" className="w-full" disabled={isSigningUp}>
+              {isSigningUp ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Creating Account...
