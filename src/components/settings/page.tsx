@@ -34,11 +34,11 @@ interface ThemeCardProps {
 
 const ThemeCard: React.FC<ThemeCardProps> = ({ label, themeType, isClear = false, isSelected, onClick }) => {
   return (
-    <div className="text-center">
+    <div className="text-center flex flex-col items-center">
       <button
         onClick={onClick}
         className={cn(
-          "w-full h-20 rounded-lg p-2 transition-all duration-200",
+          "h-20 w-20 rounded-lg p-2 transition-all duration-200",
           isSelected ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : "ring-1 ring-border"
         )}
       >
