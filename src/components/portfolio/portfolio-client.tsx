@@ -14,6 +14,7 @@ import { createTransaction } from "@/app/actions";
 import { useAuth } from "@/hooks/use-auth";
 import { useMarketStore } from "@/store/market-store";
 import Watchlist from "../dashboard/watchlist";
+import { cn } from "@/lib/utils";
 
 export default function PortfolioClient() {
   const { toast } = useToast();
@@ -65,7 +66,7 @@ export default function PortfolioClient() {
         <div className="p-4 space-y-6 pb-24">
           <div className="flex justify-between items-center">
               <h1 className="text-2xl font-bold">Portfolio</h1>
-              <Button onClick={handleAddFunds}>
+              <Button onClick={handleAddFunds} className={cn("ring-1 ring-white/60")}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add $100 (Demo)
               </Button>
