@@ -46,28 +46,7 @@ export async function fetchStockNews(input: StockNewsInput): Promise<StockNewsOu
 const processNewsData = (data: any[], limit: number): z.infer<typeof StockNewsOutputSchema> | null => {
     if (!Array.isArray(data)) return null;
 
-    const sourceCounts: { [key: string]: number } = {};
-    const filteredData: any[] = [];
-    
-    // Filter out items that are likely just price updates or non-articles
-    const articleLikeData = data.filter(item => 
-        item.headline && item.url &&
-        !item.headline.toLowerCase().includes('price target') &&
-        !item.headline.toLowerCase().includes('stock alert') &&
-        !item.headline.toLowerCase().includes('options alert')
-    );
-
-    for (const item of articleLikeData) {
-        if (filteredData.length >= limit) break;
-        const source = item.source;
-        // Limit to 2 articles per source to increase variety
-        if ((sourceCounts[source] || 0) < 2) {
-            filteredData.push(item);
-            sourceCounts[source] = (sourceCounts[source] || 0) + 1;
-        }
-    }
-
-    const articles = filteredData.map((item: any) => ({
+    const articles = data.slice(0, limit).map((item: any) => ({
         headline: item.headline,
         source: item.source,
         url: item.url,
@@ -126,6 +105,12 @@ const fetchStockNewsFlow = ai.defineFlow(
         if (!companyResponse.ok) throw new Error(`Finnhub API request failed with status ${companyResponse.status}`);
         
         const companyArticles = await companyResponse.json();
+
+        // If no company articles are found, fall back to general news
+        if (companyArticles.length === 0) {
+            return await fetchGeneralNews();
+        }
+
         return processNewsData(companyArticles, companyNewsLimit);
 
       } else {
