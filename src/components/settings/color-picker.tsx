@@ -1,13 +1,14 @@
 
 "use client";
 
-import React, from "react";
+import React, { useEffect } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { RgbaColor, RgbaColorPicker } from "react-colorful";
 import { useAuth } from "@/hooks/use-auth";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { cn } from "@/lib/utils";
+import { useThemeStore } from "@/store/theme-store";
 
 function rgbaToHsl(rgba: RgbaColor): { h: number, s: number, l: number } {
     let { r, g, b } = rgba;
@@ -98,12 +99,14 @@ export default function ColorPicker() {
     const [hexValue, setHexValue] = React.useState(rgbaToHex(color));
     const { updateUserTheme } = useAuth();
     const debouncedColor = useDebounce(color, 200);
+    const { theme } = useThemeStore(); // Depend on theme to refetch color
 
-    React.useEffect(() => {
-        // On component mount, read the current primary color from CSS variables
+    useEffect(() => {
+        // On component mount or when theme changes, read the current primary color from CSS variables
         // and set the color picker's state to match it.
         if (typeof window !== 'undefined') {
             const root = document.documentElement;
+            // We read the computed style to ensure we get the currently active color
             const primaryHsl = getComputedStyle(root).getPropertyValue('--primary').trim();
             if (primaryHsl) {
                 const hex = hslStringToHex(primaryHsl);
@@ -114,7 +117,7 @@ export default function ColorPicker() {
                 }
             }
         }
-    }, []);
+    }, [theme]); // Re-run when the theme changes
 
     const handleColorChange = React.useCallback((newColor: RgbaColor) => {
         setColor(newColor);
@@ -130,7 +133,7 @@ export default function ColorPicker() {
         }
     };
     
-    React.useEffect(() => {
+    useEffect(() => {
         const hexColor = rgbaToHex(debouncedColor);
         const hslString = rgbaToHslString(debouncedColor);
         document.documentElement.style.setProperty('--primary', hslString);
