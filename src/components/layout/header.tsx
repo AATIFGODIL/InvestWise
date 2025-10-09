@@ -17,9 +17,15 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent
 } from "@/components/ui/dropdown-menu";
 import { useThemeStore } from "@/store/theme-store";
 import { cn } from "@/lib/utils";
+import useLoadingStore from "@/store/loading-store";
+import { useRouter } from "next/navigation";
+
 
 /**
  * The main header component for the application, displayed on most pages.
@@ -30,8 +36,17 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const { user, signOut } = useAuth();
   const { username, photoURL } = useUserStore();
   const { isClearMode, theme } = useThemeStore();
+  const { showLoading } = useLoadingStore();
+  const router = useRouter();
+
   
   const isLightClear = isClearMode && theme === 'light';
+
+  const handleNavigate = (e: React.MouseEvent, href: string) => {
+    e.preventDefault();
+    showLoading();
+    router.push(href);
+  };
 
   return (
     <>
@@ -51,6 +66,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             <Link 
               href="/dashboard" 
               className="flex h-full items-center rounded-full bg-primary px-4 shadow-md"
+              onClick={(e) => handleNavigate(e, '/dashboard')}
             >
               <h1 className="text-xl font-bold text-primary-foreground">
                 InvestWise
@@ -79,7 +95,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           <div className="flex items-center gap-1">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                   <Button variant="ghost" size="icon" className="group h-12 w-12 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-transparent">
+                   <Button variant="ghost" size="icon" className="group h-12 w-12 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-primary/10">
                       <Bell className={cn("h-5 w-5 transition-all bell-icon-glow", isClearMode && !isLightClear && "text-white")} />
                   </Button>
                 </DropdownMenuTrigger>
@@ -92,7 +108,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className={cn("relative h-12 w-12 rounded-full", isClearMode ? "hover:bg-white/10" : "")}>
+                  <Button variant="ghost" className={cn("relative h-12 w-12 rounded-full", isClearMode ? "hover:bg-white/10" : "hover:bg-primary/10")}>
                     <Avatar className="h-12 w-12 border-2 border-primary/50">
                       <AvatarImage src={photoURL || ''} alt={username} />
                       <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
@@ -110,18 +126,18 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
-                    <Link href="/profile">
-                      <DropdownMenuItem>
-                        <UserIcon className="mr-2 h-4 w-4" />
-                        <span>Profile</span>
-                      </DropdownMenuItem>
-                    </Link>
-                    <Link href="/settings">
-                      <DropdownMenuItem>
-                        <Settings className="mr-2 h-4 w-4" />
-                        <span>Settings</span>
-                      </DropdownMenuItem>
-                    </Link>
+                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Link href="/profile" className="w-full flex items-center">
+                            <UserIcon className="mr-2 h-4 w-4" />
+                            <span>Profile</span>
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Link href="/settings" className="w-full flex items-center">
+                            <Settings className="mr-2 h-4 w-4" />
+                            <span>Settings</span>
+                        </Link>
+                    </DropdownMenuItem>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={signOut}>
