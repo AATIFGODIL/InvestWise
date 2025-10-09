@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from "react";
-import { Search, Bell, Settings, LogOut, User as UserIcon } from "lucide-react";
+import { Search, Bell, Settings, LogOut, User as UserIcon, X, Briefcase, BarChart, Home, Repeat, Users, Star } from "lucide-react";
 import { CommandMenu } from "./command-menu";
 import { Button } from "../ui/button";
 import Link from "next/link";
@@ -17,19 +17,39 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent
 } from "@/components/ui/dropdown-menu";
 import { useThemeStore } from "@/store/theme-store";
 import { cn } from "@/lib/utils";
 import useLoadingStore from "@/store/loading-store";
 import { useRouter } from "next/navigation";
+import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
+import useChatbotStore from "@/store/chatbot-store";
+
+const appIcons: { [key: string]: React.ElementType } = {
+  home: Home, briefcase: Briefcase, repeat: Repeat, barChart: BarChart, users: Users, star: Star,
+};
+
+
+const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (fav: Favorite) => void }) => {
+  const Icon = appIcons[favorite.iconName] || null;
+  return (
+    <Button
+      className="h-12 w-12 rounded-full transition-all duration-300 ease-in-out bg-primary/20 hover:bg-primary/30 text-primary-foreground"
+      onClick={() => onSelect(favorite)}
+    >
+      {favorite.type === 'stock' ? (
+        <span className="font-bold text-sm">{favorite.iconName}</span>
+      ) : Icon ? (
+        <Icon className="h-6 w-6" />
+      ) : null}
+    </Button>
+  );
+};
 
 
 /**
  * The main header component for the application, displayed on most pages.
- * It provides a central search bar to open the command menu.
+ * It provides a central search bar to open the command menu and favorite actions.
  */
 export default function Header({ onTriggerRain }: { onTriggerRain: () => void }) {
   const [open, setOpen] = useState(false);
@@ -38,8 +58,9 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const { isClearMode, theme } = useThemeStore();
   const { showLoading } = useLoadingStore();
   const router = useRouter();
+  const { favorites } = useFavoritesStore();
+  const { openChatbot } = useChatbotStore();
 
-  
   const isLightClear = isClearMode && theme === 'light';
 
   const handleNavigate = (e: React.MouseEvent, href: string) => {
@@ -47,6 +68,21 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     showLoading();
     router.push(href);
   };
+  
+  const handleFavoriteSelect = (favorite: Favorite) => {
+    if (favorite.type === 'stock') {
+      showLoading();
+      router.push(`/trade?symbol=${favorite.value}`);
+    } else {
+        // Here you would map action names to functions
+        if (favorite.value.includes('Dashboard')) router.push('/dashboard');
+        if (favorite.value.includes('Portfolio')) router.push('/portfolio');
+        if (favorite.value.includes('Trade')) router.push('/trade');
+        if (favorite.value.includes('Goals')) router.push('/goals');
+        if (favorite.value.includes('Community')) router.push('/community');
+        if (favorite.value.includes('Ask InvestWise AI')) openChatbot();
+    }
+  }
 
   return (
     <>
@@ -56,9 +92,9 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             "relative flex h-16 items-center justify-between rounded-full p-1 px-2 text-primary-foreground shadow-lg",
              isClearMode 
                 ? isLightClear
-                    ? "bg-card/60 ring-1 ring-white/10" // Light Clear
-                    : "bg-white/10 ring-1 ring-white/60" // Dark Clear
-                : "bg-card ring-1 ring-white/60" // Solid
+                    ? "bg-card/60 ring-1 ring-white/10"
+                    : "bg-white/10 ring-1 ring-white/60"
+                : "bg-card ring-1 ring-white/60"
           )}
           style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
         >
@@ -74,15 +110,20 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             </Link>
           </div>
           
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+           <div className="group absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
+            {favorites[0] && (
+                <div className="transition-all duration-300 ease-in-out group-hover:-translate-x-16">
+                    <FavoriteItem favorite={favorites[0]} onSelect={handleFavoriteSelect} />
+                </div>
+            )}
             <button
               className={cn(
-                "flex h-12 w-48 items-center justify-center gap-2 rounded-full shadow-lg transition-colors md:w-72 hover:bg-primary/10",
+                "flex h-12 w-48 items-center justify-center gap-2 rounded-full shadow-lg transition-colors md:w-56 z-10 hover:bg-primary/10",
                 isClearMode
                     ? isLightClear
-                        ? "bg-card/60 text-foreground ring-1 ring-white/20" // Light Clear
-                        : "bg-white/10 text-slate-100 ring-1 ring-white/60" // Dark Clear
-                    : "bg-background text-foreground ring-1 ring-border" // Solid
+                        ? "bg-card/60 text-foreground ring-1 ring-white/20"
+                        : "bg-white/10 text-slate-100 ring-1 ring-white/60"
+                    : "bg-background text-foreground ring-1 ring-border"
               )}
               onClick={() => setOpen(true)}
               style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
@@ -90,6 +131,11 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 <Search className="h-5 w-5" />
                 <span className="hidden text-sm md:inline">Spotlight Search</span>
             </button>
+            {favorites[1] && (
+                <div className="transition-all duration-300 ease-in-out group-hover:translate-x-16">
+                    <FavoriteItem favorite={favorites[1]} onSelect={handleFavoriteSelect} />
+                </div>
+            )}
           </div>
           
           <div className="flex items-center gap-1">
@@ -115,7 +161,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" sideOffset={16} forceMount>
+                <DropdownMenuContent className="w-56 mt-4" align="end" sideOffset={16} forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">{username}</p>

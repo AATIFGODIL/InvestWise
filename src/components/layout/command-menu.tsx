@@ -33,6 +33,7 @@ import {
   BookOpen,
   Award,
   PartyPopper,
+  PlusCircle,
 } from "lucide-react";
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
@@ -58,6 +59,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { useUserStore } from "@/store/user-store";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
+import { useFavoritesStore } from "@/store/favorites-store";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -88,6 +92,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
   const { openChatbot } = useChatbotStore();
   const { addGoal } = useGoalStore();
   const { paymentMethodToken } = useUserStore();
+  const { addFavorite } = useFavoritesStore();
 
   const [view, setView] = useState<CommandView>("search");
   const [query, setQuery] = useState("");
@@ -101,7 +106,6 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
   const [isFetchingPrediction, setIsFetchingPrediction] = useState(false);
   const [isFetchingNews, setIsFetchingNews] = useState(false);
   
-  // State for dialogs triggered by commands
   const [isTradeDialogOpen, setIsTradeDialogOpen] = useState(false);
   const [tradeAction, setTradeAction] = useState<"buy" | "sell">("buy");
   const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
@@ -110,7 +114,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
   const [isAddingFunds, setIsAddingFunds] = useState(false);
 
 
-  // --- Data Fetching ---
+  // --- Data Fetching & State ---
 
   useEffect(() => {
     async function fetchStockData() {
@@ -137,22 +141,10 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
             const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
             if (!res.ok) throw new Error(`Failed for ${stock.symbol}`);
             const quote = await res.json();
-            return {
-                symbol: stock.symbol,
-                name: stock.name,
-                price: quote.c || 0,
-                change: quote.d || 0,
-                changePercent: quote.dp || 0,
-            };
+            return { symbol: stock.symbol, name: stock.name, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0 };
         } catch(error) {
             console.error(`Error fetching data for ${stock.symbol}:`, error);
-            return {
-                symbol: stock.symbol,
-                name: stock.name,
-                price: 0,
-                change: 0,
-                changePercent: 0,
-            };
+            return { symbol: stock.symbol, name: stock.name, price: 0, change: 0, changePercent: 0 };
         }
       });
 
@@ -165,62 +157,44 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
   }, [open, stocks.length]);
 
   const runCommand = useCallback(async (command: () => void | Promise<void>) => {
-    await command();
     onOpenChange(false);
+    await command();
   }, [onOpenChange]);
 
   const fetchStockDetails = (stock: StockData) => {
-    // Show detail view immediately
     setView("stock-detail");
     setSelectedStock(stock);
-
-    // Fetch prediction in the background
     setIsFetchingPrediction(true);
     setPrediction(null);
-    handleStockPrediction(stock.symbol).then(predictionResult => {
-        if (predictionResult.success && predictionResult.prediction) {
-            setPrediction(predictionResult.prediction);
-        }
+    handleStockPrediction(stock.symbol).then(res => {
+        if (res.success && res.prediction) setPrediction(res.prediction);
         setIsFetchingPrediction(false);
     });
-
-    // Fetch news in the background
     setIsFetchingNews(true);
     setNews(null);
-    handleStockNews(stock.symbol).then(newsResult => {
-        if (newsResult.success && newsResult.news) {
-            setNews(newsResult.news);
-        }
+    handleStockNews(stock.symbol).then(res => {
+        if (res.success && res.news) setNews(res.news);
         setIsFetchingNews(false);
     });
   };
 
   const handleStockSelect = useCallback((stockSymbol: string) => {
     const stock = stocks.find(s => s.symbol === stockSymbol);
-    if (stock) {
-        fetchStockDetails(stock);
-    }
+    if (stock) fetchStockDetails(stock);
   }, [stocks]);
 
   const handleGoBack = () => {
-    setView("search");
-    setQuery("");
-    setSelectedStock(null);
-    setPrediction(null);
-    setNews(null);
+    setView("search"); setQuery(""); setSelectedStock(null); setPrediction(null); setNews(null);
   };
 
   const handleBuySellClick = (action: "buy" | "sell") => {
-    setTradeAction(action);
-    setIsTradeDialogOpen(true);
+    setTradeAction(action); setIsTradeDialogOpen(true);
   }
 
   const handleAddFunds = async () => {
     if (!paymentMethodToken) {
       toast({
-        variant: "destructive",
-        title: "No Payment Method",
-        description: "Please add a payment method in your profile first.",
+        variant: "destructive", title: "No Payment Method", description: "Please add a payment method in your profile first.",
         action: <Button onClick={() => runCommand(() => { router.push('/profile'); })}>Go to Profile</Button>
       });
       return;
@@ -229,26 +203,29 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
     setIsAddingFunds(true);
     try {
       await createTransaction({ userId: user.uid, amount: fundsAmount });
-       toast({
-        title: "Funds Added!",
-        description: `$${fundsAmount} has been added to your account.`,
-      });
+      toast({ title: "Funds Added!", description: `$${fundsAmount} has been added to your account.` });
       setIsFundsDialogOpen(false);
     } catch (error: any) {
-       toast({
-        variant: "destructive",
-        title: "Failed to Add Funds",
-        description: error.message || "An unexpected error occurred.",
-      });
+      toast({ variant: "destructive", title: "Failed to Add Funds", description: error.message || "An unexpected error occurred." });
     } finally {
         setIsAddingFunds(false);
     }
   }
+  
+  const handleAddToFavorites = (item: {type: 'action' | 'stock', name: string, value: string, icon?: React.ElementType}) => {
+    addFavorite({
+      type: item.type,
+      name: item.name,
+      value: item.value,
+      iconName: item.icon ? (Object.entries(appIcons).find(([,Icon]) => Icon === item.icon)?.[0] || 'search') : item.value.charAt(0)
+    });
+    toast({ title: 'Favorite Added!', description: `${item.name} has been added to your favorites.` });
+  };
+  
+  const appIcons = { home: Home, briefcase: Briefcase, repeat: Repeat, barChart: BarChart, users: Users, users2: Users, trendingUp: TrendingUpIcon, star: Star, logOut: LogOut, user: User, settings: Settings, sun: Sun, moon: Moon, sparkles: Sparkles, creditCard: CreditCard, target: Target, history: History, brain: BrainCircuit, bookOpen: BookOpen, award: Award, party: PartyPopper, plus: PlusCircle };
 
   const appActions = useMemo(() => [
-      // Easter Egg
       { name: "Make it rain", keywords: "celebrate money win", onSelect: () => runCommand(onTriggerRain), icon: PartyPopper },
-      // Navigation
       { name: "Dashboard", keywords: "home explore main", onSelect: () => runCommand(() => router.push('/dashboard')), icon: Home },
       { name: "Portfolio", keywords: "holdings assets", onSelect: () => runCommand(() => router.push('/portfolio')), icon: Briefcase },
       { name: "Trade", keywords: "buy sell chart", onSelect: () => runCommand(() => router.push('/trade')), icon: Repeat },
@@ -257,19 +234,15 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
       { name: "View Leaderboard", keywords: "rankings top investors", onSelect: () => runCommand(() => router.push('/community?tab=feed')), icon: Users },
       { name: "View Community Trends", keywords: "popular stocks", onSelect: () => runCommand(() => router.push('/community?tab=trends')), icon: TrendingUpIcon },
       { name: "View Watchlist", keywords: "saved stocks favorites", onSelect: () => runCommand(() => router.push('/portfolio')), icon: Star },
-      // Account & Settings
       { name: "Sign Out", keywords: "log out exit", onSelect: () => runCommand(signOut), icon: LogOut },
       { name: "Profile", keywords: "account my info", onSelect: () => runCommand(() => router.push('/profile')), icon: User },
       { name: "Settings", keywords: "preferences options", onSelect: () => runCommand(() => router.push('/settings')), icon: Settings },
-      // Theme
       { name: `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`, keywords: "theme appearance", onSelect: () => runCommand(() => updateUserTheme({ theme: theme === 'dark' ? 'light' : 'dark' })), icon: theme === 'dark' ? Sun : Moon },
       { name: `${isClearMode ? 'Disable' : 'Enable'} Clear Mode`, keywords: "theme glass liquid transparent", onSelect: () => runCommand(() => updateUserTheme({ isClearMode: !isClearMode })), icon: Sparkles },
-      // Financial Actions
       { name: "Add Funds", keywords: "deposit money wallet", onSelect: () => runCommand(() => setIsFundsDialogOpen(true)), icon: CreditCard },
       { name: "Create New Goal", keywords: "new savings target", onSelect: () => runCommand(() => setIsGoalDialogOpen(true)), icon: Target },
       { name: "Set Up Auto-Invest", keywords: "recurring investment", onSelect: () => runCommand(() => router.push('/dashboard')), icon: Repeat },
       { name: "View Trade History", keywords: "transactions log", onSelect: () => runCommand(() => router.push('/portfolio')), icon: History },
-      // AI & Content
       { name: "Ask InvestWise AI", keywords: "chatbot help question", onSelect: () => runCommand(openChatbot), icon: BrainCircuit },
       { name: "Educational Content", keywords: "learn video articles", onSelect: () => runCommand(() => router.push('/dashboard')), icon: BookOpen },
       { name: "View My Certificate", keywords: "award achievement", onSelect: () => runCommand(() => router.push('/certificate')), icon: Award },
@@ -277,30 +250,19 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
 
   useEffect(() => {
     if (!open) {
-      const timer = setTimeout(() => {
-        handleGoBack();
-      }, 150);
+      const timer = setTimeout(() => { handleGoBack(); }, 150);
       return () => clearTimeout(timer);
     }
   }, [open]);
 
   const filteredStocks = useMemo(() => {
     if (!query) return stocks.slice(0, 5);
-    return stocks
-      .filter(
-        (stock) =>
-          stock.symbol.toLowerCase().includes(query.toLowerCase()) ||
-          stock.name.toLowerCase().includes(query.toLowerCase())
-      )
-      .slice(0, 5);
+    return stocks.filter(s => s.symbol.toLowerCase().includes(query.toLowerCase()) || s.name.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
   }, [query, stocks]);
 
   const filteredAppActions = useMemo(() => {
     if (!query) return [];
-    return appActions.filter(action => 
-        action.name.toLowerCase().includes(query.toLowerCase()) || 
-        action.keywords.toLowerCase().includes(query.toLowerCase())
-    );
+    return appActions.filter(a => a.name.toLowerCase().includes(query.toLowerCase()) || a.keywords.toLowerCase().includes(query.toLowerCase()));
   }, [query, appActions]);
 
   const selectedStockHolding = useMemo(() => {
@@ -308,264 +270,87 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
     return holdings.find(h => h.symbol === selectedStock.symbol);
   }, [selectedStock, holdings]);
 
+  const renderItemWithFavorites = (item: any, type: 'stock' | 'action') => {
+    const favoriteItem = type === 'stock'
+      ? { type: 'stock' as const, name: item.name, value: item.symbol }
+      : { type: 'action' as const, name: item.name, value: item.name, icon: item.icon };
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <CommandItem onSelect={() => type === 'stock' ? handleStockSelect(item.symbol) : item.onSelect()} onContextMenu={(e) => e.preventDefault()}>
+            {type === 'stock' ? (
+                <div className="flex justify-between items-center w-full">
+                    <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8 bg-background"><AvatarFallback>{item.symbol.charAt(0)}</AvatarFallback></Avatar>
+                        <div><p>{item.name}</p><p className="text-xs text-muted-foreground">{item.symbol}</p></div>
+                    </div>
+                    <div className="text-right"><p className="font-mono">${item.price.toFixed(2)}</p><p className={cn("text-xs", item.change >= 0 ? "text-green-500" : "text-red-500")}>{item.change.toFixed(2)} ({item.changePercent.toFixed(2)}%)</p></div>
+                </div>
+            ) : (
+                <><item.icon className="mr-2 h-4 w-4" /><span>{item.name}</span></>
+            )}
+          </CommandItem>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem onSelect={() => handleAddToFavorites(favoriteItem)}>
+            <PlusCircle className="mr-2 h-4 w-4" /> Add to Favorites
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
+
+
   if (!open) return null;
 
   return (
     <>
       <div className="fixed inset-0 z-50 bg-black/80" onClick={() => onOpenChange(false)} />
-      <div 
-        className="fixed inset-x-0 inset-y-0 z-50 flex items-center justify-center p-4 pt-24 pb-24"
-      >
-        <div 
-          className={cn(
-              "w-full max-w-lg overflow-hidden rounded-xl shadow-2xl",
-              isClearMode
-                ? "shadow-black/20 bg-white/10 ring-1 ring-white/60 border-0"
-                : "bg-popover border"
-          )}
-          style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
-        >
-          <div className={cn(
-              isClearMode ? "text-primary-foreground" : "text-popover-foreground"
-          )}>
-              <div className={cn(
-                  "flex items-center border-b px-3",
-                  isClearMode ? "border-border/50" : "border-border"
-              )}>
-                  {view === "stock-detail" ? (
-                      <Button variant="ghost" size="icon" className={cn("mr-2 h-8 w-8 shrink-0", isClearMode ? "hover:bg-white/10" : "")} onClick={handleGoBack}>
-                          <ArrowLeft className="h-4 w-4" />
-                      </Button>
-                  ) : (
-                      <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
-                  )}
-                  <CommandInput
-                      placeholder={view === 'search' ? "Search stocks or commands..." : `${selectedStock?.name} (${selectedStock?.symbol})`}
-                      onValueChange={setQuery}
-                      value={query}
-                      disabled={view === 'stock-detail'}
-                  />
-                  <Button variant="ghost" size="icon" className={cn("h-8 w-8 shrink-0", isClearMode ? "hover:bg-white/10" : "")} onClick={() => onOpenChange(false)}>
-                      <X className="h-4 w-4" />
-                  </Button>
+      <div className="fixed inset-x-0 inset-y-0 z-50 flex items-center justify-center p-4 pt-24 pb-24">
+        <div className={cn("w-full max-w-lg overflow-hidden rounded-xl shadow-2xl", isClearMode ? "shadow-black/20 bg-white/10 ring-1 ring-white/60 border-0" : "bg-popover border")} style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}>
+          <div className={cn(isClearMode ? "text-primary-foreground" : "text-popover-foreground")}>
+              <div className={cn("flex items-center border-b px-3", isClearMode ? "border-border/50" : "border-border")}>
+                  {view === "stock-detail" ? ( <Button variant="ghost" size="icon" className={cn("mr-2 h-8 w-8 shrink-0", isClearMode ? "hover:bg-white/10" : "")} onClick={handleGoBack}><ArrowLeft className="h-4 w-4" /></Button> ) : ( <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" /> )}
+                  <CommandInput placeholder={view === 'search' ? "Search stocks or commands..." : `${selectedStock?.name} (${selectedStock?.symbol})`} onValueChange={setQuery} value={query} disabled={view === 'stock-detail'} />
+                  <Button variant="ghost" size="icon" className={cn("h-8 w-8 shrink-0", isClearMode ? "hover:bg-white/10" : "")} onClick={() => onOpenChange(false)}><X className="h-4 w-4" /></Button>
               </div>
               
               {view === "search" && (
               <CommandList>
-                  {isFetchingStocks && query.length === 0 && (
-                      <div className="p-4 text-center text-sm text-muted-foreground">Loading stocks...</div>
-                  )}
-                  
+                  {isFetchingStocks && query.length === 0 && ( <div className="p-4 text-center text-sm text-muted-foreground">Loading stocks...</div> )}
                   {filteredStocks.length === 0 && filteredAppActions.length === 0 && !isFetchingStocks && <div className="py-6 text-center text-sm">No results found.</div>}
-
-                  {filteredStocks.length > 0 && (
-                  <div className="p-1">
-                      <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Stocks</div>
-                      {filteredStocks.map((stock) => (
-                      <CommandItem
-                          key={stock.symbol}
-                          onSelect={() => handleStockSelect(stock.symbol)}
-                      >
-                          <div className="flex justify-between items-center w-full">
-                              <div className="flex items-center gap-3">
-                                  <Avatar className="h-8 w-8 bg-background">
-                                      <AvatarFallback>{stock.symbol.charAt(0)}</AvatarFallback>
-                                  </Avatar>
-                                  <div>
-                                      <p>{stock.name}</p>
-                                      <p className="text-xs text-muted-foreground">{stock.symbol}</p>
-                                  </div>
-                              </div>
-                              <div className="text-right">
-                                  <p className="font-mono">${stock.price.toFixed(2)}</p>
-                                  <p className={cn("text-xs", stock.change >= 0 ? "text-green-500" : "text-red-500")}>
-                                      {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
-                                  </p>
-                              </div>
-                          </div>
-                      </CommandItem>
-                      ))}
-                  </div>
-                  )}
-
-                  {filteredAppActions.length > 0 && (
-                    <>
-                      <CommandSeparator />
-                      <div className="p-1">
-                        <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">App Actions</div>
-                        {filteredAppActions.map((action) => (
-                          <CommandItem
-                            key={action.name}
-                            onSelect={action.onSelect}
-                          >
-                            <action.icon className="mr-2 h-4 w-4" />
-                            <span>{action.name}</span>
-                          </CommandItem>
-                        ))}
-                      </div>
-                    </>
-                  )}
+                  {filteredStocks.length > 0 && (<div className="p-1"><div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Stocks</div>{filteredStocks.map((stock) => renderItemWithFavorites(stock, 'stock'))}</div>)}
+                  {filteredAppActions.length > 0 && (<><CommandSeparator /><div className="p-1"><div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">App Actions</div>{filteredAppActions.map((action) => renderItemWithFavorites(action, 'action'))}</div></>)}
               </CommandList>
               )}
 
               {view === 'stock-detail' && selectedStock && (
-                  <div className="p-2 text-sm overflow-y-auto max-h-[calc(70vh-50px)]">
-                      <div className="space-y-4">
-                          {/* Stock Header */}
-                          <div className="flex items-start gap-4 p-2 rounded-lg">
-                              <Avatar className="h-14 w-14 border-2 border-primary/20 bg-muted">
-                                  <AvatarFallback className="text-2xl">{selectedStock.symbol.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                  <h3 className="text-lg font-bold">{selectedStock.name}</h3>
-                                  <div className="flex items-baseline gap-2">
-                                      <p className="text-2xl font-bold">${selectedStock.price.toFixed(2)}</p>
-                                      <p className={cn("font-semibold flex items-center", selectedStock.change >= 0 ? "text-green-500" : "text-red-500")}>
-                                          {selectedStock.change >= 0 ? <TrendingUp className="h-4 w-4 mr-1"/> : <TrendingDown className="h-4 w-4 mr-1" />}
-                                          {selectedStock.change.toFixed(2)} ({selectedStock.changePercent.toFixed(2)}%)
-                                      </p>
-                                  </div>
-                              </div>
-                          </div>
-                          
-                          {/* Mini Chart */}
-                          <div className="h-40 w-full">
-                              <TradingViewMiniChart symbol={selectedStock.symbol} />
-                          </div>
-
-                          {/* Action Buttons */}
-                          <div className="space-y-2">
-                              <div className="grid grid-cols-2 gap-2">
-                                  <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white" onClick={() => handleBuySellClick('buy')}>
-                                      Buy
-                                  </Button>
-                                  <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => handleBuySellClick('sell')}>
-                                      Sell
-                                  </Button>
-                              </div>
-                              <Button variant="outline" size="sm" className="w-full" onClick={() => runCommand(() => router.push(`/trade?symbol=${selectedStock.symbol}`))}>
-                                  <Repeat className="mr-2 h-4 w-4" /> Go to Trade Page
-                              </Button>
-                              <Button variant="outline" size="sm" className="w-full" onClick={() => {
-                                  if (watchlist.includes(selectedStock.symbol)) { removeSymbol(selectedStock.symbol); toast({description: "Removed from watchlist."}); }
-                                  else { addSymbol(selectedStock.symbol); toast({description: "Added to watchlist."}); }
-                              }}>
-                                  <Star className={cn("mr-2 h-4 w-4", watchlist.includes(selectedStock.symbol) ? 'text-yellow-400 fill-yellow-400' : '')} /> 
-                                  {watchlist.includes(selectedStock.symbol) ? 'Remove from Watchlist' : 'Add to Watchlist'}
-                              </Button>
-                          </div>
-                          
-                          {selectedStockHolding && (
-                              <div>
-                                  <h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Building className="h-4 w-4" /> Your Holdings</h4>
-                                  <div className="p-3 rounded-lg bg-muted/50">
-                                      <div className="flex justify-between items-center">
-                                          <span className="font-medium">{selectedStockHolding.qty} Shares</span>
-                                          <span className="font-medium">Value: ${(selectedStockHolding.qty * selectedStock.price).toFixed(2)}</span>
-                                      </div>
-                                  </div>
-                              </div>
-                          )}
-                          
-                          {/* Prediction Section */}
-                          <div>
-                              <h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><BrainCircuit className="h-4 w-4" /> AI Prediction</h4>
-                              <div className="p-3 rounded-lg bg-muted/50 text-xs min-h-[60px] relative">
-                              {isFetchingPrediction ? (
-                                  <div className="flex items-center gap-2 text-muted-foreground">
-                                      <Loader2 className="h-4 w-4 animate-spin"/>
-                                      <span>Generating prediction...</span>
-                                  </div>
-                              ) : prediction ? (
-                                  <>
-                                      <div className="flex justify-between items-center mb-1">
-                                          <Badge className={cn("text-white", prediction.confidence === "High" ? "bg-green-500" : prediction.confidence === "Medium" ? "bg-yellow-500" : "bg-red-500")}>
-                                              {prediction.confidence} Confidence
-                                          </Badge>
-                                      </div>
-                                      <p className="whitespace-pre-wrap">{prediction.prediction}</p>
-                                  </>
-                              ) : (
-                                  <p className="text-muted-foreground">Could not load AI prediction.</p>
-                              )}
-                              </div>
-                          </div>
-
-                          {/* News Section */}
-                          <div>
-                              <h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Newspaper className="h-4 w-4" /> Recent News</h4>
-                              <div className="space-y-2">
-                                  {isFetchingNews ? (
-                                      <div className="flex items-center gap-2 text-muted-foreground text-xs p-2">
-                                          <Loader2 className="h-4 w-4 animate-spin"/>
-                                          <span>Fetching recent news...</span>
-                                      </div>
-                                  ) : news?.articles && news.articles.length > 0 ? (
-                                      news.articles.map((article, i) => (
-                                      <a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-muted/50 no-underline">
-                                          <p className="font-medium truncate leading-tight whitespace-pre-wrap">{article.headline}</p>
-                                          <p className="text-xs text-muted-foreground">{article.source}</p>
-                                      </a>
-                                  ))) : (
-                                      <div className="p-2 text-xs text-muted-foreground">No recent news found.</div>
-                                  )}
-                              </div>
-                          </div>
-
+                  <div className="p-2 text-sm overflow-y-auto max-h-[calc(70vh-50px)]"><div className="space-y-4">
+                      <div className="flex items-start gap-4 p-2 rounded-lg">
+                          <Avatar className="h-14 w-14 border-2 border-primary/20 bg-muted"><AvatarFallback className="text-2xl">{selectedStock.symbol.charAt(0)}</AvatarFallback></Avatar>
+                          <div><h3 className="text-lg font-bold">{selectedStock.name}</h3><div className="flex items-baseline gap-2"><p className="text-2xl font-bold">${selectedStock.price.toFixed(2)}</p><p className={cn("font-semibold flex items-center", selectedStock.change >= 0 ? "text-green-500" : "text-red-500")}>{selectedStock.change >= 0 ? <TrendingUp className="h-4 w-4 mr-1"/> : <TrendingDown className="h-4 w-4 mr-1" />} {selectedStock.change.toFixed(2)} ({selectedStock.changePercent.toFixed(2)}%)</p></div></div>
                       </div>
-                  </div>
+                      <div className="h-40 w-full"><TradingViewMiniChart symbol={selectedStock.symbol} /></div>
+                      <div className="space-y-2"><div className="grid grid-cols-2 gap-2">
+                          <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white" onClick={() => handleBuySellClick('buy')}>Buy</Button>
+                          <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => handleBuySellClick('sell')}>Sell</Button>
+                      </div>
+                      <Button variant="outline" size="sm" className="w-full" onClick={() => runCommand(() => router.push(`/trade?symbol=${selectedStock.symbol}`))}><Repeat className="mr-2 h-4 w-4" /> Go to Trade Page</Button>
+                      <Button variant="outline" size="sm" className="w-full" onClick={() => { if (watchlist.includes(selectedStock.symbol)) { removeSymbol(selectedStock.symbol); toast({description: "Removed from watchlist."}); } else { addSymbol(selectedStock.symbol); toast({description: "Added to watchlist."}); } }}><Star className={cn("mr-2 h-4 w-4", watchlist.includes(selectedStock.symbol) ? 'text-yellow-400 fill-yellow-400' : '')} /> {watchlist.includes(selectedStock.symbol) ? 'Remove from Watchlist' : 'Add to Watchlist'}</Button>
+                      </div>
+                      {selectedStockHolding && (<div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Building className="h-4 w-4" /> Your Holdings</h4><div className="p-3 rounded-lg bg-muted/50"><div className="flex justify-between items-center"><span className="font-medium">{selectedStockHolding.qty} Shares</span><span className="font-medium">Value: ${(selectedStockHolding.qty * selectedStock.price).toFixed(2)}</span></div></div></div>)}
+                      <div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><BrainCircuit className="h-4 w-4" /> AI Prediction</h4><div className="p-3 rounded-lg bg-muted/50 text-xs min-h-[60px] relative">{isFetchingPrediction ? (<div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/><span>Generating prediction...</span></div>) : prediction ? (<><div className="flex justify-between items-center mb-1"><Badge className={cn("text-white", prediction.confidence === "High" ? "bg-green-500" : prediction.confidence === "Medium" ? "bg-yellow-500" : "bg-red-500")}>{prediction.confidence} Confidence</Badge></div><p className="whitespace-pre-wrap">{prediction.prediction}</p></>) : (<p className="text-muted-foreground">Could not load AI prediction.</p>)}</div></div>
+                      <div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Newspaper className="h-4 w-4" /> Recent News</h4><div className="space-y-2">{isFetchingNews ? (<div className="flex items-center gap-2 text-muted-foreground text-xs p-2"><Loader2 className="h-4 w-4 animate-spin"/><span>Fetching recent news...</span></div>) : news?.articles && news.articles.length > 0 ? (news.articles.map((article, i) => (<a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-muted/50 no-underline"><p className="font-medium truncate leading-tight whitespace-pre-wrap">{article.headline}</p><p className="text-xs text-muted-foreground">{article.source}</p></a>))) : (<div className="p-2 text-xs text-muted-foreground">No recent news found.</div>)}</div></div>
+                  </div></div>
               )}
           </div>
         </div>
       </div>
 
-    {/* Dialogs for Actions */}
-    {selectedStock && (
-        <TradeDialogCMDK
-            isOpen={isTradeDialogOpen}
-            onOpenChange={setIsTradeDialogOpen}
-            symbol={selectedStock.symbol}
-            price={selectedStock.price}
-            action={tradeAction}
-        />
-    )}
-
-    <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}>
-        <DialogContent>
-            <CreateGoal onAddGoal={(goal) => {
-                addGoal(goal);
-                setIsGoalDialogOpen(false);
-            }} />
-        </DialogContent>
-    </Dialog>
-
-     <Dialog open={isFundsDialogOpen} onOpenChange={setIsFundsDialogOpen}>
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Add Funds</DialogTitle>
-                <DialogDescription>
-                    Your saved payment method will be charged.
-                </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                    <Label htmlFor="amount">Amount</Label>
-                    <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input id="amount" type="number" value={fundsAmount} onChange={(e) => setFundsAmount(e.target.value)} className="pl-8"/>
-                    </div>
-                </div>
-                <Button onClick={handleAddFunds} disabled={isAddingFunds} className="w-full">
-                    {isAddingFunds ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                    Confirm Deposit
-                </Button>
-            </div>
-        </DialogContent>
-    </Dialog>
+    {selectedStock && (<TradeDialogCMDK isOpen={isTradeDialogOpen} onOpenChange={setIsTradeDialogOpen} symbol={selectedStock.symbol} price={selectedStock.price} action={tradeAction} />)}
+    <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}><DialogContent><CreateGoal onAddGoal={(goal) => { addGoal(goal); setIsGoalDialogOpen(false); }} /></DialogContent></Dialog>
+    <Dialog open={isFundsDialogOpen} onOpenChange={setIsFundsDialogOpen}><DialogContent><DialogHeader><DialogTitle>Add Funds</DialogTitle><DialogDescription>Your saved payment method will be charged.</DialogDescription></DialogHeader><div className="space-y-4 py-4"><div className="space-y-2"><Label htmlFor="amount">Amount</Label><div className="relative"><DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input id="amount" type="number" value={fundsAmount} onChange={(e) => setFundsAmount(e.target.value)} className="pl-8"/></div></div><Button onClick={handleAddFunds} disabled={isAddingFunds} className="w-full">{isAddingFunds ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}Confirm Deposit</Button></div></DialogContent></Dialog>
     </>
   );
 }
-
-    
-
-    

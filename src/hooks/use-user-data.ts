@@ -13,6 +13,7 @@ import { useThemeStore } from "@/store/theme-store";
 import { usePrivacyStore } from "@/store/privacy-store";
 import { useTransactionStore } from '@/store/transaction-store';
 import { useWatchlistStore } from '@/store/watchlist-store';
+import { useFavoritesStore } from '@/store/favorites-store';
 
 function hexToRgba(hex: string): { r: number, g: number, b: number } {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -37,7 +38,6 @@ function getLuminance(hex: string): number {
 function setForegroundForContrast(hex: string) {
     if (typeof window === 'undefined') return;
     const luminance = getLuminance(hex);
-    // Use a higher threshold to allow more bright colors to have white text
     const newForeground = luminance > 0.6 ? '222.2 84% 4.9%' : '210 40% 98%';
     document.documentElement.style.setProperty('--primary-foreground', newForeground);
 }
@@ -102,7 +102,6 @@ export default function useUserData(user: User | null) {
           const transactions = userData.transactions || [];
           const primaryColor = userData.primaryColor || '#775DEF';
 
-          // Apply primary color and contrast from Firestore
           const hslString = hexToHslString(primaryColor);
           document.documentElement.style.setProperty('--primary', hslString);
           setForegroundForContrast(primaryColor);
@@ -117,6 +116,7 @@ export default function useUserData(user: User | null) {
           useAutoInvestStore.getState().loadAutoInvestments(userData.autoInvestments || []);
           useTransactionStore.getState().loadTransactions(transactions);
           useWatchlistStore.getState().loadWatchlist(userData.watchlist || []);
+          useFavoritesStore.getState().loadFavorites(userData.favorites || []);
           usePrivacyStore.getState().loadPrivacySettings({
               leaderboardVisibility: userData.leaderboardVisibility || "public",
               showQuests: userData.showQuests === undefined ? true : userData.showQuests,

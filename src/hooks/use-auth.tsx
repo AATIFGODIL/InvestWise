@@ -38,9 +38,7 @@ import useLoadingStore from "@/store/loading-store";
 import { useToast } from "./use-toast";
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useTransactionStore } from "@/store/transaction-store";
-
-// This file provides a centralized authentication context for the entire application.
-// It handles user sign-up, sign-in, sign-out, and session management.
+import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 
 interface AuthContextType {
   user: User | null;
@@ -54,6 +52,7 @@ interface AuthContextType {
   updateUserProfile: (data: { username?: string, photoURL?: string }) => Promise<void>;
   updateUserTheme: (themeData: { theme?: Theme, isClearMode?: boolean, primaryColor?: string }) => Promise<void>;
   updatePrivacySettings: (settings: Partial<Omit<PrivacyState, 'setLeaderboardVisibility' | 'setShowQuests' | 'loadPrivacySettings' | 'resetPrivacySettings'>>) => Promise<void>;
+  updateFavorites: (favorites: Favorite[]) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   verifyPasswordResetCode: (code: string) => Promise<string | null>;
   confirmPasswordReset: (code: string, newPassword: string) => Promise<void>;
@@ -61,13 +60,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-/**
- * Creates a new user document in Firestore upon first sign-up.
- * This function is idempotent, meaning it won't overwrite an existing user document.
- * @param user - The Firebase Auth user object.
- * @param additionalData - Optional data, like a username from the sign-up form.
- * @returns {Promise<{ isNew: boolean }>} - An object indicating if a new user was created.
- */
 const initializeUserDocument = async (user: User, additionalData: { username?: string } = {}) => {
   const userDocRef = doc(db, "users", user.uid);
   const userDoc = await getDoc(userDocRef);
@@ -78,7 +70,6 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
 
   const displayName = additionalData.username || user.displayName || "Investor";
 
-  // This is the default data structure for a new user in Firestore.
   const newUserDoc = {
     uid: user.uid,
     email: user.email,
@@ -86,7 +77,7 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
     photoURL: user.photoURL || "",
     theme: "light",
     isClearMode: false,
-    primaryColor: "#8B5CF6", // Default primary color
+    primaryColor: "#8B5CF6",
     leaderboardVisibility: "public",
     showQuests: true,
     createdAt: new Date(),
@@ -99,11 +90,11 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
     autoInvestments: [],
     watchlist: [],
     transactions: [],
+    favorites: [],
   };
 
   await setDoc(userDocRef, newUserDoc);
 
-  // Sync the display name and photo URL with Firebase Auth profile.
   if (auth.currentUser && (auth.currentUser.displayName !== displayName || auth.currentUser.photoURL !== user.photoURL)) {
     await updateProfile(auth.currentUser, { displayName, photoURL: user.photoURL || "" });
   }
@@ -120,8 +111,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [hydrating, setHydrating] = useState(true);
   const [isTokenReady, setIsTokenReady] = useState(false);
 
-  // This function resets all user-related state in Zustand stores.
-  // It's called on sign-out to ensure no data leaks between sessions.
   const resetAllStores = useCallback(() => {
     useUserStore.getState().reset();
     usePortfolioStore.getState().resetPortfolio();
@@ -132,18 +121,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     usePrivacyStore.getState().resetPrivacySettings();
     useWatchlistStore.getState().resetWatchlist();
     useTransactionStore.getState().resetTransactions();
+    useFavoritesStore.getState().resetFavorites();
   }, []);
 
 
   useEffect(() => {
-    // This listener is the core of the session management. It fires whenever
-    // the user's authentication state changes.
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       setIsTokenReady(!!firebaseUser);
 
       if (!firebaseUser) {
-        // If the user signs out, reset all stores and redirect to the sign-in page.
         resetAllStores();
         const isProtectedPage = !window.location.pathname.startsWith('/auth');
         if (isProtectedPage) {
@@ -156,8 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [router, hideLoading, resetAllStores]);
 
   const signUp = async (email: string, pass: string, username: string) => {
     try {
@@ -190,7 +176,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const result = await signInWithPopup(auth, provider);
         const { isNew } = await initializeUserDocument(result.user);
         
-        // Direct new users to the onboarding flow and existing users to the dashboard.
         if (isNew) {
             toast({ title: "Account Created!", description: "Your email is verified. Let's get you started." });
             router.push('/onboarding/quiz');
@@ -221,7 +206,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await handleSocialSignIn(provider);
   };
 
-  // Updates the user's profile information in both Firebase Auth and Firestore.
   const updateUserProfile = async (data: { username?: string, photoURL?: string }) => {
     if (!user) throw new Error("User not authenticated.");
     const userDocRef = doc(db, "users", user.uid);
@@ -229,27 +213,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await updateProfile(user, data);
   };
 
-  // Persists the user's theme preference to Firestore.
   const updateUserTheme = async (themeData: { theme?: Theme, isClearMode?: boolean, primaryColor?: string }) => {
-    // Update local Zustand store immediately for responsiveness
-    if (themeData.theme) {
-      useThemeStore.getState().setTheme(themeData.theme);
-    }
-    if (typeof themeData.isClearMode === 'boolean') {
-      useThemeStore.getState().setClearMode(themeData.isClearMode);
-    }
-    
-    // Persist to Firestore
+    if (themeData.theme) useThemeStore.getState().setTheme(themeData.theme);
+    if (typeof themeData.isClearMode === 'boolean') useThemeStore.getState().setClearMode(themeData.isClearMode);
     if (!user) return;
     const userDocRef = doc(db, "users", user.uid);
     await updateDoc(userDocRef, themeData);
   };
 
-  // Persists the user's privacy settings to Firestore.
   const updatePrivacySettings = async (settings: Partial<Omit<PrivacyState, any>>) => {
     if (!user) return;
     const userDocRef = doc(db, "users", user.uid);
     await updateDoc(userDocRef, settings);
+  };
+
+  const updateFavorites = async (favorites: Favorite[]) => {
+    if (!user) return;
+    const userDocRef = doc(db, "users", user.uid);
+    await updateDoc(userDocRef, { favorites });
   };
 
   const sendPasswordReset = async (email: string) => {
@@ -275,6 +256,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updateUserProfile,
         updateUserTheme,
         updatePrivacySettings,
+        updateFavorites,
         sendPasswordReset,
         verifyPasswordResetCode,
         confirmPasswordReset,
@@ -285,7 +267,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Custom hook to easily access the authentication context.
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
