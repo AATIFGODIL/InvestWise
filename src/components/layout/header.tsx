@@ -99,7 +99,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                       <Bell className={cn("h-5 w-5 transition-all bell-icon-glow", isClearMode && !isLightClear && "text-white")} />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-80" align="end">
+                <DropdownMenuContent className="w-80" align="end" sideOffset={16}>
                   <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem disabled className="p-3">You have no new notifications.</DropdownMenuItem>
