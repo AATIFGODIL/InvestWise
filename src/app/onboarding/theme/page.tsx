@@ -72,8 +72,7 @@ export default function OnboardingThemePage() {
 
   const handleThemeChange = (newTheme: "light" | "dark") => {
     setTheme(newTheme);
-    setClearMode(false); // Turn off clear mode when selecting a base theme
-    updateUserTheme({ theme: newTheme, isClearMode: false });
+    updateUserTheme({ theme: newTheme });
   };
 
   const handleClearModeToggle = () => {
@@ -107,13 +106,13 @@ export default function OnboardingThemePage() {
                         <ThemeCard
                             label="Light"
                             themeType="light"
-                            isSelected={theme === 'light' && !isClearMode}
+                            isSelected={theme === 'light'}
                             onClick={() => handleThemeChange('light')}
                         />
                         <ThemeCard
                             label="Dark"
                             themeType="dark"
-                            isSelected={theme === 'dark' && !isClearMode}
+                            isSelected={theme === 'dark'}
                             onClick={() => handleThemeChange('dark')}
                         />
                         <ThemeCard
