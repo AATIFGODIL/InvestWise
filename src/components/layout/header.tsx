@@ -36,7 +36,7 @@ const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (f
     <motion.button
       layout
       className={cn(
-        "rounded-full transition-all duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12",
+        "rounded-full transition-all duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center h-12 w-12",
         isClearMode
             ? isLightClear
                 ? "bg-card/60 text-foreground ring-1 ring-white/20"
@@ -51,14 +51,14 @@ const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (f
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
     >
       {favorite.type === 'stock' && favorite.logoUrl ? (
-          <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
+          <Avatar className="h-8 w-8">
               <AvatarImage src={favorite.logoUrl} alt={favorite.name} />
-              <AvatarFallback className="text-xs sm:text-sm">{favorite.iconName}</AvatarFallback>
+              <AvatarFallback className="text-sm">{favorite.iconName}</AvatarFallback>
           </Avatar>
       ) : favorite.type === 'stock' ? (
-          <span className="font-bold text-xs sm:text-sm">{favorite.iconName}</span>
+          <span className="font-bold text-sm">{favorite.iconName}</span>
       ) : Icon ? (
-        <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+        <Icon className="h-6 w-6" />
       ) : null}
     </motion.button>
   );
@@ -119,7 +119,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   }
   
   const displayedFavorites = isMobile ? favorites.slice(0, 2) : favorites;
-  const favoritesWidth = displayedFavorites.length > 0 ? (displayedFavorites.length * (isMobile ? 48 : 48)) + ((displayedFavorites.length) * 8) : 0;
+  const favoritesWidth = displayedFavorites.length > 0 ? (displayedFavorites.length * (48)) + ((displayedFavorites.length) * 8) : 0;
 
 
   return (
@@ -139,10 +139,10 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           <div className="flex h-full items-center font-semibold">
             <Link 
               href="/dashboard" 
-              className="flex h-full items-center rounded-full bg-primary px-2 sm:px-4 shadow-md"
+              className="flex h-full items-center rounded-full bg-primary px-3 sm:px-4 shadow-md"
               onClick={(e) => handleNavigate(e, '/dashboard')}
             >
-              <h1 className="text-lg sm:text-xl font-bold text-primary-foreground">
+              <h1 className="text-lg font-bold text-primary-foreground">
                 InvestWise
               </h1>
             </Link>
