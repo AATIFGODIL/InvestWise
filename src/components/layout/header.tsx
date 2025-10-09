@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React from 'react';
@@ -50,8 +51,13 @@ const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (f
       exit={{ opacity: 0, scale: 0.5 }}
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
     >
-      {favorite.type === 'stock' ? (
-        <span className="font-bold text-sm">{favorite.iconName}</span>
+      {favorite.type === 'stock' && favorite.logoUrl ? (
+          <Avatar className="h-8 w-8">
+              <AvatarImage src={favorite.logoUrl} alt={favorite.name} />
+              <AvatarFallback>{favorite.iconName}</AvatarFallback>
+          </Avatar>
+      ) : favorite.type === 'stock' ? (
+          <span className="font-bold text-sm">{favorite.iconName}</span>
       ) : Icon ? (
         <Icon className="h-6 w-6" />
       ) : null}

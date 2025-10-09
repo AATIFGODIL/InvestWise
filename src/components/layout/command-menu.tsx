@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
@@ -62,6 +63,7 @@ import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
+const LOGOKIT_TOKEN = "pk_fr7a1b76952087586937fa";
 
 interface StockData {
   symbol: string;
@@ -69,6 +71,7 @@ interface StockData {
   price: number;
   change: number;
   changePercent: number;
+  logoUrl: string;
 }
 
 interface CommandMenuProps {
@@ -125,30 +128,32 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
       const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
 
       setIsFetchingStocks(true);
-      if (!isApiKeyValid) {
-        console.warn("Finnhub API key not configured. Using simulated stock data for search.");
-        const simulatedStocks = stockList.map(stock => ({
-            ...stock,
-            price: parseFloat((Math.random() * 500).toFixed(2)),
-            change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
-            changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
-        }))
-        setStocks(simulatedStocks);
-        setIsFetchingStocks(false);
-        return;
-      }
       
       const promises = stockList.map(async (stock) => {
-        try {
-            const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
-            if (!res.ok) throw new Error(`Failed for ${stock.symbol}`);
-            const quote = await res.json();
-            return { symbol: stock.symbol, name: stock.name, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0 };
-        } catch(error) {
-            console.error(`Error fetching data for ${stock.symbol}:`, error);
-            return { symbol: stock.symbol, name: stock.name, price: 0, change: 0, changePercent: 0 };
-        }
+          const logoUrl = `https://img.logokit.com/${stock.domain}?token=${LOGOKIT_TOKEN}`;
+          if (!isApiKeyValid) {
+             return {
+                ...stock,
+                price: parseFloat((Math.random() * 500).toFixed(2)),
+                change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
+                changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
+                logoUrl,
+            }
+          }
+          try {
+              const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
+              if (!res.ok) throw new Error(`Failed for ${stock.symbol}`);
+              const quote = await res.json();
+              return { ...stock, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0, logoUrl };
+          } catch(error) {
+              console.error(`Error fetching data for ${stock.symbol}:`, error);
+              return { ...stock, price: 0, change: 0, changePercent: 0, logoUrl };
+          }
       });
+      
+      if (!isApiKeyValid) {
+        console.warn("Finnhub API key not configured. Using simulated stock data for search.");
+      }
 
       const results = (await Promise.all(promises)).filter(Boolean) as StockData[];
       setStocks(results);
@@ -221,7 +226,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     }
   }
   
-  const handleToggleFavorite = (e: React.MouseEvent, item: {type: 'action' | 'stock', name: string, value: string, icon?: React.ElementType}) => {
+  const handleToggleFavorite = (e: React.MouseEvent, item: {type: 'action' | 'stock', name: string, value: string, icon?: React.ElementType, logoUrl?: string}) => {
     e.stopPropagation();
     const isFavorite = favorites.some(fav => fav.value === item.value);
 
@@ -233,7 +238,8 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
         type: item.type,
         name: item.name,
         value: item.value,
-        iconName: item.icon ? (Object.entries(appIcons).find(([,Icon]) => Icon === item.icon)?.[0] || 'search') : item.value.charAt(0)
+        iconName: item.icon ? (Object.entries(appIcons).find(([,Icon]) => Icon === item.icon)?.[0] || 'search') : item.value.charAt(0),
+        logoUrl: item.logoUrl,
       }
       addFavorite(favoriteItem);
       toast({ title: 'Favorite Added!', description: `${item.name} has been added to your favorites.` });
@@ -311,12 +317,15 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
                       <CommandItem key={stock.symbol} onSelect={() => handleStockSelect(stock.symbol)}>
                         <div className="flex justify-between items-center w-full">
                             <div className="flex items-center gap-3">
-                                <Avatar className="h-8 w-8 bg-background"><AvatarFallback>{stock.symbol.charAt(0)}</AvatarFallback></Avatar>
+                                <Avatar className="h-8 w-8 bg-background">
+                                    <AvatarImage src={stock.logoUrl} alt={stock.name} />
+                                    <AvatarFallback>{stock.symbol.charAt(0)}</AvatarFallback>
+                                </Avatar>
                                 <div><p>{stock.name}</p><p className="text-xs text-muted-foreground">{stock.symbol}</p></div>
                             </div>
                             <div className="text-right"><p className="font-mono">${stock.price.toFixed(2)}</p><p className={cn("text-xs", stock.change >= 0 ? "text-green-500" : "text-red-500")}>{stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)</p></div>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 ml-2 group" onClick={(e) => handleToggleFavorite(e, {type: 'stock', name: stock.name, value: stock.symbol})}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 ml-2 group" onClick={(e) => handleToggleFavorite(e, {type: 'stock', name: stock.name, value: stock.symbol, logoUrl: stock.logoUrl})}>
                           <Star className={cn("h-4 w-4 text-muted-foreground group-hover:text-yellow-400", favorites.some(f => f.value === stock.symbol) && "text-yellow-400 fill-yellow-400")} />
                         </Button>
                       </CommandItem>
@@ -344,7 +353,10 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
               {view === 'stock-detail' && selectedStock && (
                   <div className="p-2 text-sm overflow-y-auto max-h-[calc(70vh-50px)]"><div className="space-y-4">
                       <div className="flex items-start gap-4 p-2 rounded-lg">
-                          <Avatar className="h-14 w-14 border-2 border-primary/20 bg-muted"><AvatarFallback className="text-2xl">{selectedStock.symbol.charAt(0)}</AvatarFallback></Avatar>
+                          <Avatar className="h-14 w-14 border-2 border-primary/20 bg-muted">
+                            <AvatarImage src={selectedStock.logoUrl} alt={selectedStock.name} />
+                            <AvatarFallback className="text-2xl">{selectedStock.symbol.charAt(0)}</AvatarFallback>
+                          </Avatar>
                           <div><h3 className="text-lg font-bold">{selectedStock.name}</h3><div className="flex items-baseline gap-2"><p className="text-2xl font-bold">${selectedStock.price.toFixed(2)}</p><p className={cn("font-semibold flex items-center", selectedStock.change >= 0 ? "text-green-500" : "text-red-500")}>{selectedStock.change >= 0 ? <TrendingUp className="h-4 w-4 mr-1"/> : <TrendingDown className="h-4 w-4 mr-1" />} {selectedStock.change.toFixed(2)} ({selectedStock.changePercent.toFixed(2)}%)</p></div></div>
                       </div>
                       <div className="h-40 w-full"><TradingViewMiniChart symbol={selectedStock.symbol} /></div>

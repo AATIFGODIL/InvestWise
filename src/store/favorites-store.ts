@@ -1,4 +1,5 @@
 
+
 import { create } from 'zustand';
 import { useAuth } from '@/hooks/use-auth';
 import { doc, updateDoc, getFirestore } from 'firebase/firestore';
@@ -9,6 +10,7 @@ export interface Favorite {
     name: string;
     value: string; // symbol for stock, name for action
     iconName: string;
+    logoUrl?: string; // Add this line
 }
 
 interface FavoritesState {
