@@ -66,6 +66,7 @@ export default function AiPrediction() {
                     placeholder="e.g. AAPL"
                     value={symbol}
                     onChange={(e) => setSymbol(e.target.value.toUpperCase())}
+                    className="focus-visible:ring-primary"
                 />
             </div>
             <div className="self-end">
