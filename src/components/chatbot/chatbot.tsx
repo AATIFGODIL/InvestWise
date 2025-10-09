@@ -153,6 +153,7 @@ export default function Chatbot() {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask a question..."
                 autoComplete="off"
+                className="focus-visible:ring-primary"
               />
               <Button type="submit" size="icon" disabled={!input.trim()}>
                 <Send className="h-4 w-4" />
