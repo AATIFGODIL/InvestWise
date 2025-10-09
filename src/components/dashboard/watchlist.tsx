@@ -1,23 +1,16 @@
 
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, Loader2, Trash2, TrendingUp, TrendingDown } from "lucide-react";
+import { Star, Loader2, Trash2 } from "lucide-react";
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 import useLoadingStore from "@/store/loading-store";
+import { useThemeStore } from "@/store/theme-store";
+import TradeDialogCMDK from "../trade/trade-dialog-cmdk";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -34,6 +27,11 @@ export default function Watchlist() {
     const { showLoading } = useLoadingStore();
     const [isLoading, setIsLoading] = useState(false);
     const [watchlistData, setWatchlistData] = useState<WatchlistItemData[]>([]);
+    const { isClearMode } = useThemeStore();
+
+    // State for the trade dialog
+    const [isTradeDialogOpen, setIsTradeDialogOpen] = useState(false);
+    const [selectedStock, setSelectedStock] = useState<{symbol: string, price: number} | null>(null);
 
     useEffect(() => {
         const fetchWatchlistData = async () => {
@@ -81,18 +79,27 @@ export default function Watchlist() {
         fetchWatchlistData();
     }, [watchlist]);
 
-    const handleRemove = (symbol: string) => {
+    const handleRemove = (e: React.MouseEvent, symbol: string) => {
+        e.stopPropagation(); // Prevent the trade dialog from opening
         removeSymbol(symbol);
         toast({
             description: `${symbol} removed from your watchlist.`,
         });
     };
 
-    const handleTradeClick = (symbol: string) => {
-        showLoading();
-        window.location.href = `/trade?symbol=${symbol}`;
-    }
-
+    const handleTradeClick = (item: WatchlistItemData) => {
+        if (item.price !== null) {
+            setSelectedStock({ symbol: item.symbol, price: item.price });
+            setIsTradeDialogOpen(true);
+        } else {
+            toast({
+                variant: 'destructive',
+                title: "Price Unavailable",
+                description: "Cannot trade without a current price."
+            });
+        }
+    };
+    
     if (watchlist.length === 0) {
         return (
             <Card>
@@ -111,49 +118,69 @@ export default function Watchlist() {
     }
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5 text-primary" />
-                    My Watchlist
-                </CardTitle>
-                <CardDescription>Track the performance of stocks you are interested in.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                {isLoading ? (
-                    <div className="flex justify-center items-center h-24">
-                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                    </div>
-                ) : (
-                    <div className="space-y-2">
-                        {watchlistData.map((item) => {
-                            const isPositive = item.change !== null && item.change >= 0;
-                            return (
-                                <div key={item.symbol} className="p-3 rounded-lg transition-colors border border-transparent hover:border-border hover:bg-muted/50">
-                                    <div className="flex items-center justify-between gap-4">
-                                        <div className="font-bold">{item.symbol}</div>
-                                        <div className="text-right font-mono">
-                                            {item.price !== null ? `$${item.price.toFixed(2)}` : 'N/A'}
-                                        </div>
-                                        <div className={cn("text-right hidden sm:block", isPositive ? "text-green-500" : "text-red-500")}>
-                                            {item.change !== null && item.changePercent !== null 
-                                                ? `${item.change.toFixed(2)} (${item.changePercent.toFixed(2)}%)` 
-                                                : 'N/A'
-                                            }
-                                        </div>
-                                        <div className="flex gap-2 justify-center">
-                                            <Button size="sm" onClick={() => handleTradeClick(item.symbol)}>Trade</Button>
-                                            <Button variant="ghost" size="icon" onClick={() => handleRemove(item.symbol)}>
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
+        <>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Star className="h-5 w-5 text-primary" />
+                        My Watchlist
+                    </CardTitle>
+                    <CardDescription>Track the performance of stocks you are interested in.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {isLoading ? (
+                        <div className="flex justify-center items-center h-24">
+                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            {watchlistData.map((item) => {
+                                const isPositive = item.change !== null && item.change >= 0;
+                                return (
+                                    <div
+                                        key={item.symbol}
+                                        className={cn(
+                                            "group p-3 rounded-lg transition-colors border border-transparent cursor-pointer",
+                                            "hover:bg-muted/50",
+                                            isClearMode ? "hover:border-white/20" : "hover:border-border"
+                                        )}
+                                        onClick={() => handleTradeClick(item)}
+                                    >
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div className="font-bold">{item.symbol}</div>
+                                            <div className="text-right font-mono">
+                                                {item.price !== null ? `$${item.price.toFixed(2)}` : 'N/A'}
+                                            </div>
+                                            <div className={cn("text-right hidden sm:block", isPositive ? "text-green-500" : "text-red-500")}>
+                                                {item.change !== null && item.changePercent !== null
+                                                    ? `${item.change.toFixed(2)} (${item.changePercent.toFixed(2)}%)`
+                                                    : 'N/A'
+                                                }
+                                            </div>
+                                            <div className="flex gap-2 justify-center">
+                                                <Button size="sm" onClick={() => handleTradeClick(item)}>Trade</Button>
+                                                <Button variant="ghost" size="icon" onClick={(e) => handleRemove(e, item.symbol)}>
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-            </CardContent>
-        </Card>
+                                );
+                            })}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            {selectedStock && (
+                <TradeDialogCMDK
+                    isOpen={isTradeDialogOpen}
+                    onOpenChange={setIsTradeDialogOpen}
+                    symbol={selectedStock.symbol}
+                    price={selectedStock.price}
+                    action={"buy"} // Default to 'buy', user can change in the dialog
+                />
+            )}
+        </>
     );
 }

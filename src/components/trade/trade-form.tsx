@@ -146,7 +146,13 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice,
 
     setIsPreviewOpen(false);
     setPreviewData(null);
-    reset();
+    reset({
+      symbol: selectedSymbol || "",
+      action: initialAction || "buy",
+      quantity: 0,
+      orderType: "market",
+      duration: "day-only",
+    });
   };
 
   return (
@@ -164,7 +170,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice,
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                   <Input
                     id="symbol"
-                    placeholder="Select a symbol from the list above"
+                    placeholder="Select a symbol"
                     className="pl-10"
                     {...register("symbol")}
                     readOnly
@@ -178,12 +184,12 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice,
                     {loadingPrice ? (
                       <div className="flex items-center text-muted-foreground">
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Fetching price...
+                        Fetching...
                       </div>
                     ) : selectedPrice ? (
                       <span className="font-mono">${selectedPrice.toFixed(2)}</span>
                     ) : (
-                      <span className="text-muted-foreground">Price unavailable</span>
+                      <span className="text-muted-foreground">Unavailable</span>
                     )}
                   </div>
               </div>
@@ -191,14 +197,12 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice,
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="action" className="flex items-center gap-1">
-                  Action
-                </Label>
+                <Label htmlFor="action">Action</Label>
                 <Controller
                     name="action"
                     control={control}
                     render={({ field }) => (
-                         <Select onValueChange={field.onChange} value={field.value} disabled={!!initialAction}>
+                         <Select onValueChange={field.onChange} value={field.value}>
                             <SelectTrigger id="action">
                                 <SelectValue placeholder="Select action" />
                             </SelectTrigger>
@@ -219,7 +223,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice,
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="order-type" className="flex items-center gap-1">
+                <Label htmlFor="order-type">
                   Order Type
                 </Label>
                 <Controller
@@ -250,7 +254,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice,
               )}
             </div>
              <div className="space-y-2">
-                <Label htmlFor="duration" className="flex items-center gap-1">
+                <Label htmlFor="duration">
                     Duration
                 </Label>
                  <Controller
