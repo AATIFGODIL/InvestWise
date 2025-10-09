@@ -36,7 +36,7 @@ const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (f
     <motion.button
       layout
       className={cn(
-        "h-12 w-12 rounded-full transition-all duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center",
+        "rounded-full transition-all duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center h-10 w-10 sm:h-12 sm:w-12",
         isClearMode
             ? isLightClear
                 ? "bg-card/60 text-foreground ring-1 ring-white/20"
@@ -51,14 +51,14 @@ const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (f
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
     >
       {favorite.type === 'stock' && favorite.logoUrl ? (
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
               <AvatarImage src={favorite.logoUrl} alt={favorite.name} />
-              <AvatarFallback>{favorite.iconName}</AvatarFallback>
+              <AvatarFallback className="text-xs sm:text-sm">{favorite.iconName}</AvatarFallback>
           </Avatar>
       ) : favorite.type === 'stock' ? (
-          <span className="font-bold text-sm">{favorite.iconName}</span>
+          <span className="font-bold text-xs sm:text-sm">{favorite.iconName}</span>
       ) : Icon ? (
-        <Icon className="h-6 w-6" />
+        <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
       ) : null}
     </motion.button>
   );
@@ -80,6 +80,14 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const { openChatbot } = useChatbotStore();
   const [isHovered, setIsHovered] = React.useState(false);
   const [initialStock, setInitialStock] = React.useState<string | undefined>(undefined);
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const isLightClear = isClearMode && theme === 'light';
 
@@ -109,8 +117,10 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
         }
     }
   }
+  
+  const displayedFavorites = isMobile ? favorites.slice(0, 2) : favorites;
+  const favoritesWidth = displayedFavorites.length > 0 ? (displayedFavorites.length * (isMobile ? 40 : 48)) + ((displayedFavorites.length) * 8) : 0;
 
-  const favoritesWidth = favorites.length > 0 ? (favorites.length * 48) + ((favorites.length) * 8) : 0;
 
   return (
     <>
@@ -161,7 +171,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 </motion.button>
               </motion.div>
                 <AnimatePresence>
-                {isHovered && favorites.length > 0 && (
+                {((isHovered && !isMobile) || isMobile) && displayedFavorites.length > 0 && (
                   <motion.div 
                     className="flex items-center"
                     initial={{ width: 0, opacity: 0 }}
@@ -171,7 +181,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                       <motion.div
                         className="flex items-center gap-2 pl-2"
                       >
-                        {favorites.map((fav) => (
+                        {displayedFavorites.map((fav) => (
                            <FavoriteItem key={fav.value} favorite={fav} onSelect={handleFavoriteSelect} />
                         ))}
                       </motion.div>
