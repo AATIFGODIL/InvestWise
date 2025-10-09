@@ -1,5 +1,4 @@
 
-
 import { create } from 'zustand';
 import { useAuth } from '@/hooks/use-auth';
 import { doc, updateDoc, getFirestore } from 'firebase/firestore';
@@ -10,7 +9,7 @@ export interface Favorite {
     name: string;
     value: string; // symbol for stock, name for action
     iconName: string;
-    logoUrl?: string; // Add this line
+    logoUrl?: string;
 }
 
 interface FavoritesState {
@@ -41,8 +40,8 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
         // Prevent duplicates
         if (currentFavorites.some(f => f.value === favorite.value)) return;
         
-        // Keep only the newest favorite, so the array length is max 2
-        const updatedFavorites = [favorite, ...currentFavorites].slice(0, 2);
+        // Keep only the newest favorites, so the array length is max 4
+        const updatedFavorites = [favorite, ...currentFavorites].slice(0, 4);
         set({ favorites: updatedFavorites });
         updateFavoritesInFirestore(updatedFavorites);
     },

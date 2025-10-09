@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React from 'react';
@@ -35,7 +34,7 @@ const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (f
   
   return (
     <motion.button
-      layoutId={`favorite-${favorite.value}`}
+      layout
       className={cn(
         "h-12 w-12 rounded-full transition-all duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center",
         isClearMode
@@ -111,6 +110,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     }
   }
 
+  const favoritesWidth = favorites.length > 0 ? (favorites.length * 48) + ((favorites.length) * 8) : 0;
+
   return (
     <>
       <div className="fixed top-0 left-0 right-0 z-30 p-2">
@@ -142,8 +143,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
+              <motion.div layout="position" className="relative z-10">
                 <motion.button
-                    layout
                     className={cn(
                         "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg",
                         isClearMode
@@ -154,24 +155,21 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                     )}
                     onClick={() => setOpen(true)}
                     style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     >
                     <Search className="h-5 w-5" />
                     <span className="hidden text-sm md:inline">Spotlight Search</span>
                 </motion.button>
+              </motion.div>
                 <AnimatePresence>
-                {isHovered && (
+                {isHovered && favorites.length > 0 && (
                   <motion.div 
                     className="flex items-center"
                     initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: 'auto', opacity: 1 }}
-                    exit={{ width: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    animate={{ width: favoritesWidth, opacity: 1, transition: { delay: 0.1, duration: 0.2 } }}
+                    exit={{ width: 0, opacity: 0, transition: { duration: 0.2 } }}
                   >
                       <motion.div
                         className="flex items-center gap-2 pl-2"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1, transition: { delay: 0.1 } }}
                       >
                         {favorites.map((fav) => (
                            <FavoriteItem key={fav.value} favorite={fav} onSelect={handleFavoriteSelect} />
