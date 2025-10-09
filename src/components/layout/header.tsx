@@ -25,32 +25,31 @@ import { useRouter } from "next/navigation";
 import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 import useChatbotStore from "@/store/chatbot-store";
 import { appIcons } from "@/components/layout/command-menu";
+import { motion, AnimatePresence } from 'framer-motion';
 
 const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (fav: Favorite) => void }) => {
   const Icon = appIcons[favorite.iconName] || null;
-  const { isClearMode, theme } = useThemeStore();
-  const isLightClear = isClearMode && theme === 'light';
-
+  
   return (
-    <Button
+    <motion.button
+      layoutId={`favorite-${favorite.value}`}
       variant="ghost"
       className={cn(
-        "h-12 w-12 rounded-full transition-all duration-300 ease-in-out focus-visible:ring-0",
-        isClearMode
-            ? isLightClear
-                ? "bg-card/60 text-foreground ring-1 ring-white/20 hover:bg-primary/10"
-                : "bg-white/10 text-slate-100 ring-1 ring-white/60 hover:bg-primary/10"
-            : "bg-background text-foreground ring-1 ring-border hover:bg-primary/10"
+        "h-12 w-12 rounded-full transition-all duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center bg-card/60 text-foreground ring-1 ring-white/20 hover:bg-primary/10"
       )}
-      style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
+      style={{ backdropFilter: "blur(2px)" }}
       onClick={() => onSelect(favorite)}
+      initial={{ opacity: 0, scale: 0.5 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.5 }}
+      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
     >
       {favorite.type === 'stock' ? (
         <span className="font-bold text-sm">{favorite.iconName}</span>
       ) : Icon ? (
         <Icon className="h-6 w-6" />
       ) : null}
-    </Button>
+    </motion.button>
   );
 };
 
@@ -68,6 +67,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const router = useRouter();
   const { favorites } = useFavoritesStore();
   const { openChatbot } = useChatbotStore();
+  const [isHovered, setIsHovered] = React.useState(false);
 
   const isLightClear = isClearMode && theme === 'light';
 
@@ -79,8 +79,19 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   
   const handleFavoriteSelect = (favorite: Favorite) => {
     if (favorite.type === 'stock') {
-      showLoading();
-      router.push(`/trade?symbol=${favorite.value}`);
+      // This will open the command menu and show the stock detail view.
+      // The logic for this is now inside the CommandMenu component.
+      setOpen(true);
+      // A slight delay to allow the command menu to open before setting the query
+      setTimeout(() => {
+          const input = document.querySelector('.cmdk-input') as HTMLInputElement;
+          if(input) {
+            // we need to set the value and dispatch an event to trigger the search
+            Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set?.call(input, favorite.value);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+      }, 100);
+
     } else {
         // Here you would map action names to functions
         if (favorite.value.includes('Dashboard')) router.push('/dashboard');
@@ -118,10 +129,15 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             </Link>
           </div>
           
-           <div className="group absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-2">
-                <button
+           <div 
+              className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+            >
+                <motion.button
+                    layout
                     className={cn(
-                        "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-all duration-300 ease-in-out md:w-56",
+                        "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg",
                         isClearMode
                             ? isLightClear
                                 ? "bg-card/60 text-foreground ring-1 ring-white/20"
@@ -130,22 +146,32 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                     )}
                     onClick={() => setOpen(true)}
                     style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                     >
                     <Search className="h-5 w-5" />
                     <span className="hidden text-sm md:inline">Spotlight Search</span>
-                </button>
-                <div className="flex items-center gap-2">
-                    {favorites.map((fav, index) => (
-                        <div
-                            key={fav.value}
-                            className={cn(
-                                "h-12 w-0 scale-0 opacity-0 transition-all duration-300 ease-in-out group-hover:w-12 group-hover:scale-100 group-hover:opacity-100",
-                            )}
-                        >
-                          <FavoriteItem favorite={fav} onSelect={handleFavoriteSelect} />
-                        </div>
-                    ))}
-                </div>
+                </motion.button>
+                <AnimatePresence>
+                {isHovered && (
+                  <motion.div 
+                    className="flex items-center"
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: 'auto', opacity: 1 }}
+                    exit={{ width: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  >
+                      <motion.div
+                        className="flex items-center gap-2 pl-2"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1, transition: { delay: 0.1 } }}
+                      >
+                        {favorites.map((fav) => (
+                           <FavoriteItem key={fav.value} favorite={fav} onSelect={handleFavoriteSelect} />
+                        ))}
+                      </motion.div>
+                  </motion.div>
+                )}
+                </AnimatePresence>
           </div>
           
           <div className="flex items-center gap-1">
