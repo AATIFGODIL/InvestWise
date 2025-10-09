@@ -22,6 +22,7 @@ import PaymentMethods from "@/components/profile/payment-methods";
 import { useRouter } from "next/navigation";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { cn } from "@/lib/utils";
+import ColorPicker from "./color-picker";
 
 export default function SettingsClient() {
   const router = useRouter();
@@ -112,65 +113,41 @@ export default function SettingsClient() {
               Customize the look and feel of the app.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             {!isClient ? (
                 <div className="space-y-2">
-                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-40 w-full" />
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
-                    {/* Light Theme Box */}
-                    <div className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleThemeChange('light')}>
-                        <div
-                            className={cn(
-                                "w-24 h-16 rounded-lg border-2 p-2 flex items-center justify-center transition-all",
-                                theme === 'light' ? 'border-primary ring-2 ring-primary' : 'border-border'
-                            )}
-                        >
-                            <div className="w-full h-full rounded bg-gray-100 flex items-center justify-center p-2">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-black">
-                                    <path d="M4 18l6-6 4 2 6-8" />
-                                </svg>
+                <>
+                    <ColorPicker />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                       <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                            <Label htmlFor="theme-switch" className="font-medium">
+                                Theme
+                            </Label>
+                            <div className="flex items-center gap-2">
+                                <span className={theme === 'light' ? '' : 'text-muted-foreground'}>Light</span>
+                                <Switch
+                                    id="theme-switch"
+                                    checked={theme === "dark"}
+                                    onCheckedChange={(checked) => handleThemeChange(checked ? 'dark' : 'light')}
+                                />
+                                 <span className={theme === 'dark' ? '' : 'text-muted-foreground'}>Dark</span>
                             </div>
                         </div>
-                        <Label>Light</Label>
-                    </div>
-
-                    {/* Dark Theme Box */}
-                    <div className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleThemeChange('dark')}>
-                        <div
-                             className={cn(
-                                "w-24 h-16 rounded-lg border-2 p-2 flex items-center justify-center transition-all",
-                                theme === 'dark' ? 'border-primary ring-2 ring-primary' : 'border-border'
-                            )}
-                        >
-                             <div className="w-full h-full rounded bg-gray-800 flex items-center justify-center p-2">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-white">
-                                    <path d="M4 18l6-6 4 2 6-8" />
-                                </svg>
-                            </div>
+                        <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                            <Label htmlFor="clear-mode-switch" className="font-medium">
+                                Clear Mode
+                            </Label>
+                            <Switch
+                                id="clear-mode-switch"
+                                checked={isClearMode}
+                                onCheckedChange={handleClearModeChange}
+                            />
                         </div>
-                        <Label>Dark</Label>
                     </div>
-                    
-                    {/* Clear Theme Box */}
-                    <div className="flex flex-col items-center gap-2 cursor-pointer" onClick={() => handleClearModeChange(!isClearMode)}>
-                        <div
-                            className={cn(
-                                "w-24 h-16 rounded-lg border-2 p-2 flex items-center justify-center transition-all",
-                                isClearMode ? 'border-primary ring-2 ring-primary' : 'border-border'
-                            )}
-                        >
-                            <div className="w-full h-full rounded bg-white/10 border border-white/20 flex items-center justify-center p-2" style={{backdropFilter: 'blur(4px)'}}>
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-primary">
-                                    <path d="M4 18l6-6 4 2 6-8" />
-                                </svg>
-                            </div>
-                        </div>
-                        <Label>Clear</Label>
-                        <span className="text-xs text-muted-foreground">(Liquid Glass)</span>
-                    </div>
-                </div>
+                </>
             )}
           </CardContent>
         </Card>
