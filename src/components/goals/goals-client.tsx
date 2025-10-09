@@ -27,17 +27,16 @@ export default function GoalsClient() {
     <main>
       <div className="p-4 space-y-6 pb-24">
         <h1 className="text-2xl font-bold">Goals</h1>
-        <CreateGoal onAddGoal={addGoal} />
-        <GoalList goals={goals} />
-
-        <div className="space-y-4 pt-4">
-            <h2 className="text-xl font-bold">Learn About Goals</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+            <CreateGoal onAddGoal={addGoal} />
+            <div className="space-y-4 pt-4 md:pt-0">
+                <h2 className="text-xl font-bold">Learn About Goals</h2>
                 {videos.map((video) => (
                     <YouTubePlayer key={video.title} videoTitle={video.title} description={video.description} youtubeUrl={video.youtubeUrl} />
                 ))}
             </div>
         </div>
+        <GoalList goals={goals} />
         <Chatbot />
       </div>
     </main>
