@@ -52,7 +52,7 @@ interface AuthContextType {
   signInWithApple: () => Promise<void>;
   signOut: () => void;
   updateUserProfile: (data: { username?: string, photoURL?: string }) => Promise<void>;
-  updateUserTheme: (themeData: { theme?: Theme, isClearMode?: boolean }) => Promise<void>;
+  updateUserTheme: (themeData: { theme?: Theme, isClearMode?: boolean, primaryColor?: string }) => Promise<void>;
   updatePrivacySettings: (settings: Partial<Omit<PrivacyState, 'setLeaderboardVisibility' | 'setShowQuests' | 'loadPrivacySettings' | 'resetPrivacySettings'>>) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   verifyPasswordResetCode: (code: string) => Promise<string | null>;
@@ -86,6 +86,7 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
     photoURL: user.photoURL || "",
     theme: "light",
     isClearMode: false,
+    primaryColor: "#8B5CF6", // Default primary color
     leaderboardVisibility: "public",
     showQuests: true,
     createdAt: new Date(),
@@ -230,13 +231,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Persists the user's theme preference to Firestore.
-  const updateUserTheme = async (themeData: { theme?: Theme, isClearMode?: boolean }) => {
-    if ('theme' in themeData && themeData.theme) {
+  const updateUserTheme = async (themeData: { theme?: Theme, isClearMode?: boolean, primaryColor?: string }) => {
+    // Update local Zustand store immediately for responsiveness
+    if (themeData.theme) {
       useThemeStore.getState().setTheme(themeData.theme);
     }
-    if ('isClearMode' in themeData && typeof themeData.isClearMode === 'boolean') {
+    if (typeof themeData.isClearMode === 'boolean') {
       useThemeStore.getState().setClearMode(themeData.isClearMode);
     }
+    
+    // Persist to Firestore
     if (!user) return;
     const userDocRef = doc(db, "users", user.uid);
     await updateDoc(userDocRef, themeData);

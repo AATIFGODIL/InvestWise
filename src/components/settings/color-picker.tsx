@@ -9,7 +9,7 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { cn } from "@/lib/utils";
 
-function rgbaToHslString(rgba: RgbaColor): string {
+function rgbaToHsl(rgba: RgbaColor): { h: number, s: number, l: number } {
     let { r, g, b } = rgba;
     r /= 255;
     g /= 255;
@@ -30,12 +30,18 @@ function rgbaToHslString(rgba: RgbaColor): string {
         h /= 6;
     }
 
-    const hue = Math.round(h * 360);
-    const saturation = Math.round(s * 100);
-    const lightness = Math.round(l * 100);
-
-    return `${hue} ${saturation}% ${lightness}%`;
+    return {
+        h: Math.round(h * 360),
+        s: Math.round(s * 100),
+        l: Math.round(l * 100),
+    };
 }
+
+function rgbaToHslString(rgba: RgbaColor): string {
+    const { h, s, l } = rgbaToHsl(rgba);
+    return `${h} ${s}% ${l}%`;
+}
+
 
 // --- HEX / RGBA Conversion ---
 const toHex = (c: number) => c.toString(16).padStart(2, '0').toUpperCase();
@@ -56,8 +62,38 @@ const hexToRgba = (hex: string): RgbaColor | null => {
       : null;
 };
 
+function hslStringToHex(hslString: string): string {
+    const [h, s, l] = hslString.split(' ').map(val => parseInt(val.replace('%', ''), 10));
+    const saturation = s / 100;
+    const lightness = l / 100;
+
+    const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+    const m = lightness - c / 2;
+    let r = 0, g = 0, b = 0;
+
+    if (h >= 0 && h < 60) {
+        r = c; g = x; b = 0;
+    } else if (h >= 60 && h < 120) {
+        r = x; g = c; b = 0;
+    } else if (h >= 120 && h < 180) {
+        r = 0; g = c; b = x;
+    } else if (h >= 180 && h < 240) {
+        r = 0; g = x; b = c;
+    } else if (h >= 240 && h < 300) {
+        r = x; g = 0; b = c;
+    } else if (h >= 300 && h < 360) {
+        r = c; g = 0; b = x;
+    }
+
+    r = Math.round((r + m) * 255);
+    g = Math.round((g + m) * 255);
+    b = Math.round((b + m) * 255);
+
+    return rgbaToHex({ r, g, b, a: 1 });
+}
+
 export default function ColorPicker() {
-    // Default color is now the purple-blue: #8B5CF6
     const [color, setColor] = useState<RgbaColor>({ r: 139, g: 92, b: 246, a: 1 });
     const [hexValue, setHexValue] = useState(rgbaToHex(color));
     const { updateUserTheme } = useAuth();
@@ -65,9 +101,15 @@ export default function ColorPicker() {
 
     useEffect(() => {
         const root = document.documentElement;
-        const primaryColor = getComputedStyle(root).getPropertyValue('--primary').trim();
-        // This logic is complex, so we'll stick to the default for initialization
-        // to avoid color flashes on load.
+        const primaryHsl = getComputedStyle(root).getPropertyValue('--primary').trim();
+        if (primaryHsl) {
+            const hex = hslStringToHex(primaryHsl);
+            const rgba = hexToRgba(hex);
+            if (rgba) {
+                setColor(rgba);
+                setHexValue(hex);
+            }
+        }
     }, []);
 
     const handleColorChange = useCallback((newColor: RgbaColor) => {
@@ -85,9 +127,10 @@ export default function ColorPicker() {
     };
     
     useEffect(() => {
+        const hexColor = rgbaToHex(debouncedColor);
         const hslString = rgbaToHslString(debouncedColor);
         document.documentElement.style.setProperty('--primary', hslString);
-        updateUserTheme({}); // This will save the currently applied theme and clear mode with the new primary color
+        updateUserTheme({ primaryColor: hexColor }); 
     }, [debouncedColor, updateUserTheme]);
 
     return (
