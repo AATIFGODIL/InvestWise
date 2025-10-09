@@ -73,17 +73,17 @@ export default function useUserData(user: User | null) {
           const userData = userDoc.data();
           const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
           const transactions = userData.transactions || [];
+          const primaryColor = userData.primaryColor || '#775DEF';
 
           // Apply primary color from Firestore
-          if (userData.primaryColor) {
-              const hslString = hexToHslString(userData.primaryColor);
-              document.documentElement.style.setProperty('--primary', hslString);
-          }
-
+          const hslString = hexToHslString(primaryColor);
+          document.documentElement.style.setProperty('--primary', hslString);
+          
           // Hydrate all Zustand stores with the fetched data.
           // Using getState() here is safe because this effect runs once after the stores are initialized.
           useThemeStore.getState().setTheme(userData.theme || "light");
           useThemeStore.getState().setClearMode(userData.isClearMode || false);
+          useThemeStore.getState().setPrimaryColor(primaryColor);
           useUserStore.getState().setUsername(userData.username || "Investor");
           useUserStore.getState().setPhotoURL(userData.photoURL || "");
           usePortfolioStore.getState().loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);

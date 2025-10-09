@@ -29,32 +29,32 @@ interface ThemeCardProps {
 
 const ThemeCard: React.FC<ThemeCardProps> = ({ label, themeType, isClear = false, isSelected, onClick }) => {
   return (
-    <div className="text-center flex flex-col items-center">
-      <button
-        onClick={onClick}
-        className={cn(
-          "h-20 w-20 rounded-lg p-2 transition-all duration-200",
-          isSelected ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : "ring-1 ring-border"
-        )}
-      >
-        <div
-          className={cn(
-            "w-full h-full rounded-md flex items-center justify-center",
-            themeType === 'light' && !isClear && "bg-white",
-            themeType === 'dark' && !isClear && "bg-gray-800",
-            isClear && "bg-gray-700/50 backdrop-blur-sm"
-          )}
+    <div className="flex flex-col items-center text-center">
+        <button
+            onClick={onClick}
+            className={cn(
+            "h-20 w-20 rounded-lg p-2 transition-all duration-200",
+            isSelected ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : "ring-1 ring-border"
+            )}
         >
-          <TrendingUp className={cn(
-            "h-8 w-8",
-             (themeType === 'dark' && !isClear) || (isClear && themeType === 'light') ? "text-white" : "",
-             themeType === 'light' && !isClear ? "text-gray-800" : "",
-             isClear && themeType === 'dark' ? "text-primary" : ""
-          )} />
-        </div>
-      </button>
-      <p className="text-sm font-medium mt-2">{label}</p>
-      {label === 'Clear' && <p className="text-xs text-muted-foreground">(Liquid Glass)</p>}
+            <div
+            className={cn(
+                "flex h-full w-full items-center justify-center rounded-md",
+                themeType === 'light' && !isClear && "bg-white",
+                themeType === 'dark' && !isClear && "bg-gray-800",
+                isClear && "bg-gray-700/50 backdrop-blur-sm"
+            )}
+            >
+            <TrendingUp className={cn(
+                "h-8 w-8",
+                (themeType === 'dark' && !isClear) || (isClear && themeType === 'light') ? "text-white" : "",
+                themeType === 'light' && !isClear ? "text-gray-800" : "",
+                isClear && themeType === 'dark' ? "text-primary" : ""
+            )} />
+            </div>
+        </button>
+        <p className="mt-2 text-sm font-medium">{label}</p>
+        {label === 'Clear' && <p className="text-xs text-muted-foreground">(Liquid Glass)</p>}
     </div>
   );
 };
@@ -72,16 +72,15 @@ export default function OnboardingThemePage() {
 
   const handleThemeChange = (newTheme: "light" | "dark") => {
     setTheme(newTheme);
-    updateUserTheme({ theme: newTheme });
   };
 
   const handleClearModeToggle = () => {
-    const newClearMode = !isClearMode;
-    setClearMode(newClearMode);
-    updateUserTheme({ isClearMode: newClearMode });
+    setClearMode(!isClearMode);
   };
   
   const handleContinue = () => {
+    // Persist final choices to Firestore
+    updateUserTheme({ theme, isClearMode });
     router.push("/onboarding/goal");
   };
 
@@ -102,7 +101,7 @@ export default function OnboardingThemePage() {
                 </div>
             ) : (
                 <>
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-3 gap-4 justify-items-center">
                         <ThemeCard
                             label="Light"
                             themeType="light"

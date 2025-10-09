@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { RgbaColor, RgbaColorPicker } from "react-colorful";
 import { useAuth } from "@/hooks/use-auth";
@@ -10,60 +10,7 @@ import { Input } from "../ui/input";
 import { cn } from "@/lib/utils";
 import { useThemeStore } from "@/store/theme-store";
 
-function rgbaToHsl(rgba: RgbaColor): { h: number, s: number, l: number } {
-    let { r, g, b } = rgba;
-    r /= 255;
-    g /= 255;
-    b /= 255;
-
-    const max = Math.max(r, g, b);
-    const min = Math.min(r, g, b);
-    let h = 0, s = 0, l = (max + min) / 2;
-
-    if (max !== min) {
-        const d = max - min;
-        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-        switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-        }
-        h /= 6;
-    }
-
-    return {
-        h: Math.round(h * 360),
-        s: Math.round(s * 100),
-        l: Math.round(l * 100),
-    };
-}
-
-function rgbaToHslString(rgba: RgbaColor): string {
-    const { h, s, l } = rgbaToHsl(rgba);
-    return `${h} ${s}% ${l}%`;
-}
-
-
-// --- HEX / RGBA Conversion ---
-const toHex = (c: number) => c.toString(16).padStart(2, '0').toUpperCase();
-
-const rgbaToHex = (rgba: RgbaColor): string => {
-    return `#${toHex(rgba.r)}${toHex(rgba.g)}${toHex(rgba.b)}`;
-};
-
-const hexToRgba = (hex: string): RgbaColor | null => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
-      ? {
-          r: parseInt(result[1], 16),
-          g: parseInt(result[2], 16),
-          b: parseInt(result[3], 16),
-          a: 1,
-        }
-      : null;
-};
-
-function hslStringToHex(hslString: string): string {
+function hslStringToRgba(hslString: string): RgbaColor {
     const [h, s, l] = hslString.split(' ').map(val => parseInt(val.replace('%', ''), 10));
     const saturation = s / 100;
     const lightness = l / 100;
@@ -87,45 +34,85 @@ function hslStringToHex(hslString: string): string {
         r = c; g = 0; b = x;
     }
 
-    r = Math.round((r + m) * 255);
-    g = Math.round((g + m) * 255);
-    b = Math.round((b + m) * 255);
-
-    return rgbaToHex({ r, g, b, a: 1 });
+    return {
+        r: Math.round((r + m) * 255),
+        g: Math.round((g + m) * 255),
+        b: Math.round((b + m) * 255),
+        a: 1
+    };
 }
 
+
+function rgbaToHslString(rgba: RgbaColor): string {
+    let { r, g, b } = rgba;
+    r /= 255;
+    g /= 255;
+    b /= 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+
+    if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+}
+
+const toHex = (c: number) => c.toString(16).padStart(2, '0').toUpperCase();
+
+const rgbaToHex = (rgba: RgbaColor): string => {
+    return `#${toHex(rgba.r)}${toHex(rgba.g)}${toHex(rgba.b)}`;
+};
+
+const hexToRgba = (hex: string): RgbaColor | null => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16),
+          a: 1,
+        }
+      : null;
+};
+
+
 export default function ColorPicker() {
-    const [color, setColor] = React.useState<RgbaColor>({ r: 119, g: 93, b: 239, a: 1 }); // Default: #775DEF
-    const [hexValue, setHexValue] = React.useState(rgbaToHex(color));
+    const { primaryColor, setPrimaryColor } = useThemeStore();
+    const initialRgba = hexToRgba(primaryColor) || { r: 119, g: 93, b: 239, a: 1 };
+    
+    const [color, setColor] = useState<RgbaColor>(initialRgba);
+    const [hexValue, setHexValue] = useState(primaryColor);
+    
     const { updateUserTheme } = useAuth();
     const debouncedColor = useDebounce(color, 200);
-    const { theme } = useThemeStore(); // Depend on theme to refetch color
 
+    // Effect to update the picker's state if the global store changes
     useEffect(() => {
-        // On component mount or when theme changes, read the current primary color from CSS variables
-        // and set the color picker's state to match it.
-        if (typeof window !== 'undefined') {
-            const root = document.documentElement;
-            // We read the computed style to ensure we get the currently active color
-            const primaryHsl = getComputedStyle(root).getPropertyValue('--primary').trim();
-            if (primaryHsl) {
-                const hex = hslStringToHex(primaryHsl);
-                const rgba = hexToRgba(hex);
-                if (rgba) {
-                    setColor(rgba);
-                    setHexValue(hex);
-                }
-            }
+        const newRgba = hexToRgba(primaryColor);
+        if (newRgba) {
+            setColor(newRgba);
+            setHexValue(primaryColor);
         }
-    }, [theme]); // Re-run when the theme changes
+    }, [primaryColor]);
 
-    const handleColorChange = React.useCallback((newColor: RgbaColor) => {
+
+    const handleColorChange = (newColor: RgbaColor) => {
         setColor(newColor);
         setHexValue(rgbaToHex(newColor));
-    }, []);
+    };
 
     const handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newHex = e.target.value;
+        const newHex = `#${e.target.value.replace('#', '')}`;
         setHexValue(newHex);
         const newRgba = hexToRgba(newHex);
         if (newRgba) {
@@ -133,12 +120,20 @@ export default function ColorPicker() {
         }
     };
     
+    // Effect to persist the debounced color change
     useEffect(() => {
         const hexColor = rgbaToHex(debouncedColor);
+        
+        // Update the theme store, which will trigger the persistence
+        setPrimaryColor(hexColor);
+        
+        // Also update the CSS variable for immediate visual feedback
         const hslString = rgbaToHslString(debouncedColor);
         document.documentElement.style.setProperty('--primary', hslString);
+        
+        // Persist to Firestore via the auth hook
         updateUserTheme({ primaryColor: hexColor }); 
-    }, [debouncedColor, updateUserTheme]);
+    }, [debouncedColor, updateUserTheme, setPrimaryColor]);
 
     return (
         <div className="flex flex-col items-center gap-4">
