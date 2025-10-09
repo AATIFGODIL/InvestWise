@@ -385,18 +385,21 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
                   )}
 
                   {filteredAppActions.length > 0 && (
-                    <div className="p-1 text-foreground">
-                      <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">App Actions</div>
-                      {filteredAppActions.map((action) => (
-                        <CommandItem
-                          key={action.name}
-                          onClick={action.onSelect}
-                        >
-                          <action.icon className="mr-2 h-4 w-4" />
-                          <span>{action.name}</span>
-                        </CommandItem>
-                      ))}
-                    </div>
+                    <>
+                      <CommandSeparator />
+                      <div className="p-1 text-foreground">
+                        <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">App Actions</div>
+                        {filteredAppActions.map((action) => (
+                          <CommandItem
+                            key={action.name}
+                            onClick={action.onSelect}
+                          >
+                            <action.icon className="mr-2 h-4 w-4" />
+                            <span>{action.name}</span>
+                          </CommandItem>
+                        ))}
+                      </div>
+                    </>
                   )}
               </CommandList>
               )}
@@ -559,3 +562,4 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
   );
 }
 
+    
