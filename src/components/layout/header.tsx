@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from "react";
-import { Search, Bell, Settings, LogOut, User as UserIcon, Star, X } from "lucide-react";
+import { Search, Bell, Settings, LogOut, User as UserIcon, Star } from "lucide-react";
 import { CommandMenu } from "./command-menu";
 import { Button } from "../ui/button";
 import Link from "next/link";
@@ -28,10 +28,21 @@ import { appIcons } from "@/components/layout/command-menu";
 
 const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (fav: Favorite) => void }) => {
   const Icon = appIcons[favorite.iconName] || null;
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
+
   return (
     <Button
       variant="ghost"
-      className="h-12 w-12 rounded-full transition-all duration-300 ease-in-out bg-primary/20 hover:bg-primary/30 text-primary-foreground focus-visible:ring-0"
+      className={cn(
+        "h-12 w-12 rounded-full transition-all duration-300 ease-in-out focus-visible:ring-0",
+        isClearMode
+            ? isLightClear
+                ? "bg-card/60 text-foreground ring-1 ring-white/20 hover:bg-primary/10"
+                : "bg-white/10 text-slate-100 ring-1 ring-white/60 hover:bg-primary/10"
+            : "bg-background text-foreground ring-1 ring-border hover:bg-primary/10"
+      )}
+      style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
       onClick={() => onSelect(favorite)}
     >
       {favorite.type === 'stock' ? (
@@ -50,7 +61,7 @@ const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (f
  */
 export default function Header({ onTriggerRain }: { onTriggerRain: () => void }) {
   const [open, setOpen] = useState(false);
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const { username, photoURL } = useUserStore();
   const { isClearMode, theme } = useThemeStore();
   const { showLoading } = useLoadingStore();
@@ -107,26 +118,36 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             </Link>
           </div>
           
-           <div className="group absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center gap-2">
-            <button
-              className={cn(
-                "flex h-12 items-center justify-center gap-2 rounded-full shadow-lg transition-all duration-300 ease-in-out md:w-56 z-10 hover:bg-primary/10 group-hover:w-48",
-                isClearMode
-                    ? isLightClear
-                        ? "bg-card/60 text-foreground ring-1 ring-white/20"
-                        : "bg-white/10 text-slate-100 ring-1 ring-white/60"
-                    : "bg-background text-foreground ring-1 ring-border"
-              )}
-              onClick={() => setOpen(true)}
-              style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
-            >
-                <Search className="h-5 w-5" />
-                <span className="hidden text-sm md:inline">Spotlight Search</span>
-            </button>
-            <div className="flex items-center gap-2 transition-all duration-300 ease-in-out scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100">
-                 {favorites[0] && <FavoriteItem favorite={favorites[0]} onSelect={handleFavoriteSelect} />}
-                 {favorites[1] && <FavoriteItem favorite={favorites[1]} onSelect={handleFavoriteSelect} />}
-            </div>
+           <div className="group absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center">
+                <button
+                    className={cn(
+                        "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full shadow-lg transition-all duration-300 ease-in-out md:w-56",
+                        "group-hover:w-48 group-hover:rounded-r-none group-hover:border-r-0",
+                        isClearMode
+                            ? isLightClear
+                                ? "bg-card/60 text-foreground ring-1 ring-white/20"
+                                : "bg-white/10 text-slate-100 ring-1 ring-white/60"
+                            : "bg-background text-foreground ring-1 ring-border"
+                    )}
+                    onClick={() => setOpen(true)}
+                    style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
+                    >
+                    <Search className="h-5 w-5" />
+                    <span className="hidden text-sm md:inline">Spotlight Search</span>
+                </button>
+                <div className="flex items-center">
+                    {favorites.map((fav, index) => (
+                        <div
+                            key={fav.value}
+                            className={cn(
+                                "h-12 w-0 scale-0 opacity-0 transition-all duration-300 ease-in-out group-hover:w-12 group-hover:scale-100 group-hover:opacity-100",
+                                index === 0 && "group-hover:delay-100"
+                            )}
+                        >
+                          <FavoriteItem favorite={fav} onSelect={handleFavoriteSelect} />
+                        </div>
+                    ))}
+                </div>
           </div>
           
           <div className="flex items-center gap-1">
