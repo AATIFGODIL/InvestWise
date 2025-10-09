@@ -14,11 +14,41 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DollarSign } from "lucide-react";
+import { useGoalStore } from "@/store/goal-store";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 export default function OnboardingGoalPage() {
   const router = useRouter();
+  const { addGoal } = useGoalStore();
+  const [goalName, setGoalName] = useState("");
+  const [goalAmount, setGoalAmount] = useState("");
+  const { toast } = useToast();
 
-  const handleNavigate = (e: React.MouseEvent) => {
+  const handleSetGoal = () => {
+     if (!goalName || !goalAmount) {
+        toast({
+            variant: "destructive",
+            title: "Missing Information",
+            description: "Please provide both a name and target amount for your goal.",
+        });
+        return;
+    }
+
+    addGoal({
+        name: goalName,
+        target: Number(goalAmount),
+    });
+
+    toast({
+        title: "Goal Set!",
+        description: "Your new goal has been added.",
+    });
+
+    router.push("/onboarding/leaderboard");
+  }
+
+  const handleSkip = (e: React.MouseEvent) => {
     e.preventDefault();
     router.push("/onboarding/leaderboard");
   };
@@ -36,7 +66,7 @@ export default function OnboardingGoalPage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="goal-name">Goal Name</Label>
-            <Input id="goal-name" placeholder="e.g., New Laptop, Vacation" />
+            <Input id="goal-name" placeholder="e.g., New Laptop, Vacation" value={goalName} onChange={(e) => setGoalName(e.target.value)} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="goal-amount">Target Amount</Label>
@@ -47,13 +77,15 @@ export default function OnboardingGoalPage() {
                 type="number"
                 placeholder="5000"
                 className="pl-10"
+                value={goalAmount}
+                onChange={(e) => setGoalAmount(e.target.value)}
               />
             </div>
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button variant="ghost" onClick={handleNavigate}>Skip for now</Button>
-          <Button onClick={handleNavigate}>Set Goal</Button>
+          <Button variant="ghost" onClick={handleSkip}>Skip for now</Button>
+          <Button onClick={handleSetGoal}>Set Goal</Button>
         </CardFooter>
       </Card>
     </div>

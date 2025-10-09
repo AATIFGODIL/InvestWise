@@ -39,7 +39,7 @@ export default function OnboardingQuizPage() {
     if (userProfile === "Student") {
         router.push("/onboarding/parental-gate");
     } else {
-        router.push("/onboarding/goal");
+        router.push("/onboarding/theme");
     }
   }
   
