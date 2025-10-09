@@ -14,28 +14,55 @@ import { usePrivacyStore } from "@/store/privacy-store";
 import { useTransactionStore } from '@/store/transaction-store';
 import { useWatchlistStore } from '@/store/watchlist-store';
 
-function hexToHslString(hex: string): string {
+function hexToRgba(hex: string): { r: number, g: number, b: number } {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    if (!result) return "251 82% 60%";
+    return result
+        ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16),
+        }
+        : { r: 0, g: 0, b: 0 };
+}
 
-    let r = parseInt(result[1], 16);
-    let g = parseInt(result[2], 16);
-    let b = parseInt(result[3], 16);
+function getLuminance(hex: string): number {
+    const { r, g, b } = hexToRgba(hex);
+    const a = [r, g, b].map((v) => {
+        v /= 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+}
 
-    r /= 255; g /= 255; b /= 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+function setForegroundForContrast(hex: string) {
+    if (typeof window === 'undefined') return;
+    const luminance = getLuminance(hex);
+    const newForeground = luminance > 0.5 ? '222.2 84% 4.9%' : '210 40% 98%';
+    document.documentElement.style.setProperty('--primary-foreground', newForeground);
+}
+
+
+function hexToHslString(hex: string): string {
+    const { r, g, b } = hexToRgba(hex);
+    const r_norm = r / 255;
+    const g_norm = g / 255;
+    const b_norm = b / 255;
+
+    const max = Math.max(r_norm, g_norm, b_norm);
+    const min = Math.min(r_norm, g_norm, b_norm);
     let h = 0, s = 0, l = (max + min) / 2;
 
     if (max !== min) {
         const d = max - min;
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
         switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
+            case r_norm: h = (g_norm - b_norm) / d + (g_norm < b_norm ? 6 : 0); break;
+            case g_norm: h = (b_norm - r_norm) / d + 2; break;
+            case b_norm: h = (r_norm - g_norm) / d + 4; break;
         }
         h /= 6;
     }
+
     const hue = Math.round(h * 360);
     const saturation = Math.round(s * 100);
     const lightness = Math.round(l * 100);
@@ -63,7 +90,6 @@ export default function useUserData(user: User | null) {
     const fetchAndHydrate = async () => {
       setLoading(true);
       try {
-        // Fetch market holidays first, as they are needed for chart generation.
         await usePortfolioStore.getState().fetchMarketHolidays();
         
         const userDocRef = doc(db, "users", user.uid);
@@ -75,12 +101,11 @@ export default function useUserData(user: User | null) {
           const transactions = userData.transactions || [];
           const primaryColor = userData.primaryColor || '#775DEF';
 
-          // Apply primary color from Firestore
+          // Apply primary color and contrast from Firestore
           const hslString = hexToHslString(primaryColor);
           document.documentElement.style.setProperty('--primary', hslString);
+          setForegroundForContrast(primaryColor);
           
-          // Hydrate all Zustand stores with the fetched data.
-          // Using getState() here is safe because this effect runs once after the stores are initialized.
           useThemeStore.getState().setTheme(userData.theme || "light");
           useThemeStore.getState().setClearMode(userData.isClearMode || false);
           useThemeStore.getState().setPrimaryColor(primaryColor);
@@ -96,7 +121,6 @@ export default function useUserData(user: User | null) {
               showQuests: userData.showQuests === undefined ? true : userData.showQuests,
           });
 
-          // After hydrating, check if any scheduled auto-investments are due.
           useAutoInvestStore.getState().checkForDueTrades();
         } else {
             console.log("User document not found for hydration, likely a new user.");

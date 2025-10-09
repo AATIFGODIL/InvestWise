@@ -22,7 +22,112 @@ import PaymentMethods from "@/components/profile/payment-methods";
 import { useRouter } from "next/navigation";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { cn } from "@/lib/utils";
-import ColorPicker from "./color-picker";
+import { RgbaColor, RgbaColorPicker } from "react-colorful";
+import { useDebounce } from "@/hooks/use-debounce";
+
+
+// --- Helper Functions for Color Management ---
+
+function hexToRgba(hex: string): RgbaColor {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+        ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16),
+            a: 1,
+        }
+        : { r: 0, g: 0, b: 0, a: 1 };
+}
+
+function rgbaToHex(rgba: RgbaColor): string {
+    const toHex = (c: number) => c.toString(16).padStart(2, '0').toUpperCase();
+    return `#${toHex(rgba.r)}${toHex(rgba.g)}${toHex(rgba.b)}`;
+}
+
+function getLuminance(hex: string): number {
+    const { r, g, b } = hexToRgba(hex);
+    const a = [r, g, b].map((v) => {
+        v /= 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+}
+
+function setForegroundForContrast(hex: string) {
+    if (typeof window === 'undefined') return;
+    const luminance = getLuminance(hex);
+    const newForeground = luminance > 0.5 ? '222.2 84% 4.9%' : '210 40% 98%';
+    document.documentElement.style.setProperty('--primary-foreground', newForeground);
+}
+
+
+// --- ColorPicker Component ---
+
+function ColorPicker() {
+    const { primaryColor: storedPrimaryColor, setPrimaryColor } = useThemeStore();
+    
+    const [color, setColor] = useState<RgbaColor>(hexToRgba(storedPrimaryColor));
+    const [hexValue, setHexValue] = useState(storedPrimaryColor);
+    
+    const { updateUserTheme } = useAuth();
+    const debouncedColor = useDebounce(color, 200);
+
+    // Effect to sync picker if the global store changes from another source
+    useEffect(() => {
+        const newRgba = hexToRgba(storedPrimaryColor);
+        setColor(newRgba);
+        setHexValue(storedPrimaryColor);
+    }, [storedPrimaryColor]);
+
+    const handleColorChange = (newColor: RgbaColor) => {
+        setColor(newColor);
+        setHexValue(rgbaToHex(newColor));
+    };
+
+    const handleHexChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newHex = `#${e.target.value.replace('#', '')}`;
+        setHexValue(newHex);
+        const newRgba = hexToRgba(newHex);
+        if (newRgba.r !== undefined) {
+            setColor(newRgba);
+        }
+    };
+    
+    useEffect(() => {
+        const hexColor = rgbaToHex(debouncedColor);
+        
+        setPrimaryColor(hexColor);
+        
+        const h = debouncedColor.r, s = debouncedColor.g, l = debouncedColor.b;
+        document.documentElement.style.setProperty('--primary', `${h} ${s}% ${l}%`);
+
+        setForegroundForContrast(hexColor);
+        
+        updateUserTheme({ primaryColor: hexColor }); 
+    }, [debouncedColor, updateUserTheme, setPrimaryColor]);
+
+    return (
+        <div className="flex flex-col items-center gap-4">
+            <RgbaColorPicker color={color} onChange={handleColorChange} className="!w-full" />
+            <div className="grid w-full items-center gap-1.5">
+                <Label htmlFor="hex-color">Primary Color (HEX)</Label>
+                <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground font-semibold">#</span>
+                    <Input
+                        id="hex-color"
+                        value={hexValue.replace('#', '')}
+                        onChange={handleHexChange}
+                        className={cn("pl-7 font-mono", hexToRgba(hexValue).r === undefined && "border-destructive")}
+                    />
+                </div>
+                 <p className="text-xs text-muted-foreground text-center">Default color is #775DEF</p>
+            </div>
+        </div>
+    )
+}
+
+// --- ThemeCard Component ---
 
 interface ThemeCardProps {
   label: string;
@@ -38,7 +143,7 @@ const ThemeCard: React.FC<ThemeCardProps> = ({ label, themeType, isClear = false
       <button
         onClick={onClick}
         className={cn(
-          "h-20 w-20 rounded-lg p-2 transition-all duration-200",
+          "h-24 w-24 rounded-lg p-2 transition-all duration-200 flex items-center justify-center",
           isSelected ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : "ring-1 ring-border"
         )}
       >
@@ -64,6 +169,7 @@ const ThemeCard: React.FC<ThemeCardProps> = ({ label, themeType, isClear = false
   );
 };
 
+// --- Main Settings Component ---
 
 export default function SettingsClient() {
   const router = useRouter();
@@ -105,10 +211,8 @@ export default function SettingsClient() {
           <ArrowLeft className="h-6 w-6" />
         </Button>
         
-        {/* Payment Methods Section */}
         {user && <PaymentMethods userId={user.uid} />}
 
-        {/* Parental Controls Section */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Shield className="text-primary"/>Parental Control</CardTitle>
@@ -147,7 +251,6 @@ export default function SettingsClient() {
           </CardContent>
         </Card>
 
-        {/* Appearance Section */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Sun className="text-primary"/>Appearance</CardTitle>
@@ -163,7 +266,7 @@ export default function SettingsClient() {
                 </div>
             ) : (
                 <>
-                   <div className="grid grid-cols-3 gap-4">
+                   <div className="grid grid-cols-3 gap-4 justify-items-center">
                         <ThemeCard
                             label="Light"
                             themeType="light"
@@ -190,7 +293,6 @@ export default function SettingsClient() {
           </CardContent>
         </Card>
 
-        {/* Privacy Section */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Eye className="text-primary"/>Privacy</CardTitle>
