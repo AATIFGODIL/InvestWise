@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from "react";
-import { Search, Bell, Settings, LogOut, User as UserIcon, X, Briefcase, BarChart, Home, Repeat, Users, Star } from "lucide-react";
+import { Search, Bell, Settings, LogOut, User as UserIcon, Star, X } from "lucide-react";
 import { CommandMenu } from "./command-menu";
 import { Button } from "../ui/button";
 import Link from "next/link";
@@ -24,17 +24,14 @@ import useLoadingStore from "@/store/loading-store";
 import { useRouter } from "next/navigation";
 import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 import useChatbotStore from "@/store/chatbot-store";
-
-const appIcons: { [key: string]: React.ElementType } = {
-  home: Home, briefcase: Briefcase, repeat: Repeat, barChart: BarChart, users: Users, star: Star,
-};
-
+import { appIcons } from "@/components/layout/command-menu";
 
 const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (fav: Favorite) => void }) => {
   const Icon = appIcons[favorite.iconName] || null;
   return (
     <Button
-      className="h-12 w-12 rounded-full transition-all duration-300 ease-in-out bg-primary/20 hover:bg-primary/30 text-primary-foreground"
+      variant="ghost"
+      className="h-12 w-12 rounded-full transition-all duration-300 ease-in-out bg-primary/20 hover:bg-primary/30 text-primary-foreground focus-visible:ring-0"
       onClick={() => onSelect(favorite)}
     >
       {favorite.type === 'stock' ? (
@@ -111,11 +108,9 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           </div>
           
            <div className="group absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2">
-            {favorites[0] && (
-                <div className="transition-all duration-300 ease-in-out group-hover:-translate-x-16">
-                    <FavoriteItem favorite={favorites[0]} onSelect={handleFavoriteSelect} />
-                </div>
-            )}
+            <div className="absolute left-1/2 -translate-x-1/2 transition-all duration-300 ease-in-out group-hover:-translate-x-20 opacity-0 group-hover:opacity-100">
+                {favorites[0] && <FavoriteItem favorite={favorites[0]} onSelect={handleFavoriteSelect} />}
+            </div>
             <button
               className={cn(
                 "flex h-12 w-48 items-center justify-center gap-2 rounded-full shadow-lg transition-colors md:w-56 z-10 hover:bg-primary/10",
@@ -131,11 +126,9 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 <Search className="h-5 w-5" />
                 <span className="hidden text-sm md:inline">Spotlight Search</span>
             </button>
-            {favorites[1] && (
-                <div className="transition-all duration-300 ease-in-out group-hover:translate-x-16">
-                    <FavoriteItem favorite={favorites[1]} onSelect={handleFavoriteSelect} />
-                </div>
-            )}
+            <div className="absolute left-1/2 -translate-x-1/2 transition-all duration-300 ease-in-out group-hover:translate-x-20 opacity-0 group-hover:opacity-100">
+                 {favorites[1] && <FavoriteItem favorite={favorites[1]} onSelect={handleFavoriteSelect} />}
+            </div>
           </div>
           
           <div className="flex items-center gap-1">
@@ -161,7 +154,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 mt-4" align="end" sideOffset={16} forceMount>
+                <DropdownMenuContent className="w-56 mt-4" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">{username}</p>
