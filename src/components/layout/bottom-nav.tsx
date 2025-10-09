@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Home, Briefcase, BarChart, Users, Repeat } from "lucide-react";
+import { Home, BarChart, Users, Repeat, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -19,9 +19,9 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 const navItems = [
   { href: "/dashboard", label: "Explore", icon: Home },
-  { href: "/portfolio", label: "Portfolio", icon: Briefcase },
+  { href: "/portfolio", label: "Portfolio", icon: BarChart },
   { href: "/trade", label: "Trade", icon: Repeat },
-  { href: "/goals", label: "Goals", icon: BarChart },
+  { href: "/goals", label: "Goals", icon: Target },
   { href: "/community", label: "Community", icon: Users },
 ];
 
