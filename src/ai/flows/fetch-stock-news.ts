@@ -44,6 +44,8 @@ export async function fetchStockNews(input: StockNewsInput): Promise<StockNewsOu
 
 // Helper function to process and filter raw news data from the API.
 const processNewsData = (data: any[], limit: number): z.infer<typeof StockNewsOutputSchema> | null => {
+    if (!Array.isArray(data)) return null;
+
     const sourceCounts: { [key: string]: number } = {};
     const filteredData: any[] = [];
 
@@ -87,18 +89,23 @@ const fetchStockNewsFlow = ai.defineFlow(
     }
 
     try {
-      let articles: any[] = [];
       const generalNewsLimit = 10;
       const companyNewsLimit = 5;
 
-      if (input.category === 'general') {
+      // Function to fetch general news
+      const fetchGeneralNews = async () => {
         const url = `https://finnhub.io/api/v1/news?category=general&token=${API_KEY}`;
         const response = await fetch(url);
         if (!response.ok) throw new Error(`Finnhub API request failed with status ${response.status}`);
-        articles = await response.json();
+        const articles = await response.json();
         return processNewsData(articles, generalNewsLimit);
+      };
 
-      } else if (input.symbol) {
+      if (input.category === 'general') {
+        return await fetchGeneralNews();
+      } 
+      
+      if (input.symbol) {
         const to = new Date();
         const from = new Date();
         from.setDate(to.getDate() - 30); // Get news from the last 30 days
@@ -110,22 +117,22 @@ const fetchStockNewsFlow = ai.defineFlow(
         const companyResponse = await fetch(companyNewsUrl);
         if (!companyResponse.ok) throw new Error(`Finnhub API request failed with status ${companyResponse.status}`);
         
-        let companyArticles = await companyResponse.json();
+        const companyArticles = await companyResponse.json();
 
-        // If no company-specific articles are found, fall back to general news
-        if (!Array.isArray(companyArticles) || companyArticles.length === 0) {
-            const generalNewsUrl = `https://finnhub.io/api/v1/news?category=general&token=${API_KEY}`;
-            const generalResponse = await fetch(generalNewsUrl);
-            if (!generalResponse.ok) throw new Error(`Finnhub API request failed with status ${generalResponse.status}`);
-            articles = await generalResponse.json();
-            return processNewsData(articles, generalNewsLimit);
-        } else {
-            articles = companyArticles;
-            return processNewsData(articles, companyNewsLimit);
+        // If company articles are found and valid, process and return them
+        if (Array.isArray(companyArticles) && companyArticles.length > 0) {
+             const processedCompanyNews = processNewsData(companyArticles, companyNewsLimit);
+             if (processedCompanyNews && processedCompanyNews.articles.length > 0) {
+                 return processedCompanyNews;
+             }
         }
+        
+        // If no company-specific articles are found (or are empty), fall back to general news
+        return await fetchGeneralNews();
 
       } else {
-        throw new Error("Either a stock symbol or a category must be provided.");
+        // If no symbol and no category is provided, default to general news
+        return await fetchGeneralNews();
       }
 
     } catch (error) {
