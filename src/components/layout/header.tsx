@@ -118,11 +118,10 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             </Link>
           </div>
           
-           <div className="group absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center">
+           <div className="group absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center gap-2">
                 <button
                     className={cn(
                         "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-all duration-300 ease-in-out md:w-56",
-                        "group-hover:rounded-r-none group-hover:border-r-0 group-hover:pr-2",
                         isClearMode
                             ? isLightClear
                                 ? "bg-card/60 text-foreground ring-1 ring-white/20"
@@ -135,13 +134,12 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                     <Search className="h-5 w-5" />
                     <span className="hidden text-sm md:inline">Spotlight Search</span>
                 </button>
-                <div className="flex items-center">
+                <div className="flex items-center gap-2">
                     {favorites.map((fav, index) => (
                         <div
                             key={fav.value}
                             className={cn(
                                 "h-12 w-0 scale-0 opacity-0 transition-all duration-300 ease-in-out group-hover:w-12 group-hover:scale-100 group-hover:opacity-100",
-                                index === 0 && "group-hover:delay-100",
                             )}
                         >
                           <FavoriteItem favorite={fav} onSelect={handleFavoriteSelect} />
