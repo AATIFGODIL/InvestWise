@@ -124,10 +124,10 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
 
   return (
     <>
-      <div className="fixed top-0 left-0 right-0 z-30 p-2">
+      <header className="fixed top-0 left-0 right-0 z-30 p-2">
         <nav 
           className={cn(
-            "relative flex h-16 items-center justify-between rounded-full p-1 px-2 text-primary-foreground shadow-lg",
+            "relative flex h-16 w-full items-center justify-between rounded-full p-1 px-2 text-primary-foreground shadow-lg",
              isClearMode 
                 ? isLightClear
                     ? "bg-card/60 ring-1 ring-white/10"
@@ -136,20 +136,20 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           )}
           style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
         >
-          <div className="flex h-full items-center font-semibold">
-            <Link 
-              href="/dashboard" 
-              className="flex h-full items-center rounded-full bg-primary px-3 sm:px-4 shadow-md"
-              onClick={(e) => handleNavigate(e, '/dashboard')}
-            >
-              <h1 className="text-lg font-bold text-primary-foreground">
-                InvestWise
-              </h1>
-            </Link>
-          </div>
+          <Link 
+            href="/dashboard" 
+            className="flex h-full shrink-0 items-center rounded-full bg-primary px-3 sm:px-4 shadow-md"
+            onClick={(e) => handleNavigate(e, '/dashboard')}
+          >
+            <h1 className="text-md sm:text-lg font-bold text-primary-foreground">
+              InvestWise
+            </h1>
+          </Link>
           
            <div 
-              className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+              className={cn(
+                "flex flex-1 justify-center items-center h-full sm:mx-2",
+              )}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
@@ -175,7 +175,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                   <motion.div 
                     className="flex items-center"
                     initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: favoritesWidth, opacity: 1, transition: { delay: 0.1, duration: 0.2 } }}
+                    animate={{ width: 'auto', opacity: 1, transition: { delay: 0.1, duration: 0.2 } }}
                     exit={{ width: 0, opacity: 0, transition: { duration: 0.2 } }}
                   >
                       <motion.div
@@ -190,7 +190,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 </AnimatePresence>
           </div>
           
-          <div className="flex items-center gap-0 sm:gap-1">
+          <div className="flex shrink-0 items-center gap-0 sm:gap-1">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                    <Button variant="ghost" size="icon" className="group h-12 w-12 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-primary/10">
@@ -246,7 +246,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
               </DropdownMenu>
           </div>
         </nav>
-      </div>
+      </header>
       <CommandMenu 
         open={open} 
         onOpenChange={(isOpen) => {
