@@ -25,6 +25,7 @@ import { History, Loader2, AlertCircle } from "lucide-react";
 import { type Transaction } from "@/store/transaction-store";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useThemeStore } from "@/store/theme-store";
 
 export default function TradeHistory() {
   const { user } = useAuth();
@@ -33,6 +34,8 @@ export default function TradeHistory() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === "light";
 
   const handleFetchHistory = async () => {
     if (!user) return;
@@ -59,9 +62,16 @@ export default function TradeHistory() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button 
-          variant="outline" 
-          className="w-full sm:w-auto"
+        <Button
+          variant="outline"
+          className={cn(
+            "w-full sm:w-auto",
+            isClearMode
+              ? isLightClear
+                ? "bg-card/60 text-foreground ring-1 ring-white/10"
+                : "bg-white/10 text-white ring-1 ring-white/60"
+              : ""
+          )}
           onClick={handleFetchHistory}
         >
           <History className="h-4 w-4 mr-2" />
