@@ -76,7 +76,7 @@ export default function Leaderboard() {
                 const gainFormatted = `${investor.gain >= 0 ? '+' : '-'}$${Math.abs(investor.gain).toFixed(2)}`;
                 
                 return (
-                  <TableRow key={investor.rank} className={cn(isYou ? "bg-accent" : "")}>
+                  <TableRow key={investor.rank} className={cn(isYou ? "bg-primary/10" : "")}>
                       <TableCell className={cn("font-bold text-lg", isYou ? "rounded-l-lg" : "")}>
                         <div className="flex items-center gap-2">
                           {investor.rank === 1 ? <Crown className="h-5 w-5 text-yellow-500" /> : <span>{investor.rank}</span>}
