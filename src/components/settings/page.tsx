@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Shield, Sun, Eye, ShieldBan, FileUp, ArrowLeft } from "lucide-react";
+import { Shield, Sun, Eye, ShieldBan, FileUp, ArrowLeft, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useThemeStore } from "@/store/theme-store";
@@ -23,6 +23,47 @@ import { useRouter } from "next/navigation";
 import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { cn } from "@/lib/utils";
 import ColorPicker from "./color-picker";
+
+interface ThemeCardProps {
+  label: string;
+  themeType: "light" | "dark";
+  isClear?: boolean;
+  isSelected: boolean;
+  onClick: () => void;
+}
+
+const ThemeCard: React.FC<ThemeCardProps> = ({ label, themeType, isClear = false, isSelected, onClick }) => {
+  return (
+    <div className="text-center">
+      <button
+        onClick={onClick}
+        className={cn(
+          "w-full h-20 rounded-lg p-2 transition-all duration-200",
+          isSelected ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : "ring-1 ring-border"
+        )}
+      >
+        <div
+          className={cn(
+            "w-full h-full rounded-md flex items-center justify-center",
+            themeType === 'light' && !isClear && "bg-white",
+            themeType === 'dark' && !isClear && "bg-gray-800",
+            isClear && "bg-gray-700/50 backdrop-blur-sm"
+          )}
+        >
+          <TrendingUp className={cn(
+            "h-8 w-8",
+             (themeType === 'dark' && !isClear) || (isClear && themeType === 'light') ? "text-white" : "",
+             themeType === 'light' && !isClear ? "text-gray-800" : "",
+             isClear && themeType === 'dark' ? "text-primary" : ""
+          )} />
+        </div>
+      </button>
+      <p className="text-sm font-medium mt-2">{label}</p>
+      {label === 'Clear' && <p className="text-xs text-muted-foreground">(Liquid Glass)</p>}
+    </div>
+  );
+};
+
 
 export default function SettingsClient() {
   const router = useRouter();
@@ -113,40 +154,36 @@ export default function SettingsClient() {
               Customize the look and feel of the app.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-8">
             {!isClient ? (
-                <div className="space-y-2">
+                <div className="space-y-4">
+                    <Skeleton className="h-24 w-full" />
                     <Skeleton className="h-40 w-full" />
                 </div>
             ) : (
                 <>
-                    <ColorPicker />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                       <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                            <Label htmlFor="theme-switch" className="font-medium">
-                                Theme
-                            </Label>
-                            <div className="flex items-center gap-2">
-                                <span className={theme === 'light' ? '' : 'text-muted-foreground'}>Light</span>
-                                <Switch
-                                    id="theme-switch"
-                                    checked={theme === "dark"}
-                                    onCheckedChange={(checked) => handleThemeChange(checked ? 'dark' : 'light')}
-                                />
-                                 <span className={theme === 'dark' ? '' : 'text-muted-foreground'}>Dark</span>
-                            </div>
-                        </div>
-                        <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                            <Label htmlFor="clear-mode-switch" className="font-medium">
-                                Clear Mode
-                            </Label>
-                            <Switch
-                                id="clear-mode-switch"
-                                checked={isClearMode}
-                                onCheckedChange={handleClearModeChange}
-                            />
-                        </div>
+                   <div className="grid grid-cols-3 gap-4">
+                        <ThemeCard
+                            label="Light"
+                            themeType="light"
+                            isSelected={theme === 'light' && !isClearMode}
+                            onClick={() => { handleThemeChange('light'); handleClearModeChange(false); }}
+                        />
+                        <ThemeCard
+                            label="Dark"
+                            themeType="dark"
+                            isSelected={theme === 'dark' && !isClearMode}
+                             onClick={() => { handleThemeChange('dark'); handleClearModeChange(false); }}
+                        />
+                        <ThemeCard
+                            label="Clear"
+                            themeType={theme}
+                            isClear={true}
+                            isSelected={isClearMode}
+                             onClick={() => handleClearModeChange(true)}
+                        />
                     </div>
+                    <ColorPicker />
                 </>
             )}
           </CardContent>
