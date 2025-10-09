@@ -34,8 +34,6 @@ export default function TradeHistory() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const { isClearMode, theme } = useThemeStore();
-  const isLightClear = isClearMode && theme === 'light';
 
   const handleFetchHistory = async () => {
     if (!user) return;
@@ -63,15 +61,8 @@ export default function TradeHistory() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
-          variant="outline"
-          className={cn(
-            "w-full sm:w-auto ring-1 ring-white/60",
-             isClearMode
-                ? isLightClear
-                    ? "bg-card/60 text-foreground"
-                    : "bg-white/10 text-white"
-                : ""
-          )}
+          variant="default"
+          className="w-full sm:w-auto"
           onClick={handleFetchHistory}
         >
           <History className="h-4 w-4 mr-2" />
