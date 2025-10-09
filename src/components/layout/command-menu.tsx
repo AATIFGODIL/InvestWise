@@ -164,9 +164,9 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
     fetchStockData();
   }, [open, stocks.length]);
 
-  const runCommand = useCallback((command: () => void) => {
+  const runCommand = useCallback(async (command: () => void | Promise<void>) => {
+    await command();
     onOpenChange(false);
-    command();
   }, [onOpenChange]);
 
   const fetchStockDetails = (stock: StockData) => {
@@ -555,5 +555,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
     </>
   );
 }
+
+    
 
     
