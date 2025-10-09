@@ -94,20 +94,24 @@ function hslStringToHex(hslString: string): string {
 }
 
 export default function ColorPicker() {
-    const [color, setColor] = useState<RgbaColor>({ r: 139, g: 92, b: 246, a: 1 });
+    const [color, setColor] = useState<RgbaColor>({ r: 138, g: 99, b: 246, a: 1 }); // Default: #8A63F6
     const [hexValue, setHexValue] = useState(rgbaToHex(color));
     const { updateUserTheme } = useAuth();
     const debouncedColor = useDebounce(color, 200);
 
     useEffect(() => {
-        const root = document.documentElement;
-        const primaryHsl = getComputedStyle(root).getPropertyValue('--primary').trim();
-        if (primaryHsl) {
-            const hex = hslStringToHex(primaryHsl);
-            const rgba = hexToRgba(hex);
-            if (rgba) {
-                setColor(rgba);
-                setHexValue(hex);
+        // On component mount, read the current primary color from CSS variables
+        // and set the color picker's state to match it.
+        if (typeof window !== 'undefined') {
+            const root = document.documentElement;
+            const primaryHsl = getComputedStyle(root).getPropertyValue('--primary').trim();
+            if (primaryHsl) {
+                const hex = hslStringToHex(primaryHsl);
+                const rgba = hexToRgba(hex);
+                if (rgba) {
+                    setColor(rgba);
+                    setHexValue(hex);
+                }
             }
         }
     }, []);
@@ -147,6 +151,7 @@ export default function ColorPicker() {
                         className={cn("pl-7 font-mono", !hexToRgba(hexValue) && "border-destructive")}
                     />
                 </div>
+                 <p className="text-xs text-muted-foreground text-center">Default color is #8A63F6</p>
             </div>
         </div>
     )
