@@ -64,14 +64,7 @@ export default function TradeHistory() {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className={cn(
-                "w-full sm:w-auto ring-1 ring-white/60",
-                isClearMode
-                    ? isLightClear
-                        ? "bg-card/60 text-foreground"
-                        : "bg-white/10 text-white"
-                    : ""
-            )}
+          className="w-full sm:w-auto"
           onClick={handleFetchHistory}
         >
           <History className="h-4 w-4 mr-2" />
