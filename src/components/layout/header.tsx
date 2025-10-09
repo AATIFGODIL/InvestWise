@@ -119,7 +119,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   }
   
   const displayedFavorites = isMobile ? favorites.slice(0, 2) : favorites;
-  const favoritesWidth = displayedFavorites.length > 0 ? (displayedFavorites.length * (isMobile ? 40 : 48)) + ((displayedFavorites.length) * 8) : 0;
+  const favoritesWidth = displayedFavorites.length > 0 ? (displayedFavorites.length * (isMobile ? 48 : 48)) + ((displayedFavorites.length) * 8) : 0;
 
 
   return (
@@ -139,10 +139,10 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           <div className="flex h-full items-center font-semibold">
             <Link 
               href="/dashboard" 
-              className="flex h-full items-center rounded-full bg-primary px-4 shadow-md"
+              className="flex h-full items-center rounded-full bg-primary px-2 sm:px-4 shadow-md"
               onClick={(e) => handleNavigate(e, '/dashboard')}
             >
-              <h1 className="text-xl font-bold text-primary-foreground">
+              <h1 className="text-lg sm:text-xl font-bold text-primary-foreground">
                 InvestWise
               </h1>
             </Link>
@@ -190,7 +190,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 </AnimatePresence>
           </div>
           
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0 sm:gap-1">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                    <Button variant="ghost" size="icon" className="group h-12 w-12 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-primary/10">
