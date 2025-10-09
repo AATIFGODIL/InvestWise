@@ -165,13 +165,12 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
   }, [open, stocks.length]);
 
   const runCommand = useCallback((command: () => void) => {
-    command();
     onOpenChange(false);
     setQuery("");
+    command();
   }, [onOpenChange]);
 
   const handleTradeNavigation = (symbol: string) => {
-    showLoading();
     router.push(`/trade?symbol=${symbol}`);
   };
 
@@ -227,7 +226,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
         variant: "destructive",
         title: "No Payment Method",
         description: "Please add a payment method in your profile first.",
-        action: <Button onClick={() => runCommand(() => { showLoading(); router.push('/profile'); })}>Go to Profile</Button>
+        action: <Button onClick={() => runCommand(() => { router.push('/profile'); })}>Go to Profile</Button>
       });
       return;
     }
@@ -255,31 +254,31 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
       // Easter Egg
       { name: "Make it rain", keywords: "celebrate money win", onSelect: () => runCommand(onTriggerRain), icon: PartyPopper },
       // Navigation
-      { name: "Dashboard", keywords: "home explore main", onSelect: () => runCommand(() => { showLoading(); router.push('/dashboard'); }), icon: Home },
-      { name: "Portfolio", keywords: "holdings assets", onSelect: () => runCommand(() => { showLoading(); router.push('/portfolio'); }), icon: Briefcase },
-      { name: "Trade", keywords: "buy sell chart", onSelect: () => runCommand(() => { showLoading(); router.push('/trade'); }), icon: Repeat },
-      { name: "Goals", keywords: "savings targets", onSelect: () => runCommand(() => { showLoading(); router.push('/goals'); }), icon: BarChart },
-      { name: "Community", keywords: "leaderboard social", onSelect: () => runCommand(() => { showLoading(); router.push('/community'); }), icon: Users },
-      { name: "View Leaderboard", keywords: "rankings top investors", onSelect: () => runCommand(() => { showLoading(); router.push('/community?tab=feed'); }), icon: Users },
-      { name: "View Community Trends", keywords: "popular stocks", onSelect: () => runCommand(() => { showLoading(); router.push('/community?tab=trends'); }), icon: TrendingUpIcon },
-      { name: "View Watchlist", keywords: "saved stocks favorites", onSelect: () => runCommand(() => { showLoading(); router.push('/portfolio'); }), icon: Star },
+      { name: "Dashboard", keywords: "home explore main", onSelect: () => runCommand(() => router.push('/dashboard')), icon: Home },
+      { name: "Portfolio", keywords: "holdings assets", onSelect: () => runCommand(() => router.push('/portfolio')), icon: Briefcase },
+      { name: "Trade", keywords: "buy sell chart", onSelect: () => runCommand(() => router.push('/trade')), icon: Repeat },
+      { name: "Goals", keywords: "savings targets", onSelect: () => runCommand(() => router.push('/goals')), icon: BarChart },
+      { name: "Community", keywords: "leaderboard social", onSelect: () => runCommand(() => router.push('/community')), icon: Users },
+      { name: "View Leaderboard", keywords: "rankings top investors", onSelect: () => runCommand(() => router.push('/community?tab=feed')), icon: Users },
+      { name: "View Community Trends", keywords: "popular stocks", onSelect: () => runCommand(() => router.push('/community?tab=trends')), icon: TrendingUpIcon },
+      { name: "View Watchlist", keywords: "saved stocks favorites", onSelect: () => runCommand(() => router.push('/portfolio')), icon: Star },
       // Account & Settings
       { name: "Sign Out", keywords: "log out exit", onSelect: () => runCommand(signOut), icon: LogOut },
-      { name: "Profile", keywords: "account my info", onSelect: () => runCommand(() => { showLoading(); router.push('/profile'); }), icon: User },
-      { name: "Settings", keywords: "preferences options", onSelect: () => runCommand(() => { showLoading(); router.push('/settings'); }), icon: Settings },
+      { name: "Profile", keywords: "account my info", onSelect: () => runCommand(() => router.push('/profile')), icon: User },
+      { name: "Settings", keywords: "preferences options", onSelect: () => runCommand(() => router.push('/settings')), icon: Settings },
       // Theme
       { name: `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`, keywords: "theme appearance", onSelect: () => runCommand(() => updateUserTheme({ theme: theme === 'dark' ? 'light' : 'dark' })), icon: theme === 'dark' ? Sun : Moon },
       { name: `${isClearMode ? 'Disable' : 'Enable'} Clear Mode`, keywords: "theme glass liquid transparent", onSelect: () => runCommand(() => updateUserTheme({ isClearMode: !isClearMode })), icon: Sparkles },
       // Financial Actions
       { name: "Add Funds", keywords: "deposit money wallet", onSelect: () => runCommand(() => setIsFundsDialogOpen(true)), icon: CreditCard },
       { name: "Create New Goal", keywords: "new savings target", onSelect: () => runCommand(() => setIsGoalDialogOpen(true)), icon: Target },
-      { name: "Set Up Auto-Invest", keywords: "recurring investment", onSelect: () => runCommand(() => { showLoading(); router.push('/dashboard'); }), icon: Repeat },
-      { name: "View Trade History", keywords: "transactions log", onSelect: () => runCommand(() => { showLoading(); router.push('/portfolio'); }), icon: History },
+      { name: "Set Up Auto-Invest", keywords: "recurring investment", onSelect: () => runCommand(() => router.push('/dashboard')), icon: Repeat },
+      { name: "View Trade History", keywords: "transactions log", onSelect: () => runCommand(() => router.push('/portfolio')), icon: History },
       // AI & Content
       { name: "Ask InvestWise AI", keywords: "chatbot help question", onSelect: () => runCommand(() => openChatbot()), icon: BrainCircuit },
-      { name: "Educational Content", keywords: "learn video articles", onSelect: () => runCommand(() => { showLoading(); router.push('/dashboard'); }), icon: BookOpen },
-      { name: "View My Certificate", keywords: "award achievement", onSelect: () => runCommand(() => { showLoading(); router.push('/certificate'); }), icon: Award },
-    ], [router, runCommand, signOut, theme, isClearMode, updateUserTheme, openChatbot, onTriggerRain, showLoading]);
+      { name: "Educational Content", keywords: "learn video articles", onSelect: () => runCommand(() => router.push('/dashboard')), icon: BookOpen },
+      { name: "View My Certificate", keywords: "award achievement", onSelect: () => runCommand(() => router.push('/certificate')), icon: Award },
+    ], [router, runCommand, signOut, theme, isClearMode, updateUserTheme, openChatbot, onTriggerRain]);
 
   useEffect(() => {
     if (!open) {
@@ -561,5 +560,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
     </>
   );
 }
+
+    
 
     
