@@ -110,7 +110,7 @@ export default function BottomNav() {
 
       if (distance < effectRadius) {
         const scale = Math.cos((distance / effectRadius) * (Math.PI / 2));
-        const rise = -4 * scale; // Max rise of -4px
+        const rise = -6 * scale; // Max rise of -6px
         newTransforms[index] = `translateY(${rise}px)`;
       } else {
         newTransforms[index] = 'translateY(0px)';
