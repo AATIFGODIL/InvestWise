@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState } from "react";
+import React from 'react';
 import { Search, Bell, Settings, LogOut, User as UserIcon, Star } from "lucide-react";
 import { CommandMenu } from "./command-menu";
 import { Button } from "../ui/button";
@@ -60,8 +60,8 @@ const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (f
  * It provides a central search bar to open the command menu and favorite actions.
  */
 export default function Header({ onTriggerRain }: { onTriggerRain: () => void }) {
-  const [open, setOpen] = useState(false);
-  const { signOut } = useAuth();
+  const [open, setOpen] = React.useState(false);
+  const { user, signOut } = useAuth();
   const { username, photoURL } = useUserStore();
   const { isClearMode, theme } = useThemeStore();
   const { showLoading } = useLoadingStore();
@@ -121,8 +121,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
            <div className="group absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center">
                 <button
                     className={cn(
-                        "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full shadow-lg transition-all duration-300 ease-in-out md:w-56",
-                        "group-hover:w-48 group-hover:rounded-r-none group-hover:border-r-0",
+                        "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-all duration-300 ease-in-out md:w-56",
+                        "group-hover:rounded-r-none group-hover:border-r-0 group-hover:pr-2",
                         isClearMode
                             ? isLightClear
                                 ? "bg-card/60 text-foreground ring-1 ring-white/20"
@@ -141,7 +141,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                             key={fav.value}
                             className={cn(
                                 "h-12 w-0 scale-0 opacity-0 transition-all duration-300 ease-in-out group-hover:w-12 group-hover:scale-100 group-hover:opacity-100",
-                                index === 0 && "group-hover:delay-100"
+                                index === 0 && "group-hover:delay-100",
                             )}
                         >
                           <FavoriteItem favorite={fav} onSelect={handleFavoriteSelect} />
