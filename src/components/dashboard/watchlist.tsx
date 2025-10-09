@@ -125,43 +125,33 @@ export default function Watchlist() {
                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     </div>
                 ) : (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Symbol</TableHead>
-                                <TableHead className="text-right">Price</TableHead>
-                                <TableHead className="text-right hidden sm:table-cell">Change</TableHead>
-                                <TableHead className="text-center">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {watchlistData.map((item) => {
-                                const isPositive = item.change !== null && item.change >= 0;
-                                return (
-                                    <TableRow key={item.symbol}>
-                                        <TableCell className="font-bold">{item.symbol}</TableCell>
-                                        <TableCell className="text-right font-mono">
+                    <div className="space-y-2">
+                        {watchlistData.map((item) => {
+                            const isPositive = item.change !== null && item.change >= 0;
+                            return (
+                                <div key={item.symbol} className="p-3 rounded-lg transition-colors border border-transparent hover:border-border hover:bg-muted/50">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <div className="font-bold">{item.symbol}</div>
+                                        <div className="text-right font-mono">
                                             {item.price !== null ? `$${item.price.toFixed(2)}` : 'N/A'}
-                                        </TableCell>
-                                        <TableCell className={cn("text-right hidden sm:table-cell", isPositive ? "text-green-500" : "text-red-500")}>
+                                        </div>
+                                        <div className={cn("text-right hidden sm:block", isPositive ? "text-green-500" : "text-red-500")}>
                                             {item.change !== null && item.changePercent !== null 
                                                 ? `${item.change.toFixed(2)} (${item.changePercent.toFixed(2)}%)` 
                                                 : 'N/A'
                                             }
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <div className="flex gap-2 justify-center">
-                                                <Button size="sm" onClick={() => handleTradeClick(item.symbol)}>Trade</Button>
-                                                <Button variant="ghost" size="icon" onClick={() => handleRemove(item.symbol)}>
-                                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                                </Button>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
+                                        </div>
+                                        <div className="flex gap-2 justify-center">
+                                            <Button size="sm" onClick={() => handleTradeClick(item.symbol)}>Trade</Button>
+                                            <Button variant="ghost" size="icon" onClick={() => handleRemove(item.symbol)}>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 )}
             </CardContent>
         </Card>
