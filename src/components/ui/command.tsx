@@ -3,6 +3,7 @@
 
 import * as React from "react"
 import { cn } from "@/lib/utils"
+import { useThemeStore } from "@/store/theme-store";
 
 // Define the props for CommandInput, including our custom onValueChange
 interface CommandInputProps extends Omit<React.ComponentPropsWithoutRef<'input'>, 'onChange'> {
@@ -48,30 +49,41 @@ CommandList.displayName = "CommandList"
 const CommandSeparator = React.forwardRef<
   React.ElementRef<'hr'>,
   React.ComponentPropsWithoutRef<'hr'>
->(({ className, ...props }, ref) => (
-  <hr
-    ref={ref}
-    className={cn("-mx-1 h-px bg-border/50", className)}
-    {...props}
-  />
-))
+>(({ className, ...props }, ref) => {
+  const { isClearMode } = useThemeStore();
+  return (
+      <hr
+        ref={ref}
+        className={cn(
+            "-mx-1 h-px", 
+            isClearMode ? "bg-border/50" : "bg-border", 
+            className
+        )}
+        {...props}
+      />
+  )
+})
 CommandSeparator.displayName = "CommandSeparator"
 
 
 const CommandItem = React.forwardRef<
   React.ElementRef<'div'>,
   React.HTMLAttributes<HTMLDivElement> & { onSelect?: () => void }
->(({ className, onSelect, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none text-white hover:bg-primary/10 aria-selected:bg-primary/20 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      className
-    )}
-    onClick={onSelect}
-    {...props}
-  />
-))
+>(({ className, onSelect, ...props }, ref) => {
+    const { isClearMode } = useThemeStore();
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none aria-selected:bg-accent data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+          isClearMode ? "text-white hover:bg-primary/10" : "hover:bg-accent hover:text-accent-foreground",
+          className
+        )}
+        onClick={onSelect}
+        {...props}
+      />
+    )
+})
 CommandItem.displayName = "CommandItem"
 
 
