@@ -61,12 +61,12 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
             <button
               className={cn(
-                "flex h-12 w-48 items-center justify-center gap-2 rounded-full shadow-lg transition-colors md:w-72",
+                "flex h-12 w-48 items-center justify-center gap-2 rounded-full shadow-lg transition-colors md:w-72 hover:bg-primary/10",
                 isClearMode
                     ? isLightClear
-                        ? "bg-card/60 text-foreground ring-1 ring-white/20 hover:bg-card/80" // Light Clear
-                        : "bg-white/10 text-slate-100 ring-1 ring-white/60 hover:bg-white/20 hover:text-white" // Dark Clear
-                    : "bg-background text-foreground ring-1 ring-border hover:bg-muted" // Solid
+                        ? "bg-card/60 text-foreground ring-1 ring-white/20" // Light Clear
+                        : "bg-white/10 text-slate-100 ring-1 ring-white/60 hover:text-white" // Dark Clear
+                    : "bg-background text-foreground ring-1 ring-border" // Solid
               )}
               onClick={() => setOpen(true)}
               style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
