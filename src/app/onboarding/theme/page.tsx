@@ -53,8 +53,8 @@ function getLuminance(hex: string): number {
 function setForegroundForContrast(hex: string) {
     if (typeof window === 'undefined') return;
     const luminance = getLuminance(hex);
-    // Threshold can be adjusted, 0.5 is a common choice.
-    const newForeground = luminance > 0.5 ? '222.2 84% 4.9%' : '210 40% 98%';
+    // Use a lower threshold to allow more bright colors to have dark text
+    const newForeground = luminance > 0.4 ? '222.2 84% 4.9%' : '210 40% 98%';
     document.documentElement.style.setProperty('--primary-foreground', newForeground);
 }
 
