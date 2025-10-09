@@ -53,8 +53,8 @@ function getLuminance(hex: string): number {
 function setForegroundForContrast(hex: string) {
     if (typeof window === 'undefined') return;
     const luminance = getLuminance(hex);
-    // Use a lower threshold to allow more bright colors to have dark text
-    const newForeground = luminance > 0.4 ? '222.2 84% 4.9%' : '210 40% 98%';
+    // Use a higher threshold to allow more bright colors to have white text
+    const newForeground = luminance > 0.6 ? '222.2 84% 4.9%' : '210 40% 98%';
     document.documentElement.style.setProperty('--primary-foreground', newForeground);
 }
 
@@ -99,8 +99,8 @@ function ColorPicker() {
         setPrimaryColor(hexColor);
         
         // Update CSS variables for immediate visual feedback
-        const h = debouncedColor.r, s = debouncedColor.g, l = debouncedColor.b;
-        document.documentElement.style.setProperty('--primary', `${h} ${s}% ${l}%`);
+        const hslString = hexToHslString(hexColor);
+        document.documentElement.style.setProperty('--primary', hslString);
 
         // Update foreground for contrast
         setForegroundForContrast(hexColor);
@@ -128,6 +128,34 @@ function ColorPicker() {
         </div>
     )
 }
+
+function hexToHslString(hex: string): string {
+    const { r, g, b } = hexToRgba(hex);
+    const r_norm = r / 255;
+    const g_norm = g / 255;
+    const b_norm = b / 255;
+
+    const max = Math.max(r_norm, g_norm, b_norm);
+    const min = Math.min(r_norm, g_norm, b_norm);
+    let h = 0, s = 0, l = (max + min) / 2;
+
+    if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r_norm: h = (g_norm - b_norm) / d + (g_norm < b_norm ? 6 : 0); break;
+            case g_norm: h = (b_norm - r_norm) / d + 2; break;
+            case b_norm: h = (r_norm - g_norm) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    const hue = Math.round(h * 360);
+    const saturation = Math.round(s * 100);
+    const lightness = Math.round(l * 100);
+    return `${hue} ${saturation}% ${lightness}%`;
+}
+
 
 // --- ThemeCard Component ---
 
