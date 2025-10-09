@@ -14,6 +14,8 @@ import {
   useCallback,
 } from "react";
 import { useThemeStore } from "@/store/theme-store";
+import { useIsMobile } from "@/hooks/use-mobile";
+
 
 const navItems = [
   { href: "/dashboard", label: "Explore", icon: Home },
@@ -24,28 +26,6 @@ const navItems = [
 ];
 
 type AnimationState = "idle" | "rising" | "sliding" | "descending" | "dragging";
-
-const useIsMobileLandscape = () => {
-    const [isMobileLandscape, setIsMobileLandscape] = useState(false);
-
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-
-        const mediaQuery = window.matchMedia("(orientation: landscape) and (max-height: 500px)");
-        
-        const handleChange = () => {
-            setIsMobileLandscape(mediaQuery.matches);
-        };
-
-        mediaQuery.addEventListener('change', handleChange);
-        handleChange(); // Initial check
-
-        return () => mediaQuery.removeEventListener('change', handleChange);
-    }, []);
-
-    return isMobileLandscape;
-}
-
 
 export default function BottomNav() {
   const pathname = usePathname() ?? "/";
@@ -58,7 +38,7 @@ export default function BottomNav() {
 
   const { isClearMode, theme } = useThemeStore();
   const isLightClear = isClearMode && theme === "light";
-  const isMobileLandscape = useIsMobileLandscape();
+  const isMobile = useIsMobile();
 
   const [gliderStyle, setGliderStyle] = useState<CSSProperties>({
     opacity: 0,
@@ -67,7 +47,7 @@ export default function BottomNav() {
   const [itemTransforms, setItemTransforms] = useState<Record<number, string>>({});
 
 
-  const WIDTH_FACTOR = isMobileLandscape ? 0.9 : 0.55;
+  const WIDTH_FACTOR = isMobile ? 0.9 : 0.55;
   const MIN_GLIDER_WIDTH = 28;
 
   const activeIndex = navItems.findIndex((item) =>
@@ -106,7 +86,7 @@ export default function BottomNav() {
       position: "absolute",
     });
     return true;
-  }, [WIDTH_FACTOR, isMobileLandscape]);
+  }, [WIDTH_FACTOR, isMobile]);
 
   useEffect(() => {
     setHasMounted(true);
@@ -404,5 +384,3 @@ export default function BottomNav() {
     </div>
   );
 }
-
-    
