@@ -65,7 +65,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 isClearMode
                     ? isLightClear
                         ? "bg-card/60 text-foreground ring-1 ring-white/20" // Light Clear
-                        : "bg-white/10 text-slate-100 ring-1 ring-white/60 hover:text-white" // Dark Clear
+                        : "bg-white/10 text-slate-100 ring-1 ring-white/60" // Dark Clear
                     : "bg-background text-foreground ring-1 ring-border" // Solid
               )}
               onClick={() => setOpen(true)}
