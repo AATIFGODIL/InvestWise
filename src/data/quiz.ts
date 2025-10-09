@@ -7,8 +7,8 @@ export const questions = [
     options: [
       { text: "A student", score: 1 },
       { text: "Curious about investing", score: 2 },
-      { text: "Just started investing", score: 2 },
-      { text: "Investing occasionally", score: 3 },
+      { text: "Just started investing", score: 3 },
+      { text: "Investing occasionally", score: 4 },
       { text: "Investing regularly for years", score: 5 },
     ],
   },
@@ -19,7 +19,7 @@ export const questions = [
     options: [
         { text: "To learn about stocks/markets", score: 1 },
         { text: "To try investing for the first time", score: 2 },
-        { text: "To practice trading with small amounts", score: 2 },
+        { text: "To practice trading with small amounts", score: 3 },
         { text: "To actively manage my portfolio", score: 4 },
         { text: "To optimize/scale my trading strategy", score: 5 },
     ],
@@ -77,12 +77,12 @@ export const questions = [
     type: "checkbox",
     text: "What types of assets have you already invested in? (Select all that apply)",
     options: [
-        { text: "I haven’t invested in anything", score: 1 },
+        { text: "I haven’t invested in anything", score: 1, exclusive: true },
         { text: "Mutual funds or SIPs", score: 2 },
         { text: "Stocks", score: 3 },
-        { text: "Crypto", score: 3 },
+        { text: "Crypto", score: 4 },
         { text: "Options, futures, or other derivatives", score: 5 },
-        { text: "Bonds, REITs, or international stocks", score: 5 },
+        { text: "Bonds, REITs, or international stocks", score: 6 },
     ],
   },
    {

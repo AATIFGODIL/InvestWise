@@ -73,14 +73,30 @@ export default function OnboardingQuizPage() {
     }
   };
 
-  const handleAnswerChange = (questionId: string, value: number) => {
+  const handleAnswerChange = (questionId: string, value: number, isExclusive: boolean = false) => {
     const question = questions.find((q) => q.id === questionId);
     if (question?.type === "checkbox") {
-      const currentAnswers = (answers[questionId] as number[]) || [];
-      const newAnswers = currentAnswers.includes(value)
-        ? currentAnswers.filter((v) => v !== value)
-        : [...currentAnswers, value];
-      setAnswers({ ...answers, [questionId]: newAnswers });
+        let currentAnswers = (answers[questionId] as number[]) || [];
+
+        if (isExclusive) {
+            // If the exclusive option is selected, either set it as the only answer or clear it if it's already there
+            currentAnswers = currentAnswers.includes(value) ? [] : [value];
+        } else {
+            // If a non-exclusive option is selected, remove the exclusive option if it's present
+            const exclusiveOption = question.options.find(opt => opt.exclusive)?.score;
+            if (exclusiveOption) {
+                currentAnswers = currentAnswers.filter(v => v !== exclusiveOption);
+            }
+            
+            // Toggle the current non-exclusive option
+            if (currentAnswers.includes(value)) {
+                currentAnswers = currentAnswers.filter((v) => v !== value);
+            } else {
+                currentAnswers.push(value);
+            }
+        }
+
+        setAnswers({ ...answers, [questionId]: currentAnswers });
     } else {
       setAnswers({ ...answers, [questionId]: value });
     }
@@ -130,7 +146,7 @@ export default function OnboardingQuizPage() {
                     <Checkbox
                       id={option.text}
                       onCheckedChange={() =>
-                        handleAnswerChange(currentQuestion.id, option.score)
+                        handleAnswerChange(currentQuestion.id, option.score, !!option.exclusive)
                       }
                       checked={((answers[currentQuestion.id] as number[]) || []).includes(option.score)}
                     />
