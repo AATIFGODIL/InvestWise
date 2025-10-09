@@ -48,8 +48,16 @@ const processNewsData = (data: any[], limit: number): z.infer<typeof StockNewsOu
 
     const sourceCounts: { [key: string]: number } = {};
     const filteredData: any[] = [];
+    
+    // Filter out items that are likely just price updates or non-articles
+    const articleLikeData = data.filter(item => 
+        item.headline && item.url &&
+        !item.headline.toLowerCase().includes('price target') &&
+        !item.headline.toLowerCase().includes('stock alert') &&
+        !item.headline.toLowerCase().includes('options alert')
+    );
 
-    for (const item of data) {
+    for (const item of articleLikeData) {
         if (filteredData.length >= limit) break;
         const source = item.source;
         // Limit to 2 articles per source to increase variety
@@ -112,23 +120,13 @@ const fetchStockNewsFlow = ai.defineFlow(
         const fromDateStr = from.toISOString().split('T')[0];
         const toDateStr = to.toISOString().split('T')[0];
         
-        // First, try fetching company-specific news
+        // Fetch company-specific news
         const companyNewsUrl = `https://finnhub.io/api/v1/company-news?symbol=${input.symbol}&from=${fromDateStr}&to=${toDateStr}&token=${API_KEY}`;
         const companyResponse = await fetch(companyNewsUrl);
         if (!companyResponse.ok) throw new Error(`Finnhub API request failed with status ${companyResponse.status}`);
         
         const companyArticles = await companyResponse.json();
-
-        // If company articles are found and valid, process and return them
-        if (Array.isArray(companyArticles) && companyArticles.length > 0) {
-             const processedCompanyNews = processNewsData(companyArticles, companyNewsLimit);
-             if (processedCompanyNews && processedCompanyNews.articles.length > 0) {
-                 return processedCompanyNews;
-             }
-        }
-        
-        // If no company-specific articles are found (or are empty), fall back to general news
-        return await fetchGeneralNews();
+        return processNewsData(companyArticles, companyNewsLimit);
 
       } else {
         // If no symbol and no category is provided, default to general news
