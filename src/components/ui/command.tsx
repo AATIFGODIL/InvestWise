@@ -60,14 +60,15 @@ CommandSeparator.displayName = "CommandSeparator"
 
 const CommandItem = React.forwardRef<
   React.ElementRef<'div'>,
-  React.ComponentPropsWithoutRef<'div'>
->(({ className, ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> & { onSelect?: () => void }
+>(({ className, onSelect, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
-      "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent/20 aria-selected:text-primary-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent/20 aria-selected:bg-accent/20 data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className
     )}
+    onClick={onSelect}
     {...props}
   />
 ))
@@ -80,3 +81,5 @@ export {
   CommandItem,
   CommandSeparator,
 }
+
+    

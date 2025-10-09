@@ -166,18 +166,8 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
 
   const runCommand = useCallback((command: () => void) => {
     onOpenChange(false);
-    setQuery("");
     command();
   }, [onOpenChange]);
-
-  const handleNavigation = (path: string) => {
-    router.push(path);
-    onOpenChange(false);
-  }
-
-  const handleTradeNavigation = (symbol: string) => {
-    handleNavigation(`/trade?symbol=${symbol}`);
-  };
 
   const fetchStockDetails = (stock: StockData) => {
     // Show detail view immediately
@@ -259,31 +249,31 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
       // Easter Egg
       { name: "Make it rain", keywords: "celebrate money win", onSelect: () => runCommand(onTriggerRain), icon: PartyPopper },
       // Navigation
-      { name: "Dashboard", keywords: "home explore main", onSelect: () => handleNavigation('/dashboard'), icon: Home },
-      { name: "Portfolio", keywords: "holdings assets", onSelect: () => handleNavigation('/portfolio'), icon: Briefcase },
-      { name: "Trade", keywords: "buy sell chart", onSelect: () => handleNavigation('/trade'), icon: Repeat },
-      { name: "Goals", keywords: "savings targets", onSelect: () => handleNavigation('/goals'), icon: BarChart },
-      { name: "Community", keywords: "leaderboard social", onSelect: () => handleNavigation('/community'), icon: Users },
-      { name: "View Leaderboard", keywords: "rankings top investors", onSelect: () => handleNavigation('/community?tab=feed'), icon: Users },
-      { name: "View Community Trends", keywords: "popular stocks", onSelect: () => handleNavigation('/community?tab=trends'), icon: TrendingUpIcon },
-      { name: "View Watchlist", keywords: "saved stocks favorites", onSelect: () => handleNavigation('/portfolio'), icon: Star },
+      { name: "Dashboard", keywords: "home explore main", onSelect: () => runCommand(() => router.push('/dashboard')), icon: Home },
+      { name: "Portfolio", keywords: "holdings assets", onSelect: () => runCommand(() => router.push('/portfolio')), icon: Briefcase },
+      { name: "Trade", keywords: "buy sell chart", onSelect: () => runCommand(() => router.push('/trade')), icon: Repeat },
+      { name: "Goals", keywords: "savings targets", onSelect: () => runCommand(() => router.push('/goals')), icon: BarChart },
+      { name: "Community", keywords: "leaderboard social", onSelect: () => runCommand(() => router.push('/community')), icon: Users },
+      { name: "View Leaderboard", keywords: "rankings top investors", onSelect: () => runCommand(() => router.push('/community?tab=feed')), icon: Users },
+      { name: "View Community Trends", keywords: "popular stocks", onSelect: () => runCommand(() => router.push('/community?tab=trends')), icon: TrendingUpIcon },
+      { name: "View Watchlist", keywords: "saved stocks favorites", onSelect: () => runCommand(() => router.push('/portfolio')), icon: Star },
       // Account & Settings
       { name: "Sign Out", keywords: "log out exit", onSelect: () => runCommand(signOut), icon: LogOut },
-      { name: "Profile", keywords: "account my info", onSelect: () => handleNavigation('/profile'), icon: User },
-      { name: "Settings", keywords: "preferences options", onSelect: () => handleNavigation('/settings'), icon: Settings },
+      { name: "Profile", keywords: "account my info", onSelect: () => runCommand(() => router.push('/profile')), icon: User },
+      { name: "Settings", keywords: "preferences options", onSelect: () => runCommand(() => router.push('/settings')), icon: Settings },
       // Theme
       { name: `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`, keywords: "theme appearance", onSelect: () => runCommand(() => updateUserTheme({ theme: theme === 'dark' ? 'light' : 'dark' })), icon: theme === 'dark' ? Sun : Moon },
       { name: `${isClearMode ? 'Disable' : 'Enable'} Clear Mode`, keywords: "theme glass liquid transparent", onSelect: () => runCommand(() => updateUserTheme({ isClearMode: !isClearMode })), icon: Sparkles },
       // Financial Actions
       { name: "Add Funds", keywords: "deposit money wallet", onSelect: () => runCommand(() => setIsFundsDialogOpen(true)), icon: CreditCard },
       { name: "Create New Goal", keywords: "new savings target", onSelect: () => runCommand(() => setIsGoalDialogOpen(true)), icon: Target },
-      { name: "Set Up Auto-Invest", keywords: "recurring investment", onSelect: () => handleNavigation('/dashboard'), icon: Repeat },
-      { name: "View Trade History", keywords: "transactions log", onSelect: () => handleNavigation('/portfolio'), icon: History },
+      { name: "Set Up Auto-Invest", keywords: "recurring investment", onSelect: () => runCommand(() => router.push('/dashboard')), icon: Repeat },
+      { name: "View Trade History", keywords: "transactions log", onSelect: () => runCommand(() => router.push('/portfolio')), icon: History },
       // AI & Content
-      { name: "Ask InvestWise AI", keywords: "chatbot help question", onSelect: () => runCommand(() => openChatbot()), icon: BrainCircuit },
-      { name: "Educational Content", keywords: "learn video articles", onSelect: () => handleNavigation('/dashboard'), icon: BookOpen },
-      { name: "View My Certificate", keywords: "award achievement", onSelect: () => handleNavigation('/certificate'), icon: Award },
-    ], [router, runCommand, signOut, theme, isClearMode, updateUserTheme, openChatbot, onTriggerRain, handleNavigation]);
+      { name: "Ask InvestWise AI", keywords: "chatbot help question", onSelect: () => runCommand(openChatbot), icon: BrainCircuit },
+      { name: "Educational Content", keywords: "learn video articles", onSelect: () => runCommand(() => router.push('/dashboard')), icon: BookOpen },
+      { name: "View My Certificate", keywords: "award achievement", onSelect: () => runCommand(() => router.push('/certificate')), icon: Award },
+    ], [router, runCommand, signOut, theme, isClearMode, updateUserTheme, openChatbot, onTriggerRain]);
 
   useEffect(() => {
     if (!open) {
@@ -364,7 +354,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
                       {filteredStocks.map((stock) => (
                       <CommandItem
                           key={stock.symbol}
-                          onClick={() => handleStockSelect(stock.symbol)}
+                          onSelect={() => handleStockSelect(stock.symbol)}
                       >
                           <div className="flex justify-between items-center w-full">
                               <div className="flex items-center gap-3">
@@ -396,7 +386,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
                         {filteredAppActions.map((action) => (
                           <CommandItem
                             key={action.name}
-                            onClick={action.onSelect}
+                            onSelect={action.onSelect}
                           >
                             <action.icon className="mr-2 h-4 w-4" />
                             <span>{action.name}</span>
@@ -443,7 +433,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
                                       Sell
                                   </Button>
                               </div>
-                              <Button variant="outline" size="sm" className="w-full bg-white/10 border-white/20 hover:bg-white/20" onClick={() => runCommand(() => handleTradeNavigation(selectedStock.symbol))}>
+                              <Button variant="outline" size="sm" className="w-full bg-white/10 border-white/20 hover:bg-white/20" onClick={() => runCommand(() => router.push(`/trade?symbol=${selectedStock.symbol}`))}>
                                   <Repeat className="mr-2 h-4 w-4" /> Go to Trade Page
                               </Button>
                               <Button variant="outline" size="sm" className="w-full bg-white/10 border-white/20 hover:bg-white/20" onClick={() => {
@@ -565,3 +555,5 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
     </>
   );
 }
+
+    
