@@ -12,13 +12,12 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import ColorPicker from "@/components/settings/color-picker";
 import { useThemeStore } from "@/store/theme-store";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
-import { TrendingUp, Sun, Moon, Sparkles } from "lucide-react";
+import { Sparkles, TrendingUp } from "lucide-react";
 
 interface ThemeCardProps {
   label: string;
@@ -73,12 +72,14 @@ export default function OnboardingThemePage() {
 
   const handleThemeChange = (newTheme: "light" | "dark") => {
     setTheme(newTheme);
-    updateUserTheme({ theme: newTheme });
+    setClearMode(false); // Turn off clear mode when selecting a base theme
+    updateUserTheme({ theme: newTheme, isClearMode: false });
   };
 
-  const handleClearModeChange = (isClear: boolean) => {
-    setClearMode(isClear);
-    updateUserTheme({ isClearMode: isClear });
+  const handleClearModeToggle = () => {
+    const newClearMode = !isClearMode;
+    setClearMode(newClearMode);
+    updateUserTheme({ isClearMode: newClearMode });
   };
   
   const handleContinue = () => {
@@ -107,20 +108,20 @@ export default function OnboardingThemePage() {
                             label="Light"
                             themeType="light"
                             isSelected={theme === 'light' && !isClearMode}
-                            onClick={() => { handleThemeChange('light'); handleClearModeChange(false); }}
+                            onClick={() => handleThemeChange('light')}
                         />
                         <ThemeCard
                             label="Dark"
                             themeType="dark"
                             isSelected={theme === 'dark' && !isClearMode}
-                             onClick={() => { handleThemeChange('dark'); handleClearModeChange(false); }}
+                            onClick={() => handleThemeChange('dark')}
                         />
                         <ThemeCard
                             label="Clear"
                             themeType={theme}
                             isClear={true}
                             isSelected={isClearMode}
-                             onClick={() => handleClearModeChange(true)}
+                            onClick={handleClearModeToggle}
                         />
                     </div>
                      <ColorPicker />

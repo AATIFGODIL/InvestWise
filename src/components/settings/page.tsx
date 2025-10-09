@@ -79,12 +79,14 @@ export default function SettingsClient() {
   
   const handleThemeChange = (newTheme: "light" | "dark") => {
     setTheme(newTheme);
-    updateUserTheme({ theme: newTheme });
+    setClearMode(false);
+    updateUserTheme({ theme: newTheme, isClearMode: false });
   };
 
-  const handleClearModeChange = (isClear: boolean) => {
-    setClearMode(isClear);
-    updateUserTheme({ isClearMode: isClear });
+  const handleClearModeToggle = () => {
+    const newClearMode = !isClearMode;
+    setClearMode(newClearMode);
+    updateUserTheme({ isClearMode: newClearMode });
   };
 
 
@@ -167,20 +169,20 @@ export default function SettingsClient() {
                             label="Light"
                             themeType="light"
                             isSelected={theme === 'light' && !isClearMode}
-                            onClick={() => { handleThemeChange('light'); handleClearModeChange(false); }}
+                            onClick={() => handleThemeChange('light')}
                         />
                         <ThemeCard
                             label="Dark"
                             themeType="dark"
                             isSelected={theme === 'dark' && !isClearMode}
-                             onClick={() => { handleThemeChange('dark'); handleClearModeChange(false); }}
+                            onClick={() => handleThemeChange('dark')}
                         />
                         <ThemeCard
                             label="Clear"
                             themeType={theme}
                             isClear={true}
                             isSelected={isClearMode}
-                             onClick={() => handleClearModeChange(true)}
+                            onClick={handleClearModeToggle}
                         />
                     </div>
                     <ColorPicker />
