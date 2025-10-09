@@ -57,8 +57,8 @@ const hexToRgba = (hex: string): RgbaColor | null => {
 };
 
 export default function ColorPicker() {
-    // Default color is now the light purple: #A78BFA
-    const [color, setColor] = useState<RgbaColor>({ r: 167, g: 139, b: 250, a: 1 });
+    // Default color is now the purple-blue: #8B5CF6
+    const [color, setColor] = useState<RgbaColor>({ r: 139, g: 92, b: 246, a: 1 });
     const [hexValue, setHexValue] = useState(rgbaToHex(color));
     const { updateUserTheme } = useAuth();
     const debouncedColor = useDebounce(color, 200);
