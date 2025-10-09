@@ -100,7 +100,7 @@ export default function InvestmentBundles({ bundles, title, description, showDis
                       <CardFooter className="p-4 pt-0">
                          <DialogTrigger asChild>
                            <Button variant="outline" size="sm" className={cn(
-                               "w-full ring-1 ring-white/60",
+                               "w-full ring-1 ring-white/60 hover:bg-primary/10",
                                 isClearMode
                                 ? isLightClear
                                     ? "bg-card/60 text-foreground"
