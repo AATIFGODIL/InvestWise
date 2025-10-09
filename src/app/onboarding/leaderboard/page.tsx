@@ -24,7 +24,8 @@ export default function OnboardingLeaderboardPage() {
   const [selection, setSelection] = useState<LeaderboardVisibility | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleContinue = async () => {
+  const handleNavigate = async (e: React.MouseEvent) => {
+    e.preventDefault();
     if (!selection) return;
 
     setIsLoading(true);
@@ -38,7 +39,6 @@ export default function OnboardingLeaderboardPage() {
         title: "Oh no!",
         description: "Could not save your preference. Please try again.",
       });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -85,7 +85,7 @@ export default function OnboardingLeaderboardPage() {
           </Card>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleContinue} className="w-full" disabled={!selection || isLoading}>
+          <Button onClick={handleNavigate} className="w-full" disabled={!selection || isLoading}>
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Continue
           </Button>

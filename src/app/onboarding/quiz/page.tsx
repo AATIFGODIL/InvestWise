@@ -29,11 +29,21 @@ export default function OnboardingQuizPage() {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      calculateProfileAndRedirect();
+      handleNavigate();
     }
   };
+
+  const handleNavigate = () => {
+    calculateProfile();
+    const userProfile = localStorage.getItem('userProfile');
+    if (userProfile === "Student") {
+        router.push("/onboarding/parental-gate");
+    } else {
+        router.push("/onboarding/goal");
+    }
+  }
   
-  const calculateProfileAndRedirect = () => {
+  const calculateProfile = () => {
     let totalScore = 0;
     let questionCount = 0;
 
@@ -65,12 +75,6 @@ export default function OnboardingQuizPage() {
     
     // Store profile in localStorage to be used across the app
     localStorage.setItem('userProfile', userProfile);
-
-    if(userProfile === "Student") {
-        router.push("/onboarding/parental-gate");
-    } else {
-        router.push("/onboarding/goal");
-    }
   };
 
   const handleAnswerChange = (questionId: string, value: number, isExclusive: boolean = false) => {

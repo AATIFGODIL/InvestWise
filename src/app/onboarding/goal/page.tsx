@@ -18,7 +18,8 @@ import { DollarSign } from "lucide-react";
 export default function OnboardingGoalPage() {
   const router = useRouter();
 
-  const handleContinue = () => {
+  const handleNavigate = (e: React.MouseEvent) => {
+    e.preventDefault();
     router.push("/onboarding/leaderboard");
   };
 
@@ -51,8 +52,8 @@ export default function OnboardingGoalPage() {
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button variant="ghost" onClick={handleContinue}>Skip for now</Button>
-          <Button onClick={handleContinue}>Set Goal</Button>
+          <Button variant="ghost" onClick={handleNavigate}>Skip for now</Button>
+          <Button onClick={handleNavigate}>Set Goal</Button>
         </CardFooter>
       </Card>
     </div>

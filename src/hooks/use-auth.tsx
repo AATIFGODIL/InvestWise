@@ -160,7 +160,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (email: string, pass: string, username: string) => {
-    showLoading();
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
       await sendEmailVerification(userCredential.user);

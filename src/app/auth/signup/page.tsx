@@ -86,7 +86,6 @@ export default function SignUpPage() {
       // Redirect is handled by the useAuth hook after successful sign-up.
     } catch (err: any) {
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   };
