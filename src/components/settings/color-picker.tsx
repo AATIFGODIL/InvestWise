@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, from "react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { RgbaColor, RgbaColorPicker } from "react-colorful";
 import { useAuth } from "@/hooks/use-auth";
@@ -94,12 +94,12 @@ function hslStringToHex(hslString: string): string {
 }
 
 export default function ColorPicker() {
-    const [color, setColor] = useState<RgbaColor>({ r: 138, g: 99, b: 246, a: 1 }); // Default: #8A63F6
-    const [hexValue, setHexValue] = useState(rgbaToHex(color));
+    const [color, setColor] = React.useState<RgbaColor>({ r: 119, g: 93, b: 239, a: 1 }); // Default: #775DEF
+    const [hexValue, setHexValue] = React.useState(rgbaToHex(color));
     const { updateUserTheme } = useAuth();
     const debouncedColor = useDebounce(color, 200);
 
-    useEffect(() => {
+    React.useEffect(() => {
         // On component mount, read the current primary color from CSS variables
         // and set the color picker's state to match it.
         if (typeof window !== 'undefined') {
@@ -116,7 +116,7 @@ export default function ColorPicker() {
         }
     }, []);
 
-    const handleColorChange = useCallback((newColor: RgbaColor) => {
+    const handleColorChange = React.useCallback((newColor: RgbaColor) => {
         setColor(newColor);
         setHexValue(rgbaToHex(newColor));
     }, []);
@@ -130,7 +130,7 @@ export default function ColorPicker() {
         }
     };
     
-    useEffect(() => {
+    React.useEffect(() => {
         const hexColor = rgbaToHex(debouncedColor);
         const hslString = rgbaToHslString(debouncedColor);
         document.documentElement.style.setProperty('--primary', hslString);
@@ -151,7 +151,7 @@ export default function ColorPicker() {
                         className={cn("pl-7 font-mono", !hexToRgba(hexValue) && "border-destructive")}
                     />
                 </div>
-                 <p className="text-xs text-muted-foreground text-center">Default color is #8A63F6</p>
+                 <p className="text-xs text-muted-foreground text-center">Default color is #775DEF</p>
             </div>
         </div>
     )
