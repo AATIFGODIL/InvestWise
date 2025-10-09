@@ -29,13 +29,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (fav: Favorite) => void }) => {
   const Icon = appIcons[favorite.iconName] || null;
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
   
   return (
     <motion.button
       layoutId={`favorite-${favorite.value}`}
-      variant="ghost"
       className={cn(
-        "h-12 w-12 rounded-full transition-all duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center bg-card/60 text-foreground ring-1 ring-white/20 hover:bg-primary/10"
+        "h-12 w-12 rounded-full transition-all duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center",
+        isClearMode
+            ? isLightClear
+                ? "bg-card/60 text-foreground ring-1 ring-white/20"
+                : "bg-white/10 text-slate-100 ring-1 ring-white/60"
+            : "bg-background text-foreground ring-1 ring-border"
       )}
       style={{ backdropFilter: "blur(2px)" }}
       onClick={() => onSelect(favorite)}
@@ -68,6 +74,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const { favorites } = useFavoritesStore();
   const { openChatbot } = useChatbotStore();
   const [isHovered, setIsHovered] = React.useState(false);
+  const [initialStock, setInitialStock] = React.useState<string | undefined>(undefined);
 
   const isLightClear = isClearMode && theme === 'light';
 
@@ -79,27 +86,22 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   
   const handleFavoriteSelect = (favorite: Favorite) => {
     if (favorite.type === 'stock') {
-      // This will open the command menu and show the stock detail view.
-      // The logic for this is now inside the CommandMenu component.
+      setInitialStock(favorite.value);
       setOpen(true);
-      // A slight delay to allow the command menu to open before setting the query
-      setTimeout(() => {
-          const input = document.querySelector('.cmdk-input') as HTMLInputElement;
-          if(input) {
-            // we need to set the value and dispatch an event to trigger the search
-            Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set?.call(input, favorite.value);
-            input.dispatchEvent(new Event('input', { bubbles: true }));
-          }
-      }, 100);
-
     } else {
-        // Here you would map action names to functions
-        if (favorite.value.includes('Dashboard')) router.push('/dashboard');
-        if (favorite.value.includes('Portfolio')) router.push('/portfolio');
-        if (favorite.value.includes('Trade')) router.push('/trade');
-        if (favorite.value.includes('Goals')) router.push('/goals');
-        if (favorite.value.includes('Community')) router.push('/community');
-        if (favorite.value.includes('Ask InvestWise AI')) openChatbot();
+        const actionMap: { [key: string]: () => void } = {
+            "Dashboard": () => router.push('/dashboard'),
+            "Portfolio": () => router.push('/portfolio'),
+            "Trade": () => router.push('/trade'),
+            "Goals": () => router.push('/goals'),
+            "Community": () => router.push('/community'),
+            "Ask InvestWise AI": () => openChatbot(),
+            "Make it rain": () => onTriggerRain(),
+        };
+        const action = actionMap[favorite.name];
+        if (action) {
+            action();
+        }
     }
   }
 
@@ -231,7 +233,15 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           </div>
         </nav>
       </div>
-      <CommandMenu open={open} onOpenChange={setOpen} onTriggerRain={onTriggerRain} />
+      <CommandMenu 
+        open={open} 
+        onOpenChange={(isOpen) => {
+            setOpen(isOpen);
+            if (!isOpen) setInitialStock(undefined);
+        }} 
+        onTriggerRain={onTriggerRain}
+        initialStockSymbol={initialStock}
+      />
     </>
   );
 }

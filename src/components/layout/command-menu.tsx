@@ -75,6 +75,7 @@ interface CommandMenuProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onTriggerRain: () => void;
+  initialStockSymbol?: string;
 }
 
 type CommandView = "search" | "stock-detail";
@@ -82,7 +83,7 @@ type CommandView = "search" | "stock-detail";
 export const appIcons: { [key: string]: React.ElementType } = { home: Home, briefcase: Briefcase, repeat: Repeat, barChart: BarChart, users: Users, users2: Users, trendingUp: TrendingUpIcon, star: Star, logOut: LogOut, user: User, settings: Settings, sun: Sun, moon: Moon, sparkles: Sparkles, creditCard: CreditCard, target: Target, history: History, brain: BrainCircuit, bookOpen: BookOpen, award: Award, party: PartyPopper };
 
 
-export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuProps) {
+export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSymbol }: CommandMenuProps) {
   const router = useRouter();
   const { toast } = useToast();
   const { showLoading } = useLoadingStore();
@@ -156,6 +157,13 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain }: CommandMenuPr
     
     fetchStockData();
   }, [open, stocks.length]);
+
+  useEffect(() => {
+    if (initialStockSymbol && stocks.length > 0) {
+      handleStockSelect(initialStockSymbol);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialStockSymbol, stocks]);
 
   const runCommand = useCallback(async (command: () => void | Promise<void>) => {
     onOpenChange(false);
