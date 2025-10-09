@@ -115,7 +115,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuContent className="w-56" align="end" sideOffset={8} forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium leading-none">{username}</p>
