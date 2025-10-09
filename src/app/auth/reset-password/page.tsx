@@ -17,6 +17,8 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useThemeStore } from '@/store/theme-store';
+import { cn } from '@/lib/utils';
 
 // A decorative background component with subtle financial-themed patterns.
 const FinanceBackground = () => (
@@ -198,12 +200,22 @@ function ResetPasswordForm() {
 
 
 export default function ResetPasswordPage() {
+    const { isClearMode, theme } = useThemeStore();
+    const isLightClear = isClearMode && theme === 'light';
+
     return (
         <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
             <FinanceBackground />
             <Card
-                className="w-full max-w-md relative z-10 bg-card/60 ring-1 ring-white/10"
-                style={{ backdropFilter: "blur(16px)" }}
+                className={cn(
+                    "w-full max-w-md relative z-10",
+                    isClearMode 
+                        ? isLightClear
+                            ? "bg-card/60 ring-1 ring-white/10"
+                            : "bg-white/10 ring-1 ring-white/60"
+                        : ""
+                )}
+                style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
             >
                 <div className="flex justify-center items-center pt-8 gap-2">
                     <h1 className="text-3xl font-bold text-primary">InvestWise</h1>

@@ -19,6 +19,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import useLoadingStore from '@/store/loading-store';
+import { useThemeStore } from '@/store/theme-store';
+import { cn } from '@/lib/utils';
 
 
 // A simple SVG component for the Google icon.
@@ -58,6 +60,7 @@ export default function SignUpPage() {
   const router = useRouter();
   const { signUp, signInWithGoogle } = useAuth();
   const { showLoading } = useLoadingStore();
+  const { isClearMode, theme } = useThemeStore();
   
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -67,6 +70,8 @@ export default function SignUpPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const isLightClear = isClearMode && theme === 'light';
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,9 +102,16 @@ export default function SignUpPage() {
   return (
     <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
       <FinanceBackground />
-      <Card
-        className="w-full max-w-sm relative z-10 bg-card/60 ring-1 ring-white/10"
-        style={{ backdropFilter: "blur(16px)" }}
+       <Card
+        className={cn(
+            "w-full max-w-sm relative z-10",
+            isClearMode 
+                ? isLightClear
+                    ? "bg-card/60 ring-1 ring-white/10"
+                    : "bg-white/10 ring-1 ring-white/60"
+                : ""
+        )}
+        style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
       >
         <div className="flex justify-center items-center pt-8 gap-2">
             <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
@@ -128,7 +140,7 @@ export default function SignUpPage() {
                 <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card/60 px-2 text-muted-foreground">Or continue with</span>
+                <span className={cn("px-2 text-muted-foreground", isClearMode && !isLightClear ? "bg-card" : "bg-background")}>Or continue with</span>
             </div>
           </div>
           <form onSubmit={handleSignUp} className="grid gap-4">

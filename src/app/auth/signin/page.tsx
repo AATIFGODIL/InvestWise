@@ -20,6 +20,8 @@ import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import useLoadingStore from '@/store/loading-store';
 import { useToast } from '@/hooks/use-toast';
+import { useThemeStore } from '@/store/theme-store';
+import { cn } from '@/lib/utils';
 
 // A simple SVG component for the Google icon.
 const GoogleIcon = () => (
@@ -59,6 +61,7 @@ export default function SignInPage() {
   const router = useRouter();
   const { showLoading } = useLoadingStore();
   const { toast } = useToast();
+  const { isClearMode, theme } = useThemeStore();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -66,6 +69,8 @@ export default function SignInPage() {
   const [error, setError] = useState<string | null>(null);
   const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  const isLightClear = isClearMode && theme === 'light';
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,8 +127,15 @@ export default function SignInPage() {
     <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
       <FinanceBackground />
       <Card
-        className="w-full max-w-sm relative z-10 bg-card/60 ring-1 ring-white/10"
-        style={{ backdropFilter: "blur(16px)" }}
+        className={cn(
+            "w-full max-w-sm relative z-10",
+            isClearMode 
+                ? isLightClear
+                    ? "bg-card/60 ring-1 ring-white/10"
+                    : "bg-white/10 ring-1 ring-white/60"
+                : ""
+        )}
+        style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
       >
           <div className="flex justify-center items-center pt-8 gap-2">
               <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
@@ -161,7 +173,7 @@ export default function SignInPage() {
                   <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-card/60 px-2 text-muted-foreground">Or continue with</span>
+                  <span className={cn("px-2 text-muted-foreground", isClearMode && !isLightClear ? "bg-card" : "bg-background")}>Or continue with</span>
               </div>
             </div>
             <form onSubmit={handleEmailSignIn} className="grid gap-4">
