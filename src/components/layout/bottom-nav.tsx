@@ -67,7 +67,7 @@ export default function BottomNav() {
   const [itemTransforms, setItemTransforms] = useState<Record<number, string>>({});
 
 
-  const WIDTH_FACTOR = isMobileLandscape ? 0.85 : 0.55;
+  const WIDTH_FACTOR = isMobileLandscape ? 0.9 : 0.55;
   const MIN_GLIDER_WIDTH = 28;
 
   const activeIndex = navItems.findIndex((item) =>
@@ -106,7 +106,7 @@ export default function BottomNav() {
       position: "absolute",
     });
     return true;
-  }, [WIDTH_FACTOR]);
+  }, [WIDTH_FACTOR, isMobileLandscape]);
 
   useEffect(() => {
     setHasMounted(true);
@@ -404,3 +404,5 @@ export default function BottomNav() {
     </div>
   );
 }
+
+    
