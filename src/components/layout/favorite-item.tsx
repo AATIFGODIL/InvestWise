@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -14,12 +15,13 @@ const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 interface FavoriteItemProps {
   favorite: Favorite;
   onSelect: (fav: Favorite) => void;
+  onDoubleClick: (e: React.MouseEvent) => void;
   variants: any;
   isEditing: boolean;
   isPill: boolean;
 }
 
-export default function FavoriteItem({ favorite, onSelect, variants, isEditing, isPill }: FavoriteItemProps) {
+export default function FavoriteItem({ favorite, onSelect, onDoubleClick, variants, isEditing, isPill }: FavoriteItemProps) {
     const { isClearMode, theme } = useThemeStore();
     const isLightClear = isClearMode && theme === 'light';
     const [price, setPrice] = useState<number | null>(null);
@@ -59,6 +61,7 @@ export default function FavoriteItem({ favorite, onSelect, variants, isEditing, 
             className={cn("flex-shrink-0", containerClasses)}
             style={{ backdropFilter: "blur(2px)" }}
             onClick={() => onSelect(favorite)}
+            onDoubleClick={onDoubleClick}
             animate={{ height: '3rem', width: isPill ? '140px' : '3rem' }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             whileDrag={{ scale: 1.1 }}
@@ -92,7 +95,7 @@ export default function FavoriteItem({ favorite, onSelect, variants, isEditing, 
                         ) : (
                              <div className="flex items-center justify-center gap-2 w-full text-center">
                                 {Icon && <Icon className="h-5 w-5 flex-shrink-0" />}
-                                <span className="font-semibold text-xs whitespace-normal leading-tight">{favorite.name}</span>
+                                 <span className="font-semibold text-xs whitespace-normal leading-tight text-center">{favorite.name}</span>
                             </div>
                         )}
                     </motion.div>

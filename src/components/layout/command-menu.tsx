@@ -255,12 +255,11 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
             });
             toast({ title: 'Favorite Added!', description: `${stockData.name} has been added to your favorites.` });
         }
-        onOpenChange(false);
     } else {
         const stock = displayedStocks.find(s => s.symbol === stockSymbol);
         if (stock) fetchStockDetails(stock);
     }
-  }, [isEditingFavorites, displayedStocks, addFavorite, toast, onOpenChange]);
+  }, [isEditingFavorites, displayedStocks, addFavorite, toast]);
 
   const handleGoBack = () => {
     setView("search"); setQuery(""); setSelectedStock(null); setPrediction(null); setNews(null);
@@ -356,7 +355,6 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
             iconName: Object.entries(appIcons).find(([, Icon]) => Icon === action.icon)?.[0] || 'search',
         });
         toast({ title: 'Favorite Added!', description: `${action.name} has been added to your favorites.` });
-        onOpenChange(false);
       } else {
         action.onSelect();
       }
@@ -467,5 +465,3 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     </>
   );
 }
-
-    

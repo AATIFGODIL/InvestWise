@@ -26,7 +26,6 @@ import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import FavoriteItem from './favorite-item';
 import { useIsMobile } from '@/hooks/use-mobile';
-import FavoritesEditor from './favorites-editor';
 
 
 const containerVariants = {
@@ -58,13 +57,12 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const { isClearMode, theme } = useThemeStore();
   const { showLoading } = useLoadingStore();
   const router = useRouter();
-  const { favorites, setFavorites, toggleFavoriteSize } = useFavoritesStore();
+  const { favorites, setFavorites, toggleFavoriteSize, removeFavorite } = useFavoritesStore();
   const [initialStock, setInitialStock] = React.useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = React.useState(false);
   const isMobile = useIsMobile();
 
   const [isEditing, setEditing] = React.useState(false);
-  const [isEditorOpen, setEditorOpen] = React.useState(false);
   const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
 
   const handlePointerDown = () => {
@@ -87,9 +85,13 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     router.push(href);
   };
   
-  const appActions = React.useMemo(() => [
-        { name: "Make it rain", onSelect: () => onTriggerRain() },
-    ], [onTriggerRain]);
+   const appActions = React.useMemo(() => [
+        { name: "Make it rain", onSelect: () => runCommand(onTriggerRain) },
+    ], [onTriggerRain, runCommand]);
+
+  const runCommand = React.useCallback((command: () => void) => {
+    command();
+  }, []);
 
   const handleFavoriteSelect = (favorite: Favorite) => {
     if (isEditing) {
@@ -103,22 +105,45 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     } else {
         const action = appActions.find(a => a.name === favorite.value);
         if (action?.onSelect) {
-            action.onSelect();
+            runCommand(action.onSelect);
         }
     }
   };
-  
-  const handleSearchClick = () => {
-    if (isEditing) {
-      setEditorOpen(true);
-    } else {
-      setOpen(true);
-    }
+
+  const handleFavoriteRemove = (e: React.MouseEvent, favId: string) => {
+      e.stopPropagation();
+      if (isEditing) {
+          removeFavorite(favId);
+      }
   }
 
-  const displayedFavorites = React.useMemo(() => {
+  const { displayedFavorites, pillsToDelete, iconsToDelete } = React.useMemo(() => {
+    if (isEditing) {
+        let weight = 0;
+        const pills = favorites.filter(f => f.size === 'pill');
+        const icons = favorites.filter(f => f.size === 'icon');
+
+        let pillsWeight = pills.length * 2;
+        let iconsWeight = icons.length;
+
+        let totalWeight = pillsWeight + iconsWeight;
+        let pillsToDelete = 0;
+        let iconsToDelete = 0;
+
+        if (totalWeight > 8) {
+            let excessWeight = totalWeight - 8;
+            // Prioritize deleting icons first
+            iconsToDelete = Math.min(icons.length, excessWeight);
+            excessWeight -= iconsToDelete;
+            if (excessWeight > 0) {
+                pillsToDelete = Math.ceil(excessWeight / 2);
+            }
+        }
+      return { displayedFavorites: favorites, pillsToDelete, iconsToDelete };
+    }
+
     let weight = 0;
-    const visibleFavorites = [];
+    const visibleFavorites: Favorite[] = [];
 
     for (const fav of favorites) {
         const itemWeight = fav.size === 'pill' ? 2 : 1;
@@ -130,18 +155,12 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             break;
         }
     }
-    return visibleFavorites;
-  }, [favorites]);
+    return { displayedFavorites: visibleFavorites, pillsToDelete: 0, iconsToDelete: 0 };
+  }, [favorites, isEditing]);
 
 
   const handleReorder = (newOrder: Favorite[]) => {
-      // Reorder only the visible part, then merge with the hidden part
-      const visibleIds = new Set(displayedFavorites.map(f => f.id));
-      const hiddenFavorites = favorites.filter(f => !visibleIds.has(f.id));
-      
-      const reorderedVisible = newOrder.filter(f => visibleIds.has(f.id));
-      
-      setFavorites([...reorderedVisible, ...hiddenFavorites]);
+      setFavorites(newOrder);
   }
 
 
@@ -171,7 +190,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             </h1>
           </Link>
           
-            <div className="flex-1 flex justify-center items-center h-full sm:mx-2">
+            <div className="flex-1 flex justify-center items-center h-full sm:mx-2 overflow-x-auto">
                <div className="relative z-10">
                   <motion.button
                       onPointerDown={handlePointerDown}
@@ -186,7 +205,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                               : "bg-background text-foreground ring-1 ring-border",
                           isEditing && "shimmer-bg"
                       )}
-                      onClick={handleSearchClick}
+                      onClick={() => !isEditing && setOpen(true)}
                       style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
                       >
                       <Search className="h-5 w-5" />
@@ -217,7 +236,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                        <Reorder.Group
                           as="div"
                           axis="x"
-                          values={displayedFavorites}
+                          values={favorites}
                           onReorder={handleReorder}
                           className="flex items-center gap-3 pl-3"
                           disabled={!isEditing}
@@ -227,6 +246,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                                 key={fav.id}
                                 favorite={fav} 
                                 onSelect={handleFavoriteSelect} 
+                                onDoubleClick={(e) => handleFavoriteRemove(e, fav.id)}
                                 variants={itemVariants}
                                 isEditing={isEditing}
                                 isPill={fav.size === 'pill'}
@@ -236,6 +256,11 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                     </motion.div>
                   )}
               </AnimatePresence>
+              {(pillsToDelete > 0 || iconsToDelete > 0) && isEditing && (
+                    <div className="text-white text-xs font-semibold ml-3 whitespace-nowrap">
+                        Delete {pillsToDelete > 0 && `${pillsToDelete} pill${pillsToDelete > 1 ? 's' : ''}`}{pillsToDelete > 0 && iconsToDelete > 0 && " and "}{iconsToDelete > 0 && `${iconsToDelete} icon${iconsToDelete > 1 ? 's' : ''}`}
+                    </div>
+              )}
             </div>
           
           <div className="flex shrink-0 items-center gap-0 sm:gap-1">
@@ -305,12 +330,6 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
         initialStockSymbol={initialStock}
         isEditingFavorites={isEditing}
       />
-      <FavoritesEditor
-        isOpen={isEditorOpen}
-        onOpenChange={setEditorOpen}
-      />
     </>
   );
 }
-
-    
