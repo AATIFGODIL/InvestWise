@@ -409,9 +409,9 @@ export default function BottomNav() {
               <div
                 className={cn(
                   "flex flex-col items-center transition-all duration-300",
-                   isClearMode 
-                    ? (isActive ? "text-primary-foreground" : "text-slate-100")
-                    : (isActive ? "text-primary-foreground" : "text-muted-foreground")
+                   isActive 
+                    ? "text-primary-foreground" 
+                    : isClearMode ? "text-slate-100" : "text-muted-foreground"
                 )}
                  style={{ 
                     transform: itemTransforms[index] || 'translateY(0px)',
