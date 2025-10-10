@@ -64,8 +64,7 @@ const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
 interface StockInfo {
   symbol: string;
-  name: string;
-  domain?: string;
+  description: string;
   type?: string;
 }
 
@@ -135,13 +134,14 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
         if (!isApiKeyValid) {
             console.warn("Finnhub API key not configured. Using simulated stock data for search.");
             const simulatedData = [
-                { symbol: "AAPL", name: "APPLE INC", domain: "apple.com" },
-                { symbol: "MSFT", name: "MICROSOFT CORP", domain: "microsoft.com" },
-                { symbol: "GOOGL", name: "ALPHABET INC-CL A", domain: "abc.xyz" },
-                { symbol: "TSLA", name: "TESLA INC", domain: "tesla.com" },
-                { symbol: "NVDA", name: "NVIDIA CORP", domain: "nvidia.com" },
+                { symbol: "AAPL", description: "APPLE INC", domain: "apple.com", type: "Common Stock" },
+                { symbol: "MSFT", description: "MICROSOFT CORP", domain: "microsoft.com", type: "Common Stock" },
+                { symbol: "GOOGL", description: "ALPHABET INC-CL A", domain: "abc.xyz", type: "Common Stock" },
+                { symbol: "TSLA", description: "TESLA INC", domain: "tesla.com", type: "Common Stock" },
+                { symbol: "NVDA", description: "NVIDIA CORP", domain: "nvidia.com", type: "Common Stock" },
             ].map(stock => ({
-                ...stock,
+                symbol: stock.symbol,
+                name: stock.description,
                 price: parseFloat((Math.random() * 500).toFixed(2)),
                 change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
                 changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
@@ -162,12 +162,12 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
             );
             
             const promises = commonStocks.slice(0, 100).map(async (stock) => {
-                const logoUrl = `https://logo.clearbit.com/${stock.description.toLowerCase().replace(/ /g, '').replace('inc', '')}.com`;
+                const logoUrl = `https://logo.clearbit.com/${stock.description.toLowerCase().replace(/ /g, '').replace('inc', '').replace('corp', '')}.com`;
                 try {
                     const quoteRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
                     if (!quoteRes.ok) return null;
                     const quote = await quoteRes.json();
-                    return { ...stock, name: stock.description, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0, logoUrl };
+                    return { symbol: stock.symbol, name: stock.description, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0, logoUrl };
                 } catch {
                     return null;
                 }
@@ -301,11 +301,13 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   }, [open]);
 
   const filteredStocks = useMemo(() => {
-    if (!stocks.length) return [];
+    if (stocks.length === 0) return [];
+    
     if (!query) {
       const defaultSymbols = ["TSLA", "AAPL", "MSFT", "GOOGL", "NVDA"];
       return stocks.filter(s => defaultSymbols.includes(s.symbol));
     }
+    
     return stocks.filter(s => s.symbol.toLowerCase().includes(query.toLowerCase()) || s.name.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
   }, [query, stocks]);
 
