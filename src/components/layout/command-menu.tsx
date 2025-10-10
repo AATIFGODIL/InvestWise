@@ -59,6 +59,7 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 import { useDebounce } from "@/hooks/use-debounce";
+import TradingViewWidget from "../shared/trading-view-widget";
 
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
@@ -85,9 +86,7 @@ interface CommandMenuProps {
   isEditingFavorites?: boolean;
 }
 
-type CommandView = "search" | "stock-detail";
-
-export const appIcons: { [key: string]: React.ElementType } = { home: Home, briefcase: Briefcase, repeat: Repeat, barChart: BarChart, users: Users, users2: Users, trendingUp: TrendingUpIcon, star: Star, logOut: LogOut, user: User, settings: Settings, sun: Sun, moon: Moon, sparkles: Sparkles, creditCard: CreditCard, target: Target, history: History, brain: BrainCircuit, bookOpen: BookOpen, award: Award, party: PartyPopper };
+export const appIcons: { [key: string]: React.ElementType } = { home: Home, briefcase: Briefcase, repeat: Repeat, barChart: BarChart, users: Users, users2: Users, trendingUp: TrendingUpIcon, star: Star, logOut: LogOut, user: User, settings: Settings, sun: Sun, moon: Moon, sparkles: Sparkles, creditCard: CreditCard, target: Target, history: History, brain: BrainCircuit, bookOpen: BookOpen, award: Award, party: PartyPopper, tradingview: TrendingUpIcon };
 
 
 export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSymbol, isEditingFavorites = false }: CommandMenuProps) {
@@ -123,6 +122,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   const [isFundsDialogOpen, setIsFundsDialogOpen] = useState(false);
   const [fundsAmount, setFundsAmount] = useState("100.00");
   const [isAddingFunds, setIsAddingFunds] = useState(false);
+  const [isTradingViewOpen, setIsTradingViewOpen] = useState(false);
 
 
   // --- Data Fetching & State ---
@@ -306,6 +306,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
       { name: "View Leaderboard", keywords: "rankings top investors", onSelect: () => runCommand(() => router.push('/community?tab=feed')), icon: Users },
       { name: "View Community Trends", keywords: "popular stocks", onSelect: () => runCommand(() => router.push('/community?tab=trends')), icon: TrendingUpIcon },
       { name: "View Watchlist", keywords: "saved stocks favorites", onSelect: () => runCommand(() => router.push('/portfolio')), icon: Star },
+      { name: "TradingView", keywords: "chart graph", onSelect: () => runCommand(() => setIsTradingViewOpen(true)), icon: TrendingUpIcon, logoUrl: "https://cdn.brandfetch.io/idJGnLFA9x/w/400/h/400/theme/dark/icon.png?c=1bxid64Mup7aczewSAYMX&t=1745979227466" },
       { name: "Sign Out", keywords: "log out exit", onSelect: () => runCommand(signOut), icon: LogOut },
       { name: "Profile", keywords: "account my info", onSelect: () => runCommand(() => router.push('/profile')), icon: User },
       { name: "Settings", keywords: "preferences options", onSelect: () => runCommand(() => router.push('/settings')), icon: Settings },
@@ -390,7 +391,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
                             <action.icon className="mr-2 h-4 w-4" />
                             <span>{action.name}</span>
                           </div>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 group" onClick={(e) => handleToggleFavorite(e, { type: 'action', name: action.name, value: action.name, icon: action.icon })}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 group" onClick={(e) => handleToggleFavorite(e, { type: 'action', name: action.name, value: action.name, icon: action.icon, logoUrl: action.logoUrl })}>
                               <Star className={cn("h-4 w-4 text-muted-foreground group-hover:text-yellow-400", favorites.some(f => f.value === action.name) && "text-yellow-400 fill-yellow-400")} />
                           </Button>
                         </div>
@@ -434,6 +435,17 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     {selectedStock && (<TradeDialogCMDK isOpen={isTradeDialogOpen} onOpenChange={setIsTradeDialogOpen} symbol={selectedStock.symbol} price={selectedStock.price} action={tradeAction} />)}
     <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}><DialogContent><CreateGoal onAddGoal={(goal) => { addGoal(goal); setIsGoalDialogOpen(false); }} /></DialogContent></Dialog>
     <Dialog open={isFundsDialogOpen} onOpenChange={setIsFundsDialogOpen}><DialogContent><DialogHeader><DialogTitle>Add Funds</DialogTitle><DialogDescription>Your saved payment method will be charged.</DialogDescription></DialogHeader><div className="space-y-4 py-4"><div className="space-y-2"><Label htmlFor="amount">Amount</Label><div className="relative"><DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input id="amount" type="number" value={fundsAmount} onChange={(e) => setFundsAmount(e.target.value)} className="pl-8"/></div></div><Button onClick={handleAddFunds} disabled={isAddingFunds} className="w-full">{isAddingFunds ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}Confirm Deposit</Button></div></DialogContent></Dialog>
+    <Dialog open={isTradingViewOpen} onOpenChange={setIsTradingViewOpen}>
+        <DialogContent className="max-w-4xl h-[70vh]">
+            <DialogHeader>
+                <DialogTitle>TradingView Chart</DialogTitle>
+                <DialogDescription>
+                    Explore stock charts with TradingView. Default: AAPL.
+                </DialogDescription>
+            </DialogHeader>
+            <TradingViewWidget symbol="AAPL" />
+        </DialogContent>
+    </Dialog>
     </>
   );
 }

@@ -120,7 +120,14 @@ export default function FavoriteItem({ favorite, onClick, onRemove, variants, is
                                 <AvatarFallback className="text-sm">{favorite.iconName}</AvatarFallback>
                             </Avatar>
                         ) : Icon ? (
-                            <Icon className={cn("h-6 w-6", isClearMode ? "text-slate-100" : "text-foreground")} />
+                            (favorite.value === 'TradingView' && favorite.logoUrl) ? (
+                                <Avatar className="h-8 w-8">
+                                    <AvatarImage src={favorite.logoUrl} alt={favorite.name} />
+                                    <AvatarFallback><Icon className="h-5 w-5" /></AvatarFallback>
+                                </Avatar>
+                            ) : (
+                                <Icon className={cn("h-6 w-6", isClearMode ? "text-slate-100" : "text-foreground")} />
+                            )
                         ) : null}
                     </motion.div>
                 )}

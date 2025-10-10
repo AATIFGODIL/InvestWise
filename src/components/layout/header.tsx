@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Search, Bell, Settings, LogOut, User as UserIcon, Minus } from "lucide-react";
+import { Search, Bell, Settings, LogOut, User as UserIcon, Minus, TrendingUpIcon } from "lucide-react";
 import { CommandMenu } from "./command-menu";
 import { Button } from "../ui/button";
 import Link from "next/link";
@@ -61,6 +61,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const [initialStock, setInitialStock] = React.useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = React.useState(false);
   const isMobile = useIsMobile();
+  const [isTradingViewOpen, setIsTradingViewOpen] = React.useState(false);
+
 
   const [isEditing, setEditing] = React.useState(false);
   const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
@@ -83,11 +85,14 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
 
   const appActions = React.useMemo(() => [
         { name: "Make it rain", onSelect: () => runCommand(onTriggerRain) },
+        { name: "TradingView", onSelect: () => runCommand(() => setIsTradingViewOpen(true)) }
     ], [onTriggerRain, runCommand]);
 
   const handleItemClick = (fav: Favorite) => {
       if (isEditing) {
-          toggleFavoriteSize(fav.id);
+          if (fav.value !== 'TradingView') { // Prevent resizing for TradingView
+            toggleFavoriteSize(fav.id);
+          }
       } else {
           if (fav.type === 'stock') {
               setInitialStock(fav.value);
@@ -197,7 +202,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                         onPointerUp={handlePointerUp}
                         onPointerLeave={handlePointerUp}
                         className={cn(
-                            "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-colors",
+                            "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-colors min-w-[170px]",
                             isClearMode
                                 ? isLightClear
                                     ? "bg-card/60 text-foreground ring-1 ring-white/20"
@@ -313,9 +318,12 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 </DropdownMenu>
             </div>
           </nav>
-           {(calculatedPillsToDelete > 0 || calculatedIconsToDelete > 0) && isEditing && (
-              <div className="mt-2 text-center text-xs font-semibold text-muted-foreground bg-muted rounded-full px-3 py-1 max-w-sm mx-auto">
-                  To fit on screen, please remove {calculatedPillsToDelete > 0 && `${calculatedPillsToDelete} pill${calculatedPillsToDelete > 1 ? 's' : ''}`}{calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0 && " and "}{calculatedIconsToDelete > 0 && `${calculatedIconsToDelete} icon${calculatedIconsToDelete > 1 ? 's' : ''}`}
+           {isEditing && (
+              <div className="mt-2 text-center text-xs font-semibold text-white">
+                  {totalWeight > 6 
+                      ? `To fit on screen, please remove ${calculatedPillsToDelete > 0 ? `${calculatedPillsToDelete} pill${calculatedPillsToDelete > 1 ? 's' : ''}` : ''}${calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0 ? ' and ' : ''}${calculatedIconsToDelete > 0 ? `${calculatedIconsToDelete} icon${calculatedIconsToDelete > 1 ? 's' : ''}` : ''}`
+                      : ""
+                  }
               </div>
           )}
         </div>
@@ -327,6 +335,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             if (!isOpen) setInitialStock(undefined);
         }} 
         onTriggerRain={onTriggerRain}
+        initialStockSymbol={initialStock}
+        isEditingFavorites={isEditing}
       />
     </>
   );
