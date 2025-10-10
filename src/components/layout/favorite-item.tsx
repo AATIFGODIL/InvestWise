@@ -14,7 +14,7 @@ const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
 interface FavoriteItemProps {
   favorite: Favorite;
-  onSelect: (fav: Favorite) => void;
+  onClick: (fav: Favorite) => void;
   onPointerDown: (e: React.PointerEvent) => void;
   onPointerUp: (e: React.PointerEvent) => void;
   onPointerLeave: (e: React.PointerEvent) => void;
@@ -23,7 +23,7 @@ interface FavoriteItemProps {
   isPill: boolean;
 }
 
-export default function FavoriteItem({ favorite, onSelect, onPointerDown, onPointerUp, onPointerLeave, variants, isEditing, isPill }: FavoriteItemProps) {
+export default function FavoriteItem({ favorite, onClick, onPointerDown, onPointerUp, onPointerLeave, variants, isEditing, isPill }: FavoriteItemProps) {
     const { isClearMode, theme } = useThemeStore();
     const isLightClear = isClearMode && theme === 'light';
     const [price, setPrice] = useState<number | null>(null);
@@ -62,7 +62,7 @@ export default function FavoriteItem({ favorite, onSelect, onPointerDown, onPoin
             variants={variants}
             className={cn("flex-shrink-0", containerClasses)}
             style={{ backdropFilter: "blur(2px)" }}
-            onClick={() => onSelect(favorite)}
+            onClick={() => onClick(favorite)}
             onPointerDown={onPointerDown}
             onPointerUp={onPointerUp}
             onPointerLeave={onPointerLeave}

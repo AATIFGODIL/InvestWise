@@ -64,7 +64,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
 
   const [isEditing, setEditing] = React.useState(false);
   const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
-  const itemLongPressTimer = React.useRef<NodeJS.Timeout | null>(null);
+  const itemPressTimer = React.useRef<NodeJS.Timeout | null>(null);
 
   const runCommand = React.useCallback((command: () => void) => {
     command();
@@ -86,22 +86,35 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     }
   };
 
-  const handleItemClick = (favId: string) => {
-    if (isEditing) {
-        toggleFavoriteSize(favId);
+  const handleItemClick = (fav: Favorite) => {
+    // If not in editing mode, perform the action
+    if (!isEditing) {
+        if (fav.type === 'stock') {
+            setInitialStock(fav.value);
+            setOpen(true);
+        } else {
+            const action = appActions.find(a => a.name === fav.value);
+            if (action?.onSelect) {
+                runCommand(action.onSelect);
+            }
+        }
+        return;
     }
+    
+    // If in editing mode, a simple click toggles size
+    toggleFavoriteSize(fav.id);
   }
 
   const handleItemPointerDown = (favId: string) => {
     if (!isEditing) return;
-    itemLongPressTimer.current = setTimeout(() => {
+    itemPressTimer.current = setTimeout(() => {
       removeFavorite(favId);
-    }, 500);
+    }, 500); // 500ms for long press to delete
   };
 
   const handleItemPointerUp = () => {
-    if (itemLongPressTimer.current) {
-      clearTimeout(itemLongPressTimer.current);
+    if (itemPressTimer.current) {
+      clearTimeout(itemPressTimer.current);
     }
   };
 
@@ -113,27 +126,37 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     router.push(href);
   };
 
-  const handleFavoriteSelect = (favorite: Favorite) => {
+  const { displayedFavorites, pillsToDelete, iconsToDelete } = React.useMemo(() => {
     if (isEditing) {
-        // In editing mode, a single click toggles size
-        toggleFavoriteSize(favorite.id);
-        return;
-    }
-    
-    if (favorite.type === 'stock') {
-      setInitialStock(favorite.value);
-      setOpen(true);
-    } else {
-        const action = appActions.find(a => a.name === favorite.value);
-        if (action?.onSelect) {
-            runCommand(action.onSelect);
-        }
-    }
-  };
+        let weight = 0;
+        let pillsCount = 0;
+        let iconsCount = 0;
 
-  const { displayedFavorites } = React.useMemo(() => {
-    if (isEditing) {
-      return { displayedFavorites: favorites };
+        for (const fav of favorites) {
+            if (fav.size === 'pill') {
+                pillsCount++;
+                weight += 2;
+            } else {
+                iconsCount++;
+                weight += 1;
+            }
+        }
+
+        let excess = Math.max(0, weight - 6);
+        let pillsToDeleteCalc = 0;
+        let iconsToDeleteCalc = 0;
+
+        if (excess > 0) {
+            const removableIcons = Math.min(excess, iconsCount);
+            iconsToDeleteCalc += removableIcons;
+            excess -= removableIcons;
+        }
+
+        if (excess > 0) {
+            pillsToDeleteCalc += Math.ceil(excess / 2);
+        }
+
+        return { displayedFavorites: favorites, pillsToDelete: pillsToDeleteCalc, iconsToDelete: iconsToDeleteCalc };
     }
 
     let weight = 0;
@@ -146,42 +169,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             visibleFavorites.push(fav);
         }
     }
-    return { displayedFavorites: visibleFavorites };
+    return { displayedFavorites: visibleFavorites, pillsToDelete: 0, iconsToDelete: 0 };
   }, [favorites, isEditing]);
-
-  const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() => {
-    let weight = 0;
-    let pillsCount = 0;
-    let iconsCount = 0;
-
-    for (const fav of favorites) {
-        if (fav.size === 'pill') {
-            pillsCount++;
-            weight += 2;
-        } else {
-            iconsCount++;
-            weight += 1;
-        }
-    }
-
-    let pillsToDelete = 0;
-    let iconsToDelete = 0;
-    if (weight > 6) {
-        let excess = weight - 6;
-        
-        // Greedily remove excess icons first as they are smaller
-        const removableIcons = Math.min(excess, iconsCount);
-        iconsToDelete += removableIcons;
-        excess -= removableIcons;
-
-        // Then remove pills if still over limit
-        if (excess > 0) {
-            pillsToDelete += Math.ceil(excess / 2);
-        }
-    }
-    
-    return { calculatedPillsToDelete: pillsToDelete, calculatedIconsToDelete: iconsToDelete };
-  }, [favorites]);
 
 
   const handleReorder = (newOrder: Favorite[]) => {
@@ -271,7 +260,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                                 <FavoriteItem 
                                   key={fav.id}
                                   favorite={fav} 
-                                  onSelect={() => isEditing ? handleItemClick(fav.id) : handleFavoriteSelect(fav)}
+                                  onClick={() => handleItemClick(fav)}
                                   onPointerDown={() => handleItemPointerDown(fav.id)}
                                   onPointerUp={handleItemPointerUp}
                                   onPointerLeave={handleItemPointerUp}
@@ -342,9 +331,9 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 </DropdownMenu>
             </div>
           </nav>
-           {(calculatedPillsToDelete > 0 || calculatedIconsToDelete > 0) && isEditing && (
+           {(pillsToDelete > 0 || iconsToDelete > 0) && isEditing && (
               <div className="mt-2 text-center text-xs font-semibold text-white bg-destructive/80 rounded-full px-3 py-1 max-w-sm mx-auto">
-                  To fit on screen, please remove {calculatedPillsToDelete > 0 && `${calculatedPillsToDelete} pill${calculatedPillsToDelete > 1 ? 's' : ''}`}{calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0 && " and "}{calculatedIconsToDelete > 0 && `${calculatedIconsToDelete} icon${calculatedIconsToDelete > 1 ? 's' : ''}`}
+                  To fit on screen, please remove {pillsToDelete > 0 && `${pillsToDelete} pill${pillsToDelete > 1 ? 's' : ''}`}{pillsToDelete > 0 && iconsToDelete > 0 && " and "}{iconsToDelete > 0 && `${iconsToDelete} icon${iconsToDelete > 1 ? 's' : ''}`}
               </div>
           )}
         </div>
