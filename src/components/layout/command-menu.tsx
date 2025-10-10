@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
@@ -42,7 +41,6 @@ import { handleStockPrediction, handleStockNews, createTransaction } from "@/app
 import type { StockPredictionOutput } from "@/ai/types/stock-prediction-types";
 import type { StockNewsOutput } from "@/ai/flows/fetch-stock-news";
 import { Button } from "../ui/button";
-import { stockList } from "@/data/stocks";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
@@ -64,6 +62,12 @@ import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 const LOGOKIT_TOKEN = "pk_fr7a1b76952087586937fa";
+
+interface StockInfo {
+  symbol: string;
+  name: string;
+  domain?: string;
+}
 
 interface StockData {
   symbol: string;
@@ -123,45 +127,58 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
 
   useEffect(() => {
     async function fetchStockData() {
-      if (!open || stocks.length > 0) return;
-      
-      const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
+        if (!open || stocks.length > 0) return;
+        setIsFetchingStocks(true);
+        
+        const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
 
-      setIsFetchingStocks(true);
-      
-      const promises = stockList.map(async (stock) => {
-          const logoUrl = `https://img.logokit.com/${stock.domain}?token=${LOGOKIT_TOKEN}`;
-          if (!isApiKeyValid) {
-             return {
+        if (!isApiKeyValid) {
+            console.warn("Finnhub API key not configured. Using simulated stock data for search.");
+            const simulatedData = [
+                { symbol: "AAPL", name: "APPLE INC", domain: "apple.com" },
+                { symbol: "MSFT", name: "MICROSOFT CORP", domain: "microsoft.com" },
+                { symbol: "GOOGL", name: "ALPHABET INC-CL A", domain: "abc.xyz" },
+            ].map(stock => ({
                 ...stock,
                 price: parseFloat((Math.random() * 500).toFixed(2)),
                 change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
                 changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
-                logoUrl,
-            }
-          }
-          try {
-              const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
-              if (!res.ok) throw new Error(`Failed for ${stock.symbol}`);
-              const quote = await res.json();
-              return { ...stock, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0, logoUrl };
-          } catch(error) {
-              console.error(`Error fetching data for ${stock.symbol}:`, error);
-              return { ...stock, price: 0, change: 0, changePercent: 0, logoUrl };
-          }
-      });
-      
-      if (!isApiKeyValid) {
-        console.warn("Finnhub API key not configured. Using simulated stock data for search.");
-      }
+                logoUrl: `https://img.logokit.com/${stock.domain}?token=${LOGOKIT_TOKEN}`,
+            }));
+            setStocks(simulatedData);
+            setIsFetchingStocks(false);
+            return;
+        }
 
-      const results = (await Promise.all(promises)).filter(Boolean) as StockData[];
-      setStocks(results);
-      setIsFetchingStocks(false);
+        try {
+            const res = await fetch(`https://finnhub.io/api/v1/stock/symbol?exchange=US&token=${API_KEY}`);
+            const data: StockInfo[] = await res.json();
+            const filteredData = data.filter(s => s.name && !s.symbol.includes('.'));
+            
+            const promises = filteredData.slice(0, 100).map(async (stock) => {
+                const logoUrl = `https://img.logokit.com/all/${stock.symbol}.svg?token=${LOGOKIT_TOKEN}`;
+                try {
+                    const quoteRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
+                    if (!quoteRes.ok) return null;
+                    const quote = await quoteRes.json();
+                    return { ...stock, name: stock.name, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0, logoUrl };
+                } catch {
+                    return null;
+                }
+            });
+
+            const results = (await Promise.all(promises)).filter(Boolean) as StockData[];
+            setStocks(results);
+
+        } catch (err) {
+            console.error("Failed to fetch stock list for command menu:", err);
+            toast({ variant: 'destructive', title: 'Could not load stocks' });
+        } finally {
+            setIsFetchingStocks(false);
+        }
     }
-    
     fetchStockData();
-  }, [open, stocks.length]);
+  }, [open, stocks.length, toast]);
 
   useEffect(() => {
     if (initialStockSymbol && stocks.length > 0) {
@@ -314,7 +331,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
                   
                   {filteredStocks.length > 0 && (<div className="p-1"><div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Stocks</div>
                     {filteredStocks.map((stock) => (
-                      <CommandItem key={stock.symbol} onSelect={() => handleStockSelect(stock.symbol)}>
+                      <CommandItem key={stock.symbol} onSelect={() => handleStockSelect(stock)}>
                         <div className="flex justify-between items-center w-full">
                             <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8 bg-background">

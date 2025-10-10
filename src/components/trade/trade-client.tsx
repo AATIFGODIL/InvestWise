@@ -19,11 +19,15 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Watchlist from "../dashboard/watchlist";
 import YouTubePlayer from "../shared/youtube-player";
-import { stockList, type StockInfo } from "@/data/stocks";
 import { CommandItem, CommandList } from "../ui/command";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
+
+interface StockInfo {
+    symbol: string;
+    description: string;
+}
 
 interface TradeData {
   p: number; // price
@@ -48,13 +52,13 @@ export default function TradeClient() {
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
 
+  const [stockList, setStockList] = useState<StockInfo[]>([]);
   const [widgetSymbol, setWidgetSymbol] = useState(initialSymbol);
   
   const [inputValue, setInputValue] = useState(initialSymbol);
   const [searchedSymbol, setSearchedSymbol] = useState(initialSymbol);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
-
 
   const [price, setPrice] = useState<number | null>(null);
   const [loadingPrice, setLoadingPrice] = useState(false);
@@ -64,11 +68,54 @@ export default function TradeClient() {
   const { watchlist, addSymbol, removeSymbol } = useWatchlistStore();
 
   const isSymbolInWatchlist = watchlist.includes(searchedSymbol);
-
+  
   useEffect(() => {
     setIsClient(true);
     fetchMarketStatus();
   }, [fetchMarketStatus]);
+
+  useEffect(() => {
+    if (!isClient) return;
+
+    const fetchStockList = async () => {
+        if (!API_KEY) {
+            console.error("Finnhub API key not configured.");
+            return;
+        }
+        try {
+            const nyse_res = await fetch(`https://finnhub.io/api/v1/stock/symbol?exchange=US&token=${API_KEY}`);
+            const nasdaq_res = await fetch(`https://finnhub.io/api/v1/stock/symbol?exchange=NASDAQ&token=${API_KEY}`);
+            if (!nyse_res.ok || !nasdaq_res.ok) {
+                throw new Error('Failed to fetch stock symbols from Finnhub.');
+            }
+            const nyse_data: {description: string, symbol: string}[] = await nyse_res.json();
+            const nasdaq_data: {description: string, symbol: string}[] = await nasdaq_res.json();
+            
+            const combined = [...nyse_data, ...nasdaq_data]
+                .filter(stock => stock.description && !stock.symbol.includes('.'))
+                .map(stock => ({ symbol: stock.symbol, description: stock.description }));
+
+            const uniqueSymbols = new Set<string>();
+            const uniqueStockList = combined.filter(stock => {
+                if (uniqueSymbols.has(stock.symbol)) {
+                    return false;
+                }
+                uniqueSymbols.add(stock.symbol);
+                return true;
+            });
+
+            setStockList(uniqueStockList);
+        } catch (err: any) {
+            console.error(err);
+            toast({
+                variant: 'destructive',
+                title: 'Could Not Load Stock List',
+                description: 'Failed to fetch stock data from the server.'
+            });
+        }
+    };
+    fetchStockList();
+  }, [isClient, toast]);
 
   const handleToggleWatchlist = () => {
     if (isSymbolInWatchlist) {
@@ -181,7 +228,7 @@ export default function TradeClient() {
   const filteredStocks = inputValue
     ? stockList.filter(stock => 
         stock.symbol.toLowerCase().startsWith(inputValue.toLowerCase()) || 
-        stock.name.toLowerCase().includes(inputValue.toLowerCase())
+        stock.description.toLowerCase().includes(inputValue.toLowerCase())
       ).slice(0, 5)
     : [];
 
@@ -231,7 +278,7 @@ export default function TradeClient() {
                                     setShowSuggestions(e.target.value.length > 0)
                                 }}
                                 placeholder="e.g., AAPL, TSLA"
-                                className="pl-10 h-10"
+                                className="pl-10 h-10 focus-visible:ring-primary"
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter') {
                                         handleSearch();
@@ -255,7 +302,7 @@ export default function TradeClient() {
                                                 <AvatarFallback>{stock.symbol.charAt(0)}</AvatarFallback>
                                             </Avatar>
                                             <div>
-                                                <p>{stock.name}</p>
+                                                <p>{stock.description}</p>
                                                 <p className="text-xs text-muted-foreground">{stock.symbol}</p>
                                             </div>
                                         </div>
