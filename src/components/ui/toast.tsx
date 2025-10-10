@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -6,6 +7,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { useThemeStore } from "@/store/theme-store"
 
 const ToastProvider = ToastPrimitives.Provider
 
@@ -45,10 +47,27 @@ const Toast = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
     VariantProps<typeof toastVariants>
 >(({ className, variant, ...props }, ref) => {
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
+
+  const clearModeStyles = 
+    isClearMode 
+      ? isLightClear
+        ? "border-0 bg-card/60 text-card-foreground ring-1 ring-white/10"
+        : "border-0 bg-white/10 text-white ring-1 ring-white/60"
+      : "";
+
   return (
     <ToastPrimitives.Root
       ref={ref}
-      className={cn(toastVariants({ variant }), className)}
+      className={cn(
+        toastVariants({ variant }), 
+        variant === 'default' && clearModeStyles,
+        className
+      )}
+      style={{
+          backdropFilter: isClearMode && variant === 'default' ? "blur(16px)" : "none",
+      }}
       {...props}
     />
   )
