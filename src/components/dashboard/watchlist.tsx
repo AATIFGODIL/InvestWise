@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import useLoadingStore from "@/store/loading-store";
 import { useThemeStore } from "@/store/theme-store";
 import TradeDialogCMDK from "../trade/trade-dialog-cmdk";
+import { useRouter } from "next/navigation";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -22,6 +23,7 @@ interface WatchlistItemData {
 }
 
 export default function Watchlist() {
+    const router = useRouter();
     const { watchlist, removeSymbol } = useWatchlistStore();
     const { toast } = useToast();
     const { showLoading } = useLoadingStore();
@@ -80,14 +82,15 @@ export default function Watchlist() {
     }, [watchlist]);
 
     const handleRemove = (e: React.MouseEvent, symbol: string) => {
-        e.stopPropagation(); // Prevent the trade dialog from opening
+        e.stopPropagation(); // Prevent navigation
         removeSymbol(symbol);
         toast({
             description: `${symbol} removed from your watchlist.`,
         });
     };
 
-    const handleTradeClick = (item: WatchlistItemData) => {
+    const handleTradeClick = (e: React.MouseEvent, item: WatchlistItemData) => {
+        e.stopPropagation(); // Prevent navigation
         if (item.price !== null) {
             setSelectedStock({ symbol: item.symbol, price: item.price });
             setIsTradeDialogOpen(true);
@@ -98,6 +101,11 @@ export default function Watchlist() {
                 description: "Cannot trade without a current price."
             });
         }
+    };
+
+    const handleRowClick = (symbol: string) => {
+        showLoading();
+        router.push(`/trade?symbol=${symbol}`);
     };
     
     if (watchlist.length === 0) {
@@ -144,7 +152,7 @@ export default function Watchlist() {
                                             "hover:bg-muted/50",
                                             isClearMode ? "hover:border-white/20" : "hover:border-border"
                                         )}
-                                        onClick={() => handleTradeClick(item)}
+                                        onClick={() => handleRowClick(item.symbol)}
                                     >
                                         <div className="flex items-center justify-between gap-4">
                                             <div className="font-bold">{item.symbol}</div>
@@ -153,12 +161,12 @@ export default function Watchlist() {
                                             </div>
                                             <div className={cn("text-right hidden sm:block", isPositive ? "text-green-500" : "text-red-500")}>
                                                 {item.change !== null && item.changePercent !== null
-                                                    ? `${item.change.toFixed(2)} (${item.changePercent.toFixed(2)}%)`
+                                                    ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)} (${item.changePercent.toFixed(2)}%)`
                                                     : 'N/A'
                                                 }
                                             </div>
                                             <div className="flex gap-2 justify-center">
-                                                <Button size="sm" onClick={() => handleTradeClick(item)}>Trade</Button>
+                                                <Button size="sm" onClick={(e) => handleTradeClick(e, item)}>Trade</Button>
                                                 <Button variant="ghost" size="icon" onClick={(e) => handleRemove(e, item.symbol)}>
                                                     <Trash2 className="h-4 w-4 text-destructive" />
                                                 </Button>
