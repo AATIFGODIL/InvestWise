@@ -64,7 +64,7 @@ export default function FavoriteItem({ favorite, onClick, onRemove, variants, is
         <Reorder.Item
             value={favorite}
             variants={variants}
-            className={cn("flex-shrink-0 z-10", containerClasses)}
+            className={cn("z-10 flex-shrink-0", containerClasses)}
             style={{ backdropFilter: "blur(2px)" }}
             onClick={() => onClick(favorite)}
             whileDrag={{ scale: 1.1 }}

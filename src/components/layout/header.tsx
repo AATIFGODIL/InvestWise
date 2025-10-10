@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Search, Bell, Settings, LogOut, User as UserIcon } from "lucide-react";
+import { Search, Bell, Settings, LogOut, User as UserIcon, Minus } from "lucide-react";
 import { CommandMenu } from "./command-menu";
 import { Button } from "../ui/button";
 import Link from "next/link";
@@ -65,14 +65,6 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const [isEditing, setEditing] = React.useState(false);
   const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
 
-  const runCommand = React.useCallback((command: () => void) => {
-    command();
-  }, []);
-
-  const appActions = React.useMemo(() => [
-        { name: "Make it rain", onSelect: () => runCommand(onTriggerRain) },
-    ], [onTriggerRain, runCommand]);
-
   const handlePointerDown = () => {
     longPressTimer.current = setTimeout(() => {
       setEditing((prev) => !prev);
@@ -84,6 +76,14 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
       clearTimeout(longPressTimer.current);
     }
   };
+
+  const runCommand = React.useCallback((command: () => void) => {
+    command();
+  }, []);
+
+  const appActions = React.useMemo(() => [
+        { name: "Make it rain", onSelect: () => runCommand(onTriggerRain) },
+    ], [onTriggerRain, runCommand]);
 
   const handleItemClick = (fav: Favorite) => {
       if (isEditing) {
@@ -244,8 +244,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                                 <FavoriteItem 
                                   key={fav.id}
                                   favorite={fav} 
-                                  onClick={() => handleItemClick(fav)}
-                                  onRemove={() => removeFavorite(fav.id)}
+                                  onClick={handleItemClick}
+                                  onRemove={removeFavorite}
                                   variants={itemVariants}
                                   isEditing={isEditing}
                                   isPill={fav.size === 'pill'}
