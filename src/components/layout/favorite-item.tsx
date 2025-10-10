@@ -58,6 +58,11 @@ export default function FavoriteItem({ favorite, onClick, onRemove, variants, is
         e.stopPropagation(); // Prevent the main onClick from firing
         onRemove(favorite.id);
     };
+    
+    const tradingViewLogoUrl = theme === 'dark'
+      ? 'https://cdn.brandfetch.io/idJGnLFA9x/theme/light/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1745979241933'
+      : 'https://cdn.brandfetch.io/idJGnLFA9x/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1745979241741';
+
 
     return (
         <Reorder.Item
@@ -106,7 +111,7 @@ export default function FavoriteItem({ favorite, onClick, onRemove, variants, is
                             </>
                         ) : favorite.value === 'TradingView' ? (
                              <div className="flex items-center justify-center w-full h-full">
-                                <img src="https://cdn.brandfetch.io/idJGnLFA9x/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1745979241741" alt="TradingView Logo" className="h-5" />
+                                <img src={tradingViewLogoUrl} alt="TradingView Logo" className="h-5" />
                             </div>
                         ) : (
                              <div className="flex items-center justify-center gap-2 w-full text-center">
@@ -138,5 +143,3 @@ export default function FavoriteItem({ favorite, onClick, onRemove, variants, is
         </Reorder.Item>
     );
 }
-
-    
