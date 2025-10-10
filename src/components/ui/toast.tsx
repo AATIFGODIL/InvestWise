@@ -49,23 +49,22 @@ const Toast = React.forwardRef<
   const { isClearMode, theme } = useThemeStore();
   const isLightClear = isClearMode && theme === 'light';
 
-  const clearModeStyles = 
-    isClearMode && variant === 'default'
-      ? isLightClear
-        ? "border-0 bg-card/60 text-card-foreground ring-1 ring-white/10" // Light clear mode
-        : "border-0 bg-white/10 text-white ring-1 ring-white/60" // Dark clear mode
-      : "";
+  const isDefaultVariant = variant === "default" || !variant;
 
   return (
     <ToastPrimitives.Root
       ref={ref}
       className={cn(
-        toastVariants({ variant }), 
-        clearModeStyles,
+        toastVariants({ variant }),
+        isClearMode && isDefaultVariant && (
+          isLightClear 
+            ? "border-0 bg-card/60 text-card-foreground ring-1 ring-white/10" 
+            : "border-0 bg-white/10 text-white ring-1 ring-white/60"
+        ),
         className
       )}
       style={{
-          backdropFilter: isClearMode && variant === 'default' ? "blur(16px)" : "none",
+          backdropFilter: isClearMode && isDefaultVariant ? "blur(16px)" : "none",
       }}
       {...props}
     />
