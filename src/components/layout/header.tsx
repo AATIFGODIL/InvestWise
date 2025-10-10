@@ -111,8 +111,6 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           if (fav.type === 'stock') {
               setInitialStock(fav.value);
               setOpen(true);
-          } else if (fav.value === 'TradingView') {
-              setIsTradingViewOpen(true);
           } else {
               const action = appActions.find(a => a.name === fav.value);
               if(action) {
@@ -186,6 +184,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
 
 
   const handleReorder = (newOrder: Favorite[]) => {
+      if (!isEditing) return;
       setFavorites(newOrder);
   }
 
