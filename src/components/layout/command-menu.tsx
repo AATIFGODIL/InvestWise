@@ -206,16 +206,35 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     };
 
     if (debouncedQuery) {
-        const searchResults = stockList.filter(s => 
-            s.symbol.toLowerCase().includes(debouncedQuery.toLowerCase()) || 
-            s.description.toLowerCase().includes(debouncedQuery.toLowerCase())
-        ).slice(0, 5);
-        fetchQuotes(searchResults);
+        const lowercasedQuery = debouncedQuery.toLowerCase();
+        
+        const filteredResults = stockList.filter(s => 
+            s.symbol.toLowerCase().includes(lowercasedQuery) || 
+            s.description.toLowerCase().includes(lowercasedQuery)
+        );
+
+        const sortedResults = filteredResults.sort((a, b) => {
+            const aIsExactMatch = a.symbol.toLowerCase() === lowercasedQuery;
+            const bIsExactMatch = b.symbol.toLowerCase() === lowercasedQuery;
+
+            if (aIsExactMatch && !bIsExactMatch) return -1; // a comes first
+            if (!aIsExactMatch && bIsExactMatch) return 1;  // b comes first
+
+            // Optional: if neither is an exact match, sort by where the match is found
+            const aSymbolIndex = a.symbol.toLowerCase().indexOf(lowercasedQuery);
+            const bSymbolIndex = b.symbol.toLowerCase().indexOf(lowercasedQuery);
+            if (aSymbolIndex === 0 && bSymbolIndex !== 0) return -1;
+            if (aSymbolIndex !== 0 && bSymbolIndex === 0) return 1;
+
+            return a.symbol.localeCompare(b.symbol); // Default alphabetical sort
+        });
+        
+        fetchQuotes(sortedResults.slice(0, 5));
     } else {
         const defaultSymbols = ["TSLA", "AAPL", "MSFT", "GOOGL", "NVDA"];
         const defaultStockInfo = defaultSymbols.map(symbol => {
             const stock = stockList.find(s => s.symbol === symbol);
-            return stock || { symbol, description: symbol };
+            return stock || { symbol, description: symbol, type: 'Common Stock' };
         });
         fetchQuotes(defaultStockInfo);
     }
@@ -442,3 +461,6 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     </>
   );
 }
+
+
+    
