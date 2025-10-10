@@ -59,7 +59,6 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
 
         set(
           produce((state: FavoritesState) => {
-            // Prevent duplicates
             if (!state.favorites.some(f => f.value === newFavorite.value)) {
                  state.favorites.push(newFavorite);
             }
@@ -78,17 +77,19 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
     },
     
     setFavorites: (newFavorites) => {
-        set(produce(draft => {
-            draft.favorites = newFavorites;
-            draft.leftExpanded = newFavorites.find(f => f.position === 'left' && f.size === 'expanded') || null;
-            draft.rightExpanded = newFavorites.find(f => f.position === 'right' && f.size === 'expanded') || null;
-            
-            const { leftExpanded, rightExpanded } = draft;
+        set(produce((draft: FavoritesState) => {
+            const leftExpanded = newFavorites.find(f => f.position === 'left' && f.size === 'expanded');
+            const rightExpanded = newFavorites.find(f => f.position === 'right' && f.size === 'expanded');
 
-            draft.favorites.forEach(f => {
-                if (f.position === 'left' && f.id !== leftExpanded?.id) f.size = 'icon';
-                if (f.position === 'right' && f.id !== rightExpanded?.id) f.size = 'icon';
-            });
+            draft.favorites = newFavorites.map(f => ({
+                ...f,
+                size: (f.position === 'left' && f.id !== leftExpanded?.id) || (f.position === 'right' && f.id !== rightExpanded?.id)
+                    ? 'icon'
+                    : f.size
+            }));
+
+            draft.leftExpanded = draft.favorites.find(f => f.position === 'left' && f.size === 'expanded') || null;
+            draft.rightExpanded = draft.favorites.find(f => f.position === 'right' && f.size === 'expanded') || null;
         }));
         updateFavoritesInFirestore(get().favorites);
     },
