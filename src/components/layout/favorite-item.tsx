@@ -14,7 +14,7 @@ const pillVariants = {
     initial: { width: 48, height: 48 },
     expanded: { 
         width: 180, 
-        height: 60,
+        height: 48,
         transition: { type: 'spring', stiffness: 400, damping: 30, duration: 0.4 }
     },
     icon: { 
