@@ -37,7 +37,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const { isClearMode, theme } = useThemeStore();
   const { showLoading } = useLoadingStore();
   const router = useRouter();
-  const { favorites, setFavorites, expandedFavorite } = useFavoritesStore();
+  const { favorites, setFavorites, pillFavorite } = useFavoritesStore();
   const [initialStock, setInitialStock] = React.useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = React.useState(false);
   const [isEditing, setEditing] = React.useState(false);
@@ -71,23 +71,36 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   }
   
   const getVisibleFavorites = (): Favorite[] => {
-      if (expandedFavorite) {
-          // If one is expanded, show it plus the next 2 icons
-          const expandedIndex = favorites.findIndex(f => f.id === expandedFavorite.id);
-          const visible = [expandedFavorite];
-          let count = 0;
-          for(let i = 0; i < favorites.length && count < 2; i++) {
-              if (favorites[i].id !== expandedFavorite.id) {
-                  visible.push(favorites[i]);
-                  count++;
-              }
-          }
-          // A bit complex to re-order based on proximity, so let's just show the first few non-expanded
-          return favorites.filter(f => f.id === expandedFavorite.id || f.size === 'icon').slice(0, 3);
+    if (pillFavorite) {
+      // If one is a pill, show it plus the next 2 icons.
+      // This logic is more stable and prevents reordering during animation.
+      const pillIndex = favorites.findIndex(f => f.id === pillFavorite.id);
+      
+      const visible = [pillFavorite];
+      let itemsAdded = 0;
+      
+      // Add items after the pill
+      for (let i = pillIndex + 1; i < favorites.length && itemsAdded < 2; i++) {
+        if (favorites[i].size === 'icon') {
+          visible.push(favorites[i]);
+          itemsAdded++;
+        }
       }
-      // Otherwise, show the first 4 icons
-      return favorites.slice(0, 4);
+      
+      // Add items before the pill if we still need more
+      for (let i = pillIndex - 1; i >= 0 && itemsAdded < 2; i--) {
+        if (favorites[i].size === 'icon') {
+          visible.unshift(favorites[i]); // Add to the beginning to maintain order
+          itemsAdded++;
+        }
+      }
+      
+      return visible;
+    }
+    // Otherwise, show the first 4 icons
+    return favorites.slice(0, 4);
   };
+
 
   const visibleFavorites = getVisibleFavorites();
   
@@ -119,41 +132,36 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           </Link>
           
             <div className="flex-1 flex justify-center items-center h-full sm:mx-2">
-              <motion.div
-                layout="position"
-                className="relative z-10"
-              >
-                  <motion.button
-                      onPointerDown={handlePointerDown}
-                      onPointerUp={handlePointerUp}
-                      onPointerLeave={handlePointerUp}
-                      className={cn(
-                          "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-all",
-                          isClearMode
-                              ? isLightClear
-                                  ? "bg-card/60 text-foreground ring-1 ring-white/20"
-                                  : "bg-white/10 text-slate-100 ring-1 ring-white/60"
-                              : "bg-background text-foreground ring-1 ring-border",
-                           isEditing && "shimmer-bg"
-                      )}
-                      onClick={() => setOpen(true)}
-                      style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
+               <motion.button
+                  onPointerDown={handlePointerDown}
+                  onPointerUp={handlePointerUp}
+                  onPointerLeave={handlePointerUp}
+                  className={cn(
+                      "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-all",
+                      isClearMode
+                          ? isLightClear
+                              ? "bg-card/60 text-foreground ring-1 ring-white/20"
+                              : "bg-white/10 text-slate-100 ring-1 ring-white/60"
+                          : "bg-background text-foreground ring-1 ring-border",
+                        isEditing && "shimmer-bg"
+                  )}
+                  onClick={() => setOpen(true)}
+                  style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
+                  >
+                  <Search className="h-5 w-5" />
+                  <AnimatePresence mode="wait">
+                      <motion.span
+                          key={isEditing ? 'editing' : 'search'}
+                          initial={{ y: 10, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          exit={{ y: -10, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="hidden text-sm md:inline"
                       >
-                      <Search className="h-5 w-5" />
-                      <AnimatePresence mode="wait">
-                          <motion.span
-                              key={isEditing ? 'editing' : 'search'}
-                              initial={{ y: 10, opacity: 0 }}
-                              animate={{ y: 0, opacity: 1 }}
-                              exit={{ y: -10, opacity: 0 }}
-                              transition={{ duration: 0.2 }}
-                              className="hidden text-sm md:inline"
-                          >
-                              {isEditing ? 'Editing Mode' : 'Spotlight Search'}
-                          </motion.span>
-                      </AnimatePresence>
-                  </motion.button>
-              </motion.div>
+                          {isEditing ? 'Editing Mode' : 'Spotlight Search'}
+                      </motion.span>
+                  </AnimatePresence>
+              </motion.button>
 
               <AnimatePresence>
                   {(isHovered || isEditing) && (
@@ -161,7 +169,6 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                       initial={{ width: 0, opacity: 0 }}
                       animate={{ width: 'auto', opacity: 1, transition: { delay: 0.1, duration: 0.2 } }}
                       exit={{ width: 0, opacity: 0, transition: { duration: 0.2 } }}
-                      // This div will smoothly animate its own size changes
                       layout
                     >
                        <Reorder.Group
