@@ -73,8 +73,17 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const getVisibleFavorites = (): Favorite[] => {
       if (expandedFavorite) {
           // If one is expanded, show it plus the next 2 icons
-          const otherIcons = favorites.filter(f => f.id !== expandedFavorite.id).slice(0, 2);
-          return [expandedFavorite, ...otherIcons];
+          const expandedIndex = favorites.findIndex(f => f.id === expandedFavorite.id);
+          const visible = [expandedFavorite];
+          let count = 0;
+          for(let i = 0; i < favorites.length && count < 2; i++) {
+              if (favorites[i].id !== expandedFavorite.id) {
+                  visible.push(favorites[i]);
+                  count++;
+              }
+          }
+          // A bit complex to re-order based on proximity, so let's just show the first few non-expanded
+          return favorites.filter(f => f.id === expandedFavorite.id || f.size === 'icon').slice(0, 3);
       }
       // Otherwise, show the first 4 icons
       return favorites.slice(0, 4);
@@ -111,6 +120,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           
             <div className="flex-1 flex justify-center items-center h-full sm:mx-2">
               <motion.div
+                layout="position"
                 className="relative z-10"
               >
                   <motion.button
@@ -148,10 +158,11 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
               <AnimatePresence>
                   {(isHovered || isEditing) && (
                     <motion.div
-                      className="flex items-center"
                       initial={{ width: 0, opacity: 0 }}
                       animate={{ width: 'auto', opacity: 1, transition: { delay: 0.1, duration: 0.2 } }}
                       exit={{ width: 0, opacity: 0, transition: { duration: 0.2 } }}
+                      // This div will smoothly animate its own size changes
+                      layout
                     >
                        <Reorder.Group
                           as="div"
