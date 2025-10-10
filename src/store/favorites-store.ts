@@ -18,7 +18,7 @@ interface FavoritesState {
     favorites: Favorite[];
     loadFavorites: (favorites: Favorite[]) => void;
     addFavorite: (favorite: Omit<Favorite, 'id' | 'size'>) => void;
-    removeFavorite: (value: string) => void;
+    removeFavorite: (id: string) => void;
     setFavorites: (favorites: Favorite[]) => void;
     toggleFavoriteSize: (id: string) => void;
     resetFavorites: () => void;
@@ -59,10 +59,10 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
         updateFavoritesInFirestore(get().favorites);
     },
 
-    removeFavorite: (value: string) => {
+    removeFavorite: (id: string) => {
          set(
           produce((state: FavoritesState) => {
-            state.favorites = state.favorites.filter((fav) => fav.value !== value);
+            state.favorites = state.favorites.filter((fav) => fav.id !== id);
           })
         );
         updateFavoritesInFirestore(get().favorites);
@@ -87,5 +87,3 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
 
     resetFavorites: () => set({ favorites: [] }),
 }));
-
-    

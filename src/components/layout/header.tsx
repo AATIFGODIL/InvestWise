@@ -245,7 +245,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                                   key={fav.id}
                                   favorite={fav} 
                                   onClick={handleItemClick}
-                                  onRemove={removeFavorite}
+                                  onRemove={() => removeFavorite(fav.id)}
                                   variants={itemVariants}
                                   isEditing={isEditing}
                                   isPill={fav.size === 'pill'}
@@ -327,8 +327,6 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             if (!isOpen) setInitialStock(undefined);
         }} 
         onTriggerRain={onTriggerRain}
-        initialStockSymbol={initialStock}
-        isEditingFavorites={isEditing}
       />
     </>
   );
