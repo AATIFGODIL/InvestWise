@@ -17,6 +17,7 @@ interface FavoritesState {
     loadFavorites: (favorites: Favorite[]) => void;
     addFavorite: (favorite: Favorite) => void;
     removeFavoriteByName: (name: string) => void;
+    setFavoritesOrder: (favorites: Favorite[]) => void;
     resetFavorites: () => void;
 }
 
@@ -48,6 +49,13 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
 
     removeFavoriteByName: (value: string) => {
         const updatedFavorites = get().favorites.filter((fav) => fav.value !== value);
+        set({ favorites: updatedFavorites });
+        updateFavoritesInFirestore(updatedFavorites);
+    },
+    
+    setFavoritesOrder: (newOrder: Favorite[]) => {
+        // Ensure the new order doesn't contain more items than allowed
+        const updatedFavorites = newOrder.slice(0, 4);
         set({ favorites: updatedFavorites });
         updateFavoritesInFirestore(updatedFavorites);
     },

@@ -25,7 +25,7 @@ import { useRouter } from "next/navigation";
 import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 import useChatbotStore from "@/store/chatbot-store";
 import { appIcons } from "@/components/layout/command-menu";
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 
 const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (fav: Favorite) => void }) => {
   const Icon = appIcons[favorite.iconName] || null;
@@ -33,10 +33,11 @@ const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (f
   const isLightClear = isClearMode && theme === 'light';
   
   return (
-    <motion.button
-      layout
+    <Reorder.Item
+      as="button"
+      value={favorite}
       className={cn(
-        "rounded-full transition-all duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center h-12 w-12",
+        "rounded-full transition-all duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center h-12 w-12 cursor-grab active:cursor-grabbing",
         isClearMode
             ? isLightClear
                 ? "bg-card/60 text-foreground ring-1 ring-white/20"
@@ -45,22 +46,19 @@ const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (f
       )}
       style={{ backdropFilter: "blur(2px)" }}
       onClick={() => onSelect(favorite)}
-      initial={{ opacity: 0, scale: 0.5 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.5 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+      whileDrag={{ scale: 1.1 }}
     >
       {favorite.type === 'stock' && favorite.logoUrl ? (
-          <Avatar className="h-8 w-8">
+          <Avatar className="h-8 w-8 pointer-events-none">
               <AvatarImage src={favorite.logoUrl} alt={favorite.name} />
               <AvatarFallback className="text-sm">{favorite.iconName}</AvatarFallback>
           </Avatar>
       ) : favorite.type === 'stock' ? (
-          <span className="font-bold text-sm">{favorite.iconName}</span>
+          <span className="font-bold text-sm pointer-events-none">{favorite.iconName}</span>
       ) : Icon ? (
-        <Icon className="h-6 w-6" />
+        <Icon className="h-6 w-6 pointer-events-none" />
       ) : null}
-    </motion.button>
+    </Reorder.Item>
   );
 };
 
@@ -76,7 +74,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const { isClearMode, theme } = useThemeStore();
   const { showLoading } = useLoadingStore();
   const router = useRouter();
-  const { favorites } = useFavoritesStore();
+  const { favorites, setFavoritesOrder } = useFavoritesStore();
   const { openChatbot } = useChatbotStore();
   const [isHovered, setIsHovered] = React.useState(false);
   const [initialStock, setInitialStock] = React.useState<string | undefined>(undefined);
@@ -178,13 +176,17 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                     animate={{ width: 'auto', opacity: 1, transition: { delay: 0.1, duration: 0.2 } }}
                     exit={{ width: 0, opacity: 0, transition: { duration: 0.2 } }}
                   >
-                      <motion.div
+                      <Reorder.Group
+                        as="div"
+                        axis="x"
+                        values={displayedFavorites}
+                        onReorder={(newOrder) => setFavoritesOrder(newOrder)}
                         className="flex items-center gap-2 pl-2"
                       >
                         {displayedFavorites.map((fav) => (
                            <FavoriteItem key={fav.value} favorite={fav} onSelect={handleFavoriteSelect} />
                         ))}
-                      </motion.div>
+                      </Reorder.Group>
                   </motion.div>
                 )}
                 </AnimatePresence>
