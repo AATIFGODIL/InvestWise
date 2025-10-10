@@ -64,9 +64,6 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
 
   const [isEditing, setEditing] = React.useState(false);
   const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
-  
-  // State to track if a long press has just occurred to prevent click actions
-  const [isLongPressTriggered, setIsLongPressTriggered] = React.useState(false);
 
   const runCommand = React.useCallback((command: () => void) => {
     command();
@@ -88,15 +85,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     }
   };
 
-  const itemPressTimer = React.useRef<NodeJS.Timeout | null>(null);
-
   const handleItemClick = (fav: Favorite) => {
-      if (isLongPressTriggered) {
-          // Reset the flag and prevent the click action
-          setIsLongPressTriggered(false);
-          return;
-      }
-  
       if (isEditing) {
           toggleFavoriteSize(fav.id);
       } else {
@@ -112,23 +101,6 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
       }
   };
   
-  const handleItemPointerDown = (favId: string) => {
-      if (!isEditing) return;
-  
-      itemPressTimer.current = setTimeout(() => {
-          setIsLongPressTriggered(true); // Set the flag
-          removeFavorite(favId);
-          // The flag will be reset in the onClick handler
-      }, 500); // 500ms for deletion
-  };
-  
-  const handleItemPointerUp = () => {
-      if (itemPressTimer.current) {
-          clearTimeout(itemPressTimer.current);
-      }
-  };
-
-
   const isLightClear = isClearMode && theme === 'light';
 
   const handleNavigate = (e: React.MouseEvent, href: string) => {
@@ -273,9 +245,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                                   key={fav.id}
                                   favorite={fav} 
                                   onClick={() => handleItemClick(fav)}
-                                  onPointerDown={() => handleItemPointerDown(fav.id)}
-                                  onPointerUp={handleItemPointerUp}
-                                  onPointerLeave={handleItemPointerUp}
+                                  onRemove={() => removeFavorite(fav.id)}
                                   variants={itemVariants}
                                   isEditing={isEditing}
                                   isPill={fav.size === 'pill'}

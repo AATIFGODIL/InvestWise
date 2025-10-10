@@ -8,22 +8,21 @@ import { type Favorite } from '@/store/favorites-store';
 import { cn } from '@/lib/utils';
 import { appIcons } from './command-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Button } from '../ui/button';
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
 interface FavoriteItemProps {
   favorite: Favorite;
   onClick: (fav: Favorite) => void;
-  onPointerDown: (e: React.PointerEvent) => void;
-  onPointerUp: (e: React.PointerEvent) => void;
-  onPointerLeave: (e: React.PointerEvent) => void;
+  onRemove: () => void;
   variants: any;
   isEditing: boolean;
   isPill: boolean;
 }
 
-export default function FavoriteItem({ favorite, onClick, onPointerDown, onPointerUp, onPointerLeave, variants, isEditing, isPill }: FavoriteItemProps) {
+export default function FavoriteItem({ favorite, onClick, onRemove, variants, isEditing, isPill }: FavoriteItemProps) {
     const { isClearMode, theme } = useThemeStore();
     const isLightClear = isClearMode && theme === 'light';
     const [price, setPrice] = useState<number | null>(null);
@@ -48,13 +47,18 @@ export default function FavoriteItem({ favorite, onClick, onPointerDown, onPoint
 
     const containerClasses = cn(
         "rounded-full transition-colors duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center relative overflow-hidden",
-        isEditing ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
+        isEditing ? "cursor-grab active:cursor-grabbing shimmer-bg" : "cursor-pointer",
         isClearMode
           ? isLightClear
             ? "bg-card/60 text-foreground ring-1 ring-white/20"
             : "bg-white/10 text-slate-100 ring-1 ring-white/60"
           : "bg-background text-foreground ring-1 ring-border"
     );
+
+    const handleRemoveClick = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent the main onClick from firing
+        onRemove();
+    };
 
     return (
         <Reorder.Item
@@ -63,13 +67,18 @@ export default function FavoriteItem({ favorite, onClick, onPointerDown, onPoint
             className={cn("flex-shrink-0", containerClasses)}
             style={{ backdropFilter: "blur(2px)" }}
             onClick={() => onClick(favorite)}
-            onPointerDown={onPointerDown}
-            onPointerUp={onPointerUp}
-            onPointerLeave={onPointerLeave}
+            whileDrag={{ scale: 1.1 }}
             animate={{ height: '3rem', width: isPill ? '140px' : '3rem' }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            whileDrag={{ scale: 1.1 }}
         >
+             {isEditing && (
+                <button
+                    onClick={handleRemoveClick}
+                    className="absolute -top-1 -left-1 z-10 h-5 w-5 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/50"
+                >
+                    <Minus className="h-4 w-4 text-white" />
+                </button>
+            )}
             <AnimatePresence>
                 {isPill ? (
                     <motion.div
