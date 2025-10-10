@@ -46,6 +46,8 @@ const videos = [
     }
 ]
 
+const defaultSymbols = ["TSLA", "AAPL", "MSFT", "GOOGL", "NVDA"];
+
 export default function TradeClient() {
   const searchParams = useSearchParams();
   const initialSymbol = searchParams.get('symbol')?.toUpperCase() || "AAPL";
@@ -225,12 +227,12 @@ export default function TradeClient() {
     setShowSuggestions(false);
   }
 
-  const filteredStocks = inputValue
+  const suggestions = inputValue
     ? stockList.filter(stock => 
         stock.symbol.toLowerCase().startsWith(inputValue.toLowerCase()) || 
         stock.description.toLowerCase().includes(inputValue.toLowerCase())
       ).slice(0, 5)
-    : [];
+    : stockList.filter(stock => defaultSymbols.includes(stock.symbol));
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -275,7 +277,7 @@ export default function TradeClient() {
                                 value={inputValue}
                                 onChange={(e) => {
                                     setInputValue(e.target.value.toUpperCase())
-                                    setShowSuggestions(e.target.value.length > 0)
+                                    setShowSuggestions(true)
                                 }}
                                 placeholder="e.g., AAPL, TSLA"
                                 className="pl-10 h-10 focus-visible:ring-primary"
@@ -284,7 +286,7 @@ export default function TradeClient() {
                                         handleSearch();
                                     }
                                 }}
-                                onFocus={() => setShowSuggestions(inputValue.length > 0)}
+                                onFocus={() => setShowSuggestions(true)}
                             />
                         </div>
                         <Button onClick={handleSearch}>
@@ -292,10 +294,10 @@ export default function TradeClient() {
                             Search
                         </Button>
                     </div>
-                    {showSuggestions && inputValue && filteredStocks.length > 0 && (
+                    {showSuggestions && suggestions.length > 0 && (
                          <div className="absolute top-full mt-2 w-full sm:w-[calc(100%-100px)] rounded-md border bg-background shadow-lg z-20">
                             <CommandList>
-                                {filteredStocks.map(stock => (
+                                {suggestions.map(stock => (
                                     <CommandItem key={stock.symbol} onSelect={() => handleStockSelection(stock)}>
                                          <div className="flex items-center gap-3">
                                             <Avatar className="h-8 w-8 bg-muted">
@@ -359,5 +361,7 @@ export default function TradeClient() {
       </main>
   );
 }
+
+    
 
     
