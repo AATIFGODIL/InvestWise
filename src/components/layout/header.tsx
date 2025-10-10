@@ -118,12 +118,13 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                       onPointerUp={handlePointerUp}
                       onPointerLeave={handlePointerUp}
                       className={cn(
-                          "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg",
+                          "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-all",
                           isClearMode
                               ? isLightClear
                                   ? "bg-card/60 text-foreground ring-1 ring-white/20"
                                   : "bg-white/10 text-slate-100 ring-1 ring-white/60"
-                              : "bg-background text-foreground ring-1 ring-border"
+                              : "bg-background text-foreground ring-1 ring-border",
+                           isEditing && "shimmer-bg"
                       )}
                       onClick={() => setOpen(true)}
                       style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
