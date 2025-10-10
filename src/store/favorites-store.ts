@@ -11,13 +11,13 @@ export interface Favorite {
     value: string; // symbol for stock, name for action
     iconName: string;
     logoUrl?: string;
-    size: 'icon' | 'expanded';
+    size: 'icon' | 'pill';
 }
 
 interface FavoritesState {
     favorites: Favorite[];
-    expandedFavorite: Favorite | null;
-    loadFavorites: (favorites: (Omit<Favorite, 'size'> & { size?: 'icon' | 'expanded' })[]) => void;
+    pillFavorite: Favorite | null;
+    loadFavorites: (favorites: (Omit<Favorite, 'size'> & { size?: 'icon' | 'pill' })[]) => void;
     addFavorite: (favorite: Omit<Favorite, 'id' | 'size'>) => void;
     removeFavoriteByName: (name: string) => void;
     setFavorites: (favorites: Favorite[]) => void;
@@ -37,12 +37,12 @@ const updateFavoritesInFirestore = (favorites: Favorite[]) => {
 
 export const useFavoritesStore = create<FavoritesState>((set, get) => ({
     favorites: [],
-    expandedFavorite: null,
+    pillFavorite: null,
 
     loadFavorites: (favorites) => {
          // When loading, ensure every favorite has a 'size' property, defaulting to 'icon'.
          const initialFavorites = (favorites || []).map(fav => ({ ...fav, size: fav.size || 'icon' } as Favorite));
-        set({ favorites: initialFavorites, expandedFavorite: initialFavorites.find(f => f.size === 'expanded') || null });
+        set({ favorites: initialFavorites, pillFavorite: initialFavorites.find(f => f.size === 'pill') || null });
     },
 
     addFavorite: (favorite) => {
@@ -73,20 +73,20 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
     
     setFavorites: (newFavorites) => {
         set(produce((draft: FavoritesState) => {
-            const expandedId = newFavorites.find(f => f.size === 'expanded')?.id;
+            const pillId = newFavorites.find(f => f.size === 'pill')?.id;
             
             // Create a new array with updated sizes based on the new order
             const updatedFavorites = newFavorites.map(f => ({
                 ...f,
-                // If an item is expanded, all others must be icons.
-                size: (expandedId && f.id !== expandedId) ? 'icon' as const : f.size,
+                // If an item is a pill, all others must be icons.
+                size: (pillId && f.id !== pillId) ? 'icon' as const : f.size,
             }));
 
             draft.favorites = updatedFavorites;
-            draft.expandedFavorite = updatedFavorites.find(f => f.size === 'expanded') || null;
+            draft.pillFavorite = updatedFavorites.find(f => f.size === 'pill') || null;
         }));
         updateFavoritesInFirestore(get().favorites);
     },
 
-    resetFavorites: () => set({ favorites: [], expandedFavorite: null }),
+    resetFavorites: () => set({ favorites: [], pillFavorite: null }),
 }));
