@@ -16,7 +16,6 @@ export interface Favorite {
 
 interface FavoritesState {
     favorites: Favorite[];
-    pillFavorite: Favorite | null;
     loadFavorites: (favorites: (Omit<Favorite, 'size'> & { size?: 'icon' | 'pill' })[]) => void;
     addFavorite: (favorite: Omit<Favorite, 'id' | 'size'>) => void;
     removeFavoriteByName: (name: string) => void;
@@ -29,7 +28,7 @@ const updateFavoritesInFirestore = (favorites: Favorite[]) => {
     if (!user) return;
 
     const userDocRef = doc(getFirestore(), "users", user.uid);
-    // Now we persist the entire favorite object, including the size.
+    // Persist the entire favorite object, including the size.
     updateDoc(userDocRef, { favorites: favorites }).catch(error => {
         console.error("Failed to update favorites in Firestore:", error);
     });
@@ -37,12 +36,11 @@ const updateFavoritesInFirestore = (favorites: Favorite[]) => {
 
 export const useFavoritesStore = create<FavoritesState>((set, get) => ({
     favorites: [],
-    pillFavorite: null,
 
     loadFavorites: (favorites) => {
          // When loading, ensure every favorite has a 'size' property, defaulting to 'icon'.
          const initialFavorites = (favorites || []).map(fav => ({ ...fav, size: fav.size || 'icon' } as Favorite));
-        set({ favorites: initialFavorites, pillFavorite: initialFavorites.find(f => f.size === 'pill') || null });
+        set({ favorites: initialFavorites });
     },
 
     addFavorite: (favorite) => {
@@ -72,21 +70,9 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
     },
     
     setFavorites: (newFavorites) => {
-        set(produce((draft: FavoritesState) => {
-            const pillId = newFavorites.find(f => f.size === 'pill')?.id;
-            
-            // Create a new array with updated sizes based on the new order
-            const updatedFavorites = newFavorites.map(f => ({
-                ...f,
-                // If an item is a pill, all others must be icons.
-                size: (pillId && f.id !== pillId) ? 'icon' as const : f.size,
-            }));
-
-            draft.favorites = updatedFavorites;
-            draft.pillFavorite = updatedFavorites.find(f => f.size === 'pill') || null;
-        }));
-        updateFavoritesInFirestore(get().favorites);
+        set({ favorites: newFavorites });
+        updateFavoritesInFirestore(newFavorites);
     },
 
-    resetFavorites: () => set({ favorites: [], pillFavorite: null }),
+    resetFavorites: () => set({ favorites: [] }),
 }));

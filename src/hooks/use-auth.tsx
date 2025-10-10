@@ -52,7 +52,7 @@ interface AuthContextType {
   updateUserProfile: (data: { username?: string, photoURL?: string }) => Promise<void>;
   updateUserTheme: (themeData: { theme?: Theme, isClearMode?: boolean, primaryColor?: string }) => Promise<void>;
   updatePrivacySettings: (settings: Partial<Omit<PrivacyState, 'setLeaderboardVisibility' | 'setShowQuests' | 'loadPrivacySettings' | 'resetPrivacySettings'>>) => Promise<void>;
-  updateFavorites: (favorites: Omit<Favorite, 'size'>[]) => Promise<void>;
+  updateFavorites: (favorites: Favorite[]) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   verifyPasswordResetCode: (code: string) => Promise<string | null>;
   confirmPasswordReset: (code: string, newPassword: string) => Promise<void>;
@@ -227,7 +227,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await updateDoc(userDocRef, settings);
   };
 
-  const updateFavorites = async (favorites: Omit<Favorite, 'size'>[]) => {
+  const updateFavorites = async (favorites: Favorite[]) => {
     if (!user) return;
     const userDocRef = doc(db, "users", user.uid);
     await updateDoc(userDocRef, { favorites });
