@@ -47,8 +47,6 @@ const videos = [
     }
 ]
 
-const defaultSymbols = ["TSLA", "AAPL", "MSFT", "GOOGL", "NVDA"];
-
 export default function TradeClient() {
   const searchParams = useSearchParams();
   const initialSymbol = searchParams.get('symbol')?.toUpperCase() || "AAPL";
@@ -235,7 +233,7 @@ export default function TradeClient() {
         stock.symbol.toLowerCase().startsWith(inputValue.toLowerCase()) || 
         stock.description.toLowerCase().includes(inputValue.toLowerCase())
       ).slice(0, 5)
-    : stockList.filter(stock => defaultSymbols.includes(stock.symbol));
+    : [];
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
