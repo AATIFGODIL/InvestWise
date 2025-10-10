@@ -38,7 +38,7 @@ export default function BottomNav() {
   const animationFrameRef = useRef<number>();
 
   const { isClearMode, theme } = useThemeStore();
-  const { activeIndex: externalActiveIndex, setActiveIndex, clearActiveIndex } = useBottomNavStore();
+  const { activeIndex: externalActiveIndex, samePageIndex, clearActiveIndex } = useBottomNavStore();
   const isLightClear = isClearMode && theme === "light";
   const isMobile = useIsMobile();
 
@@ -204,28 +204,59 @@ export default function BottomNav() {
     const handleSamePageAnimation = useCallback((index: number) => {
         if (index !== activeIndex || animationStateRef.current !== 'idle') return;
 
-        setAnimationState('rising');
+        const navEl = navRef.current;
+        const item = itemRefs.current[index];
+        if (!navEl || !item) return;
+
+        setAnimationState("rising");
+
+        const navRect = navEl.getBoundingClientRect();
+        const itemRect = item.getBoundingClientRect();
+        const itemWidth = Math.max(Math.round(itemRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
+        const itemLeft = itemRect.left - navRect.left + (itemRect.width - itemWidth) / 2;
+
+        setGliderStyle(prev => ({
+            ...prev,
+            width: `${itemWidth}px`,
+            transform: `translateX(${itemLeft}px) translateY(-50%)`,
+            backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
+            boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
+            transition: "all 140ms ease-out",
+            border: '1px solid hsla(0, 0%, 100%, 0.6)',
+            height: 'calc(100% + 16px)',
+            backdropFilter: 'blur(16px)',
+        }));
+        
         const riseTimeout = setTimeout(() => {
             setAnimationState('descending');
-             const settleTimeout = setTimeout(() => {
+            setGliderStyle(prev => ({
+                ...prev,
+                backgroundColor: "hsl(var(--primary))",
+                boxShadow: "none",
+                border: '1px solid transparent',
+                height: 'calc(100% - 12px)',
+                backdropFilter: 'none',
+                transition: "all 160ms ease-in",
+            }));
+            const settleTimeout = setTimeout(() => {
                 setAnimationState('idle');
-            }, 300);
+            }, 170);
             return () => clearTimeout(settleTimeout);
-        }, 300);
+        }, 150);
         return () => clearTimeout(riseTimeout);
-    }, [activeIndex]);
+    }, [activeIndex, isClearMode, WIDTH_FACTOR, MIN_GLIDER_WIDTH]);
 
 
   useEffect(() => {
     if (externalActiveIndex !== null) {
-      if (externalActiveIndex === activeIndex) {
-        handleSamePageAnimation(externalActiveIndex);
-      } else {
-        animateTo(externalActiveIndex);
-      }
+      animateTo(externalActiveIndex);
       clearActiveIndex();
     }
-  }, [externalActiveIndex, activeIndex, animateTo, handleSamePageAnimation, clearActiveIndex]);
+    if (samePageIndex !== null) {
+      handleSamePageAnimation(samePageIndex);
+      clearActiveIndex();
+    }
+  }, [externalActiveIndex, samePageIndex, animateTo, handleSamePageAnimation, clearActiveIndex]);
 
 
   useEffect(() => {

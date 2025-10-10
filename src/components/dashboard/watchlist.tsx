@@ -30,7 +30,7 @@ export default function Watchlist() {
     const [isLoading, setIsLoading] = useState(false);
     const [watchlistData, setWatchlistData] = useState<WatchlistItemData[]>([]);
     const { isClearMode } = useThemeStore();
-    const { setActiveIndex } = useBottomNavStore();
+    const { setActiveIndex, setSamePageIndex } = useBottomNavStore();
 
     // State for the trade dialog
     const [isTradeDialogOpen, setIsTradeDialogOpen] = useState(false);
@@ -108,8 +108,14 @@ export default function Watchlist() {
         const tradePageIndex = 2; // Index of "Trade"
         const tradeUrl = `/trade?symbol=${symbol}`;
         
-        setActiveIndex(tradePageIndex);
-        router.push(tradeUrl);
+        if (pathname === '/trade') {
+            setSamePageIndex(tradePageIndex);
+            // Using window.location.href ensures a page refresh, which guarantees scrolling to the top.
+            window.location.href = tradeUrl;
+        } else {
+            setActiveIndex(tradePageIndex);
+            router.push(tradeUrl);
+        }
     };
     
     if (watchlist.length === 0) {
