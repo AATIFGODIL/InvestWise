@@ -22,6 +22,7 @@ import YouTubePlayer from "../shared/youtube-player";
 import { CommandItem, CommandList } from "../ui/command";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useDebounce } from "@/hooks/use-debounce";
+import { useThemeStore } from "@/store/theme-store";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -62,6 +63,8 @@ export default function TradeClient() {
   const initialSymbol = searchParams.get('symbol')?.toUpperCase() || "AAPL";
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
 
   const [stockList, setStockList] = useState<StockInfo[]>([]);
   const [widgetSymbol, setWidgetSymbol] = useState(initialSymbol);
@@ -143,7 +146,10 @@ export default function TradeClient() {
   }, [isClient, toast]);
 
     useEffect(() => {
-    if (!stockList.length) return;
+    if (!stockList.length && !debouncedInputValue) {
+        setDisplayedStocks([]);
+        return;
+    };
 
     const fetchQuotes = async (symbolsToFetch: { symbol: string, description: string }[]) => {
       setIsFetchingDetails(true);
@@ -352,32 +358,38 @@ export default function TradeClient() {
             </CardHeader>
             <CardContent className="space-y-4">
                 <div ref={searchContainerRef} className="relative">
-                    <div className="flex flex-col sm:flex-row gap-2">
-                        <div className="relative flex-grow">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                            <Input
-                                value={inputValue}
-                                onChange={(e) => {
-                                    setInputValue(e.target.value.toUpperCase())
-                                    setShowSuggestions(true)
-                                }}
-                                placeholder="e.g., AAPL, TSLA"
-                                className="pl-10 h-10 focus-visible:ring-primary"
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        handleSearch();
-                                    }
-                                }}
-                                onFocus={() => setShowSuggestions(true)}
-                            />
-                        </div>
-                        <Button onClick={handleSearch}>
-                            {loadingPrice && searchedSymbol === inputValue.toUpperCase() ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                            Search
-                        </Button>
+                    <div className={cn(
+                        "relative flex h-12 w-full items-center rounded-full px-4 text-primary-foreground shadow-lg",
+                        isClearMode
+                            ? isLightClear
+                                ? "bg-card/60 ring-1 ring-white/10"
+                                : "bg-white/10 ring-1 ring-white/60"
+                            : "bg-card ring-1 ring-border"
+                    )} style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}>
+                        <Search className={cn("h-5 w-5", isClearMode ? "text-slate-100" : "text-muted-foreground")} />
+                        <Input
+                            value={inputValue}
+                            onChange={(e) => {
+                                setInputValue(e.target.value.toUpperCase())
+                                setShowSuggestions(true)
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    handleSearch();
+                                }
+                            }}
+                            onFocus={() => setShowSuggestions(true)}
+                            placeholder="Search stocks..."
+                            className={cn(
+                                "w-full h-full bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base placeholder:text-muted-foreground",
+                                isClearMode ? "text-slate-100" : "text-foreground"
+                            )}
+                        />
+                        {loadingPrice && searchedSymbol === inputValue.toUpperCase() && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
                     </div>
+
                     {showSuggestions && inputValue && (
-                         <div className="absolute top-full mt-2 w-full sm:w-[calc(100%-100px)] rounded-md border bg-background shadow-lg z-20">
+                         <div className="absolute top-full mt-2 w-full rounded-md border bg-background shadow-lg z-20">
                             <CommandList>
                                 {isFetchingDetails && <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>}
                                 {!isFetchingDetails && displayedStocks.length === 0 && <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>}
@@ -454,3 +466,4 @@ export default function TradeClient() {
       </main>
   );
 }
+
