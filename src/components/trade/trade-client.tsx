@@ -85,9 +85,17 @@ export default function TradeClient() {
   const isSymbolInWatchlist = watchlist.includes(searchedSymbol);
   
   useEffect(() => {
+    if (isClient) {
+      setSearchedSymbol(initialSymbol);
+      setWidgetSymbol(initialSymbol);
+      setInputValue(initialSymbol);
+      fetchMarketStatus();
+    }
+  }, [isClient, initialSymbol, fetchMarketStatus]);
+
+  useEffect(() => {
     setIsClient(true);
-    fetchMarketStatus();
-  }, [fetchMarketStatus]);
+  }, []);
 
   useEffect(() => {
     if (!isClient) return;
