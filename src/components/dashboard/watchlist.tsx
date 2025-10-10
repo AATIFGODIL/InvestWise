@@ -108,13 +108,12 @@ export default function Watchlist() {
         const tradePageIndex = 2; // Index of "Trade"
         const tradeUrl = `/trade?symbol=${symbol}`;
         
-        if (pathname === '/trade') {
-            // Already on the trade page, just update the symbol in the URL and trigger animation
-            router.push(tradeUrl, { scroll: false });
-            setActiveIndex(tradePageIndex);
+        setActiveIndex(tradePageIndex);
+
+        if (pathname !== '/trade') {
+             router.push(tradeUrl);
         } else {
-            // Navigate to the trade page from another page
-            router.push(tradeUrl); // Navigate with the correct symbol
+             router.push(tradeUrl, { scroll: false });
         }
     };
     
