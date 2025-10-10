@@ -19,6 +19,9 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Watchlist from "../dashboard/watchlist";
 import YouTubePlayer from "../shared/youtube-player";
+import { stockList, type StockInfo } from "@/data/stocks";
+import { CommandItem, CommandList } from "../ui/command";
+import { Avatar, AvatarFallback } from "../ui/avatar";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -45,12 +48,13 @@ export default function TradeClient() {
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
 
-  // The symbol for the main TradingView widget, which can be changed by the user inside the widget.
   const [widgetSymbol, setWidgetSymbol] = useState(initialSymbol);
   
-  // The symbol used for searching and fetching data for the trade form and AI prediction.
   const [inputValue, setInputValue] = useState(initialSymbol);
   const [searchedSymbol, setSearchedSymbol] = useState(initialSymbol);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
 
   const [price, setPrice] = useState<number | null>(null);
   const [loadingPrice, setLoadingPrice] = useState(false);
@@ -62,7 +66,6 @@ export default function TradeClient() {
   const isSymbolInWatchlist = watchlist.includes(searchedSymbol);
 
   useEffect(() => {
-    // This ensures client-side only components and logic run after the component has mounted.
     setIsClient(true);
     fetchMarketStatus();
   }, [fetchMarketStatus]);
@@ -81,8 +84,6 @@ export default function TradeClient() {
     }
   };
 
-  // Callback passed to the TradingView widget, which allows it to update the parent's state
-  // when the user changes the symbol within the chart itself.
   const handleWidgetSymbolChange = useCallback((newSymbol: string) => {
     if (!newSymbol) return;
     setWidgetSymbol(newSymbol.toUpperCase());
@@ -90,7 +91,6 @@ export default function TradeClient() {
     setSearchedSymbol(newSymbol.toUpperCase());
   }, []);
 
-  // Effect to fetch price data whenever the user searches for a new symbol.
   useEffect(() => {
     if (!searchedSymbol) return;
 
@@ -98,8 +98,6 @@ export default function TradeClient() {
     setLoadingPrice(true);
     setError(null);
 
-    // If the Finnhub API key isn't configured, use simulated data as a fallback.
-    // This allows the UI to remain functional for demonstration purposes.
     if (!API_KEY || API_KEY.startsWith("AIzaSy") || API_KEY === "your_finnhub_api_key_here") {
       console.warn("Finnhub API key not configured. Using simulated data.");
       setError("Live price data is unavailable. Using simulated data.");
@@ -111,7 +109,6 @@ export default function TradeClient() {
       return;
     }
     
-    // Fetch the initial price via REST API before establishing a WebSocket connection.
     async function fetchInitialPrice() {
         try {
             const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${searchedSymbol}&token=${API_KEY}`);
@@ -132,10 +129,8 @@ export default function TradeClient() {
 
     fetchInitialPrice();
 
-    // Close any existing WebSocket connection before opening a new one.
     if (socketRef.current) socketRef.current.close();
 
-    // Establish a WebSocket connection for real-time price updates.
     const socket = new WebSocket(`wss://ws.finnhub.io?token=${API_KEY}`);
     socketRef.current = socket;
 
@@ -156,7 +151,6 @@ export default function TradeClient() {
         console.error("WebSocket error:", err);
     }
 
-    // Cleanup function to close the WebSocket connection when the component unmounts or the symbol changes.
     return () => {
       if (socketRef.current) {
         if (socketRef.current.readyState === WebSocket.OPEN) {
@@ -173,8 +167,36 @@ export default function TradeClient() {
         const upperCaseSymbol = inputValue.toUpperCase();
         setSearchedSymbol(upperCaseSymbol);
         setWidgetSymbol(upperCaseSymbol);
+        setShowSuggestions(false);
     }
   };
+
+  const handleStockSelection = (stock: StockInfo) => {
+    setInputValue(stock.symbol);
+    setSearchedSymbol(stock.symbol);
+    setWidgetSymbol(stock.symbol);
+    setShowSuggestions(false);
+  }
+
+  const filteredStocks = inputValue
+    ? stockList.filter(stock => 
+        stock.symbol.toLowerCase().startsWith(inputValue.toLowerCase()) || 
+        stock.name.toLowerCase().includes(inputValue.toLowerCase())
+      ).slice(0, 5)
+    : [];
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+                setShowSuggestions(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
 
   return (
@@ -198,25 +220,50 @@ export default function TradeClient() {
                 </div>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="relative flex-grow">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value.toUpperCase())}
-                            placeholder="e.g., AAPL, TSLA"
-                            className="pl-10 h-10"
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleSearch();
-                                }
-                            }}
-                        />
+                <div ref={searchContainerRef} className="relative">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="relative flex-grow">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Input
+                                value={inputValue}
+                                onChange={(e) => {
+                                    setInputValue(e.target.value.toUpperCase())
+                                    setShowSuggestions(e.target.value.length > 0)
+                                }}
+                                placeholder="e.g., AAPL, TSLA"
+                                className="pl-10 h-10"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handleSearch();
+                                    }
+                                }}
+                                onFocus={() => setShowSuggestions(inputValue.length > 0)}
+                            />
+                        </div>
+                        <Button onClick={handleSearch}>
+                            {loadingPrice && searchedSymbol === inputValue.toUpperCase() ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                            Search
+                        </Button>
                     </div>
-                    <Button onClick={handleSearch}>
-                        {loadingPrice && searchedSymbol === inputValue.toUpperCase() ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                        Search
-                    </Button>
+                    {showSuggestions && inputValue && filteredStocks.length > 0 && (
+                         <div className="absolute top-full mt-2 w-full sm:w-[calc(100%-100px)] rounded-md border bg-background shadow-lg z-20">
+                            <CommandList>
+                                {filteredStocks.map(stock => (
+                                    <CommandItem key={stock.symbol} onSelect={() => handleStockSelection(stock)}>
+                                         <div className="flex items-center gap-3">
+                                            <Avatar className="h-8 w-8 bg-muted">
+                                                <AvatarFallback>{stock.symbol.charAt(0)}</AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <p>{stock.name}</p>
+                                                <p className="text-xs text-muted-foreground">{stock.symbol}</p>
+                                            </div>
+                                        </div>
+                                    </CommandItem>
+                                ))}
+                            </CommandList>
+                        </div>
+                    )}
                 </div>
                 {error && <p className="text-destructive text-sm">{error}</p>}
                 <div className="h-[400px] md:h-[500px] w-full">

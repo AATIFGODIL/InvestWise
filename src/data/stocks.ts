@@ -3,7 +3,7 @@
 export interface StockInfo {
     symbol: string;
     name: string;
-    domain: string;
+    domain?: string;
 }
 
 export const stockList: StockInfo[] = [
