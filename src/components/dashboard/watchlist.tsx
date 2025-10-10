@@ -30,7 +30,7 @@ export default function Watchlist() {
     const [isLoading, setIsLoading] = useState(false);
     const [watchlistData, setWatchlistData] = useState<WatchlistItemData[]>([]);
     const { isClearMode } = useThemeStore();
-    const { setActiveIndex } = useBottomNavStore();
+    const { setActiveIndex, setSamePageIndex } = useBottomNavStore();
 
     // State for the trade dialog
     const [isTradeDialogOpen, setIsTradeDialogOpen] = useState(false);
@@ -109,10 +109,12 @@ export default function Watchlist() {
         const tradeUrl = `/trade?symbol=${symbol}`;
         
         if (pathname === '/trade') {
-             // If already on trade page, just update the URL
-            router.push(tradeUrl);
+             // If already on trade page, trigger same-page animation and update URL
+            setSamePageIndex(tradePageIndex);
+            router.push(tradeUrl, { scroll: false }); // Prevent Next.js from scrolling
+            window.scrollTo(0, 0); // Manually scroll to top
         } else {
-            // If on another page, trigger the animation
+            // If on another page, trigger the full navigation animation
             setActiveIndex(tradePageIndex);
         }
     };

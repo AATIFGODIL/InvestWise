@@ -128,15 +128,18 @@ export default function BottomNav() {
     }
   }, []);
 
-  const animateTo = useCallback((clickedIndex: number) => {
-    if (animationStateRef.current !== "idle" || clickedIndex === -1 || clickedIndex === activeIndex) return;
+  const animateTo = useCallback((clickedIndex: number, isSamePage: boolean = false) => {
+    if (animationStateRef.current !== "idle" || clickedIndex === -1) return;
+    
+    // Prevent animation if it's not a same-page action and the index is already active
+    if (!isSamePage && clickedIndex === activeIndex) return;
 
       const navEl = navRef.current;
       const startItem = itemRefs.current[activeIndex];
       const endItem = itemRefs.current[clickedIndex];
 
       if (!navEl || !startItem || !endItem) {
-          router.push(navItems[clickedIndex].href);
+          if (!isSamePage) router.push(navItems[clickedIndex].href);
           return;
       }
       
@@ -162,6 +165,29 @@ export default function BottomNav() {
         backdropFilter: 'blur(16px)',
       }));
 
+      // If it's a same-page click, skip the sliding part.
+      if (isSamePage) {
+        const settleTimeout = setTimeout(() => {
+            setAnimationState("descending");
+            setGliderStyle(prev => ({
+                ...prev,
+                transform: `translateX(${endLeft}px) translateY(-50%)`,
+                backgroundColor: "hsl(var(--primary))",
+                boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
+                transition: "transform 160ms ease-in, background-color 160ms ease-in, box-shadow 160ms ease-in, border 160ms ease-in, height 160ms ease-in, backdrop-filter 160ms ease-in",
+                border: '1px solid transparent',
+                height: 'calc(100% - 12px)',
+                backdropFilter: 'none',
+            }));
+             const idleTimeout = setTimeout(() => {
+                setAnimationState("idle");
+            }, 170);
+            return () => clearTimeout(idleTimeout);
+        }, 150);
+        return () => clearTimeout(settleTimeout);
+      }
+
+
       const slideTimeout = setTimeout(() => {
         setAnimationState("sliding");
         setGliderStyle(prev => ({
@@ -175,7 +201,7 @@ export default function BottomNav() {
 
       const settleTimeout = setTimeout(() => {
         setAnimationState("descending");
-        router.push(navItems[clickedIndex].href);
+        if (!isSamePage) router.push(navItems[clickedIndex].href);
         setGliderStyle(prev => ({
           ...prev,
           transform: `translateX(${endLeft}px) translateY(-50%)`,
@@ -201,62 +227,17 @@ export default function BottomNav() {
       }
   }, [activeIndex, isClearMode, router, WIDTH_FACTOR, MIN_GLIDER_WIDTH, animateItemTransforms]);
   
-    const handleSamePageAnimation = useCallback((index: number) => {
-        if (index !== activeIndex || animationStateRef.current !== 'idle') return;
-
-        const navEl = navRef.current;
-        const item = itemRefs.current[index];
-        if (!navEl || !item) return;
-
-        setAnimationState("rising");
-
-        const navRect = navEl.getBoundingClientRect();
-        const itemRect = item.getBoundingClientRect();
-        const itemWidth = Math.max(Math.round(itemRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
-        const itemLeft = itemRect.left - navRect.left + (itemRect.width - itemWidth) / 2;
-
-        setGliderStyle(prev => ({
-            ...prev,
-            width: `${itemWidth}px`,
-            transform: `translateX(${itemLeft}px) translateY(-50%)`,
-            backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
-            boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
-            transition: "all 140ms ease-out",
-            border: '1px solid hsla(0, 0%, 100%, 0.6)',
-            height: 'calc(100% + 16px)',
-            backdropFilter: 'blur(16px)',
-        }));
-        
-        const riseTimeout = setTimeout(() => {
-            setAnimationState('descending');
-            setGliderStyle(prev => ({
-                ...prev,
-                backgroundColor: "hsl(var(--primary))",
-                boxShadow: "none",
-                border: '1px solid transparent',
-                height: 'calc(100% - 12px)',
-                backdropFilter: 'none',
-                transition: "all 160ms ease-in",
-            }));
-            const settleTimeout = setTimeout(() => {
-                setAnimationState('idle');
-            }, 170);
-            return () => clearTimeout(settleTimeout);
-        }, 150);
-        return () => clearTimeout(riseTimeout);
-    }, [activeIndex, isClearMode, WIDTH_FACTOR, MIN_GLIDER_WIDTH]);
-
 
   useEffect(() => {
     if (externalActiveIndex !== null) {
-      animateTo(externalActiveIndex);
+      animateTo(externalActiveIndex, false);
       clearActiveIndex();
     }
     if (samePageIndex !== null) {
-      handleSamePageAnimation(samePageIndex);
+      animateTo(samePageIndex, true);
       clearActiveIndex();
     }
-  }, [externalActiveIndex, samePageIndex, animateTo, handleSamePageAnimation, clearActiveIndex]);
+  }, [externalActiveIndex, samePageIndex, animateTo, clearActiveIndex]);
 
 
   useEffect(() => {
