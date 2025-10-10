@@ -94,6 +94,41 @@ export default function BottomNav() {
     setHasMounted(true);
   }, []);
 
+  // Animate the "rise up" effect for items under the glider
+  const animateItemTransforms = useCallback(() => {
+    const gliderEl = navRef.current?.querySelector<HTMLDivElement>('.glider');
+    if (!gliderEl || !navRef.current) return;
+
+    const gliderRect = gliderEl.getBoundingClientRect();
+    const navRect = navRef.current.getBoundingClientRect();
+
+    const newTransforms: Record<number, string> = {};
+
+    itemRefs.current.forEach((itemEl, index) => {
+      if (!itemEl) return;
+
+      const itemRect = itemEl.getBoundingClientRect();
+      const itemCenter = itemRect.left - navRect.left + itemRect.width / 2;
+      
+      const distance = Math.abs(itemCenter - (gliderRect.left - navRect.left + gliderRect.width / 2));
+      const effectRadius = gliderRect.width * 0.8;
+
+      if (distance < effectRadius) {
+        const scale = Math.cos((distance / effectRadius) * (Math.PI / 2));
+        const rise = -6 * scale; // Max rise of -6px
+        newTransforms[index] = `translateY(${rise}px)`;
+      } else {
+        newTransforms[index] = 'translateY(0px)';
+      }
+    });
+
+    setItemTransforms(newTransforms);
+
+    if (animationStateRef.current === 'sliding' || animationStateRef.current === 'dragging') {
+        animationFrameRef.current = requestAnimationFrame(animateItemTransforms);
+    }
+  }, []);
+
   const animateTo = useCallback((clickedIndex: number, isSamePage: boolean = false) => {
     if (animationStateRef.current !== "idle" || clickedIndex === -1) return;
 
@@ -231,42 +266,6 @@ export default function BottomNav() {
         clearActiveIndex();
     }
   }, [externalActiveIndex, activeIndex, animateTo, clearActiveIndex, router]);
-
-
-  // Animate the "rise up" effect for items under the glider
-  const animateItemTransforms = useCallback(() => {
-    const gliderEl = navRef.current?.querySelector<HTMLDivElement>('.glider');
-    if (!gliderEl || !navRef.current) return;
-
-    const gliderRect = gliderEl.getBoundingClientRect();
-    const navRect = navRef.current.getBoundingClientRect();
-
-    const newTransforms: Record<number, string> = {};
-
-    itemRefs.current.forEach((itemEl, index) => {
-      if (!itemEl) return;
-
-      const itemRect = itemEl.getBoundingClientRect();
-      const itemCenter = itemRect.left - navRect.left + itemRect.width / 2;
-      
-      const distance = Math.abs(itemCenter - (gliderRect.left - navRect.left + gliderRect.width / 2));
-      const effectRadius = gliderRect.width * 0.8;
-
-      if (distance < effectRadius) {
-        const scale = Math.cos((distance / effectRadius) * (Math.PI / 2));
-        const rise = -6 * scale; // Max rise of -6px
-        newTransforms[index] = `translateY(${rise}px)`;
-      } else {
-        newTransforms[index] = 'translateY(0px)';
-      }
-    });
-
-    setItemTransforms(newTransforms);
-
-    if (animationStateRef.current === 'sliding' || animationStateRef.current === 'dragging') {
-        animationFrameRef.current = requestAnimationFrame(animateItemTransforms);
-    }
-  }, []);
 
 
   useEffect(() => {
