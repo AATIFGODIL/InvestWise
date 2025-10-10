@@ -137,6 +137,8 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
                 { symbol: "AAPL", name: "APPLE INC", domain: "apple.com" },
                 { symbol: "MSFT", name: "MICROSOFT CORP", domain: "microsoft.com" },
                 { symbol: "GOOGL", name: "ALPHABET INC-CL A", domain: "abc.xyz" },
+                { symbol: "TSLA", name: "TESLA INC", domain: "tesla.com" },
+                { symbol: "NVDA", name: "NVIDIA CORP", domain: "nvidia.com" },
             ].map(stock => ({
                 ...stock,
                 price: parseFloat((Math.random() * 500).toFixed(2)),
@@ -294,7 +296,10 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   }, [open]);
 
   const filteredStocks = useMemo(() => {
-    if (!query) return stocks.slice(0, 5);
+    const defaultSymbols = ["TSLA", "AAPL", "MSFT", "GOOGL", "NVDA"];
+    if (!query) {
+      return stocks.filter(s => defaultSymbols.includes(s.symbol));
+    }
     return stocks.filter(s => s.symbol.toLowerCase().includes(query.toLowerCase()) || s.name.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
   }, [query, stocks]);
 
@@ -326,11 +331,12 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
               {view === "search" && (
               <CommandList>
                   {isFetchingStocks && query.length === 0 && ( <div className="p-4 text-center text-sm text-muted-foreground">Loading stocks...</div> )}
-                  {filteredStocks.length === 0 && filteredAppActions.length === 0 && !isFetchingStocks && <div className="py-6 text-center text-sm">No results found.</div>}
+                  
+                  {filteredStocks.length === 0 && filteredAppActions.length === 0 && !isFetchingStocks && query && <div className="py-6 text-center text-sm">No results found.</div>}
                   
                   {filteredStocks.length > 0 && (<div className="p-1"><div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Stocks</div>
                     {filteredStocks.map((stock) => (
-                      <CommandItem key={stock.symbol} onSelect={() => handleStockSelect(stock)}>
+                      <CommandItem key={stock.symbol} onSelect={() => handleStockSelect(stock.symbol)}>
                         <div className="flex justify-between items-center w-full">
                             <div className="flex items-center gap-3">
                                 <Avatar className="h-8 w-8 bg-background">
