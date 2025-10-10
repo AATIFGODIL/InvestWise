@@ -16,7 +16,7 @@ const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 interface FavoriteItemProps {
   favorite: Favorite;
   onClick: (fav: Favorite) => void;
-  onRemove: () => void;
+  onRemove: (id: string) => void;
   variants: any;
   isEditing: boolean;
   isPill: boolean;
@@ -57,7 +57,7 @@ export default function FavoriteItem({ favorite, onClick, onRemove, variants, is
 
     const handleRemoveClick = (e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent the main onClick from firing
-        onRemove();
+        onRemove(favorite.id);
     };
 
     return (

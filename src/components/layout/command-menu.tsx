@@ -246,20 +246,26 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     if (isEditingFavorites) {
         const stockData = displayedStocks.find(s => s.symbol === stockSymbol);
         if (stockData) {
-            addFavorite({
-                type: 'stock',
-                name: stockData.name,
-                value: stockData.symbol,
-                logoUrl: stockData.logoUrl,
-                iconName: stockData.symbol.charAt(0),
-            });
-            toast({ title: 'Favorite Added!', description: `${stockData.name} has been added to your favorites.` });
+            const isFavorite = favorites.some(fav => fav.value === stockData.symbol);
+            if (isFavorite) {
+                removeFavorite(stockData.symbol);
+                toast({ description: `${stockData.name} removed from favorites.` });
+            } else {
+                 addFavorite({
+                    type: 'stock',
+                    name: stockData.name,
+                    value: stockData.symbol,
+                    logoUrl: stockData.logoUrl,
+                    iconName: stockData.symbol.charAt(0),
+                });
+                toast({ title: 'Favorite Added!', description: `${stockData.name} has been added to your favorites.` });
+            }
         }
     } else {
         const stock = displayedStocks.find(s => s.symbol === stockSymbol);
         if (stock) fetchStockDetails(stock);
     }
-  }, [isEditingFavorites, displayedStocks, addFavorite, toast]);
+  }, [isEditingFavorites, displayedStocks, addFavorite, removeFavorite, toast, favorites]);
 
   const handleGoBack = () => {
     setView("search"); setQuery(""); setSelectedStock(null); setPrediction(null); setNews(null);
@@ -348,13 +354,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
 
   const handleActionSelect = (action: typeof appActions[number]) => {
       if (isEditingFavorites) {
-        addFavorite({
-            type: 'action',
-            name: action.name,
-            value: action.name,
-            iconName: Object.entries(appIcons).find(([, Icon]) => Icon === action.icon)?.[0] || 'search',
-        });
-        toast({ title: 'Favorite Added!', description: `${action.name} has been added to your favorites.` });
+        handleToggleFavorite(new MouseEvent('click') as any, { type: 'action', name: action.name, value: action.name, icon: action.icon });
       } else {
         action.onSelect();
       }
@@ -400,7 +400,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
                             <div className="text-right"><p className="font-mono">${stock.price.toFixed(2)}</p><p className={cn("text-xs", stock.change >= 0 ? "text-green-500" : "text-red-500")}>{stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)</p></div>
                         </div>
                         {isEditingFavorites &&
-                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 ml-2 group" onClick={(e) => { e.stopPropagation(); handleToggleFavorite(e, {type: 'stock', name: stock.name, value: stock.symbol, logoUrl: stock.logoUrl})}}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 ml-2 group" onClick={(e) => handleToggleFavorite(e, {type: 'stock', name: stock.name, value: stock.symbol, logoUrl: stock.logoUrl})}>
                             <Star className={cn("h-4 w-4 text-muted-foreground group-hover:text-yellow-400", favorites.some(f => f.value === stock.symbol) && "text-yellow-400 fill-yellow-400")} />
                           </Button>
                         }
@@ -417,7 +417,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
                             <span>{action.name}</span>
                           </div>
                           {isEditingFavorites &&
-                            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 group" onClick={(e) => { e.stopPropagation(); handleToggleFavorite(e, { type: 'action', name: action.name, value: action.name, icon: action.icon })}}>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 group" onClick={(e) => handleToggleFavorite(e, { type: 'action', name: action.name, value: action.name, icon: action.icon })}>
                                <Star className={cn("h-4 w-4 text-muted-foreground group-hover:text-yellow-400", favorites.some(f => f.value === action.name) && "text-yellow-400 fill-yellow-400")} />
                             </Button>
                           }
