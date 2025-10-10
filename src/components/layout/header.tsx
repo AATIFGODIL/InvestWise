@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -51,7 +52,7 @@ const itemVariants = {
  */
 export default function Header({ onTriggerRain }: { onTriggerRain: () => void }) {
   const [open, setOpen] = React.useState(false);
-  const { user, signOut, updateFavorites: saveFavoritesToFirestore } = useAuth();
+  const { user, signOut, updateFavorites } = useAuth();
   const { username, photoURL } = useUserStore();
   const { isClearMode, theme } = useThemeStore();
   const { showLoading } = useLoadingStore();
@@ -78,7 +79,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   
   const handleSetFavorites = (newFavorites: Favorite[]) => {
       setFavorites(newFavorites);
-      saveFavoritesToFirestore(newFavorites);
+      updateFavorites(newFavorites);
   }
 
   const isLightClear = isClearMode && theme === 'light';
@@ -89,41 +90,34 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     router.push(href);
   };
   
-    const handleFavoriteSelect = (clickedFavorite: Favorite) => {
-        if (!isEditing) return;
+  const handleFavoriteSelect = (clickedFavorite: Favorite) => {
+    if (!isEditing) return;
 
-        const newFavorites = favorites.map(f => {
-            if (f.id === clickedFavorite.id) {
-                return { ...f, size: f.size === 'icon' ? 'pill' as const : 'icon' as const };
-            }
-            return f;
-        });
+    const newFavorites = favorites.map(f => {
+        if (f.id === clickedFavorite.id) {
+            return { ...f, size: f.size === 'icon' ? 'pill' as const : 'icon' as const };
+        }
+        return f;
+    });
 
-        handleSetFavorites(newFavorites);
-    };
+    handleSetFavorites(newFavorites);
+  };
   
   const displayedFavorites = React.useMemo(() => {
-    if (isEditing) {
-        let weight = 0;
-        const visibleFavorites = [];
-        
-        for (const fav of favorites) {
-            const itemWeight = fav.size === 'pill' ? 2 : 1;
-            if (weight + itemWeight <= 6) {
-                weight += itemWeight;
-                visibleFavorites.push(fav);
-            } else {
-                break; // Stop adding items if the weight limit is exceeded
-            }
-        }
-        return visibleFavorites;
-    }
+    let weight = 0;
+    const visibleFavorites = [];
     
-    // Non-editing mode logic
-    const sliceCount = isMobile ? 2 : 4;
-    return favorites.filter(f => f.size === 'icon').slice(0, sliceCount);
-
-  }, [favorites, isEditing, isMobile]);
+    for (const fav of favorites) {
+        const itemWeight = fav.size === 'pill' ? 2 : 1;
+        if (weight + itemWeight <= 6) {
+            weight += itemWeight;
+            visibleFavorites.push(fav);
+        } else {
+            break;
+        }
+    }
+    return visibleFavorites;
+  }, [favorites]);
 
   return (
     <>

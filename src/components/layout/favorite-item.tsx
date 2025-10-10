@@ -1,12 +1,14 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import { useFavoritesStore, type Favorite } from '@/store/favorites-store';
 import { useThemeStore } from '@/store/theme-store';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { type Favorite } from '@/store/favorites-store';
+import { cn } from '@/lib/utils';
 import { appIcons } from './command-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -26,127 +28,115 @@ const pillVariants = {
 
 const contentVariants = {
     hidden: { opacity: 0, transition: { duration: 0.1 } },
-    visible: { opacity: 1, transition: { delay: 0.2, duration: 0.2 } },
+    visible: { opacity: 1, transition: { delay: 0.1, duration: 0.2 } },
 };
 
 const iconVariants = {
     hidden: { opacity: 0, scale: 0.8, transition: { duration: 0.1 } },
-    visible: { opacity: 1, scale: 1, transition: { delay: 0.2, duration: 0.2 } },
+    visible: { opacity: 1, scale: 1, transition: { delay: 0.1, duration: 0.2 } },
 };
 
+interface FavoriteItemProps {
+  favorite: Favorite;
+  onSelect: (fav: Favorite) => void;
+  variants: any;
+  isEditing: boolean;
+}
 
-export default function FavoriteItem({ favorite, isEditing }: { favorite: Favorite, isEditing: boolean }) {
-    const { setFavorites, favorites } = useFavoritesStore();
+export default function FavoriteItem({ favorite, onSelect, variants, isEditing }: FavoriteItemProps) {
     const { isClearMode, theme } = useThemeStore();
     const isLightClear = isClearMode && theme === 'light';
-    const [price, setPrice] = useState<number | null>(null);
-
-    const isExpanded = favorite.size === 'expanded';
+    const [price, setPrice] = useState<number | undefined>(undefined);
+    const [change, setChange] = useState<number | undefined>(undefined);
     const Icon = appIcons[favorite.iconName] || null;
-
+    const isPill = favorite.size === 'pill';
+    
     useEffect(() => {
-        if (favorite.type === 'stock' && isExpanded) {
+        if (favorite.type === 'stock' && isPill) {
             const fetchPrice = async () => {
                 try {
                     const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${favorite.value}&token=${API_KEY}`);
                     const data = await res.json();
-                    if (data.c) {
-                        setPrice(data.c);
-                    }
+                    setPrice(data.c);
+                    setChange(data.d);
                 } catch (e) {
                     console.error("Failed to fetch price for favorite:", e);
                 }
             };
             fetchPrice();
         }
-    }, [favorite.type, favorite.value, isExpanded]);
-    
-    const handleToggleExpand = () => {
-        if (!isEditing) return;
+    }, [favorite.type, favorite.value, isPill]);
 
-        const newFavorites = favorites.map(f => {
-            if (f.id === favorite.id) {
-                return { ...f, size: f.size === 'icon' ? 'expanded' : 'icon' };
-            }
-            return f;
-        });
-        setFavorites(newFavorites);
-    };
-    
-    const glassStyle = {
-        backgroundColor: isLightClear ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(16px)',
-    };
-
+    const containerClasses = cn(
+        "rounded-full transition-colors duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center relative overflow-hidden",
+        isEditing ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
+        isClearMode
+          ? isLightClear
+            ? "bg-card/60 text-foreground ring-1 ring-white/20"
+            : "bg-white/10 text-slate-100 ring-1 ring-white/60"
+          : "bg-background text-foreground ring-1 ring-border"
+    );
 
     return (
         <Reorder.Item
-            as="div"
+            as="button"
             value={favorite}
-            className="relative flex items-center justify-center cursor-grab active:cursor-grabbing"
-            initial="initial"
-            animate={isExpanded ? 'expanded' : 'icon'}
-            variants={pillVariants}
-            style={{
-                borderRadius: '9999px',
-                boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
-            }}
-            onClick={handleToggleExpand}
+            variants={variants}
+            className={cn("flex-shrink-0", containerClasses)}
+            style={{ backdropFilter: "blur(2px)" }}
+            onClick={() => onSelect(favorite)}
+            animate={{ height: '3rem', width: isPill ? '140px' : '3rem' }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             whileDrag={{ scale: 1.1 }}
         >
-             {/* Glassy background for transition */}
-            <motion.div
-                className={cn(
-                    "absolute inset-0 rounded-full",
-                    isClearMode
-                        ? "ring-1 ring-white/60"
-                        : "ring-1 ring-border"
-                )}
-                style={glassStyle}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-            />
-            
-            <AnimatePresence initial={false}>
-                {isExpanded ? (
+            <AnimatePresence mode="wait">
+                {isPill ? (
                     <motion.div
-                        key="content"
-                        className="flex items-center gap-3 text-white pointer-events-none w-full px-4"
-                        variants={contentVariants}
+                        key="pill"
                         initial="hidden"
                         animate="visible"
                         exit="hidden"
+                        variants={contentVariants}
+                        className="flex items-center gap-2 px-3 whitespace-nowrap w-full"
                     >
-                         {favorite.type === 'stock' && (
+                        {favorite.type === 'stock' ? (
                             <>
                                 <Avatar className="h-8 w-8">
                                     <AvatarImage src={favorite.logoUrl} alt={favorite.name} />
-                                    <AvatarFallback>{favorite.iconName}</AvatarFallback>
+                                    <AvatarFallback className="text-sm">{favorite.iconName}</AvatarFallback>
                                 </Avatar>
-                                <div className="flex flex-col overflow-hidden">
-                                    <span className="font-bold text-xs leading-tight truncate">{favorite.name.length > 10 ? favorite.value : favorite.name}</span>
-                                    <span className="text-sm font-mono leading-tight">{price ? `$${price.toFixed(2)}` : '...'}</span>
+                                <div className="flex flex-col items-start text-xs overflow-hidden">
+                                    <span className="font-bold truncate">{favorite.name.length > 10 ? favorite.value : favorite.name}</span>
+                                    <div className="flex items-center gap-1">
+                                        <span>{price !== undefined ? `$${price.toFixed(2)}` : '...'}</span>
+                                        {change !== undefined && (
+                                            <span className={cn(change >= 0 ? "text-green-400" : "text-red-400", "flex items-center")}>
+                                                {change >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </>
-                         )}
-                         {favorite.type === 'action' && (
-                              <span className="font-bold text-sm text-center w-full">{favorite.name}</span>
-                         )}
+                        ) : (
+                             <div className="flex items-center justify-center gap-2 w-full">
+                                {Icon && <Icon className="h-5 w-5" />}
+                                <span className="font-semibold text-sm truncate">{favorite.name}</span>
+                            </div>
+                        )}
                     </motion.div>
                 ) : (
                     <motion.div
                         key="icon"
-                        variants={iconVariants}
                         initial="hidden"
                         animate="visible"
                         exit="hidden"
+                        variants={iconVariants}
                         className="pointer-events-none"
                     >
                         {favorite.type === 'stock' ? (
-                            <Avatar className="h-8 w-8">
+                             <Avatar className="h-8 w-8">
                                 <AvatarImage src={favorite.logoUrl} alt={favorite.name} />
-                                <AvatarFallback>{favorite.iconName}</AvatarFallback>
+                                <AvatarFallback className="text-sm">{favorite.iconName}</AvatarFallback>
                             </Avatar>
                         ) : Icon ? (
                             <Icon className={cn("h-6 w-6", isClearMode ? "text-slate-100" : "text-foreground")} />
