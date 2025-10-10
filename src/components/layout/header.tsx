@@ -25,6 +25,7 @@ import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import FavoriteItem from './favorite-item';
 import { useIsMobile } from '@/hooks/use-mobile';
+import FavoritesEditor from './favorites-editor';
 
 
 const containerVariants = {
@@ -56,18 +57,19 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const { isClearMode, theme } = useThemeStore();
   const { showLoading } = useLoadingStore();
   const router = useRouter();
-  const { favorites, setFavorites } = useFavoritesStore();
+  const { favorites, setFavorites: setStoreFavorites } = useFavoritesStore();
   const [initialStock, setInitialStock] = React.useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = React.useState(false);
   const isMobile = useIsMobile();
 
   const [isEditing, setEditing] = React.useState(false);
+  const [isEditorOpen, setEditorOpen] = React.useState(false);
   const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
 
   const handlePointerDown = () => {
     longPressTimer.current = setTimeout(() => {
       setEditing((prev) => !prev);
-    }, 500); // 500ms for a long press
+    }, 500);
   };
 
   const handlePointerUp = () => {
@@ -77,7 +79,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   };
   
   const handleSetFavorites = (newFavorites: Favorite[]) => {
-      setFavorites(newFavorites);
+      setStoreFavorites(newFavorites);
       updateFavorites(newFavorites);
   }
 
@@ -91,20 +93,19 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   
   const appActions = React.useMemo(() => [
         { name: "Make it rain", onSelect: () => onTriggerRain() },
-        { name: "Dashboard", onSelect: () => router.push('/dashboard') },
-    ], [onTriggerRain, router]);
+    ], [onTriggerRain]);
 
   const handleFavoriteSelect = (favorite: Favorite) => {
-    // If in editing mode, a click toggles the size between icon and pill.
+    // If in editing mode, a click toggles the size
     if (isEditing) {
-      const newFavorites = favorites.map(f => {
-          if (f.id === favorite.id) {
-              return { ...f, size: f.size === 'icon' ? 'pill' as const : 'icon' as const };
-          }
-          return f;
-      });
-      handleSetFavorites(newFavorites);
-      return;
+        const newFavorites = favorites.map(f => {
+            if (f.id === favorite.id) {
+                return { ...f, size: f.size === 'icon' ? 'pill' as const : 'icon' as const };
+            }
+            return f;
+        });
+        handleSetFavorites(newFavorites);
+        return;
     }
 
     // If NOT in editing mode, handle the action
@@ -119,7 +120,14 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     }
   };
   
-  
+  const handleSearchClick = () => {
+    if (isEditing) {
+      setEditorOpen(true);
+    } else {
+      setOpen(true);
+    }
+  }
+
   const displayedFavorites = React.useMemo(() => {
     let weight = 0;
     const visibleFavorites = [];
@@ -177,9 +185,9 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                                   ? "bg-card/60 text-foreground ring-1 ring-white/20"
                                   : "bg-white/10 text-slate-100 ring-1 ring-white/60"
                               : "bg-background text-foreground ring-1 ring-border",
-                          isEditing && "shimmer-bg" 
+                          isEditing && "shimmer-bg"
                       )}
-                      onClick={() => !isEditing && setOpen(true)}
+                      onClick={handleSearchClick}
                       style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
                       >
                       <Search className="h-5 w-5" />
@@ -296,6 +304,10 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
         }} 
         onTriggerRain={onTriggerRain}
         initialStockSymbol={initialStock}
+      />
+      <FavoritesEditor
+        isOpen={isEditorOpen}
+        onOpenChange={setEditorOpen}
       />
     </>
   );

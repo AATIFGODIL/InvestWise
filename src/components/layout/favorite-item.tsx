@@ -81,8 +81,8 @@ export default function FavoriteItem({ favorite, onSelect, variants, isEditing, 
                                     <span className="font-bold truncate">{favorite.name.length > 10 ? favorite.value : favorite.name}</span>
                                     <div className="flex items-center gap-1">
                                         <span>{typeof price === 'number' ? `$${price.toFixed(2)}` : '...'}</span>
-                                        {typeof change === 'number' && (
-                                            <span className={cn(change >= 0 ? "text-green-400" : "text-red-400", "flex items-center")}>
+                                        {change !== null && (
+                                            <span className={cn(change >= 0 ? "text-green-500" : "text-red-500", "flex items-center")}>
                                                 {change >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
                                             </span>
                                         )}
@@ -90,9 +90,9 @@ export default function FavoriteItem({ favorite, onSelect, variants, isEditing, 
                                 </div>
                             </>
                         ) : (
-                             <div className="flex items-center justify-center gap-2 w-full">
+                             <div className="flex items-center justify-center gap-2 w-full text-center">
                                 {Icon && <Icon className="h-5 w-5 flex-shrink-0" />}
-                                <span className="font-semibold text-xs text-center whitespace-normal leading-tight">{favorite.name}</span>
+                                <span className="font-semibold text-xs whitespace-normal leading-tight">{favorite.name}</span>
                             </div>
                         )}
                     </motion.div>
