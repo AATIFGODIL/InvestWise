@@ -420,7 +420,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
               <DialogHeader>
                   <DialogTitle>TradingView Chart</DialogTitle>
                   <DialogDescription>
-                      Explore stock charts with TradingView. Default: AAPL.
+                      Explore stock charts with TradingView.
                   </DialogDescription>
               </DialogHeader>
               <div className="flex-grow">
