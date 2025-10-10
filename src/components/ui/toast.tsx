@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -51,10 +50,10 @@ const Toast = React.forwardRef<
   const isLightClear = isClearMode && theme === 'light';
 
   const clearModeStyles = 
-    isClearMode 
+    isClearMode && variant === 'default'
       ? isLightClear
-        ? "border-0 bg-card/60 text-card-foreground ring-1 ring-white/10"
-        : "border-0 bg-white/10 text-white ring-1 ring-white/60"
+        ? "border-0 bg-card/60 text-card-foreground ring-1 ring-white/10" // Light clear mode
+        : "border-0 bg-white/10 text-white ring-1 ring-white/60" // Dark clear mode
       : "";
 
   return (
@@ -62,7 +61,7 @@ const Toast = React.forwardRef<
       ref={ref}
       className={cn(
         toastVariants({ variant }), 
-        variant === 'default' && clearModeStyles,
+        clearModeStyles,
         className
       )}
       style={{
