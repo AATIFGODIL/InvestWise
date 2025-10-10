@@ -2,7 +2,7 @@
 'use client';
 
 import React from 'react';
-import { Search, Bell, Settings, LogOut, User as UserIcon, Star } from "lucide-react";
+import { Search, Bell, Settings, LogOut, User as UserIcon } from "lucide-react";
 import { CommandMenu } from "./command-menu";
 import { Button } from "../ui/button";
 import Link from "next/link";
@@ -24,47 +24,8 @@ import useLoadingStore from "@/store/loading-store";
 import { useRouter } from "next/navigation";
 import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 import useChatbotStore from "@/store/chatbot-store";
-import { appIcons } from "@/components/layout/command-menu";
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
-
-const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (fav: Favorite) => void }) => {
-  const Icon = appIcons[favorite.iconName] || null;
-  const { isClearMode, theme } = useThemeStore();
-  const isLightClear = isClearMode && theme === 'light';
-  
-  return (
-    <Reorder.Item
-      as="button"
-      value={favorite}
-      className={cn(
-        "rounded-full transition-colors duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center h-12 w-12 cursor-grab active:cursor-grabbing",
-        isClearMode
-            ? isLightClear
-                ? "bg-card/60 text-foreground ring-1 ring-white/20"
-                : "bg-white/10 text-slate-100 ring-1 ring-white/60"
-            : "bg-background text-foreground ring-1 ring-border"
-      )}
-      style={{ backdropFilter: "blur(2px)" }}
-      onClick={() => onSelect(favorite)}
-      whileDrag={{ 
-        scale: 1.1,
-        boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
-      }}
-    >
-      {favorite.type === 'stock' && favorite.logoUrl ? (
-          <Avatar className="h-8 w-8 pointer-events-none">
-              <AvatarImage src={favorite.logoUrl} alt={favorite.name} />
-              <AvatarFallback className="text-sm">{favorite.iconName}</AvatarFallback>
-          </Avatar>
-      ) : favorite.type === 'stock' ? (
-          <span className="font-bold text-sm pointer-events-none">{favorite.iconName}</span>
-      ) : Icon ? (
-        <Icon className="h-6 w-6 pointer-events-none" />
-      ) : null}
-    </Reorder.Item>
-  );
-};
-
+import FavoriteItem from './favorite-item';
 
 /**
  * The main header component for the application, displayed on most pages.
@@ -77,18 +38,11 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const { isClearMode, theme } = useThemeStore();
   const { showLoading } = useLoadingStore();
   const router = useRouter();
-  const { favorites, setFavoritesOrder } = useFavoritesStore();
-  const { openChatbot } = useChatbotStore();
-  const [isHovered, setIsHovered] = React.useState(false);
+  const { favorites, setFavorites, leftExpanded, rightExpanded } = useFavoritesStore();
   const [initialStock, setInitialStock] = React.useState<string | undefined>(undefined);
-  const [isMobile, setIsMobile] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
+  const [isEditing, setEditing] = React.useState(false);
 
-  React.useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   const isLightClear = isClearMode && theme === 'light';
 
@@ -102,26 +56,23 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     if (favorite.type === 'stock') {
       setInitialStock(favorite.value);
       setOpen(true);
-    } else {
-        const actionMap: { [key: string]: () => void } = {
-            "Dashboard": () => router.push('/dashboard'),
-            "Portfolio": () => router.push('/portfolio'),
-            "Trade": () => router.push('/trade'),
-            "Goals": () => router.push('/goals'),
-            "Community": () => router.push('/community'),
-            "Ask InvestWise AI": () => openChatbot(),
-            "Make it rain": () => onTriggerRain(),
-        };
-        const action = actionMap[favorite.name];
-        if (action) {
-            action();
-        }
     }
   }
-  
-  const displayedFavorites = isMobile ? favorites.slice(0, 2) : favorites;
-  const favoritesWidth = displayedFavorites.length > 0 ? (displayedFavorites.length * (48)) + ((displayedFavorites.length) * 8) : 0;
 
+  const leftFavorites = favorites.filter(f => f.position === 'left');
+  const rightFavorites = favorites.filter(f => f.position === 'right');
+
+  const getVisibleFavorites = (favs: Favorite[], expandedItem: Favorite | null): Favorite[] => {
+      if (expandedItem) {
+          const otherIcons = favs.filter(f => f.id !== expandedItem.id).slice(0, 1);
+          return [expandedItem, ...otherIcons];
+      }
+      return favs;
+  };
+  
+  const visibleLeft = getVisibleFavorites(leftFavorites, leftExpanded);
+  const visibleRight = getVisibleFavorites(rightFavorites, rightExpanded);
+  
 
   return (
     <>
@@ -136,6 +87,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 : "bg-card ring-1 ring-white/60"
           )}
           style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
           <Link 
             href="/dashboard" 
@@ -147,53 +100,74 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             </h1>
           </Link>
           
-           <div 
-              className={cn(
-                "flex flex-1 justify-center items-center h-full sm:mx-2",
-              )}
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
-            >
-              <motion.div layout="position" className="relative z-10">
-                <motion.button
-                    className={cn(
-                        "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg",
-                        isClearMode
-                            ? isLightClear
-                                ? "bg-card/60 text-foreground ring-1 ring-white/20"
-                                : "bg-white/10 text-slate-100 ring-1 ring-white/60"
-                            : "bg-background text-foreground ring-1 ring-border"
-                    )}
-                    onClick={() => setOpen(true)}
-                    style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
+            <div className="flex-1 flex justify-center items-center h-full sm:mx-2">
+                 <AnimatePresence>
+                  {(isHovered || isEditing) && (
+                    <motion.div
+                      className="flex items-center"
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: 'auto', opacity: 1, transition: { delay: 0.1, duration: 0.2 } }}
+                      exit={{ width: 0, opacity: 0, transition: { duration: 0.2 } }}
                     >
-                    <Search className="h-5 w-5" />
-                    <span className="hidden text-sm md:inline">Spotlight Search</span>
-                </motion.button>
-              </motion.div>
-                <AnimatePresence>
-                {((isHovered && !isMobile) || isMobile) && displayedFavorites.length > 0 && (
-                  <motion.div 
-                    className="flex items-center"
-                    initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: 'auto', opacity: 1, transition: { delay: 0.1, duration: 0.2 } }}
-                    exit={{ width: 0, opacity: 0, transition: { duration: 0.2 } }}
-                  >
-                      <Reorder.Group
-                        as="div"
-                        axis="x"
-                        values={displayedFavorites}
-                        onReorder={(newOrder) => setFavoritesOrder(newOrder)}
-                        className="flex items-center gap-2 pl-2"
-                      >
-                        {displayedFavorites.map((fav) => (
-                           <FavoriteItem key={fav.value} favorite={fav} onSelect={handleFavoriteSelect} />
-                        ))}
+                      <Reorder.Group as="div" axis="x" values={leftFavorites} onReorder={(newOrder) => setFavorites([...newOrder, ...rightFavorites])} className="flex items-center gap-2 pr-2" disabled={!isEditing}>
+                          {visibleLeft.map((fav) => (
+                              <FavoriteItem key={fav.id} favorite={fav} isEditing={isEditing} />
+                          ))}
                       </Reorder.Group>
-                  </motion.div>
-                )}
-                </AnimatePresence>
-          </div>
+                    </motion.div>
+                  )}
+              </AnimatePresence>
+
+              <motion.div
+                  layout="position"
+                  className="relative z-10"
+                  onLongPress={() => setEditing(!isEditing)}
+              >
+                  <motion.button
+                      className={cn(
+                          "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg",
+                          isClearMode
+                              ? isLightClear
+                                  ? "bg-card/60 text-foreground ring-1 ring-white/20"
+                                  : "bg-white/10 text-slate-100 ring-1 ring-white/60"
+                              : "bg-background text-foreground ring-1 ring-border"
+                      )}
+                      onClick={() => setOpen(true)}
+                      style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
+                      >
+                      <Search className="h-5 w-5" />
+                      <AnimatePresence mode="wait">
+                          <motion.span
+                              key={isEditing ? 'editing' : 'search'}
+                              initial={{ y: 10, opacity: 0 }}
+                              animate={{ y: 0, opacity: 1 }}
+                              exit={{ y: -10, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="hidden text-sm md:inline"
+                          >
+                              {isEditing ? 'Editing Mode' : 'Spotlight Search'}
+                          </motion.span>
+                      </AnimatePresence>
+                  </motion.button>
+              </motion.div>
+
+              <AnimatePresence>
+                  {(isHovered || isEditing) && (
+                    <motion.div
+                      className="flex items-center"
+                      initial={{ width: 0, opacity: 0 }}
+                      animate={{ width: 'auto', opacity: 1, transition: { delay: 0.1, duration: 0.2 } }}
+                      exit={{ width: 0, opacity: 0, transition: { duration: 0.2 } }}
+                    >
+                      <Reorder.Group as="div" axis="x" values={rightFavorites} onReorder={(newOrder) => setFavorites([...leftFavorites, ...newOrder])} className="flex items-center gap-2 pl-2" disabled={!isEditing}>
+                          {visibleRight.map((fav) => (
+                              <FavoriteItem key={fav.id} favorite={fav} isEditing={isEditing} />
+                          ))}
+                      </Reorder.Group>
+                    </motion.div>
+                  )}
+              </AnimatePresence>
+            </div>
           
           <div className="flex shrink-0 items-center gap-0 sm:gap-1">
               <DropdownMenu>
