@@ -125,8 +125,8 @@ export default function FavoriteItem({ favorite, isEditing }: { favorite: Favori
                                     <AvatarFallback>{favorite.iconName}</AvatarFallback>
                                 </Avatar>
                                 <div className="flex flex-col">
-                                    <span className="font-bold text-sm leading-tight">{favorite.name}</span>
-                                    <span className="text-lg font-mono leading-tight">{price ? `$${price.toFixed(2)}` : '...'}</span>
+                                    <span className="font-bold text-xs leading-tight">{favorite.name}</span>
+                                    <span className="text-sm font-mono leading-tight">{price ? `$${price.toFixed(2)}` : '...'}</span>
                                 </div>
                             </>
                          )}
