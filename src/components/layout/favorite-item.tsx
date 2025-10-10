@@ -46,7 +46,7 @@ export default function FavoriteItem({ favorite, onClick, onRemove, variants, is
     }, [favorite.type, favorite.value, isPill]);
 
     const containerClasses = cn(
-        "rounded-full transition-colors duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center relative overflow-hidden",
+        "rounded-full transition-colors duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center relative",
         isEditing ? "cursor-grab active:cursor-grabbing shimmer-bg" : "cursor-pointer",
         isClearMode
           ? isLightClear
@@ -64,7 +64,7 @@ export default function FavoriteItem({ favorite, onClick, onRemove, variants, is
         <Reorder.Item
             value={favorite}
             variants={variants}
-            className={cn("flex-shrink-0", containerClasses)}
+            className={cn("flex-shrink-0 z-10", containerClasses)}
             style={{ backdropFilter: "blur(2px)" }}
             onClick={() => onClick(favorite)}
             whileDrag={{ scale: 1.1 }}
@@ -74,7 +74,7 @@ export default function FavoriteItem({ favorite, onClick, onRemove, variants, is
              {isEditing && (
                 <button
                     onClick={handleRemoveClick}
-                    className="absolute -top-1 -left-1 z-10 h-5 w-5 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/50"
+                    className="absolute -top-1 -left-1 z-20 h-5 w-5 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/50"
                 >
                     <Minus className="h-4 w-4 text-white" />
                 </button>
