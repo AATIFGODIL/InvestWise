@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -314,7 +315,6 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     return holdings.find(h => h.symbol === selectedStock.symbol);
   }, [selectedStock, holdings]);
 
-
   return (
     <>
       {open && (
@@ -416,18 +416,18 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
       {selectedStock && (<TradeDialogCMDK isOpen={isTradeDialogOpen} onOpenChange={setIsTradeDialogOpen} symbol={selectedStock.symbol} price={selectedStock.price} action={tradeAction} />)}
       <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}><DialogContent><CreateGoal onAddGoal={(goal) => { addGoal(goal); setIsGoalDialogOpen(false); }} /></DialogContent></Dialog>
       <Dialog open={isTradingViewOpen} onOpenChange={onTradingViewOpenChange}>
-          <DialogContent className="max-w-4xl h-[70vh]">
+          <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
               <DialogHeader>
                   <DialogTitle>TradingView Chart</DialogTitle>
                   <DialogDescription>
                       Explore stock charts with TradingView. Default: AAPL.
                   </DialogDescription>
               </DialogHeader>
-              <TradingViewWidget symbol="AAPL" />
+              <div className="flex-grow">
+                <TradingViewWidget symbol="AAPL" />
+              </div>
           </DialogContent>
       </Dialog>
     </>
   );
 }
-
-    
