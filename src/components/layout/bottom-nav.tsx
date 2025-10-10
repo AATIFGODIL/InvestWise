@@ -94,8 +94,56 @@ export default function BottomNav() {
     setHasMounted(true);
   }, []);
 
-  const animateTo = useCallback((clickedIndex: number) => {
-    if (animationStateRef.current !== "idle" || clickedIndex === -1 || clickedIndex === activeIndex) return;
+  const animateTo = useCallback((clickedIndex: number, isSamePage: boolean = false) => {
+    if (animationStateRef.current !== "idle" || clickedIndex === -1) return;
+
+    if (isSamePage && clickedIndex === activeIndex) {
+        // Perform a "rise and settle" animation on the same icon
+        const navEl = navRef.current;
+        const currentItem = itemRefs.current[activeIndex];
+        if (!navEl || !currentItem) return;
+
+        setAnimationState("rising");
+        const navRect = navEl.getBoundingClientRect();
+        const itemRect = currentItem.getBoundingClientRect();
+        const itemWidth = Math.max(Math.round(itemRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
+        const itemLeft = itemRect.left - navRect.left + (itemRect.width - itemWidth) / 2;
+        
+        // Rise up
+        setGliderStyle(prev => ({
+            ...prev,
+            height: 'calc(100% + 16px)',
+            transform: `translateX(${itemLeft}px) translateY(-50%)`,
+            backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
+            boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
+            transition: "transform 200ms ease-out, background-color 200ms ease-out, box-shadow 200ms ease-out, border 200ms ease-out, height 200ms ease-out, backdrop-filter 200ms ease-out",
+            border: '1px solid hsla(0, 0%, 100%, 0.6)',
+            backdropFilter: 'blur(16px)',
+        }));
+        
+        // Settle down
+        const settleTimeout = setTimeout(() => {
+            setAnimationState("descending");
+            setGliderStyle(prev => ({
+                ...prev,
+                height: 'calc(100% - 12px)',
+                backgroundColor: "hsl(var(--primary))",
+                boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
+                transition: "transform 250ms ease-in, background-color 250ms ease-in, box-shadow 250ms ease-in, border 250ms ease-in, height 250ms ease-in, backdrop-filter 250ms ease-in",
+                border: '1px solid transparent',
+                backdropFilter: 'none',
+            }));
+        }, 200);
+        
+        const idleTimeout = setTimeout(() => setAnimationState("idle"), 450);
+
+        return () => {
+            clearTimeout(settleTimeout);
+            clearTimeout(idleTimeout);
+        };
+    }
+    
+    if (clickedIndex === activeIndex) return;
 
       const navEl = navRef.current;
       const startItem = itemRefs.current[activeIndex];
@@ -143,7 +191,9 @@ export default function BottomNav() {
 
       const settleTimeout = setTimeout(() => {
         setAnimationState("descending");
-        router.push(navItems[clickedIndex].href);
+        if (!isSamePage) {
+            router.push(navItems[clickedIndex].href);
+        }
         setGliderStyle(prev => ({
           ...prev,
           transform: `translateX(${endLeft}px) translateY(-50%)`,
@@ -167,15 +217,20 @@ export default function BottomNav() {
           clearTimeout(settleTimeout);
           clearTimeout(idleTimeout);
       }
-  }, [activeIndex, isClearMode, router, WIDTH_FACTOR, MIN_GLIDER_WIDTH]);
+  }, [activeIndex, isClearMode, router, WIDTH_FACTOR, MIN_GLIDER_WIDTH, animateItemTransforms]);
 
 
   useEffect(() => {
-    if (externalActiveIndex !== null && externalActiveIndex !== activeIndex) {
-        animateTo(externalActiveIndex);
+    if (externalActiveIndex !== null) {
+        const isSamePage = externalActiveIndex === activeIndex;
+        animateTo(externalActiveIndex, isSamePage);
+        if (!isSamePage) {
+            // If it's a different page, the regular navigation flow will handle it.
+            router.push(navItems[externalActiveIndex].href);
+        }
         clearActiveIndex();
     }
-  }, [externalActiveIndex, activeIndex, animateTo, clearActiveIndex]);
+  }, [externalActiveIndex, activeIndex, animateTo, clearActiveIndex, router]);
 
 
   // Animate the "rise up" effect for items under the glider

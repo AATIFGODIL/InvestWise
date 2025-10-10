@@ -1,7 +1,7 @@
 
 "use client";
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Poppins } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
@@ -26,18 +26,31 @@ const poppins = Poppins({
 // Inner component to safely use hooks
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { user, hydrating } = useAuth();
-  const { isLoading, hideLoading } = useLoadingStore();
+  const { hideLoading } = useLoadingStore();
   const [isRaining, setIsRaining] = useState(false);
+
+  // This state will track if we are doing an "in-page" navigation on /trade
+  const [isTradePageNavigation, setIsTradePageNavigation] = useState(false);
 
   const isAuthOrOnboardingRoute = pathname.startsWith('/auth') || pathname.startsWith('/onboarding');
   const isSpecialLayoutRoute = pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/certificate');
   
-  // Hide loading overlay once navigation is complete
+  // A combined loading state for the main content area
+  const isContentLoading = useLoadingStore(state => state.isLoading) || isTradePageNavigation;
+
   useEffect(() => {
+    // Standard loading hide effect
     hideLoading();
-  }, [pathname, hideLoading]);
+
+    // Reset trade page navigation flag after a short delay to allow UI to update
+    if (isTradePageNavigation) {
+        const timer = setTimeout(() => setIsTradePageNavigation(false), 50);
+        return () => clearTimeout(timer);
+    }
+  }, [pathname, searchParams, hideLoading, isTradePageNavigation]);
 
   useEffect(() => {
     if (!hydrating && !user && !isAuthOrOnboardingRoute) {
@@ -61,7 +74,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   if ((user && isSpecialLayoutRoute) || isAuthOrOnboardingRoute) {
       return (
         <div className="flex flex-col h-screen">
-          <MainContent isLoading={isLoading}>{children}</MainContent>
+          <MainContent isLoading={isContentLoading}>{children}</MainContent>
           <MoneyRain isActive={isRaining} />
         </div>
       );
@@ -71,7 +84,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
        return (
         <div className="flex flex-col h-screen">
           <Header onTriggerRain={handleTriggerRain} />
-          <MainContent isLoading={isLoading}>{children}</MainContent>
+          <MainContent isLoading={isContentLoading}>{children}</MainContent>
           <BottomNav />
           <MoneyRain isActive={isRaining} />
         </div>

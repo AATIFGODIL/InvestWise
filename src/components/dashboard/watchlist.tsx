@@ -8,10 +8,9 @@ import { Star, Loader2, Trash2 } from "lucide-react";
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import useLoadingStore from "@/store/loading-store";
 import { useThemeStore } from "@/store/theme-store";
 import TradeDialogCMDK from "../trade/trade-dialog-cmdk";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useBottomNavStore } from "@/store/bottom-nav-store";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
@@ -25,9 +24,9 @@ interface WatchlistItemData {
 
 export default function Watchlist() {
     const router = useRouter();
+    const pathname = usePathname();
     const { watchlist, removeSymbol } = useWatchlistStore();
     const { toast } = useToast();
-    const { showLoading } = useLoadingStore();
     const [isLoading, setIsLoading] = useState(false);
     const [watchlistData, setWatchlistData] = useState<WatchlistItemData[]>([]);
     const { isClearMode } = useThemeStore();
@@ -106,9 +105,15 @@ export default function Watchlist() {
     };
 
     const handleRowClick = (symbol: string) => {
-        showLoading();
-        setActiveIndex(2); // Index of "Trade"
-        router.push(`/trade?symbol=${symbol}`);
+        const tradePageIndex = 2; // Index of "Trade"
+        if (pathname === '/trade') {
+            // Already on the trade page, just update the symbol in the URL and trigger animation
+            router.push(`/trade?symbol=${symbol}`, { scroll: false });
+            setActiveIndex(tradePageIndex);
+        } else {
+            // Navigate to the trade page and trigger animation
+            setActiveIndex(tradePageIndex);
+        }
     };
     
     if (watchlist.length === 0) {
