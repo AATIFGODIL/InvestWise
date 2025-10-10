@@ -175,10 +175,6 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     const fetchQuotes = async (symbolsToFetch: { symbol: string, description: string }[]) => {
       setIsFetchingDetails(true);
       const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
-      
-      const formatDomain = (description: string) => {
-        return description.toLowerCase().replace(/ /g, '').replace('inc', '').replace('corp', '').replace('.', '') + ".com";
-      }
 
       if (!isApiKeyValid) {
         const simulatedData = symbolsToFetch.map(stock => ({
@@ -187,7 +183,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
           price: parseFloat((Math.random() * 500).toFixed(2)),
           change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
           changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
-          logoUrl: `https://img.logokit.com/${formatDomain(stock.description)}?token=pk_fr7a1b76952087586937fa`,
+          logoUrl: `https://img.logokit.com/ticker/${stock.symbol}?token=pk_fr7a1b76952087586937fa`,
         }));
         setDisplayedStocks(simulatedData);
         setIsFetchingDetails(false);
@@ -195,7 +191,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
       }
 
       const promises = symbolsToFetch.map(async (stock) => {
-        const logoUrl = `https://img.logokit.com/${formatDomain(stock.description)}?token=pk_fr7a1b76952087586937fa`;
+        const logoUrl = `https://img.logokit.com/ticker/${stock.symbol}?token=pk_fr7a1b76952087586937fa`;
         try {
           const quoteRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
           if (!quoteRes.ok) return null;
