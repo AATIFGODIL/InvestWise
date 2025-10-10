@@ -37,7 +37,7 @@ const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (f
       as="button"
       value={favorite}
       className={cn(
-        "rounded-full transition-all duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center h-12 w-12 cursor-grab active:cursor-grabbing",
+        "rounded-full transition-colors duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center h-12 w-12 cursor-grab active:cursor-grabbing",
         isClearMode
             ? isLightClear
                 ? "bg-card/60 text-foreground ring-1 ring-white/20"
@@ -46,7 +46,10 @@ const FavoriteItem = ({ favorite, onSelect }: { favorite: Favorite; onSelect: (f
       )}
       style={{ backdropFilter: "blur(2px)" }}
       onClick={() => onSelect(favorite)}
-      whileDrag={{ scale: 1.1 }}
+      whileDrag={{ 
+        scale: 1.1,
+        boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
+      }}
     >
       {favorite.type === 'stock' && favorite.logoUrl ? (
           <Avatar className="h-8 w-8 pointer-events-none">
