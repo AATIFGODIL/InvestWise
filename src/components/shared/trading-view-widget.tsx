@@ -46,7 +46,6 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol }) => {
       "show_popup_button": true,
       "popup_width": "1000",
       "popup_height": "600",
-      "studies": ["STD;Bollinger_Bands", "STD;RSI", "STD;Ichimoku_Cloud"],
       "container_id": `tradingview_chart_${symbol.replace(/[^a-zA-Z0-9]/g, '')}` 
     });
 
