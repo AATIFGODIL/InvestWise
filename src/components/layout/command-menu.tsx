@@ -176,6 +176,10 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
       setIsFetchingDetails(true);
       const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
       
+      const formatDomain = (description: string) => {
+        return description.toLowerCase().replace(/ /g, '').replace('inc', '').replace('corp', '').replace('.', '') + ".com";
+      }
+
       if (!isApiKeyValid) {
         const simulatedData = symbolsToFetch.map(stock => ({
           symbol: stock.symbol,
@@ -183,7 +187,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
           price: parseFloat((Math.random() * 500).toFixed(2)),
           change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
           changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
-          logoUrl: `https://logo.clearbit.com/${stock.description.toLowerCase().replace(/ /g, '').replace('inc', '').replace('corp', '')}.com`,
+          logoUrl: `https://img.logokit.com/${formatDomain(stock.description)}?token=pk_fr7a1b76952087586937fa`,
         }));
         setDisplayedStocks(simulatedData);
         setIsFetchingDetails(false);
@@ -191,7 +195,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
       }
 
       const promises = symbolsToFetch.map(async (stock) => {
-        const logoUrl = `https://logo.clearbit.com/${stock.description.toLowerCase().replace(/ /g, '').replace('inc', '').replace('corp', '')}.com`;
+        const logoUrl = `https://img.logokit.com/${formatDomain(stock.description)}?token=pk_fr7a1b76952087586937fa`;
         try {
           const quoteRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
           if (!quoteRes.ok) return null;
@@ -217,26 +221,27 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
             const aIsExactMatch = a.symbol.toLowerCase() === lowercasedQuery;
             const bIsExactMatch = b.symbol.toLowerCase() === lowercasedQuery;
 
-            if (aIsExactMatch && !bIsExactMatch) return -1; // a comes first
-            if (!aIsExactMatch && bIsExactMatch) return 1;  // b comes first
+            if (aIsExactMatch && !bIsExactMatch) return -1;
+            if (!aIsExactMatch && bIsExactMatch) return 1;
 
-            // Optional: if neither is an exact match, sort by where the match is found
             const aSymbolIndex = a.symbol.toLowerCase().indexOf(lowercasedQuery);
             const bSymbolIndex = b.symbol.toLowerCase().indexOf(lowercasedQuery);
             if (aSymbolIndex === 0 && bSymbolIndex !== 0) return -1;
             if (aSymbolIndex !== 0 && bSymbolIndex === 0) return 1;
 
-            return a.symbol.localeCompare(b.symbol); // Default alphabetical sort
+            return a.symbol.localeCompare(b.symbol);
         });
         
         fetchQuotes(sortedResults.slice(0, 5));
     } else {
         const defaultSymbols = ["TSLA", "AAPL", "MSFT", "GOOGL", "NVDA"];
-        const defaultStockInfo = defaultSymbols.map(symbol => {
-            const stock = stockList.find(s => s.symbol === symbol);
-            return stock || { symbol, description: symbol, type: 'Common Stock' };
-        });
-        fetchQuotes(defaultStockInfo);
+        if (stockList.length > 0) {
+            const defaultStockInfo = defaultSymbols.map(symbol => {
+                const stock = stockList.find(s => s.symbol === symbol);
+                return stock || { symbol, description: symbol, type: 'Common Stock' };
+            });
+            fetchQuotes(defaultStockInfo);
+        }
     }
 
   }, [debouncedQuery, stockList]);
@@ -462,6 +467,8 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   );
 }
 
+
+    
 
     
 
