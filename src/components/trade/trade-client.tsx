@@ -327,7 +327,7 @@ export default function TradeClient() {
                             placeholder="Search stocks..."
                             className={cn(
                                 "w-full h-full bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base placeholder:text-muted-foreground",
-                                isClearMode ? "text-slate-100" : "text-foreground"
+                                isLightClear ? "text-foreground" : (isClearMode ? "text-slate-100" : "text-foreground")
                             )}
                         />
                         {loadingPrice && searchedSymbol === inputValue.toUpperCase() && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
