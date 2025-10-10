@@ -110,8 +110,8 @@ export default function Watchlist() {
         
         if (pathname === '/trade') {
             setSamePageIndex(tradePageIndex);
-            // Using window.location.href ensures a page refresh, which guarantees scrolling to the top.
-            window.location.href = tradeUrl;
+            // Using router.push enables client-side navigation
+            router.push(tradeUrl);
         } else {
             setActiveIndex(tradePageIndex);
             router.push(tradeUrl);

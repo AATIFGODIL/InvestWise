@@ -16,6 +16,7 @@ import { Loader2 } from 'lucide-react';
 import useLoadingStore from '@/store/loading-store';
 import Header from '@/components/layout/header';
 import MoneyRain from '@/components/shared/money-rain';
+import { useBottomNavStore } from '@/store/bottom-nav-store';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -31,6 +32,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const { user, hydrating } = useAuth();
   const { hideLoading } = useLoadingStore();
   const [isRaining, setIsRaining] = useState(false);
+  const samePageIndex = useBottomNavStore(state => state.samePageIndex);
 
   // This state will track if we are doing an "in-page" navigation on /trade
   const [isTradePageNavigation, setIsTradePageNavigation] = useState(false);
@@ -42,12 +44,25 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const isContentLoading = useLoadingStore(state => state.isLoading) || isTradePageNavigation;
 
   useEffect(() => {
+    // If we receive a same-page navigation trigger, show the trade page loader
+    if (samePageIndex !== null && pathname === '/trade') {
+        setIsTradePageNavigation(true);
+        // The main content area will now show a loader.
+        // We'll reset this when the navigation is complete.
+        // The `TradeClient` component's own useEffect will handle fetching new data.
+        // We just need to hide the loader.
+    }
+  }, [samePageIndex, pathname]);
+
+  useEffect(() => {
     // Standard loading hide effect
     hideLoading();
 
     // Reset trade page navigation flag after a short delay to allow UI to update
     if (isTradePageNavigation) {
-        const timer = setTimeout(() => setIsTradePageNavigation(false), 50);
+        // This timer ensures that the loading state is visible for at least a moment,
+        // even if the new data loads almost instantly.
+        const timer = setTimeout(() => setIsTradePageNavigation(false), 50); 
         return () => clearTimeout(timer);
     }
   }, [pathname, searchParams, hideLoading, isTradePageNavigation]);
