@@ -82,12 +82,14 @@ interface CommandMenuProps {
   onTriggerRain: () => void;
   initialStockSymbol?: string;
   isEditingFavorites?: boolean;
+  isTradingViewOpen: boolean;
+  onTradingViewOpenChange: (isOpen: boolean) => void;
 }
 
 export const appIcons: { [key: string]: React.ElementType } = { home: Home, briefcase: Briefcase, repeat: Repeat, barChart: BarChart, users: Users, users2: Users, trendingUp: TrendingUpIcon, star: Star, logOut: LogOut, user: User, settings: Settings, sun: Sun, moon: Moon, sparkles: Sparkles, creditCard: CreditCard, target: Target, history: History, brain: BrainCircuit, bookOpen: BookOpen, award: Award, party: PartyPopper, tradingview: TrendingUpIcon };
 
 
-export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSymbol, isEditingFavorites = false }: CommandMenuProps) {
+export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSymbol, isEditingFavorites = false, isTradingViewOpen, onTradingViewOpenChange }: CommandMenuProps) {
   const router = useRouter();
   const { toast } = useToast();
   const { showLoading } = useLoadingStore();
@@ -115,7 +117,6 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   const [isTradeDialogOpen, setIsTradeDialogOpen] = useState(false);
   const [tradeAction, setTradeAction] = useState<"buy" | "sell">("buy");
   const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
-  const [isTradingViewOpen, setIsTradingViewOpen] = useState(false);
 
 
   // --- Data Fetching & State ---
@@ -278,7 +279,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
       { name: "View Leaderboard", keywords: "rankings top investors", onSelect: () => runCommand(() => router.push('/community?tab=feed')), icon: Users },
       { name: "View Community Trends", keywords: "popular stocks", onSelect: () => runCommand(() => router.push('/community?tab=trends')), icon: TrendingUpIcon },
       { name: "View Watchlist", keywords: "saved stocks favorites", onSelect: () => runCommand(() => router.push('/portfolio')), icon: Star },
-      { name: "TradingView", keywords: "chart graph", onSelect: () => runCommand(() => setIsTradingViewOpen(true)), icon: TrendingUpIcon, logoUrl: "https://cdn.brandfetch.io/idJGnLFA9x/w/400/h/400/theme/dark/icon.png?c=1bxid64Mup7aczewSAYMX&t=1745979227466" },
+      { name: "TradingView", keywords: "chart graph", onSelect: () => runCommand(() => onTradingViewOpenChange(true)), icon: TrendingUpIcon, logoUrl: "https://cdn.brandfetch.io/idJGnLFA9x/w/400/h/400/theme/dark/icon.png?c=1bxid64Mup7aczewSAYMX&t=1745979227466" },
       { name: "Sign Out", keywords: "log out exit", onSelect: () => runCommand(signOut), icon: LogOut },
       { name: "Profile", keywords: "account my info", onSelect: () => runCommand(() => router.push('/profile')), icon: User },
       { name: "Settings", keywords: "preferences options", onSelect: () => runCommand(() => router.push('/settings')), icon: Settings },
@@ -290,7 +291,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
       { name: "Ask InvestWise AI", keywords: "chatbot help question", onSelect: () => runCommand(openChatbot), icon: BrainCircuit },
       { name: "Educational Content", keywords: "learn video articles", onSelect: () => runCommand(() => router.push('/dashboard')), icon: BookOpen },
       { name: "View My Certificate", keywords: "award achievement", onSelect: () => runCommand(() => router.push('/certificate')), icon: Award },
-    ], [router, runCommand, signOut, theme, isClearMode, updateUserTheme, openChatbot, onTriggerRain]);
+    ], [router, runCommand, signOut, theme, isClearMode, updateUserTheme, openChatbot, onTriggerRain, onTradingViewOpenChange]);
 
   useEffect(() => {
     if (!open) {
@@ -412,7 +413,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
 
     {selectedStock && (<TradeDialogCMDK isOpen={isTradeDialogOpen} onOpenChange={setIsTradeDialogOpen} symbol={selectedStock.symbol} price={selectedStock.price} action={tradeAction} />)}
     <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}><DialogContent><CreateGoal onAddGoal={(goal) => { addGoal(goal); setIsGoalDialogOpen(false); }} /></DialogContent></Dialog>
-    <Dialog open={isTradingViewOpen} onOpenChange={setIsTradingViewOpen}>
+    <Dialog open={isTradingViewOpen} onOpenChange={onTradingViewOpenChange}>
         <DialogContent className="max-w-4xl h-[70vh]">
             <DialogHeader>
                 <DialogTitle>TradingView Chart</DialogTitle>
@@ -426,5 +427,3 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     </>
   );
 }
-
-    

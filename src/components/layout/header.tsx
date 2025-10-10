@@ -79,15 +79,6 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     }
   };
 
-  const runCommand = React.useCallback((command: () => void) => {
-    command();
-  }, []);
-
-  const appActions = React.useMemo(() => [
-        { name: "Make it rain", onSelect: () => runCommand(onTriggerRain) },
-        { name: "TradingView", onSelect: () => runCommand(() => setIsTradingViewOpen(true)) }
-    ], [onTriggerRain, runCommand]);
-
   const handleItemClick = (fav: Favorite) => {
       if (isEditing) {
           if (fav.value !== 'TradingView') { // Prevent resizing for TradingView
@@ -97,11 +88,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           if (fav.type === 'stock') {
               setInitialStock(fav.value);
               setOpen(true);
-          } else {
-              const action = appActions.find(a => a.name === fav.value);
-              if (action?.onSelect) {
-                  runCommand(action.onSelect);
-              }
+          } else if (fav.value === 'TradingView') {
+              setIsTradingViewOpen(true);
           }
       }
   };
@@ -337,6 +325,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
         onTriggerRain={onTriggerRain}
         initialStockSymbol={initialStock}
         isEditingFavorites={isEditing}
+        isTradingViewOpen={isTradingViewOpen}
+        onTradingViewOpenChange={setIsTradingViewOpen}
       />
     </>
   );
