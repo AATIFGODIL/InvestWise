@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -90,6 +89,11 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     router.push(href);
   };
   
+  const appActions = React.useMemo(() => [
+        { name: "Make it rain", onSelect: () => onTriggerRain() },
+        { name: "Dashboard", onSelect: () => router.push('/dashboard') },
+    ], [onTriggerRain, router]);
+
   const handleFavoriteSelect = (favorite: Favorite) => {
     // If in editing mode, a click toggles the size between icon and pill.
     if (isEditing) {
@@ -103,18 +107,18 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
       return;
     }
 
-    // If NOT in editing mode, a click on a stock opens the command menu detail view.
+    // If NOT in editing mode, handle the action
     if (favorite.type === 'stock') {
       setInitialStock(favorite.value);
       setOpen(true);
     } else {
-      // For actions, find and execute the corresponding function.
-      const action = appActions.find(a => a.name === favorite.value);
-      if (action?.onSelect) {
-          action.onSelect();
-      }
+        const action = appActions.find(a => a.name === favorite.value);
+        if (action?.onSelect) {
+            action.onSelect();
+        }
     }
   };
+  
   
   const displayedFavorites = React.useMemo(() => {
     let weight = 0;
@@ -127,18 +131,11 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             weight += itemWeight;
             visibleFavorites.push(fav);
         } else {
-            // If we can't fit the current item, break the loop
             break;
         }
     }
     return visibleFavorites;
   }, [favorites]);
-
-  const appActions = React.useMemo(() => [
-        { name: "Make it rain", onSelect: () => onTriggerRain() },
-        { name: "Dashboard", onSelect: () => router.push('/dashboard') },
-        // ... define other app actions here if they need to be triggered from favorites
-    ], [onTriggerRain, router]);
 
 
   return (
@@ -225,6 +222,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                                 onSelect={handleFavoriteSelect} 
                                 variants={itemVariants}
                                 isEditing={isEditing}
+                                isPill={fav.size === 'pill'}
                               />
                           ))}
                         </Reorder.Group>
