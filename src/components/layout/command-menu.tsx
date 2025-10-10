@@ -61,7 +61,6 @@ import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
-const LOGOKIT_TOKEN = "pk_fr7a1b76952087586937fa";
 
 interface StockInfo {
   symbol: string;
@@ -143,7 +142,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
                 price: parseFloat((Math.random() * 500).toFixed(2)),
                 change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
                 changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
-                logoUrl: `https://img.logokit.com/${stock.domain}?token=${LOGOKIT_TOKEN}`,
+                logoUrl: `https://logo.clearbit.com/${stock.domain}`,
             }));
             setStocks(simulatedData);
             setIsFetchingStocks(false);
@@ -152,16 +151,16 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
 
         try {
             const res = await fetch(`https://finnhub.io/api/v1/stock/symbol?exchange=US&token=${API_KEY}`);
-            const data: StockInfo[] = await res.json();
-            const filteredData = data.filter(s => s.name && !s.symbol.includes('.'));
+            const data: { symbol: string, description: string }[] = await res.json();
+            const filteredData = data.filter(s => s.description && !s.symbol.includes('.'));
             
             const promises = filteredData.slice(0, 100).map(async (stock) => {
-                const logoUrl = `https://img.logokit.com/all/${stock.symbol}.svg?token=${LOGOKIT_TOKEN}`;
+                const logoUrl = `https://logo.clearbit.com/${stock.description.toLowerCase().replace(/ /g, '').replace('inc', '')}.com`;
                 try {
                     const quoteRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
                     if (!quoteRes.ok) return null;
                     const quote = await quoteRes.json();
-                    return { ...stock, name: stock.name, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0, logoUrl };
+                    return { ...stock, name: stock.description, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0, logoUrl };
                 } catch {
                     return null;
                 }
@@ -399,3 +398,5 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     </>
   );
 }
+
+    
