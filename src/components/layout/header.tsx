@@ -23,7 +23,6 @@ import { cn } from "@/lib/utils";
 import useLoadingStore from "@/store/loading-store";
 import { useRouter } from "next/navigation";
 import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
-import useChatbotStore from "@/store/chatbot-store";
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import FavoriteItem from './favorite-item';
 
@@ -38,12 +37,11 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const { isClearMode, theme } = useThemeStore();
   const { showLoading } = useLoadingStore();
   const router = useRouter();
-  const { favorites, setFavorites, leftExpanded, rightExpanded } = useFavoritesStore();
+  const { favorites, setFavorites, expandedFavorite } = useFavoritesStore();
   const [initialStock, setInitialStock] = React.useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = React.useState(false);
   const [isEditing, setEditing] = React.useState(false);
   const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
-
 
   const handlePointerDown = () => {
     longPressTimer.current = setTimeout(() => {
@@ -56,6 +54,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
       clearTimeout(longPressTimer.current);
     }
   };
+
 
   const isLightClear = isClearMode && theme === 'light';
 
@@ -71,20 +70,18 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
       setOpen(true);
     }
   }
-
-  const leftFavorites = favorites.filter(f => f.position === 'left');
-  const rightFavorites = favorites.filter(f => f.position === 'right');
-
-  const getVisibleFavorites = (favs: Favorite[], expandedItem: Favorite | null): Favorite[] => {
-      if (expandedItem) {
-          const otherIcons = favs.filter(f => f.id !== expandedItem.id).slice(0, 1);
-          return [expandedItem, ...otherIcons];
-      }
-      return favs.slice(0, 2);
-  };
   
-  const visibleLeft = getVisibleFavorites(leftFavorites, leftExpanded);
-  const visibleRight = getVisibleFavorites(rightFavorites, rightExpanded);
+  const getVisibleFavorites = (): Favorite[] => {
+      if (expandedFavorite) {
+          // If one is expanded, show it plus the next 2 icons
+          const otherIcons = favorites.filter(f => f.id !== expandedFavorite.id).slice(0, 2);
+          return [expandedFavorite, ...otherIcons];
+      }
+      // Otherwise, show the first 4 icons
+      return favorites.slice(0, 4);
+  };
+
+  const visibleFavorites = getVisibleFavorites();
   
 
   return (
@@ -114,31 +111,15 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           </Link>
           
             <div className="flex-1 flex justify-center items-center h-full sm:mx-2">
-                 <AnimatePresence>
-                  {(isHovered || isEditing) && (
-                    <motion.div
-                      className="flex items-center"
-                      initial={{ width: 0, opacity: 0 }}
-                      animate={{ width: 'auto', opacity: 1, transition: { delay: 0.1, duration: 0.2 } }}
-                      exit={{ width: 0, opacity: 0, transition: { duration: 0.2 } }}
-                    >
-                      <Reorder.Group as="div" axis="x" values={leftFavorites} onReorder={(newOrder) => setFavorites([...newOrder, ...rightFavorites])} className="flex items-center gap-2 pr-2" disabled={!isEditing}>
-                          {visibleLeft.map((fav) => (
-                              <FavoriteItem key={fav.id} favorite={fav} isEditing={isEditing} />
-                          ))}
-                      </Reorder.Group>
-                    </motion.div>
-                  )}
-              </AnimatePresence>
-
               <motion.div
                 layout="position"
                 className="relative z-10"
+                onPointerDown={handlePointerDown}
+                onPointerUp={handlePointerUp}
+                onPointerLeave={handlePointerUp}
               >
                   <motion.button
-                      onPointerDown={handlePointerDown}
-                      onPointerUp={handlePointerUp}
-                      onPointerLeave={handlePointerUp}
+                      layout="position"
                       className={cn(
                           "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg",
                           isClearMode
@@ -174,8 +155,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                       animate={{ width: 'auto', opacity: 1, transition: { delay: 0.1, duration: 0.2 } }}
                       exit={{ width: 0, opacity: 0, transition: { duration: 0.2 } }}
                     >
-                      <Reorder.Group as="div" axis="x" values={rightFavorites} onReorder={(newOrder) => setFavorites([...leftFavorites, ...newOrder])} className="flex items-center gap-2 pl-2" disabled={!isEditing}>
-                          {visibleRight.map((fav) => (
+                       <Reorder.Group as="div" axis="x" values={favorites} onReorder={setFavorites} className="flex items-center gap-2 pl-2" disabled={!isEditing}>
+                          {visibleFavorites.map((fav) => (
                               <FavoriteItem key={fav.id} favorite={fav} isEditing={isEditing} />
                           ))}
                       </Reorder.Group>

@@ -11,16 +11,14 @@ export interface Favorite {
     value: string; // symbol for stock, name for action
     iconName: string;
     logoUrl?: string;
-    position: 'left' | 'right';
     size: 'icon' | 'expanded';
 }
 
 interface FavoritesState {
     favorites: Favorite[];
-    leftExpanded: Favorite | null;
-    rightExpanded: Favorite | null;
+    expandedFavorite: Favorite | null;
     loadFavorites: (favorites: Favorite[]) => void;
-    addFavorite: (favorite: Omit<Favorite, 'id' | 'position' | 'size'>) => void;
+    addFavorite: (favorite: Omit<Favorite, 'id' | 'size'>) => void;
     removeFavoriteByName: (name: string) => void;
     setFavorites: (favorites: Favorite[]) => void;
     resetFavorites: () => void;
@@ -31,36 +29,33 @@ const updateFavoritesInFirestore = (favorites: Favorite[]) => {
     if (!user) return;
 
     const userDocRef = doc(getFirestore(), "users", user.uid);
-    updateDoc(userDocRef, { favorites }).catch(error => {
+    // Persist only the essential data, not the transient 'size' state
+    const favoritesToSave = favorites.map(({ size, ...rest }) => rest);
+    updateDoc(userDocRef, { favorites: favoritesToSave }).catch(error => {
         console.error("Failed to update favorites in Firestore:", error);
     });
 };
 
 export const useFavoritesStore = create<FavoritesState>((set, get) => ({
     favorites: [],
-    leftExpanded: null,
-    rightExpanded: null,
+    expandedFavorite: null,
 
     loadFavorites: (favorites) => {
-        set(
-          produce((state) => {
-            state.favorites = favorites || [];
-          })
-        );
+         const initialFavorites = (favorites || []).map(fav => ({ ...fav, size: 'icon' as const }));
+        set({ favorites: initialFavorites, expandedFavorite: null });
     },
 
     addFavorite: (favorite) => {
         const newFavorite: Favorite = {
             ...favorite,
             id: favorite.value + Date.now(),
-            position: 'left',
             size: 'icon',
         };
 
         set(
           produce((state: FavoritesState) => {
             if (!state.favorites.some(f => f.value === newFavorite.value)) {
-                 state.favorites.push(newFavorite);
+                 state.favorites.unshift(newFavorite);
             }
           })
         );
@@ -78,21 +73,20 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
     
     setFavorites: (newFavorites) => {
         set(produce((draft: FavoritesState) => {
-            const leftExpanded = newFavorites.find(f => f.position === 'left' && f.size === 'expanded');
-            const rightExpanded = newFavorites.find(f => f.position === 'right' && f.size === 'expanded');
-
-            draft.favorites = newFavorites.map(f => ({
+            const expandedId = newFavorites.find(f => f.size === 'expanded')?.id;
+            
+            // Create a new array with updated sizes based on the new order
+            const updatedFavorites = newFavorites.map(f => ({
                 ...f,
-                size: (f.position === 'left' && f.id !== leftExpanded?.id) || (f.position === 'right' && f.id !== rightExpanded?.id)
-                    ? 'icon'
-                    : f.size
+                // If an item is expanded, all others must be icons.
+                size: (expandedId && f.id !== expandedId) ? 'icon' as const : f.size,
             }));
 
-            draft.leftExpanded = draft.favorites.find(f => f.position === 'left' && f.size === 'expanded') || null;
-            draft.rightExpanded = draft.favorites.find(f => f.position === 'right' && f.size === 'expanded') || null;
+            draft.favorites = updatedFavorites;
+            draft.expandedFavorite = updatedFavorites.find(f => f.size === 'expanded') || null;
         }));
         updateFavoritesInFirestore(get().favorites);
     },
 
-    resetFavorites: () => set({ favorites: [], leftExpanded: null, rightExpanded: null }),
+    resetFavorites: () => set({ favorites: [], expandedFavorite: null }),
 }));
