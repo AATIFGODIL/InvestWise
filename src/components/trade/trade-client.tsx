@@ -83,15 +83,15 @@ export default function TradeClient() {
             return;
         }
         try {
-            const nyse_res = await fetch(`https://finnhub.io/api/v1/stock/symbol?exchange=US&token=${API_KEY}`);
-            const nasdaq_res = await fetch(`https://finnhub.io/api/v1/stock/symbol?exchange=NASDAQ&token=${API_KEY}`);
-            if (!nyse_res.ok || !nasdaq_res.ok) {
+            const res = await fetch(`https://finnhub.io/api/v1/stock/symbol?exchange=US&token=${API_KEY}`);
+
+            if (!res.ok) {
                 throw new Error('Failed to fetch stock symbols from Finnhub.');
             }
-            const nyse_data: {description: string, symbol: string}[] = await nyse_res.json();
-            const nasdaq_data: {description: string, symbol: string}[] = await nasdaq_res.json();
             
-            const combined = [...nyse_data, ...nasdaq_data]
+            const data: StockInfo[] = await res.json();
+            
+            const combined = data
                 .filter(stock => stock.description && !stock.symbol.includes('.'))
                 .map(stock => ({ symbol: stock.symbol, description: stock.description }));
 
@@ -359,3 +359,5 @@ export default function TradeClient() {
       </main>
   );
 }
+
+    
