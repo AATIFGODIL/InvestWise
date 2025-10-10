@@ -186,7 +186,7 @@ export default function BottomNav() {
 
       if (!navEl || !startItem || !endItem) {
         if (clickedIndex !== -1) {
-            router.push(navItems[clickedIndex].href);
+            //router.push(navItems[clickedIndex].href);
         }
         return;
       }
@@ -227,7 +227,7 @@ export default function BottomNav() {
       const settleTimeout = setTimeout(() => {
         setAnimationState("descending");
         if (!isSamePage) {
-            router.push(navItems[clickedIndex].href);
+            //router.push(navItems[clickedIndex].href);
         }
         setGliderStyle(prev => ({
           ...prev,
@@ -259,10 +259,6 @@ export default function BottomNav() {
     if (externalActiveIndex !== null) {
         const isSamePage = externalActiveIndex === activeIndex;
         animateTo(externalActiveIndex, isSamePage);
-        if (!isSamePage) {
-            // If it's a different page, the regular navigation flow will handle it.
-            router.push(navItems[externalActiveIndex].href);
-        }
         clearActiveIndex();
     }
   }, [externalActiveIndex, activeIndex, animateTo, clearActiveIndex, router]);
@@ -319,6 +315,7 @@ export default function BottomNav() {
 
     } else {
       animateTo(clickedIndex);
+      setTimeout(() => router.push(navItems[clickedIndex].href), 150);
     }
   };
 

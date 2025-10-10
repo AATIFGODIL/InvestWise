@@ -117,6 +117,7 @@ export default function Watchlist() {
           // On another page, navigate with animation
           setActiveIndex(tradePageIndex);
           // router.push will be triggered by the bottom nav animation effect
+          router.push(tradeUrl);
         }
     };
     
