@@ -15,13 +15,15 @@ const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 interface FavoriteItemProps {
   favorite: Favorite;
   onSelect: (fav: Favorite) => void;
-  onDoubleClick: (e: React.MouseEvent) => void;
+  onPointerDown: (e: React.PointerEvent) => void;
+  onPointerUp: (e: React.PointerEvent) => void;
+  onPointerLeave: (e: React.PointerEvent) => void;
   variants: any;
   isEditing: boolean;
   isPill: boolean;
 }
 
-export default function FavoriteItem({ favorite, onSelect, onDoubleClick, variants, isEditing, isPill }: FavoriteItemProps) {
+export default function FavoriteItem({ favorite, onSelect, onPointerDown, onPointerUp, onPointerLeave, variants, isEditing, isPill }: FavoriteItemProps) {
     const { isClearMode, theme } = useThemeStore();
     const isLightClear = isClearMode && theme === 'light';
     const [price, setPrice] = useState<number | null>(null);
@@ -61,7 +63,9 @@ export default function FavoriteItem({ favorite, onSelect, onDoubleClick, varian
             className={cn("flex-shrink-0", containerClasses)}
             style={{ backdropFilter: "blur(2px)" }}
             onClick={() => onSelect(favorite)}
-            onDoubleClick={onDoubleClick}
+            onPointerDown={onPointerDown}
+            onPointerUp={onPointerUp}
+            onPointerLeave={onPointerLeave}
             animate={{ height: '3rem', width: isPill ? '140px' : '3rem' }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             whileDrag={{ scale: 1.1 }}
