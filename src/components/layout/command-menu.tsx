@@ -37,7 +37,7 @@ import {
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
 import useLoadingStore from "@/store/loading-store";
-import { handleStockPrediction, handleStockNews, createTransaction } from "@/app/actions";
+import { handleStockPrediction, handleStockNews } from "@/app/actions";
 import type { StockPredictionOutput } from "@/ai/types/stock-prediction-types";
 import type { StockNewsOutput } from "@/ai/flows/fetch-stock-news";
 import { Button } from "../ui/button";
@@ -55,8 +55,6 @@ import CreateGoal from "../goals/create-goal";
 import { useGoalStore } from "@/store/goal-store";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../ui/dialog";
 import { useUserStore } from "@/store/user-store";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
 import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 import { useDebounce } from "@/hooks/use-debounce";
 import TradingViewWidget from "../shared/trading-view-widget";
@@ -99,10 +97,9 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   const { theme, isClearMode } = useThemeStore();
   const { openChatbot } = useChatbotStore();
   const { addGoal } = useGoalStore();
-  const { paymentMethodToken } = useUserStore();
   const { favorites, addFavorite, removeFavorite } = useFavoritesStore();
 
-  const [view, setView] = useState<CommandView>("search");
+  const [view, setView] = useState<"search" | "stock-detail">("search");
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 350);
   const [displayedStocks, setDisplayedStocks] = useState<StockData[]>([]);
@@ -111,7 +108,6 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   const [prediction, setPrediction] = useState<StockPredictionOutput | null>(null);
   const [news, setNews] = useState<StockNewsOutput | null>(null);
   
-  const [isFetchingStocks, setIsFetchingStocks] = useState(false);
   const [isFetchingDetails, setIsFetchingDetails] = useState(false);
   const [isFetchingPrediction, setIsFetchingPrediction] = useState(false);
   const [isFetchingNews, setIsFetchingNews] = useState(false);
@@ -119,9 +115,6 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   const [isTradeDialogOpen, setIsTradeDialogOpen] = useState(false);
   const [tradeAction, setTradeAction] = useState<"buy" | "sell">("buy");
   const [isGoalDialogOpen, setIsGoalDialogOpen] = useState(false);
-  const [isFundsDialogOpen, setIsFundsDialogOpen] = useState(false);
-  const [fundsAmount, setFundsAmount] = useState("100.00");
-  const [isAddingFunds, setIsAddingFunds] = useState(false);
   const [isTradingViewOpen, setIsTradingViewOpen] = useState(false);
 
 
@@ -254,27 +247,6 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   const handleBuySellClick = (action: "buy" | "sell") => {
     setTradeAction(action); setIsTradeDialogOpen(true);
   }
-
-  const handleAddFunds = async () => {
-    if (!paymentMethodToken) {
-      toast({
-        variant: "destructive", title: "No Payment Method", description: "Please add a payment method in your profile first.",
-        action: <Button onClick={() => runCommand(() => { router.push('/profile'); })}>Go to Profile</Button>
-      });
-      return;
-    }
-    if (!user) return;
-    setIsAddingFunds(true);
-    try {
-      await createTransaction({ userId: user.uid, amount: fundsAmount });
-      toast({ title: "Funds Added!", description: `$${fundsAmount} has been added to your account.` });
-      setIsFundsDialogOpen(false);
-    } catch (error: any) {
-      toast({ variant: "destructive", title: "Failed to Add Funds", description: error.message || "An unexpected error occurred." });
-    } finally {
-        setIsAddingFunds(false);
-    }
-  }
   
   const handleToggleFavorite = (e: React.MouseEvent, item: {type: 'action' | 'stock', name: string, value: string, icon?: React.ElementType, logoUrl?: string}) => {
     e.stopPropagation();
@@ -312,7 +284,6 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
       { name: "Settings", keywords: "preferences options", onSelect: () => runCommand(() => router.push('/settings')), icon: Settings },
       { name: `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`, keywords: "theme appearance", onSelect: () => runCommand(() => updateUserTheme({ theme: theme === 'dark' ? 'light' : 'dark' })), icon: theme === 'dark' ? Sun : Moon },
       { name: `${isClearMode ? 'Disable' : 'Enable'} Clear Mode`, keywords: "theme glass liquid transparent", onSelect: () => runCommand(() => updateUserTheme({ isClearMode: !isClearMode })), icon: Sparkles },
-      { name: "Add Funds", keywords: "deposit money wallet", onSelect: () => runCommand(() => setIsFundsDialogOpen(true)), icon: CreditCard },
       { name: "Create New Goal", keywords: "new savings target", onSelect: () => runCommand(() => setIsGoalDialogOpen(true)), icon: Target },
       { name: "Set Up Auto-Invest", keywords: "recurring investment", onSelect: () => runCommand(() => router.push('/dashboard')), icon: Repeat },
       { name: "View Trade History", keywords: "transactions log", onSelect: () => runCommand(() => router.push('/portfolio')), icon: History },
@@ -388,7 +359,14 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
                       <CommandItem key={action.name} onSelect={() => handleActionSelect(action)}>
                         <div className="flex items-center justify-between w-full">
                            <div className="flex items-center">
-                            <action.icon className="mr-2 h-4 w-4" />
+                            {action.logoUrl ? (
+                                <Avatar className="h-6 w-6 mr-2">
+                                  <AvatarImage src={action.logoUrl} />
+                                  <AvatarFallback><action.icon className="h-4 w-4" /></AvatarFallback>
+                                </Avatar>
+                            ) : (
+                                <action.icon className="mr-2 h-4 w-4" />
+                            )}
                             <span>{action.name}</span>
                           </div>
                           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 group" onClick={(e) => handleToggleFavorite(e, { type: 'action', name: action.name, value: action.name, icon: action.icon, logoUrl: action.logoUrl })}>
@@ -434,7 +412,6 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
 
     {selectedStock && (<TradeDialogCMDK isOpen={isTradeDialogOpen} onOpenChange={setIsTradeDialogOpen} symbol={selectedStock.symbol} price={selectedStock.price} action={tradeAction} />)}
     <Dialog open={isGoalDialogOpen} onOpenChange={setIsGoalDialogOpen}><DialogContent><CreateGoal onAddGoal={(goal) => { addGoal(goal); setIsGoalDialogOpen(false); }} /></DialogContent></Dialog>
-    <Dialog open={isFundsDialogOpen} onOpenChange={setIsFundsDialogOpen}><DialogContent><DialogHeader><DialogTitle>Add Funds</DialogTitle><DialogDescription>Your saved payment method will be charged.</DialogDescription></DialogHeader><div className="space-y-4 py-4"><div className="space-y-2"><Label htmlFor="amount">Amount</Label><div className="relative"><DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" /><Input id="amount" type="number" value={fundsAmount} onChange={(e) => setFundsAmount(e.target.value)} className="pl-8"/></div></div><Button onClick={handleAddFunds} disabled={isAddingFunds} className="w-full">{isAddingFunds ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}Confirm Deposit</Button></div></DialogContent></Dialog>
     <Dialog open={isTradingViewOpen} onOpenChange={setIsTradingViewOpen}>
         <DialogContent className="max-w-4xl h-[70vh]">
             <DialogHeader>
@@ -449,3 +426,5 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     </>
   );
 }
+
+    

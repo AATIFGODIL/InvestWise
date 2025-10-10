@@ -9,7 +9,6 @@ import { cn } from '@/lib/utils';
 import { appIcons } from './command-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { Button } from '../ui/button';
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -135,3 +134,5 @@ export default function FavoriteItem({ favorite, onClick, onRemove, variants, is
         </Reorder.Item>
     );
 }
+
+    
