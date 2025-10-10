@@ -42,7 +42,20 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const [initialStock, setInitialStock] = React.useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = React.useState(false);
   const [isEditing, setEditing] = React.useState(false);
+  const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
 
+
+  const handlePointerDown = () => {
+    longPressTimer.current = setTimeout(() => {
+      setEditing((prev) => !prev);
+    }, 500); // 500ms delay for a long press
+  };
+
+  const handlePointerUp = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+    }
+  };
 
   const isLightClear = isClearMode && theme === 'light';
 
@@ -123,7 +136,9 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 className="relative z-10"
               >
                   <motion.button
-                      onLongPress={() => setEditing(!isEditing)}
+                      onPointerDown={handlePointerDown}
+                      onPointerUp={handlePointerUp}
+                      onPointerLeave={handlePointerUp}
                       className={cn(
                           "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg",
                           isClearMode
