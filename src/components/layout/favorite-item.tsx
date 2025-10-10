@@ -13,7 +13,7 @@ const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 const pillVariants = {
     initial: { width: 48, height: 48 },
     expanded: { 
-        width: 180, 
+        width: 160, 
         height: 48,
         transition: { type: 'spring', stiffness: 400, damping: 30, duration: 0.4 }
     },
@@ -124,8 +124,8 @@ export default function FavoriteItem({ favorite, isEditing }: { favorite: Favori
                                     <AvatarImage src={favorite.logoUrl} alt={favorite.name} />
                                     <AvatarFallback>{favorite.iconName}</AvatarFallback>
                                 </Avatar>
-                                <div className="flex flex-col">
-                                    <span className="font-bold text-xs leading-tight">{favorite.name}</span>
+                                <div className="flex flex-col overflow-hidden">
+                                    <span className="font-bold text-xs leading-tight truncate">{favorite.name.length > 10 ? favorite.value : favorite.name}</span>
                                     <span className="text-sm font-mono leading-tight">{price ? `$${price.toFixed(2)}` : '...'}</span>
                                 </div>
                             </>
