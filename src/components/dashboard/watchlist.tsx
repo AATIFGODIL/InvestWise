@@ -108,12 +108,15 @@ export default function Watchlist() {
         const tradePageIndex = 2; // Index of "Trade"
         const tradeUrl = `/trade?symbol=${symbol}`;
         
-        setActiveIndex(tradePageIndex);
-
-        if (pathname !== '/trade') {
-             router.push(tradeUrl);
+        if (pathname === '/trade') {
+          // Already on the trade page, just update URL, animate, and scroll to top
+          setActiveIndex(tradePageIndex);
+          router.push(tradeUrl, { scroll: false });
+          window.scrollTo(0, 0);
         } else {
-             router.push(tradeUrl, { scroll: false });
+          // On another page, navigate with animation
+          setActiveIndex(tradePageIndex);
+          // router.push will be triggered by the bottom nav animation effect
         }
     };
     
