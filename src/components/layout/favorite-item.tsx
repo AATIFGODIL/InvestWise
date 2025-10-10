@@ -15,23 +15,23 @@ const pillVariants = {
     expanded: { 
         width: 140, 
         height: 48,
-        transition: { type: 'spring', stiffness: 400, damping: 30, duration: 0.4 }
+        transition: { type: 'spring', stiffness: 400, damping: 30 }
     },
     icon: { 
         width: 48, 
         height: 48,
-        transition: { type: 'spring', stiffness: 400, damping: 30, duration: 0.4 }
+        transition: { type: 'spring', stiffness: 400, damping: 30 }
     },
 };
 
 const contentVariants = {
-    hidden: { opacity: 0, y: 5, transition: { duration: 0.1 } },
-    visible: { opacity: 1, y: 0, transition: { delay: 0.25, duration: 0.2 } },
+    hidden: { opacity: 0, transition: { duration: 0.1 } },
+    visible: { opacity: 1, transition: { delay: 0.2, duration: 0.2 } },
 };
 
 const iconVariants = {
     hidden: { opacity: 0, scale: 0.8, transition: { duration: 0.1 } },
-    visible: { opacity: 1, scale: 1, transition: { delay: 0.25, duration: 0.2 } },
+    visible: { opacity: 1, scale: 1, transition: { delay: 0.2, duration: 0.2 } },
 };
 
 
@@ -108,7 +108,7 @@ export default function FavoriteItem({ favorite, isEditing }: { favorite: Favori
                 exit={{ opacity: 0 }}
             />
             
-            <AnimatePresence mode="wait">
+            <AnimatePresence initial={false}>
                 {isExpanded ? (
                     <motion.div
                         key="content"

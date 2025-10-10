@@ -114,12 +114,12 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
               <motion.div
                 layout="position"
                 className="relative z-10"
-                onPointerDown={handlePointerDown}
-                onPointerUp={handlePointerUp}
-                onPointerLeave={handlePointerUp}
               >
                   <motion.button
                       layout="position"
+                      onPointerDown={handlePointerDown}
+                      onPointerUp={handlePointerUp}
+                      onPointerLeave={handlePointerUp}
                       className={cn(
                           "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg",
                           isClearMode
@@ -155,7 +155,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                       animate={{ width: 'auto', opacity: 1, transition: { delay: 0.1, duration: 0.2 } }}
                       exit={{ width: 0, opacity: 0, transition: { duration: 0.2 } }}
                     >
-                       <Reorder.Group as="div" axis="x" values={favorites} onReorder={setFavorites} className="flex items-center gap-2 pl-2" disabled={!isEditing}>
+                       <Reorder.Group as="div" axis="x" values={favorites} onReorder={setFavorites} className="flex items-center gap-3 pl-3" disabled={!isEditing}>
                           {visibleFavorites.map((fav) => (
                               <FavoriteItem key={fav.id} favorite={fav} isEditing={isEditing} />
                           ))}
