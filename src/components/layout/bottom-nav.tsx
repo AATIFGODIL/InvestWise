@@ -200,14 +200,32 @@ export default function BottomNav() {
           clearTimeout(idleTimeout);
       }
   }, [activeIndex, isClearMode, router, WIDTH_FACTOR, MIN_GLIDER_WIDTH, animateItemTransforms]);
+  
+    const handleSamePageAnimation = useCallback((index: number) => {
+        if (index !== activeIndex || animationStateRef.current !== 'idle') return;
+
+        setAnimationState('rising');
+        const riseTimeout = setTimeout(() => {
+            setAnimationState('descending');
+             const settleTimeout = setTimeout(() => {
+                setAnimationState('idle');
+            }, 300);
+            return () => clearTimeout(settleTimeout);
+        }, 300);
+        return () => clearTimeout(riseTimeout);
+    }, [activeIndex]);
 
 
   useEffect(() => {
-    if (externalActiveIndex !== null && externalActiveIndex !== activeIndex) {
+    if (externalActiveIndex !== null) {
+      if (externalActiveIndex === activeIndex) {
+        handleSamePageAnimation(externalActiveIndex);
+      } else {
         animateTo(externalActiveIndex);
-        clearActiveIndex();
+      }
+      clearActiveIndex();
     }
-  }, [externalActiveIndex, activeIndex, animateTo, clearActiveIndex]);
+  }, [externalActiveIndex, activeIndex, animateTo, handleSamePageAnimation, clearActiveIndex]);
 
 
   useEffect(() => {
