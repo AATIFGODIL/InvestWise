@@ -67,7 +67,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           const otherIcons = favs.filter(f => f.id !== expandedItem.id).slice(0, 1);
           return [expandedItem, ...otherIcons];
       }
-      return favs;
+      return favs.slice(0, 2);
   };
   
   const visibleLeft = getVisibleFavorites(leftFavorites, leftExpanded);
@@ -121,9 +121,9 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
               <motion.div
                 layout="position"
                 className="relative z-10"
-                onLongPress={() => setEditing(!isEditing)}
               >
                   <motion.button
+                      onLongPress={() => setEditing(!isEditing)}
                       className={cn(
                           "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg",
                           isClearMode
