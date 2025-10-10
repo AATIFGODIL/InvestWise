@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -25,6 +24,26 @@ import { useRouter } from "next/navigation";
 import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import FavoriteItem from './favorite-item';
+import { useIsMobile } from '@/hooks/use-mobile';
+
+
+const containerVariants = {
+  hidden: { width: 0, opacity: 0 },
+  visible: {
+    width: 'auto',
+    opacity: 1,
+    transition: {
+      delay: 0.1,
+      duration: 0.2,
+      staggerChildren: 0.05
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, scale: 0.5 },
+  visible: { opacity: 1, scale: 1 }
+};
 
 /**
  * The main header component for the application, displayed on most pages.
@@ -32,21 +51,23 @@ import FavoriteItem from './favorite-item';
  */
 export default function Header({ onTriggerRain }: { onTriggerRain: () => void }) {
   const [open, setOpen] = React.useState(false);
-  const { user, signOut } = useAuth();
+  const { user, signOut, updateFavorites: saveFavoritesToFirestore } = useAuth();
   const { username, photoURL } = useUserStore();
   const { isClearMode, theme } = useThemeStore();
   const { showLoading } = useLoadingStore();
   const router = useRouter();
-  const { favorites, setFavorites, pillFavorite } = useFavoritesStore();
+  const { favorites, setFavorites } = useFavoritesStore();
   const [initialStock, setInitialStock] = React.useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = React.useState(false);
+  const isMobile = useIsMobile();
+
   const [isEditing, setEditing] = React.useState(false);
   const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
 
   const handlePointerDown = () => {
     longPressTimer.current = setTimeout(() => {
       setEditing((prev) => !prev);
-    }, 500); // 500ms delay for a long press
+    }, 500); // 500ms for a long press
   };
 
   const handlePointerUp = () => {
@@ -54,6 +75,11 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
       clearTimeout(longPressTimer.current);
     }
   };
+  
+  const handleSetFavorites = (newFavorites: Favorite[]) => {
+      setFavorites(newFavorites);
+      saveFavoritesToFirestore(newFavorites);
+  }
 
   const isLightClear = isClearMode && theme === 'light';
 
@@ -63,47 +89,41 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     router.push(href);
   };
   
-  const handleFavoriteSelect = (favorite: Favorite) => {
-    if (favorite.type === 'stock') {
-      setInitialStock(favorite.value);
-      setOpen(true);
-    }
-  }
-  
-  const getVisibleFavorites = (): Favorite[] => {
-    if (pillFavorite) {
-      // If one is a pill, show it plus the next 2 icons.
-      // This logic is more stable and prevents reordering during animation.
-      const pillIndex = favorites.findIndex(f => f.id === pillFavorite.id);
-      
-      const visible = [pillFavorite];
-      let itemsAdded = 0;
-      
-      // Add items after the pill
-      for (let i = pillIndex + 1; i < favorites.length && itemsAdded < 2; i++) {
-        if (favorites[i].size === 'icon') {
-          visible.push(favorites[i]);
-          itemsAdded++;
-        }
-      }
-      
-      // Add items before the pill if we still need more
-      for (let i = pillIndex - 1; i >= 0 && itemsAdded < 2; i--) {
-        if (favorites[i].size === 'icon') {
-          visible.unshift(favorites[i]); // Add to the beginning to maintain order
-          itemsAdded++;
-        }
-      }
-      
-      return visible;
-    }
-    // Otherwise, show the first 4 icons
-    return favorites.slice(0, 4);
-  };
+    const handleFavoriteSelect = (clickedFavorite: Favorite) => {
+        if (!isEditing) return;
 
+        const newFavorites = favorites.map(f => {
+            if (f.id === clickedFavorite.id) {
+                return { ...f, size: f.size === 'icon' ? 'pill' as const : 'icon' as const };
+            }
+            return f;
+        });
 
-  const visibleFavorites = getVisibleFavorites();
+        handleSetFavorites(newFavorites);
+    };
   
+  const displayedFavorites = React.useMemo(() => {
+    if (isEditing) {
+        let weight = 0;
+        const visibleFavorites = [];
+        
+        for (const fav of favorites) {
+            const itemWeight = fav.size === 'pill' ? 2 : 1;
+            if (weight + itemWeight <= 6) {
+                weight += itemWeight;
+                visibleFavorites.push(fav);
+            } else {
+                break; // Stop adding items if the weight limit is exceeded
+            }
+        }
+        return visibleFavorites;
+    }
+    
+    // Non-editing mode logic
+    const sliceCount = isMobile ? 2 : 4;
+    return favorites.filter(f => f.size === 'icon').slice(0, sliceCount);
+
+  }, [favorites, isEditing, isMobile]);
 
   return (
     <>
@@ -132,55 +152,69 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           </Link>
           
             <div className="flex-1 flex justify-center items-center h-full sm:mx-2">
-               <motion.button
-                  onPointerDown={handlePointerDown}
-                  onPointerUp={handlePointerUp}
-                  onPointerLeave={handlePointerUp}
-                  className={cn(
-                      "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-all",
-                      isClearMode
-                          ? isLightClear
-                              ? "bg-card/60 text-foreground ring-1 ring-white/20"
-                              : "bg-white/10 text-slate-100 ring-1 ring-white/60"
-                          : "bg-background text-foreground ring-1 ring-border",
-                        isEditing && "shimmer-bg"
-                  )}
-                  onClick={() => setOpen(true)}
-                  style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
-                  >
-                  <Search className="h-5 w-5" />
-                  <AnimatePresence mode="wait">
-                      <motion.span
-                          key={isEditing ? 'editing' : 'search'}
-                          initial={{ y: 10, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          exit={{ y: -10, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="hidden text-sm md:inline"
+               <div className="relative z-10">
+                  <motion.button
+                      onPointerDown={handlePointerDown}
+                      onPointerUp={handlePointerUp}
+                      onPointerLeave={handlePointerUp}
+                      className={cn(
+                          "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-colors",
+                          isClearMode
+                              ? isLightClear
+                                  ? "bg-card/60 text-foreground ring-1 ring-white/20"
+                                  : "bg-white/10 text-slate-100 ring-1 ring-white/60"
+                              : "bg-background text-foreground ring-1 ring-border",
+                          isEditing && "shimmer-bg" 
+                      )}
+                      onClick={() => !isEditing && setOpen(true)}
+                      style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
                       >
-                          {isEditing ? 'Editing Mode' : 'Spotlight Search'}
-                      </motion.span>
-                  </AnimatePresence>
-              </motion.button>
+                      <Search className="h-5 w-5" />
+                      <AnimatePresence mode="wait">
+                          <motion.span
+                              key={isEditing ? 'editing' : 'search'}
+                              initial={{ y: 10, opacity: 0 }}
+                              animate={{ y: 0, opacity: 1 }}
+                              exit={{ y: -10, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="hidden text-sm md:inline"
+                          >
+                              {isEditing ? 'Editing Mode' : 'Spotlight Search'}
+                          </motion.span>
+                      </AnimatePresence>
+                  </motion.button>
+              </div>
 
               <AnimatePresence>
-                  {(isHovered || isEditing) && (
+                  {((isHovered && !isMobile) || isMobile || isEditing) && displayedFavorites.length > 0 && (
                     <motion.div
-                      initial={{ width: 0, opacity: 0 }}
-                      animate={{ width: 'auto', opacity: 1, transition: { delay: 0.1, duration: 0.2 } }}
-                      exit={{ width: 0, opacity: 0, transition: { duration: 0.2 } }}
-                      layout
+                      className="flex items-center"
+                      variants={containerVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="hidden"
                     >
                        <Reorder.Group
                           as="div"
                           axis="x"
-                          values={favorites}
-                          onReorder={setFavorites}
+                          values={displayedFavorites}
+                          onReorder={(newOrder) => {
+                            const remainingFavorites = favorites.filter(
+                                (fav) => !displayedFavorites.some(df => df.id === fav.id)
+                            );
+                            handleSetFavorites([...newOrder, ...remainingFavorites]);
+                          }}
                           className="flex items-center gap-3 pl-3"
-                          layoutScroll
+                          disabled={!isEditing}
                         >
-                          {visibleFavorites.map((fav) => (
-                              <FavoriteItem key={fav.id} favorite={fav} isEditing={isEditing} />
+                          {displayedFavorites.map((fav) => (
+                              <FavoriteItem 
+                                key={fav.id}
+                                favorite={fav} 
+                                onSelect={handleFavoriteSelect} 
+                                variants={itemVariants}
+                                isEditing={isEditing}
+                              />
                           ))}
                         </Reorder.Group>
                     </motion.div>
