@@ -3,7 +3,7 @@
 
 import React from 'react';
 import { Search, Bell, Settings, LogOut, User as UserIcon, Minus, TrendingUpIcon } from "lucide-react";
-import { CommandMenu } from "./command-menu";
+import { CommandMenu, appIcons } from "./command-menu";
 import { Button } from "../ui/button";
 import Link from "next/link";
 import { useAuth } from "@/hooks/use-auth";
@@ -63,7 +63,6 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const isMobile = useIsMobile();
   const [isTradingViewOpen, setIsTradingViewOpen] = React.useState(false);
 
-
   const [isEditing, setEditing] = React.useState(false);
   const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -79,21 +78,56 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     }
   };
 
+  const { appActions } = React.useMemo(() => {
+    const actions = [
+      { name: "Make it rain", keywords: "celebrate money win", onSelect: () => onTriggerRain(), icon: appIcons.party },
+      { name: "Dashboard", keywords: "home explore main", onSelect: () => router.push('/dashboard'), icon: appIcons.home },
+      { name: "Portfolio", keywords: "holdings assets", onSelect: () => router.push('/portfolio'), icon: appIcons.briefcase },
+      { name: "Trade", keywords: "buy sell chart", onSelect: () => router.push('/trade'), icon: appIcons.repeat },
+      { name: "Goals", keywords: "savings targets", onSelect: () => router.push('/goals'), icon: appIcons.barChart },
+      { name: "Community", keywords: "leaderboard social", onSelect: () => router.push('/community'), icon: appIcons.users },
+      { name: "View Leaderboard", keywords: "rankings top investors", onSelect: () => router.push('/community?tab=feed'), icon: appIcons.users2 },
+      { name: "View Community Trends", keywords: "popular stocks", onSelect: () => router.push('/community?tab=trends'), icon: appIcons.trendingUp },
+      { name: "View Watchlist", keywords: "saved stocks favorites", onSelect: () => router.push('/portfolio'), icon: appIcons.star },
+      { name: "Sign Out", keywords: "log out exit", onSelect: () => signOut(), icon: appIcons.logOut },
+      { name: "Profile", keywords: "account my info", onSelect: () => router.push('/profile'), icon: appIcons.user },
+      { name: "Settings", keywords: "preferences options", onSelect: () => router.push('/settings'), icon: appIcons.settings },
+      { name: `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`, keywords: "theme appearance", onSelect: () => useThemeStore.getState().setTheme(theme === 'dark' ? 'light' : 'dark'), icon: theme === 'dark' ? appIcons.sun : appIcons.moon },
+      { name: `${isClearMode ? 'Disable' : 'Enable'} Clear Mode`, keywords: "theme glass liquid transparent", onSelect: () => useThemeStore.getState().setClearMode(!isClearMode), icon: appIcons.sparkles },
+      { name: "Set Up Auto-Invest", keywords: "recurring investment", onSelect: () => router.push('/dashboard'), icon: appIcons.repeat },
+      { name: "View Trade History", keywords: "transactions log", onSelect: () => router.push('/portfolio'), icon: appIcons.history },
+      { name: "Ask InvestWise AI", keywords: "chatbot help question", onSelect: () => {}, icon: appIcons.brain },
+      { name: "Educational Content", keywords: "learn video articles", onSelect: () => router.push('/dashboard'), icon: appIcons.bookOpen },
+      { name: "View My Certificate", keywords: "award achievement", onSelect: () => router.push('/certificate'), icon: appIcons.award },
+      { name: "TradingView", keywords: "chart graph", onSelect: () => setIsTradingViewOpen(true), icon: appIcons.tradingview, logoUrl: "https://cdn.brandfetch.io/idJGnLFA9x/w/400/h/400/theme/dark/icon.png?c=1bxid64Mup7aczewSAYMX&t=1745979227466" },
+    ];
+    return { appActions: actions };
+  }, [theme, isClearMode, onTriggerRain, router, signOut]);
+
   const handleItemClick = (fav: Favorite) => {
       if (isEditing) {
-          if (fav.value !== 'TradingView') { // Prevent resizing for TradingView
-            toggleFavoriteSize(fav.id);
-          }
+          toggleFavoriteSize(fav.id);
       } else {
           if (fav.type === 'stock') {
               setInitialStock(fav.value);
               setOpen(true);
           } else if (fav.value === 'TradingView') {
               setIsTradingViewOpen(true);
+          } else {
+              const action = appActions.find(a => a.name === fav.value);
+              if(action) {
+                // Using runCommand for consistency in closing the menu
+                runCommand(action.onSelect);
+              }
           }
       }
   };
   
+  const runCommand = React.useCallback(async (command: () => void | Promise<void>) => {
+    setOpen(false); // Close command menu
+    await command();
+  }, []);
+
   const isLightClear = isClearMode && theme === 'light';
 
   const handleNavigate = (e: React.MouseEvent, href: string) => {
