@@ -84,7 +84,7 @@ export default function FavoriteItem({ favorite, onClick, onRemove, variants, is
                         key="pill"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1, transition: { delay: 0.1 } }}
-                        className="flex items-center gap-2 px-4 w-full"
+                        className="flex items-center gap-2 px-4 w-full h-full"
                     >
                         {favorite.type === 'stock' ? (
                             <>
@@ -104,6 +104,10 @@ export default function FavoriteItem({ favorite, onClick, onRemove, variants, is
                                     </div>
                                 </div>
                             </>
+                        ) : favorite.value === 'TradingView' ? (
+                             <div className="flex items-center justify-center w-full h-full">
+                                <img src="https://cdn.brandfetch.io/idJGnLFA9x/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1745979241741" alt="TradingView Logo" className="h-5" />
+                            </div>
                         ) : (
                              <div className="flex items-center justify-center gap-2 w-full text-center">
                                 {Icon && <Icon className="h-5 w-5 flex-shrink-0" />}
