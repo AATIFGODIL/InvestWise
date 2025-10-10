@@ -119,9 +119,9 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
               </AnimatePresence>
 
               <motion.div
-                  layout="position"
-                  className="relative z-10"
-                  onLongPress={() => setEditing(!isEditing)}
+                layout="position"
+                className="relative z-10"
+                onLongPress={() => setEditing(!isEditing)}
               >
                   <motion.button
                       className={cn(
