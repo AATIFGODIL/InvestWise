@@ -12,6 +12,7 @@ import useLoadingStore from "@/store/loading-store";
 import { useThemeStore } from "@/store/theme-store";
 import TradeDialogCMDK from "../trade/trade-dialog-cmdk";
 import { useRouter } from "next/navigation";
+import { useBottomNavStore } from "@/store/bottom-nav-store";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -30,6 +31,7 @@ export default function Watchlist() {
     const [isLoading, setIsLoading] = useState(false);
     const [watchlistData, setWatchlistData] = useState<WatchlistItemData[]>([]);
     const { isClearMode } = useThemeStore();
+    const { setActiveIndex } = useBottomNavStore();
 
     // State for the trade dialog
     const [isTradeDialogOpen, setIsTradeDialogOpen] = useState(false);
@@ -105,6 +107,7 @@ export default function Watchlist() {
 
     const handleRowClick = (symbol: string) => {
         showLoading();
+        setActiveIndex(2); // Index of "Trade"
         router.push(`/trade?symbol=${symbol}`);
     };
     

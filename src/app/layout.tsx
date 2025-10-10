@@ -50,7 +50,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     setTimeout(() => setIsRaining(false), 5000); // Let it rain for 5 seconds
   };
   
-  if (hydrating || isLoading) {
+  if (hydrating) {
     return (
        <div className="flex items-center justify-center h-screen w-full bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -61,7 +61,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   if ((user && isSpecialLayoutRoute) || isAuthOrOnboardingRoute) {
       return (
         <div className="flex flex-col h-screen">
-          <MainContent>{children}</MainContent>
+          <MainContent isLoading={isLoading}>{children}</MainContent>
           <MoneyRain isActive={isRaining} />
         </div>
       );
@@ -71,7 +71,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
        return (
         <div className="flex flex-col h-screen">
           <Header onTriggerRain={handleTriggerRain} />
-          <MainContent>{children}</MainContent>
+          <MainContent isLoading={isLoading}>{children}</MainContent>
           <BottomNav />
           <MoneyRain isActive={isRaining} />
         </div>
