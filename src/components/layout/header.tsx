@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import useLoadingStore from "@/store/loading-store";
 import { useRouter } from "next/navigation";
 import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import FavoriteItem from './favorite-item';
 
 /**
@@ -54,7 +54,6 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
       clearTimeout(longPressTimer.current);
     }
   };
-
 
   const isLightClear = isClearMode && theme === 'light';
 
@@ -112,7 +111,6 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           
             <div className="flex-1 flex justify-center items-center h-full sm:mx-2">
               <motion.div
-                layout="position"
                 className="relative z-10"
               >
                   <motion.button
@@ -154,11 +152,18 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                       animate={{ width: 'auto', opacity: 1, transition: { delay: 0.1, duration: 0.2 } }}
                       exit={{ width: 0, opacity: 0, transition: { duration: 0.2 } }}
                     >
-                       <div className="flex items-center gap-3 pl-3">
+                       <Reorder.Group
+                          as="div"
+                          axis="x"
+                          values={favorites}
+                          onReorder={setFavorites}
+                          className="flex items-center gap-3 pl-3"
+                          layoutScroll
+                        >
                           {visibleFavorites.map((fav) => (
                               <FavoriteItem key={fav.id} favorite={fav} isEditing={isEditing} />
                           ))}
-                      </div>
+                        </Reorder.Group>
                     </motion.div>
                   )}
               </AnimatePresence>
