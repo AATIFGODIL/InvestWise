@@ -315,7 +315,7 @@ export default function TradeClient() {
     }
   };
 
-  const handleStockSelection = (stock: StockInfo) => {
+  const handleStockSelection = (stock: StockData) => {
     setInputValue(stock.symbol);
     setSearchedSymbol(stock.symbol);
     setWidgetSymbol(stock.symbol);
@@ -365,7 +365,7 @@ export default function TradeClient() {
                                 ? "bg-card/60 ring-1 ring-white/10"
                                 : "bg-white/10 ring-1 ring-white/60"
                             : "bg-card ring-1 ring-border"
-                    )} style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}>
+                    )} style={{ backdropFilter: "blur(16px)" }}>
                         <Search className={cn("h-5 w-5", isClearMode ? "text-slate-100" : "text-muted-foreground")} />
                         <Input
                             value={inputValue}
@@ -389,7 +389,17 @@ export default function TradeClient() {
                     </div>
 
                     {showSuggestions && inputValue && (
-                         <div className="absolute top-full mt-2 w-full rounded-md border bg-background shadow-lg z-20">
+                         <div 
+                           className={cn(
+                            "absolute top-full mt-2 w-full rounded-md shadow-lg z-20 overflow-hidden",
+                            isClearMode 
+                                ? isLightClear
+                                    ? "bg-card/60 ring-1 ring-white/10"
+                                    : "bg-white/10 ring-1 ring-white/60"
+                                : "bg-background border"
+                           )}
+                           style={{ backdropFilter: "blur(16px)" }}
+                         >
                             <CommandList>
                                 {isFetchingDetails && <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>}
                                 {!isFetchingDetails && displayedStocks.length === 0 && <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>}
@@ -466,4 +476,3 @@ export default function TradeClient() {
       </main>
   );
 }
-
