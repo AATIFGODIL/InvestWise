@@ -30,7 +30,7 @@ export default function Watchlist() {
     const [isLoading, setIsLoading] = useState(false);
     const [watchlistData, setWatchlistData] = useState<WatchlistItemData[]>([]);
     const { isClearMode } = useThemeStore();
-    const { setActiveIndex, setSamePageIndex } = useBottomNavStore();
+    const { setActiveIndex } = useBottomNavStore();
 
     // State for the trade dialog
     const [isTradeDialogOpen, setIsTradeDialogOpen] = useState(false);
@@ -109,12 +109,11 @@ export default function Watchlist() {
         const tradeUrl = `/trade?symbol=${symbol}`;
         
         if (pathname === '/trade') {
-            setSamePageIndex(tradePageIndex);
-            // Using router.push enables client-side navigation
+             // If already on trade page, just update the URL
             router.push(tradeUrl);
         } else {
+            // If on another page, trigger the animation
             setActiveIndex(tradePageIndex);
-            router.push(tradeUrl);
         }
     };
     
