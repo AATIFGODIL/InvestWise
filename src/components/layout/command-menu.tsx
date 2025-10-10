@@ -82,6 +82,7 @@ interface CommandMenuProps {
   onOpenChange: (open: boolean) => void;
   onTriggerRain: () => void;
   initialStockSymbol?: string;
+  isEditingFavorites?: boolean;
 }
 
 type CommandView = "search" | "stock-detail";
@@ -89,7 +90,7 @@ type CommandView = "search" | "stock-detail";
 export const appIcons: { [key: string]: React.ElementType } = { home: Home, briefcase: Briefcase, repeat: Repeat, barChart: BarChart, users: Users, users2: Users, trendingUp: TrendingUpIcon, star: Star, logOut: LogOut, user: User, settings: Settings, sun: Sun, moon: Moon, sparkles: Sparkles, creditCard: CreditCard, target: Target, history: History, brain: BrainCircuit, bookOpen: BookOpen, award: Award, party: PartyPopper };
 
 
-export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSymbol }: CommandMenuProps) {
+export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSymbol, isEditingFavorites = false }: CommandMenuProps) {
   const router = useRouter();
   const { toast } = useToast();
   const { showLoading } = useLoadingStore();
@@ -100,7 +101,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   const { openChatbot } = useChatbotStore();
   const { addGoal } = useGoalStore();
   const { paymentMethodToken } = useUserStore();
-  const { favorites, addFavorite, removeFavoriteByName } = useFavoritesStore();
+  const { favorites, addFavorite, removeFavorite } = useFavoritesStore();
 
   const [view, setView] = useState<CommandView>("search");
   const [query, setQuery] = useState("");
@@ -242,9 +243,24 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   };
 
   const handleStockSelect = useCallback((stockSymbol: string) => {
-    const stock = displayedStocks.find(s => s.symbol === stockSymbol);
-    if (stock) fetchStockDetails(stock);
-  }, [displayedStocks]);
+    if (isEditingFavorites) {
+        const stockData = displayedStocks.find(s => s.symbol === stockSymbol);
+        if (stockData) {
+            addFavorite({
+                type: 'stock',
+                name: stockData.name,
+                value: stockData.symbol,
+                logoUrl: stockData.logoUrl,
+                iconName: stockData.symbol.charAt(0),
+            });
+            toast({ title: 'Favorite Added!', description: `${stockData.name} has been added to your favorites.` });
+        }
+        onOpenChange(false);
+    } else {
+        const stock = displayedStocks.find(s => s.symbol === stockSymbol);
+        if (stock) fetchStockDetails(stock);
+    }
+  }, [isEditingFavorites, displayedStocks, addFavorite, toast, onOpenChange]);
 
   const handleGoBack = () => {
     setView("search"); setQuery(""); setSelectedStock(null); setPrediction(null); setNews(null);
@@ -280,17 +296,17 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     const isFavorite = favorites.some(fav => fav.value === item.value);
 
     if(isFavorite) {
-      removeFavoriteByName(item.value);
+      removeFavorite(item.value);
       toast({ description: `${item.name} removed from favorites.` });
     } else {
-      const favoriteItem: Favorite = {
+      const newFavorite: Omit<Favorite, 'id' | 'size'> = {
         type: item.type,
         name: item.name,
         value: item.value,
         iconName: item.icon ? (Object.entries(appIcons).find(([,Icon]) => Icon === item.icon)?.[0] || 'search') : item.value.charAt(0),
         logoUrl: item.logoUrl,
       }
-      addFavorite(favoriteItem);
+      addFavorite(newFavorite);
       toast({ title: 'Favorite Added!', description: `${item.name} has been added to your favorites.` });
     }
   };
@@ -331,6 +347,21 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     return appActions.filter(a => a.name.toLowerCase().includes(query.toLowerCase()) || a.keywords.toLowerCase().includes(query.toLowerCase()));
   }, [query, appActions]);
 
+  const handleActionSelect = (action: typeof appActions[number]) => {
+      if (isEditingFavorites) {
+        addFavorite({
+            type: 'action',
+            name: action.name,
+            value: action.name,
+            iconName: Object.entries(appIcons).find(([, Icon]) => Icon === action.icon)?.[0] || 'search',
+        });
+        toast({ title: 'Favorite Added!', description: `${action.name} has been added to your favorites.` });
+        onOpenChange(false);
+      } else {
+        action.onSelect();
+      }
+  };
+
   const selectedStockHolding = useMemo(() => {
     if (!selectedStock) return null;
     return holdings.find(h => h.symbol === selectedStock.symbol);
@@ -347,7 +378,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
           <div className={cn(isClearMode ? "text-primary-foreground" : "text-popover-foreground")}>
               <div className={cn("flex items-center border-b px-3", isClearMode ? "border-border/50" : "border-border")}>
                   {view === "stock-detail" ? ( <Button variant="ghost" size="icon" className={cn("mr-2 h-8 w-8 shrink-0", isClearMode ? "hover:bg-white/10" : "")} onClick={handleGoBack}><ArrowLeft className="h-4 w-4" /></Button> ) : ( <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" /> )}
-                  <CommandInput placeholder={view === 'search' ? "Search stocks or commands..." : `${selectedStock?.name} (${selectedStock?.symbol})`} onValueChange={setQuery} value={query} disabled={view === 'stock-detail'} />
+                  <CommandInput placeholder={view === 'search' ? (isEditingFavorites ? "Add a favorite..." : "Search stocks or commands...") : `${selectedStock?.name} (${selectedStock?.symbol})`} onValueChange={setQuery} value={query} disabled={view === 'stock-detail'} />
                   <Button variant="ghost" size="icon" className={cn("h-8 w-8 shrink-0", isClearMode ? "hover:bg-white/10" : "")} onClick={() => onOpenChange(false)}><X className="h-4 w-4" /></Button>
               </div>
               
@@ -355,7 +386,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
               <CommandList>
                   {(isFetchingDetails) && ( <div className="p-4 text-center text-sm text-muted-foreground">Loading stocks...</div> )}
                   
-                  {displayedStocks.length === 0 && filteredAppActions.length === 0 && !isFetchingDetails && query && <div className="py-6 text-center text-sm">No results found.</div>}
+                  {displayedStocks.length === 0 && (isEditingFavorites || filteredAppActions.length === 0) && !isFetchingDetails && query && <div className="py-6 text-center text-sm">No results found.</div>}
                   
                   {displayedStocks.length > 0 && (<div className="p-1"><div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Stocks</div>
                     {displayedStocks.map((stock) => (
@@ -370,24 +401,28 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
                             </div>
                             <div className="text-right"><p className="font-mono">${stock.price.toFixed(2)}</p><p className={cn("text-xs", stock.change >= 0 ? "text-green-500" : "text-red-500")}>{stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)</p></div>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 ml-2 group" onClick={(e) => handleToggleFavorite(e, {type: 'stock', name: stock.name, value: stock.symbol, logoUrl: stock.logoUrl})}>
-                          <Star className={cn("h-4 w-4 text-muted-foreground group-hover:text-yellow-400", favorites.some(f => f.value === stock.symbol) && "text-yellow-400 fill-yellow-400")} />
-                        </Button>
+                        {isEditingFavorites &&
+                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 ml-2 group" onClick={(e) => { e.stopPropagation(); handleToggleFavorite(e, {type: 'stock', name: stock.name, value: stock.symbol, logoUrl: stock.logoUrl})}}>
+                            <Star className={cn("h-4 w-4 text-muted-foreground group-hover:text-yellow-400", favorites.some(f => f.value === stock.symbol) && "text-yellow-400 fill-yellow-400")} />
+                          </Button>
+                        }
                       </CommandItem>
                     ))}
                   </div>)}
 
                   {filteredAppActions.length > 0 && (<><CommandSeparator /><div className="p-1"><div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">App Actions</div>
                     {filteredAppActions.map((action) => (
-                      <CommandItem key={action.name} onSelect={action.onSelect}>
+                      <CommandItem key={action.name} onSelect={() => handleActionSelect(action)}>
                         <div className="flex items-center justify-between w-full">
                            <div className="flex items-center">
                             <action.icon className="mr-2 h-4 w-4" />
                             <span>{action.name}</span>
                           </div>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 group" onClick={(e) => handleToggleFavorite(e, { type: 'action', name: action.name, value: action.name, icon: action.icon })}>
-                             <Star className={cn("h-4 w-4 text-muted-foreground group-hover:text-yellow-400", favorites.some(f => f.value === action.name) && "text-yellow-400 fill-yellow-400")} />
-                          </Button>
+                          {isEditingFavorites &&
+                            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 group" onClick={(e) => { e.stopPropagation(); handleToggleFavorite(e, { type: 'action', name: action.name, value: action.name, icon: action.icon })}}>
+                               <Star className={cn("h-4 w-4 text-muted-foreground group-hover:text-yellow-400", favorites.some(f => f.value === action.name) && "text-yellow-400 fill-yellow-400")} />
+                            </Button>
+                          }
                         </div>
                       </CommandItem>
                     ))}

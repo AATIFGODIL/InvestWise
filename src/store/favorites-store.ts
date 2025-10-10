@@ -16,10 +16,11 @@ export interface Favorite {
 
 interface FavoritesState {
     favorites: Favorite[];
-    loadFavorites: (favorites: (Omit<Favorite, 'size'> & { size?: 'icon' | 'pill' })[]) => void;
+    loadFavorites: (favorites: Favorite[]) => void;
     addFavorite: (favorite: Omit<Favorite, 'id' | 'size'>) => void;
-    removeFavoriteByName: (name: string) => void;
+    removeFavorite: (value: string) => void;
     setFavorites: (favorites: Favorite[]) => void;
+    toggleFavoriteSize: (id: string) => void;
     resetFavorites: () => void;
 }
 
@@ -28,7 +29,6 @@ const updateFavoritesInFirestore = (favorites: Favorite[]) => {
     if (!user) return;
 
     const userDocRef = doc(getFirestore(), "users", user.uid);
-    // Persist the entire favorite object, including the size.
     updateDoc(userDocRef, { favorites: favorites }).catch(error => {
         console.error("Failed to update favorites in Firestore:", error);
     });
@@ -38,8 +38,7 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
     favorites: [],
 
     loadFavorites: (favorites) => {
-         // When loading, ensure every favorite has a 'size' property, defaulting to 'icon'.
-         const initialFavorites = (favorites || []).map(fav => ({ ...fav, size: fav.size || 'icon' } as Favorite));
+         const initialFavorites = (favorites || []).map(fav => ({ ...fav, size: fav.size || 'icon' }));
         set({ favorites: initialFavorites });
     },
 
@@ -60,7 +59,7 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
         updateFavoritesInFirestore(get().favorites);
     },
 
-    removeFavoriteByName: (value: string) => {
+    removeFavorite: (value: string) => {
          set(
           produce((state: FavoritesState) => {
             state.favorites = state.favorites.filter((fav) => fav.value !== value);
@@ -74,5 +73,19 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
         updateFavoritesInFirestore(newFavorites);
     },
 
+    toggleFavoriteSize: (id: string) => {
+        set(
+            produce((state: FavoritesState) => {
+                const favorite = state.favorites.find(f => f.id === id);
+                if (favorite) {
+                    favorite.size = favorite.size === 'icon' ? 'pill' : 'icon';
+                }
+            })
+        );
+        updateFavoritesInFirestore(get().favorites);
+    },
+
     resetFavorites: () => set({ favorites: [] }),
 }));
+
+    

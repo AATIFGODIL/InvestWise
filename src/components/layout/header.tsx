@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -52,12 +53,12 @@ const itemVariants = {
  */
 export default function Header({ onTriggerRain }: { onTriggerRain: () => void }) {
   const [open, setOpen] = React.useState(false);
-  const { user, signOut, updateFavorites } = useAuth();
+  const { user, signOut } = useAuth();
   const { username, photoURL } = useUserStore();
   const { isClearMode, theme } = useThemeStore();
   const { showLoading } = useLoadingStore();
   const router = useRouter();
-  const { favorites, setFavorites: setStoreFavorites } = useFavoritesStore();
+  const { favorites, setFavorites, toggleFavoriteSize } = useFavoritesStore();
   const [initialStock, setInitialStock] = React.useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = React.useState(false);
   const isMobile = useIsMobile();
@@ -77,11 +78,6 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
       clearTimeout(longPressTimer.current);
     }
   };
-  
-  const handleSetFavorites = (newFavorites: Favorite[]) => {
-      setStoreFavorites(newFavorites);
-      updateFavorites(newFavorites);
-  }
 
   const isLightClear = isClearMode && theme === 'light';
 
@@ -96,19 +92,11 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     ], [onTriggerRain]);
 
   const handleFavoriteSelect = (favorite: Favorite) => {
-    // If in editing mode, a click toggles the size
     if (isEditing) {
-        const newFavorites = favorites.map(f => {
-            if (f.id === favorite.id) {
-                return { ...f, size: f.size === 'icon' ? 'pill' as const : 'icon' as const };
-            }
-            return f;
-        });
-        handleSetFavorites(newFavorites);
+        toggleFavoriteSize(favorite.id);
         return;
     }
-
-    // If NOT in editing mode, handle the action
+    
     if (favorite.type === 'stock') {
       setInitialStock(favorite.value);
       setOpen(true);
@@ -135,7 +123,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     for (const fav of favorites) {
         const itemWeight = fav.size === 'pill' ? 2 : 1;
         
-        if (weight + itemWeight <= 6) {
+        if (weight + itemWeight <= 8) {
             weight += itemWeight;
             visibleFavorites.push(fav);
         } else {
@@ -144,6 +132,17 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     }
     return visibleFavorites;
   }, [favorites]);
+
+
+  const handleReorder = (newOrder: Favorite[]) => {
+      // Reorder only the visible part, then merge with the hidden part
+      const visibleIds = new Set(displayedFavorites.map(f => f.id));
+      const hiddenFavorites = favorites.filter(f => !visibleIds.has(f.id));
+      
+      const reorderedVisible = newOrder.filter(f => visibleIds.has(f.id));
+      
+      setFavorites([...reorderedVisible, ...hiddenFavorites]);
+  }
 
 
   return (
@@ -218,8 +217,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                        <Reorder.Group
                           as="div"
                           axis="x"
-                          values={favorites}
-                          onReorder={handleSetFavorites}
+                          values={displayedFavorites}
+                          onReorder={handleReorder}
                           className="flex items-center gap-3 pl-3"
                           disabled={!isEditing}
                         >
@@ -304,6 +303,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
         }} 
         onTriggerRain={onTriggerRain}
         initialStockSymbol={initialStock}
+        isEditingFavorites={isEditing}
       />
       <FavoritesEditor
         isOpen={isEditorOpen}
@@ -312,3 +312,5 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     </>
   );
 }
+
+    

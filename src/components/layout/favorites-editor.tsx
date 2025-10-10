@@ -2,7 +2,6 @@
 "use client";
 
 import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
-import { useAuth } from "@/hooks/use-auth";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Reorder } from "framer-motion";
 import FavoriteItem from "./favorite-item";
@@ -13,16 +12,20 @@ interface FavoritesEditorProps {
 }
 
 export default function FavoritesEditor({ isOpen, onOpenChange }: FavoritesEditorProps) {
-    const { favorites, setFavorites: setStoreFavorites } = useFavoritesStore();
-    const { updateFavorites } = useAuth();
-
-    const handleSetFavorites = (newFavorites: Favorite[]) => {
-      setStoreFavorites(newFavorites);
-      updateFavorites(newFavorites);
-    }
+    const { favorites, setFavorites } = useFavoritesStore();
     
     const pills = favorites.filter(f => f.size === 'pill');
     const icons = favorites.filter(f => f.size === 'icon');
+
+    const handlePillReorder = (newPills: Favorite[]) => {
+        const newFavorites = [...newPills, ...icons];
+        setFavorites(newFavorites);
+    };
+    
+    const handleIconReorder = (newIcons: Favorite[]) => {
+        const newFavorites = [...pills, ...newIcons];
+        setFavorites(newFavorites);
+    };
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -39,10 +42,7 @@ export default function FavoritesEditor({ isOpen, onOpenChange }: FavoritesEdito
                         <Reorder.Group
                             axis="x"
                             values={pills}
-                            onReorder={(newPills) => {
-                                const newFavorites = [...newPills, ...icons];
-                                handleSetFavorites(newFavorites);
-                            }}
+                            onReorder={handlePillReorder}
                             className="flex flex-wrap items-center gap-3 p-4 rounded-lg bg-muted/50 min-h-[6rem]"
                         >
                             {pills.map(fav => (
@@ -62,10 +62,7 @@ export default function FavoritesEditor({ isOpen, onOpenChange }: FavoritesEdito
                          <Reorder.Group
                             axis="x"
                             values={icons}
-                            onReorder={(newIcons) => {
-                                const newFavorites = [...pills, ...newIcons];
-                                handleSetFavorites(newFavorites);
-                            }}
+                            onReorder={handleIconReorder}
                             className="flex flex-wrap items-center gap-3 p-4 rounded-lg bg-muted/50 min-h-[4rem]"
                         >
                             {icons.map(fav => (
@@ -85,3 +82,5 @@ export default function FavoritesEditor({ isOpen, onOpenChange }: FavoritesEdito
         </Dialog>
     );
 }
+
+    
