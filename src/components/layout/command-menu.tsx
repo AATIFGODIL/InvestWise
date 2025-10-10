@@ -296,8 +296,9 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   }, [open]);
 
   const filteredStocks = useMemo(() => {
-    const defaultSymbols = ["TSLA", "AAPL", "MSFT", "GOOGL", "NVDA"];
+    if (!stocks.length) return [];
     if (!query) {
+      const defaultSymbols = ["TSLA", "AAPL", "MSFT", "GOOGL", "NVDA"];
       return stocks.filter(s => defaultSymbols.includes(s.symbol));
     }
     return stocks.filter(s => s.symbol.toLowerCase().includes(query.toLowerCase()) || s.name.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
@@ -404,5 +405,3 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     </>
   );
 }
-
-    
