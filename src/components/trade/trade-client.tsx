@@ -391,7 +391,7 @@ export default function TradeClient() {
                     {showSuggestions && inputValue && (
                          <div 
                            className={cn(
-                            "absolute top-full mt-2 w-full rounded-md shadow-lg z-20 overflow-hidden",
+                            "absolute top-full mt-2 w-full rounded-3xl shadow-lg z-20 overflow-hidden",
                             isClearMode 
                                 ? isLightClear
                                     ? "bg-card/60 ring-1 ring-white/10"
