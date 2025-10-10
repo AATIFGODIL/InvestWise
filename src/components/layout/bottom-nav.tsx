@@ -411,7 +411,7 @@ export default function BottomNav() {
                   "flex flex-col items-center transition-all duration-300",
                    isActive 
                     ? "text-primary-foreground" 
-                    : isClearMode ? "text-slate-100" : "text-muted-foreground"
+                    : isLightClear ? "text-foreground" : (isClearMode ? "text-slate-100" : "text-muted-foreground")
                 )}
                  style={{ 
                     transform: itemTransforms[index] || 'translateY(0px)',
