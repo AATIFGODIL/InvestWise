@@ -85,18 +85,18 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     router.push(href);
   };
   
+   const runCommand = React.useCallback((command: () => void) => {
+    command();
+  }, []);
+
    const appActions = React.useMemo(() => [
         { name: "Make it rain", onSelect: () => runCommand(onTriggerRain) },
     ], [onTriggerRain, runCommand]);
 
-  const runCommand = React.useCallback((command: () => void) => {
-    command();
-  }, []);
-
   const handleFavoriteSelect = (favorite: Favorite) => {
     if (isEditing) {
-        toggleFavoriteSize(favorite.id);
-        return;
+      toggleFavoriteSize(favorite.id);
+      return;
     }
     
     if (favorite.type === 'stock') {
