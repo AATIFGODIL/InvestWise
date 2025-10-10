@@ -245,7 +245,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                                   key={fav.id}
                                   favorite={fav} 
                                   onClick={handleItemClick}
-                                  onRemove={() => removeFavorite(fav.id)}
+                                  onRemove={removeFavorite}
                                   variants={itemVariants}
                                   isEditing={isEditing}
                                   isPill={fav.size === 'pill'}
@@ -314,7 +314,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             </div>
           </nav>
            {(calculatedPillsToDelete > 0 || calculatedIconsToDelete > 0) && isEditing && (
-              <div className="mt-2 text-center text-xs font-semibold text-white bg-destructive/80 rounded-full px-3 py-1 max-w-sm mx-auto">
+              <div className="mt-2 text-center text-xs font-semibold text-muted-foreground bg-muted rounded-full px-3 py-1 max-w-sm mx-auto">
                   To fit on screen, please remove {calculatedPillsToDelete > 0 && `${calculatedPillsToDelete} pill${calculatedPillsToDelete > 1 ? 's' : ''}`}{calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0 && " and "}{calculatedIconsToDelete > 0 && `${calculatedIconsToDelete} icon${calculatedIconsToDelete > 1 ? 's' : ''}`}
               </div>
           )}
