@@ -58,6 +58,7 @@ import { useUserStore } from "@/store/user-store";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
+import { useDebounce } from "@/hooks/use-debounce";
 
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
@@ -104,13 +105,16 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
 
   const [view, setView] = useState<CommandView>("search");
   const [query, setQuery] = useState("");
-  const [stocks, setStocks] = useState<StockData[]>([]);
+  const debouncedQuery = useDebounce(query, 300);
+  const [stockList, setStockList] = useState<StockInfo[]>([]);
+  const [displayedStocks, setDisplayedStocks] = useState<StockData[]>([]);
   const [selectedStock, setSelectedStock] = useState<StockData | null>(null);
   
   const [prediction, setPrediction] = useState<StockPredictionOutput | null>(null);
   const [news, setNews] = useState<StockNewsOutput | null>(null);
   
   const [isFetchingStocks, setIsFetchingStocks] = useState(false);
+  const [isFetchingDetails, setIsFetchingDetails] = useState(false);
   const [isFetchingPrediction, setIsFetchingPrediction] = useState(false);
   const [isFetchingNews, setIsFetchingNews] = useState(false);
   
@@ -125,29 +129,14 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   // --- Data Fetching & State ---
 
   useEffect(() => {
-    async function fetchStockData() {
-        if (!open || stocks.length > 0) return;
+    async function fetchStockList() {
+        if (!open || stockList.length > 0) return;
         setIsFetchingStocks(true);
         
         const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
 
         if (!isApiKeyValid) {
-            console.warn("Finnhub API key not configured. Using simulated stock data for search.");
-            const simulatedData = [
-                { symbol: "AAPL", description: "APPLE INC", domain: "apple.com", type: "Common Stock" },
-                { symbol: "MSFT", description: "MICROSOFT CORP", domain: "microsoft.com", type: "Common Stock" },
-                { symbol: "GOOGL", description: "ALPHABET INC-CL A", domain: "abc.xyz", type: "Common Stock" },
-                { symbol: "TSLA", description: "TESLA INC", domain: "tesla.com", type: "Common Stock" },
-                { symbol: "NVDA", description: "NVIDIA CORP", domain: "nvidia.com", type: "Common Stock" },
-            ].map(stock => ({
-                symbol: stock.symbol,
-                name: stock.description,
-                price: parseFloat((Math.random() * 500).toFixed(2)),
-                change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
-                changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
-                logoUrl: `https://logo.clearbit.com/${stock.domain}`,
-            }));
-            setStocks(simulatedData);
+            console.warn("Finnhub API key not configured. Cannot fetch stock list.");
             setIsFetchingStocks(false);
             return;
         }
@@ -161,21 +150,15 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
                 stock.type === 'Common Stock'
             );
             
-            const promises = commonStocks.slice(0, 100).map(async (stock) => {
-                const logoUrl = `https://logo.clearbit.com/${stock.description.toLowerCase().replace(/ /g, '').replace('inc', '').replace('corp', '')}.com`;
-                try {
-                    const quoteRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
-                    if (!quoteRes.ok) return null;
-                    const quote = await quoteRes.json();
-                    return { symbol: stock.symbol, name: stock.description, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0, logoUrl };
-                } catch {
-                    return null;
+            const uniqueSymbols = new Set<string>();
+            const uniqueStockList = commonStocks.filter(stock => {
+                if (uniqueSymbols.has(stock.symbol)) {
+                    return false;
                 }
+                uniqueSymbols.add(stock.symbol);
+                return true;
             });
-
-            const results = (await Promise.all(promises)).filter(Boolean) as StockData[];
-            setStocks(results);
-
+            setStockList(uniqueStockList);
         } catch (err) {
             console.error("Failed to fetch stock list for command menu:", err);
             toast({ variant: 'destructive', title: 'Could not load stocks' });
@@ -183,15 +166,69 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
             setIsFetchingStocks(false);
         }
     }
-    fetchStockData();
-  }, [open, stocks.length, toast]);
+    fetchStockList();
+  }, [open, stockList.length, toast]);
 
   useEffect(() => {
-    if (initialStockSymbol && stocks.length > 0) {
-      handleStockSelect(initialStockSymbol);
+    if (!stockList.length) return;
+
+    const fetchQuotes = async (symbolsToFetch: { symbol: string, description: string }[]) => {
+      setIsFetchingDetails(true);
+      const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
+      
+      if (!isApiKeyValid) {
+        const simulatedData = symbolsToFetch.map(stock => ({
+          symbol: stock.symbol,
+          name: stock.description,
+          price: parseFloat((Math.random() * 500).toFixed(2)),
+          change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
+          changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
+          logoUrl: `https://logo.clearbit.com/${stock.description.toLowerCase().replace(/ /g, '').replace('inc', '').replace('corp', '')}.com`,
+        }));
+        setDisplayedStocks(simulatedData);
+        setIsFetchingDetails(false);
+        return;
+      }
+
+      const promises = symbolsToFetch.map(async (stock) => {
+        const logoUrl = `https://logo.clearbit.com/${stock.description.toLowerCase().replace(/ /g, '').replace('inc', '').replace('corp', '')}.com`;
+        try {
+          const quoteRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
+          if (!quoteRes.ok) return null;
+          const quote = await quoteRes.json();
+          return { symbol: stock.symbol, name: stock.description, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0, logoUrl };
+        } catch { return null; }
+      });
+
+      const results = (await Promise.all(promises)).filter(Boolean) as StockData[];
+      setDisplayedStocks(results);
+      setIsFetchingDetails(false);
+    };
+
+    if (debouncedQuery) {
+        const searchResults = stockList.filter(s => 
+            s.symbol.toLowerCase().includes(debouncedQuery.toLowerCase()) || 
+            s.description.toLowerCase().includes(debouncedQuery.toLowerCase())
+        ).slice(0, 5);
+        fetchQuotes(searchResults);
+    } else {
+        const defaultSymbols = ["TSLA", "AAPL", "MSFT", "GOOGL", "NVDA"];
+        const defaultStockInfo = defaultSymbols.map(symbol => {
+            const stock = stockList.find(s => s.symbol === symbol);
+            return stock || { symbol, description: symbol };
+        });
+        fetchQuotes(defaultStockInfo);
+    }
+
+  }, [debouncedQuery, stockList]);
+
+  useEffect(() => {
+    if (initialStockSymbol && displayedStocks.length > 0) {
+      const stock = displayedStocks.find(s => s.symbol === initialStockSymbol);
+      if (stock) fetchStockDetails(stock);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialStockSymbol, stocks]);
+  }, [initialStockSymbol, displayedStocks]);
 
   const runCommand = useCallback(async (command: () => void | Promise<void>) => {
     onOpenChange(false);
@@ -216,9 +253,9 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   };
 
   const handleStockSelect = useCallback((stockSymbol: string) => {
-    const stock = stocks.find(s => s.symbol === stockSymbol);
+    const stock = displayedStocks.find(s => s.symbol === stockSymbol);
     if (stock) fetchStockDetails(stock);
-  }, [stocks]);
+  }, [displayedStocks]);
 
   const handleGoBack = () => {
     setView("search"); setQuery(""); setSelectedStock(null); setPrediction(null); setNews(null);
@@ -300,17 +337,6 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     }
   }, [open]);
 
-  const filteredStocks = useMemo(() => {
-    if (stocks.length === 0) return [];
-    
-    if (!query) {
-      const defaultSymbols = ["TSLA", "AAPL", "MSFT", "GOOGL", "NVDA"];
-      return stocks.filter(s => defaultSymbols.includes(s.symbol));
-    }
-    
-    return stocks.filter(s => s.symbol.toLowerCase().includes(query.toLowerCase()) || s.name.toLowerCase().includes(query.toLowerCase())).slice(0, 5);
-  }, [query, stocks]);
-
   const filteredAppActions = useMemo(() => {
     if (!query) return [];
     return appActions.filter(a => a.name.toLowerCase().includes(query.toLowerCase()) || a.keywords.toLowerCase().includes(query.toLowerCase()));
@@ -338,12 +364,12 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
               
               {view === "search" && (
               <CommandList>
-                  {isFetchingStocks && query.length === 0 && ( <div className="p-4 text-center text-sm text-muted-foreground">Loading stocks...</div> )}
+                  {(isFetchingStocks || isFetchingDetails) && ( <div className="p-4 text-center text-sm text-muted-foreground">Loading stocks...</div> )}
                   
-                  {filteredStocks.length === 0 && filteredAppActions.length === 0 && !isFetchingStocks && query && <div className="py-6 text-center text-sm">No results found.</div>}
+                  {displayedStocks.length === 0 && filteredAppActions.length === 0 && !isFetchingStocks && !isFetchingDetails && query && <div className="py-6 text-center text-sm">No results found.</div>}
                   
-                  {stocks.length > 0 && filteredStocks.length > 0 && (<div className="p-1"><div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Stocks</div>
-                    {filteredStocks.map((stock) => (
+                  {displayedStocks.length > 0 && (<div className="p-1"><div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Stocks</div>
+                    {displayedStocks.map((stock) => (
                       <CommandItem key={stock.symbol} onSelect={() => handleStockSelect(stock.symbol)}>
                         <div className="flex justify-between items-center w-full">
                             <div className="flex items-center gap-3">
@@ -394,12 +420,16 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
                           <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white" onClick={() => handleBuySellClick('buy')}>Buy</Button>
                           <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={() => handleBuySellClick('sell')}>Sell</Button>
                       </div>
-                      <Button variant="outline" size="sm" className="w-full" onClick={() => runCommand(() => router.push(`/trade?symbol=${selectedStock.symbol}`))}><Repeat className="mr-2 h-4 w-4" /> Go to Trade Page</Button>
-                      <Button variant="outline" size="sm" className="w-full" onClick={() => { if (watchlist.includes(selectedStock.symbol)) { removeSymbol(selectedStock.symbol); toast({description: "Removed from watchlist."}); } else { addSymbol(selectedStock.symbol); toast({description: "Added to watchlist."}); } }}><Star className={cn("mr-2 h-4 w-4", watchlist.includes(selectedStock.symbol) ? 'text-yellow-400 fill-yellow-400' : '')} /> {watchlist.includes(selectedStock.symbol) ? 'Remove from Watchlist' : 'Add to Watchlist'}</Button>
+                      <Button variant="outline" size="sm" className="w-full" onClick={() => runCommand(() => router.push(`/trade?symbol=${selectedStock.symbol}`))}>
+                        <Repeat className="mr-2 h-4 w-4" /> Go to Trade Page
+                      </Button>
+                      <Button variant="outline" size="sm" className="w-full" onClick={() => { if (watchlist.includes(selectedStock.symbol)) { removeSymbol(selectedStock.symbol); toast({description: "Removed from watchlist."}); } else { addSymbol(selectedStock.symbol); toast({description: "Added to watchlist."}); } }}>
+                        <Star className={cn("mr-2 h-4 w-4", watchlist.includes(selectedStock.symbol) ? 'text-yellow-400 fill-yellow-400' : '')} /> {watchlist.includes(selectedStock.symbol) ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                      </Button>
                       </div>
                       {selectedStockHolding && (<div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Building className="h-4 w-4" /> Your Holdings</h4><div className="p-3 rounded-lg bg-muted/50"><div className="flex justify-between items-center"><span className="font-medium">{selectedStockHolding.qty} Shares</span><span className="font-medium">Value: ${(selectedStockHolding.qty * selectedStock.price).toFixed(2)}</span></div></div></div>)}
                       <div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><BrainCircuit className="h-4 w-4" /> AI Prediction</h4><div className="p-3 rounded-lg bg-muted/50 text-xs min-h-[60px] relative">{isFetchingPrediction ? (<div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/><span>Generating prediction...</span></div>) : prediction ? (<><div className="flex justify-between items-center mb-1"><Badge className={cn("text-white", prediction.confidence === "High" ? "bg-green-500" : prediction.confidence === "Medium" ? "bg-yellow-500" : "bg-red-500")}>{prediction.confidence} Confidence</Badge></div><p className="whitespace-pre-wrap">{prediction.prediction}</p></>) : (<p className="text-muted-foreground">Could not load AI prediction.</p>)}</div></div>
-                      <div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Newspaper className="h-4 w-4" /> Recent News</h4><div className="space-y-2">{isFetchingNews ? (<div className="flex items-center gap-2 text-muted-foreground text-xs p-2"><Loader2 className="h-4 w-4 animate-spin"/><span>Fetching recent news...</span></div>) : news?.articles && news.articles.length > 0 ? (news.articles.map((article, i) => (<a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-muted/50 no-underline"><p className="font-medium truncate leading-tight whitespace-pre-wrap">{article.headline}</p><p className="text-xs text-muted-foreground">{article.source}</p></a>))) : (<div className="p-2 text-xs text-muted-foreground">No recent news found.</div>)}</div></div>
+                      <div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Newspaper className="h-4 w-4" /> Recent News</h4><div className="space-y-2">{isFetchingNews ? (<div className="p-2 text-xs text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/><span>Fetching recent news...</span></div>) : news?.articles && news.articles.length > 0 ? (news.articles.map((article, i) => (<a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-muted/50 no-underline"><p className="font-medium truncate leading-tight whitespace-pre-wrap">{article.headline}</p><p className="text-xs text-muted-foreground">{article.source}</p></a>))) : (<div className="p-2 text-xs text-muted-foreground">No recent news found.</div>)}</div></div>
                   </div></div>
               )}
           </div>
