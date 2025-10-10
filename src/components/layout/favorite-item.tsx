@@ -13,7 +13,7 @@ const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 const pillVariants = {
     initial: { width: 48, height: 48 },
     expanded: { 
-        width: 160, 
+        width: 140, 
         height: 48,
         transition: { type: 'spring', stiffness: 400, damping: 30, duration: 0.4 }
     },
