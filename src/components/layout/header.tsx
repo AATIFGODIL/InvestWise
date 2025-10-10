@@ -64,8 +64,9 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
 
   const [isEditing, setEditing] = React.useState(false);
   const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
-  const itemPressTimer = React.useRef<NodeJS.Timeout | null>(null);
-  const isLongPress = React.useRef(false);
+  
+  // State to track if a long press has just occurred to prevent click actions
+  const [isLongPressTriggered, setIsLongPressTriggered] = React.useState(false);
 
   const runCommand = React.useCallback((command: () => void) => {
     command();
@@ -78,7 +79,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const handlePointerDown = () => {
     longPressTimer.current = setTimeout(() => {
       setEditing((prev) => !prev);
-    }, 500);
+    }, 500); // 500ms to enter editing mode
   };
 
   const handlePointerUp = () => {
@@ -87,42 +88,46 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     }
   };
 
+  const itemPressTimer = React.useRef<NodeJS.Timeout | null>(null);
+
   const handleItemClick = (fav: Favorite) => {
-    if (isEditing) {
-        // Prevent resize if a long-press (delete) is happening
-        if (isLongPress.current) {
-            isLongPress.current = false;
-            return;
-        }
-        toggleFavoriteSize(fav.id);
-    } else {
-        if (fav.type === 'stock') {
-            setInitialStock(fav.value);
-            setOpen(true);
-        } else {
-            const action = appActions.find(a => a.name === fav.value);
-            if (action?.onSelect) {
-                runCommand(action.onSelect);
-            }
-        }
-    }
-  }
-
+      if (isLongPressTriggered) {
+          // Reset the flag and prevent the click action
+          setIsLongPressTriggered(false);
+          return;
+      }
+  
+      if (isEditing) {
+          toggleFavoriteSize(fav.id);
+      } else {
+          if (fav.type === 'stock') {
+              setInitialStock(fav.value);
+              setOpen(true);
+          } else {
+              const action = appActions.find(a => a.name === fav.value);
+              if (action?.onSelect) {
+                  runCommand(action.onSelect);
+              }
+          }
+      }
+  };
+  
   const handleItemPointerDown = (favId: string) => {
-    if (!isEditing) return;
-    
-    isLongPress.current = false;
-    itemPressTimer.current = setTimeout(() => {
-        isLongPress.current = true;
-        removeFavorite(favId);
-    }, 500); // 500ms for long press to delete
+      if (!isEditing) return;
+  
+      itemPressTimer.current = setTimeout(() => {
+          setIsLongPressTriggered(true); // Set the flag
+          removeFavorite(favId);
+          // The flag will be reset in the onClick handler
+      }, 500); // 500ms for deletion
+  };
+  
+  const handleItemPointerUp = () => {
+      if (itemPressTimer.current) {
+          clearTimeout(itemPressTimer.current);
+      }
   };
 
-  const handleItemPointerUp = () => {
-    if (itemPressTimer.current) {
-      clearTimeout(itemPressTimer.current);
-    }
-  };
 
   const isLightClear = isClearMode && theme === 'light';
 
@@ -133,50 +138,52 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   };
 
   const { displayedFavorites, totalWeight } = React.useMemo(() => {
-    if (isEditing) {
-        let weight = 0;
-        favorites.forEach(fav => {
-            weight += fav.size === 'pill' ? 2 : 1;
-        });
-        return { displayedFavorites: favorites, totalWeight: weight };
+    let weight = 0;
+    const allFavorites = favorites;
+    
+    if (!isEditing) {
+        const visibleFavorites: Favorite[] = [];
+        for (const fav of allFavorites) {
+            const itemWeight = fav.size === 'pill' ? 2 : 1;
+            if (weight + itemWeight <= 6) {
+                weight += itemWeight;
+                visibleFavorites.push(fav);
+            }
+        }
+        return { displayedFavorites: visibleFavorites, totalWeight: weight };
     }
 
-    let weight = 0;
-    const visibleFavorites: Favorite[] = [];
-    
-    for (const fav of favorites) {
-        const itemWeight = fav.size === 'pill' ? 2 : 1;
-        if (weight + itemWeight <= 6) {
-            weight += itemWeight;
-            visibleFavorites.push(fav);
-        }
-    }
-    return { displayedFavorites: visibleFavorites, totalWeight: weight };
+    allFavorites.forEach(fav => {
+        weight += fav.size === 'pill' ? 2 : 1;
+    });
+
+    return { displayedFavorites: allFavorites, totalWeight: weight };
   }, [favorites, isEditing]);
   
-  const { pillsToDelete, iconsToDelete } = React.useMemo(() => {
-        if (!isEditing || totalWeight <= 6) {
-            return { pillsToDelete: 0, iconsToDelete: 0 };
-        }
+  const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() => {
+      if (!isEditing || totalWeight <= 6) {
+          return { calculatedPillsToDelete: 0, calculatedIconsToDelete: 0 };
+      }
 
-        let excess = totalWeight - 6;
-        let currentPills = favorites.filter(f => f.size === 'pill').length;
-        let currentIcons = favorites.filter(f => f.size === 'icon').length;
-        let pToDelete = 0;
-        let iToDelete = 0;
+      let excess = totalWeight - 6;
+      let pToDelete = 0;
+      let iToDelete = 0;
 
-        // Greedily suggest removing icons first
-        const removableIcons = Math.min(excess, currentIcons);
-        iToDelete += removableIcons;
-        excess -= removableIcons;
+      const pills = displayedFavorites.filter(f => f.size === 'pill');
+      const icons = displayedFavorites.filter(f => f.size === 'icon');
 
-        // Then suggest removing pills
-        if (excess > 0) {
-            pToDelete += Math.ceil(excess / 2);
-        }
-        
-        return { pillsToDelete: pToDelete, iconsToDelete: iToDelete };
-    }, [isEditing, totalWeight, favorites]);
+      // Greedily suggest removing icons first
+      const removableIcons = Math.min(excess, icons.length);
+      iToDelete = removableIcons;
+      excess -= removableIcons;
+
+      // Then suggest removing pills
+      if (excess > 0) {
+          pToDelete = Math.ceil(excess / 2);
+      }
+      
+      return { calculatedPillsToDelete: pToDelete, calculatedIconsToDelete: iToDelete };
+  }, [isEditing, totalWeight, displayedFavorites]);
 
 
   const handleReorder = (newOrder: Favorite[]) => {
@@ -336,9 +343,9 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 </DropdownMenu>
             </div>
           </nav>
-           {(pillsToDelete > 0 || iconsToDelete > 0) && isEditing && (
+           {(calculatedPillsToDelete > 0 || calculatedIconsToDelete > 0) && isEditing && (
               <div className="mt-2 text-center text-xs font-semibold text-white bg-destructive/80 rounded-full px-3 py-1 max-w-sm mx-auto">
-                  To fit on screen, please remove {pillsToDelete > 0 && `${pillsToDelete} pill${pillsToDelete > 1 ? 's' : ''}`}{pillsToDelete > 0 && iconsToDelete > 0 && " and "}{iconsToDelete > 0 && `${iconsToDelete} icon${iconsToDelete > 1 ? 's' : ''}`}
+                  To fit on screen, please remove {calculatedPillsToDelete > 0 && `${calculatedPillsToDelete} pill${calculatedPillsToDelete > 1 ? 's' : ''}`}{calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0 && " and "}{calculatedIconsToDelete > 0 && `${calculatedIconsToDelete} icon${calculatedIconsToDelete > 1 ? 's' : ''}`}
               </div>
           )}
         </div>
