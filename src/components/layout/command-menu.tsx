@@ -104,7 +104,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
 
   const [view, setView] = useState<CommandView>("search");
   const [query, setQuery] = useState("");
-  const debouncedQuery = useDebounce(query, 300);
+  const debouncedQuery = useDebounce(query, 350);
   const [displayedStocks, setDisplayedStocks] = useState<StockData[]>([]);
   const [selectedStock, setSelectedStock] = useState<StockData | null>(null);
   

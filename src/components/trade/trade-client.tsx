@@ -68,7 +68,7 @@ export default function TradeClient() {
   const [widgetSymbol, setWidgetSymbol] = useState(initialSymbol);
   
   const [inputValue, setInputValue] = useState(initialSymbol);
-  const debouncedInputValue = useDebounce(inputValue, 300);
+  const debouncedInputValue = useDebounce(inputValue, 350);
   const [displayedStocks, setDisplayedStocks] = useState<StockData[]>([]);
   const [isFetchingDetails, setIsFetchingDetails] = useState(false);
   
