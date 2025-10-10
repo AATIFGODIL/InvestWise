@@ -26,10 +26,9 @@ import { useThemeStore } from "@/store/theme-store";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
-interface StockInfo {
+interface StockSearchResult {
     symbol: string;
     description: string;
-    type?: string;
 }
 
 interface StockData {
@@ -66,7 +65,6 @@ export default function TradeClient() {
   const { isClearMode, theme } = useThemeStore();
   const isLightClear = isClearMode && theme === 'light';
 
-  const [stockList, setStockList] = useState<StockInfo[]>([]);
   const [widgetSymbol, setWidgetSymbol] = useState(initialSymbol);
   
   const [inputValue, setInputValue] = useState(initialSymbol);
@@ -100,119 +98,66 @@ export default function TradeClient() {
     setIsClient(true);
   }, []);
 
-  useEffect(() => {
-    if (!isClient) return;
+  const fetchStockDetailsBySymbol = useCallback(async (symbol: string) => {
+    const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
+    const logoUrl = `https://img.logokit.com/ticker/${symbol}?token=pk_fr7a1b76952087586937fa`;
 
-    const fetchStockList = async () => {
-        if (!API_KEY) {
-            console.error("Finnhub API key not configured.");
-            return;
-        }
-        try {
-            const res = await fetch(`https://finnhub.io/api/v1/stock/symbol?exchange=US&token=${API_KEY}`);
-
-            if (!res.ok) {
-                throw new Error('Failed to fetch stock symbols from Finnhub.');
-            }
-            
-            const data: StockInfo[] = await res.json();
-            
-            const commonStocks = data.filter(stock => 
-                stock.description && 
-                !stock.symbol.includes('.') &&
-                stock.type === 'Common Stock'
-            );
-
-            const uniqueSymbols = new Set<string>();
-            const uniqueStockList = commonStocks.filter(stock => {
-                if (uniqueSymbols.has(stock.symbol)) {
-                    return false;
-                }
-                uniqueSymbols.add(stock.symbol);
-                return true;
-            });
-
-            setStockList(uniqueStockList);
-        } catch (err: any) {
-            console.error(err);
-            toast({
-                variant: 'destructive',
-                title: 'Could Not Load Stock List',
-                description: 'Failed to fetch stock data from the server.'
-            });
-        }
-    };
-    fetchStockList();
-  }, [isClient, toast]);
-
-    useEffect(() => {
-    if (!stockList.length && !debouncedInputValue) {
-        setDisplayedStocks([]);
-        return;
-    };
-
-    const fetchQuotes = async (symbolsToFetch: { symbol: string, description: string }[]) => {
-      setIsFetchingDetails(true);
-      const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
-
-      if (!isApiKeyValid) {
-        const simulatedData = symbolsToFetch.map(stock => ({
-          symbol: stock.symbol,
-          name: stock.description,
-          price: parseFloat((Math.random() * 500).toFixed(2)),
-          change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
-          changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
-          logoUrl: `https://img.logokit.com/ticker/${stock.symbol}?token=pk_fr7a1b76952087586937fa`,
-        }));
-        setDisplayedStocks(simulatedData);
-        setIsFetchingDetails(false);
-        return;
-      }
-
-      const promises = symbolsToFetch.map(async (stock) => {
-        const logoUrl = `https://img.logokit.com/ticker/${stock.symbol}?token=pk_fr7a1b76952087586937fa`;
-        try {
-          const quoteRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
-          if (!quoteRes.ok) return null;
-          const quote = await quoteRes.json();
-          return { symbol: stock.symbol, name: stock.description, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0, logoUrl };
-        } catch { return null; }
-      });
-
-      const results = (await Promise.all(promises)).filter(Boolean) as StockData[];
-      setDisplayedStocks(results);
-      setIsFetchingDetails(false);
-    };
-
-    if (debouncedInputValue) {
-        const lowercasedQuery = debouncedInputValue.toLowerCase();
-        
-        const filteredResults = stockList.filter(s => 
-            s.symbol.toLowerCase().includes(lowercasedQuery) || 
-            s.description.toLowerCase().includes(lowercasedQuery)
-        );
-
-        const sortedResults = filteredResults.sort((a, b) => {
-            const aIsExactMatch = a.symbol.toLowerCase() === lowercasedQuery;
-            const bIsExactMatch = b.symbol.toLowerCase() === lowercasedQuery;
-
-            if (aIsExactMatch && !bIsExactMatch) return -1;
-            if (!aIsExactMatch && bIsExactMatch) return 1;
-
-            const aSymbolIndex = a.symbol.toLowerCase().indexOf(lowercasedQuery);
-            const bSymbolIndex = b.symbol.toLowerCase().indexOf(lowercasedQuery);
-            if (aSymbolIndex === 0 && bSymbolIndex !== 0) return -1;
-            if (aSymbolIndex !== 0 && bSymbolIndex === 0) return 1;
-
-            return a.symbol.localeCompare(b.symbol);
-        });
-        
-        fetchQuotes(sortedResults.slice(0, 5));
-    } else {
-        setDisplayedStocks([]);
+    if (!isApiKeyValid) {
+        return { symbol, name: symbol, price: Math.random() * 500, change: Math.random() * 10 - 5, changePercent: Math.random() * 5 - 2.5, logoUrl };
     }
 
-  }, [debouncedInputValue, stockList]);
+    try {
+        const [quoteRes, profileRes] = await Promise.all([
+            fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${API_KEY}`),
+            fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${API_KEY}`)
+        ]);
+        if (!quoteRes.ok || !profileRes.ok) return null;
+        const quote = await quoteRes.json();
+        const profile = await profileRes.json();
+        return { symbol, name: profile.name || symbol, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0, logoUrl };
+    } catch {
+        return null;
+    }
+  }, []);
+
+
+  useEffect(() => {
+    const searchStocks = async () => {
+        if (!debouncedInputValue) {
+            setDisplayedStocks([]);
+            return;
+        }
+
+        setIsFetchingDetails(true);
+        const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
+
+        if (!isApiKeyValid) {
+            console.warn("Finnhub API key not configured. Search is disabled.");
+            setDisplayedStocks([]);
+            setIsFetchingDetails(false);
+            return;
+        }
+
+        try {
+            const searchRes = await fetch(`https://finnhub.io/api/v1/search?q=${debouncedInputValue}&token=${API_KEY}`);
+            const searchData = await searchRes.json();
+            const searchResults = (searchData.result || [])
+                .filter((s: StockSearchResult) => s.type === "Common Stock" && !s.symbol.includes('.'))
+                .slice(0, 5);
+
+            const promises = searchResults.map((stock: StockSearchResult) => fetchStockDetailsBySymbol(stock.symbol));
+            const results = (await Promise.all(promises)).filter(Boolean) as StockData[];
+            setDisplayedStocks(results);
+        } catch (error) {
+            console.error("Failed to search stocks:", error);
+            setDisplayedStocks([]);
+        } finally {
+            setIsFetchingDetails(false);
+        }
+    };
+    
+    searchStocks();
+  }, [debouncedInputValue, fetchStockDetailsBySymbol]);
 
   const handleToggleWatchlist = () => {
     if (isSymbolInWatchlist) {
@@ -476,3 +421,5 @@ export default function TradeClient() {
       </main>
   );
 }
+
+    

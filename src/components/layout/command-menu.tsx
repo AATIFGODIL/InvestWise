@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import {
   Home,
@@ -63,10 +63,9 @@ import { useDebounce } from "@/hooks/use-debounce";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
-interface StockInfo {
-  symbol: string;
-  description: string;
-  type?: string;
+interface StockSearchResult {
+    symbol: string;
+    description: string;
 }
 
 interface StockData {
@@ -106,7 +105,6 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   const [view, setView] = useState<CommandView>("search");
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 300);
-  const [stockList, setStockList] = useState<StockInfo[]>([]);
   const [displayedStocks, setDisplayedStocks] = useState<StockData[]>([]);
   const [selectedStock, setSelectedStock] = useState<StockData | null>(null);
   
@@ -128,127 +126,98 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
 
   // --- Data Fetching & State ---
 
+   const fetchStockDetailsBySymbol = useCallback(async (symbol: string) => {
+    const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
+    const logoUrl = `https://img.logokit.com/ticker/${symbol}?token=pk_fr7a1b76952087586937fa`;
+
+    let stockData: StockData | null = null;
+    if (!isApiKeyValid) {
+        stockData = {
+            symbol: symbol, name: symbol, price: Math.random() * 500, change: Math.random() * 10 - 5, changePercent: Math.random() * 5 - 2.5, logoUrl
+        };
+    } else {
+        try {
+            const [quoteRes, profileRes] = await Promise.all([
+                fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${API_KEY}`),
+                fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${API_KEY}`)
+            ]);
+            if (!quoteRes.ok || !profileRes.ok) return null;
+            const quote = await quoteRes.json();
+            const profile = await profileRes.json();
+            stockData = { symbol: symbol, name: profile.name || symbol, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0, logoUrl };
+        } catch { return null; }
+    }
+    return stockData;
+  }, []);
+
   useEffect(() => {
-    async function fetchStockList() {
-        if (!open || stockList.length > 0) return;
-        setIsFetchingStocks(true);
-        
+    const fetchInitialSymbols = async () => {
+        setIsFetchingDetails(true);
+        const defaultSymbols = ["TSLA", "AAPL", "MSFT", "GOOGL", "NVDA"];
+        const promises = defaultSymbols.map(fetchStockDetailsBySymbol);
+        const results = (await Promise.all(promises)).filter(Boolean) as StockData[];
+        setDisplayedStocks(results);
+        setIsFetchingDetails(false);
+    };
+
+    if (open && !debouncedQuery) {
+        fetchInitialSymbols();
+    }
+  }, [open, debouncedQuery, fetchStockDetailsBySymbol]);
+
+  useEffect(() => {
+    const searchStocks = async () => {
+        if (!debouncedQuery) {
+            setDisplayedStocks([]);
+            return;
+        }
+
+        setIsFetchingDetails(true);
         const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
 
         if (!isApiKeyValid) {
-            console.warn("Finnhub API key not configured. Cannot fetch stock list.");
-            setIsFetchingStocks(false);
+            console.warn("Finnhub API key not configured.");
+            setDisplayedStocks([]);
+            setIsFetchingDetails(false);
             return;
         }
 
         try {
-            const res = await fetch(`https://finnhub.io/api/v1/stock/symbol?exchange=US&token=${API_KEY}`);
-            const data: StockInfo[] = await res.json();
-            const commonStocks = data.filter(stock => 
-                stock.description && 
-                !stock.symbol.includes('.') &&
-                stock.type === 'Common Stock'
-            );
-            
-            const uniqueSymbols = new Set<string>();
-            const uniqueStockList = commonStocks.filter(stock => {
-                if (uniqueSymbols.has(stock.symbol)) {
-                    return false;
-                }
-                uniqueSymbols.add(stock.symbol);
-                return true;
-            });
-            setStockList(uniqueStockList);
-        } catch (err) {
-            console.error("Failed to fetch stock list for command menu:", err);
-            toast({ variant: 'destructive', title: 'Could not load stocks' });
+            const searchRes = await fetch(`https://finnhub.io/api/v1/search?q=${debouncedQuery}&token=${API_KEY}`);
+            const searchData = await searchRes.json();
+            const searchResults = (searchData.result || [])
+                .filter((s: StockSearchResult) => s.type === "Common Stock" && !s.symbol.includes('.'))
+                .slice(0, 5);
+
+            const promises = searchResults.map((stock: StockSearchResult) => fetchStockDetailsBySymbol(stock.symbol));
+            const results = (await Promise.all(promises)).filter(Boolean) as StockData[];
+            setDisplayedStocks(results);
+        } catch (error) {
+            console.error("Failed to search stocks:", error);
+            setDisplayedStocks([]);
         } finally {
-            setIsFetchingStocks(false);
+            setIsFetchingDetails(false);
         }
-    }
-    fetchStockList();
-  }, [open, stockList.length, toast]);
-
-  useEffect(() => {
-    if (!stockList.length) return;
-
-    const fetchQuotes = async (symbolsToFetch: { symbol: string, description: string }[]) => {
-      setIsFetchingDetails(true);
-      const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
-
-      if (!isApiKeyValid) {
-        const simulatedData = symbolsToFetch.map(stock => ({
-          symbol: stock.symbol,
-          name: stock.description,
-          price: parseFloat((Math.random() * 500).toFixed(2)),
-          change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
-          changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
-          logoUrl: `https://img.logokit.com/ticker/${stock.symbol}?token=pk_fr7a1b76952087586937fa`,
-        }));
-        setDisplayedStocks(simulatedData);
-        setIsFetchingDetails(false);
-        return;
-      }
-
-      const promises = symbolsToFetch.map(async (stock) => {
-        const logoUrl = `https://img.logokit.com/ticker/${stock.symbol}?token=pk_fr7a1b76952087586937fa`;
-        try {
-          const quoteRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
-          if (!quoteRes.ok) return null;
-          const quote = await quoteRes.json();
-          return { symbol: stock.symbol, name: stock.description, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0, logoUrl };
-        } catch { return null; }
-      });
-
-      const results = (await Promise.all(promises)).filter(Boolean) as StockData[];
-      setDisplayedStocks(results);
-      setIsFetchingDetails(false);
     };
 
     if (debouncedQuery) {
-        const lowercasedQuery = debouncedQuery.toLowerCase();
-        
-        const filteredResults = stockList.filter(s => 
-            s.symbol.toLowerCase().includes(lowercasedQuery) || 
-            s.description.toLowerCase().includes(lowercasedQuery)
-        );
-
-        const sortedResults = filteredResults.sort((a, b) => {
-            const aIsExactMatch = a.symbol.toLowerCase() === lowercasedQuery;
-            const bIsExactMatch = b.symbol.toLowerCase() === lowercasedQuery;
-
-            if (aIsExactMatch && !bIsExactMatch) return -1;
-            if (!aIsExactMatch && bIsExactMatch) return 1;
-
-            const aSymbolIndex = a.symbol.toLowerCase().indexOf(lowercasedQuery);
-            const bSymbolIndex = b.symbol.toLowerCase().indexOf(lowercasedQuery);
-            if (aSymbolIndex === 0 && bSymbolIndex !== 0) return -1;
-            if (aSymbolIndex !== 0 && bSymbolIndex === 0) return 1;
-
-            return a.symbol.localeCompare(b.symbol);
-        });
-        
-        fetchQuotes(sortedResults.slice(0, 5));
-    } else {
-        const defaultSymbols = ["TSLA", "AAPL", "MSFT", "GOOGL", "NVDA"];
-        if (stockList.length > 0) {
-            const defaultStockInfo = defaultSymbols.map(symbol => {
-                const stock = stockList.find(s => s.symbol === symbol);
-                return stock || { symbol, description: symbol, type: 'Common Stock' };
-            });
-            fetchQuotes(defaultStockInfo);
-        }
+        searchStocks();
     }
 
-  }, [debouncedQuery, stockList]);
+  }, [debouncedQuery, fetchStockDetailsBySymbol]);
 
   useEffect(() => {
-    if (initialStockSymbol && displayedStocks.length > 0) {
-      const stock = displayedStocks.find(s => s.symbol === initialStockSymbol);
-      if (stock) fetchStockDetails(stock);
+    const fetchAndSelectInitial = async () => {
+        if (initialStockSymbol) {
+            const stock = await fetchStockDetailsBySymbol(initialStockSymbol);
+            if (stock) {
+                fetchStockDetails(stock);
+            }
+        }
     }
+    fetchAndSelectInitial();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialStockSymbol, displayedStocks]);
+  }, [initialStockSymbol]);
 
   const runCommand = useCallback(async (command: () => void | Promise<void>) => {
     onOpenChange(false);
@@ -384,9 +353,9 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
               
               {view === "search" && (
               <CommandList>
-                  {(isFetchingStocks || isFetchingDetails) && ( <div className="p-4 text-center text-sm text-muted-foreground">Loading stocks...</div> )}
+                  {(isFetchingDetails) && ( <div className="p-4 text-center text-sm text-muted-foreground">Loading stocks...</div> )}
                   
-                  {displayedStocks.length === 0 && filteredAppActions.length === 0 && !isFetchingStocks && !isFetchingDetails && query && <div className="py-6 text-center text-sm">No results found.</div>}
+                  {displayedStocks.length === 0 && filteredAppActions.length === 0 && !isFetchingDetails && query && <div className="py-6 text-center text-sm">No results found.</div>}
                   
                   {displayedStocks.length > 0 && (<div className="p-1"><div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">Stocks</div>
                     {displayedStocks.map((stock) => (
@@ -448,7 +417,8 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
                       </Button>
                       </div>
                       {selectedStockHolding && (<div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Building className="h-4 w-4" /> Your Holdings</h4><div className="p-3 rounded-lg bg-muted/50"><div className="flex justify-between items-center"><span className="font-medium">{selectedStockHolding.qty} Shares</span><span className="font-medium">Value: ${(selectedStockHolding.qty * selectedStock.price).toFixed(2)}</span></div></div></div>)}
-                      <div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><BrainCircuit className="h-4 w-4" /> AI Prediction</h4><div className="p-3 rounded-lg bg-muted/50 text-xs min-h-[60px] relative">{isFetchingPrediction ? (<div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/><span>Generating prediction...</span></div>) : prediction ? (<><div className="flex justify-between items-center mb-1"><Badge className={cn("text-white", prediction.confidence === "High" ? "bg-green-500" : prediction.confidence === "Medium" ? "bg-yellow-500" : "bg-red-500")}>{prediction.confidence} Confidence</Badge></div><p className="whitespace-pre-wrap">{prediction.prediction}</p></>) : (<p className="text-muted-foreground">Could not load AI prediction.</p>)}</div></div>
+                      <div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><BrainCircuit className="h-4 w-4" /> AI Prediction</h4><div className="p-3 rounded-lg bg-muted/50 text-xs min-h-[60px] relative">{isFetchingPrediction ? (<div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/><span>Generating prediction...</span></div>) : prediction ? (<><div className="flex justify-between items-center mb-1"><Badge className={cn("text-white", prediction.confidence === "High" ? "bg-green-500" : prediction.confidence === "Medium" ? "bg-yellow-500" : "bg-red-500")}>{prediction.confidence} Confidence</Badge></div><p className="whitespace-pre-wrap">{prediction.prediction}</p></>
+) : (<p className="text-muted-foreground">Could not load AI prediction.</p>)}</div></div>
                       <div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Newspaper className="h-4 w-4" /> Recent News</h4><div className="space-y-2">{isFetchingNews ? (<div className="p-2 text-xs text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/><span>Fetching recent news...</span></div>) : news?.articles && news.articles.length > 0 ? (news.articles.map((article, i) => (<a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-muted/50 no-underline"><p className="font-medium truncate leading-tight whitespace-pre-wrap">{article.headline}</p><p className="text-xs text-muted-foreground">{article.source}</p></a>))) : (<div className="p-2 text-xs text-muted-foreground">No recent news found.</div>)}</div></div>
                   </div></div>
               )}
@@ -462,10 +432,5 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     </>
   );
 }
-
-
-    
-
-    
 
     
