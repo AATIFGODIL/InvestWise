@@ -27,6 +27,7 @@ const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 interface StockInfo {
     symbol: string;
     description: string;
+    type?: string;
 }
 
 interface TradeData {
@@ -93,12 +94,14 @@ export default function TradeClient() {
             
             const data: StockInfo[] = await res.json();
             
-            const combined = data
-                .filter(stock => stock.description && !stock.symbol.includes('.'))
-                .map(stock => ({ symbol: stock.symbol, description: stock.description }));
+            const commonStocks = data.filter(stock => 
+                stock.description && 
+                !stock.symbol.includes('.') &&
+                stock.type === 'Common Stock'
+            );
 
             const uniqueSymbols = new Set<string>();
-            const uniqueStockList = combined.filter(stock => {
+            const uniqueStockList = commonStocks.filter(stock => {
                 if (uniqueSymbols.has(stock.symbol)) {
                     return false;
                 }
@@ -361,7 +364,3 @@ export default function TradeClient() {
       </main>
   );
 }
-
-    
-
-    
