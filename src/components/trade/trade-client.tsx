@@ -20,7 +20,8 @@ import { cn } from "@/lib/utils";
 import Watchlist from "../dashboard/watchlist";
 import YouTubePlayer from "../shared/youtube-player";
 import { CommandItem, CommandList } from "../ui/command";
-import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { useDebounce } from "@/hooks/use-debounce";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -28,6 +29,15 @@ interface StockInfo {
     symbol: string;
     description: string;
     type?: string;
+}
+
+interface StockData {
+  symbol: string;
+  name: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  logoUrl: string;
 }
 
 interface TradeData {
@@ -57,6 +67,10 @@ export default function TradeClient() {
   const [widgetSymbol, setWidgetSymbol] = useState(initialSymbol);
   
   const [inputValue, setInputValue] = useState(initialSymbol);
+  const debouncedInputValue = useDebounce(inputValue, 300);
+  const [displayedStocks, setDisplayedStocks] = useState<StockData[]>([]);
+  const [isFetchingDetails, setIsFetchingDetails] = useState(false);
+  
   const [searchedSymbol, setSearchedSymbol] = useState(initialSymbol);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -119,6 +133,72 @@ export default function TradeClient() {
     };
     fetchStockList();
   }, [isClient, toast]);
+
+    useEffect(() => {
+    if (!stockList.length) return;
+
+    const fetchQuotes = async (symbolsToFetch: { symbol: string, description: string }[]) => {
+      setIsFetchingDetails(true);
+      const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
+
+      if (!isApiKeyValid) {
+        const simulatedData = symbolsToFetch.map(stock => ({
+          symbol: stock.symbol,
+          name: stock.description,
+          price: parseFloat((Math.random() * 500).toFixed(2)),
+          change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
+          changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
+          logoUrl: `https://img.logokit.com/ticker/${stock.symbol}?token=pk_fr7a1b76952087586937fa`,
+        }));
+        setDisplayedStocks(simulatedData);
+        setIsFetchingDetails(false);
+        return;
+      }
+
+      const promises = symbolsToFetch.map(async (stock) => {
+        const logoUrl = `https://img.logokit.com/ticker/${stock.symbol}?token=pk_fr7a1b76952087586937fa`;
+        try {
+          const quoteRes = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
+          if (!quoteRes.ok) return null;
+          const quote = await quoteRes.json();
+          return { symbol: stock.symbol, name: stock.description, price: quote.c || 0, change: quote.d || 0, changePercent: quote.dp || 0, logoUrl };
+        } catch { return null; }
+      });
+
+      const results = (await Promise.all(promises)).filter(Boolean) as StockData[];
+      setDisplayedStocks(results);
+      setIsFetchingDetails(false);
+    };
+
+    if (debouncedInputValue) {
+        const lowercasedQuery = debouncedInputValue.toLowerCase();
+        
+        const filteredResults = stockList.filter(s => 
+            s.symbol.toLowerCase().includes(lowercasedQuery) || 
+            s.description.toLowerCase().includes(lowercasedQuery)
+        );
+
+        const sortedResults = filteredResults.sort((a, b) => {
+            const aIsExactMatch = a.symbol.toLowerCase() === lowercasedQuery;
+            const bIsExactMatch = b.symbol.toLowerCase() === lowercasedQuery;
+
+            if (aIsExactMatch && !bIsExactMatch) return -1;
+            if (!aIsExactMatch && bIsExactMatch) return 1;
+
+            const aSymbolIndex = a.symbol.toLowerCase().indexOf(lowercasedQuery);
+            const bSymbolIndex = b.symbol.toLowerCase().indexOf(lowercasedQuery);
+            if (aSymbolIndex === 0 && bSymbolIndex !== 0) return -1;
+            if (aSymbolIndex !== 0 && bSymbolIndex === 0) return 1;
+
+            return a.symbol.localeCompare(b.symbol);
+        });
+        
+        fetchQuotes(sortedResults.slice(0, 5));
+    } else {
+        setDisplayedStocks([]);
+    }
+
+  }, [debouncedInputValue, stockList]);
 
   const handleToggleWatchlist = () => {
     if (isSymbolInWatchlist) {
@@ -228,13 +308,6 @@ export default function TradeClient() {
     setShowSuggestions(false);
   }
 
-  const suggestions = inputValue
-    ? stockList.filter(stock => 
-        stock.symbol.toLowerCase().startsWith(inputValue.toLowerCase()) || 
-        stock.description.toLowerCase().includes(inputValue.toLowerCase())
-      ).slice(0, 5)
-    : [];
-
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
@@ -295,18 +368,29 @@ export default function TradeClient() {
                             Search
                         </Button>
                     </div>
-                    {showSuggestions && suggestions.length > 0 && (
+                    {showSuggestions && inputValue && (
                          <div className="absolute top-full mt-2 w-full sm:w-[calc(100%-100px)] rounded-md border bg-background shadow-lg z-20">
                             <CommandList>
-                                {suggestions.map(stock => (
+                                {isFetchingDetails && <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>}
+                                {!isFetchingDetails && displayedStocks.length === 0 && <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>}
+                                {displayedStocks.map(stock => (
                                     <CommandItem key={stock.symbol} onSelect={() => handleStockSelection(stock)}>
-                                         <div className="flex items-center gap-3">
-                                            <Avatar className="h-8 w-8 bg-muted">
-                                                <AvatarFallback>{stock.symbol.charAt(0)}</AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <p>{stock.description}</p>
-                                                <p className="text-xs text-muted-foreground">{stock.symbol}</p>
+                                         <div className="flex justify-between items-center w-full">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar className="h-8 w-8 bg-muted">
+                                                     <AvatarImage src={stock.logoUrl} alt={stock.name} />
+                                                    <AvatarFallback>{stock.symbol.charAt(0)}</AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <p>{stock.name}</p>
+                                                    <p className="text-xs text-muted-foreground">{stock.symbol}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="font-mono">${stock.price.toFixed(2)}</p>
+                                                <p className={cn("text-xs", stock.change >= 0 ? "text-green-500" : "text-red-500")}>
+                                                    {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+                                                </p>
                                             </div>
                                         </div>
                                     </CommandItem>
