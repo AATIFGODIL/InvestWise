@@ -5,22 +5,22 @@
 
 @layer base {
   :root {
-    --background: 0 0% 92.5%; /* #ececec */
+    --background: 225 6% 84%; /* #D3D4D8 */
     --foreground: 222.2 84% 4.9%;
 
-    --card: 0 0% 92.5%; /* #ececec */
+    --card: 225 6% 84%; /* #D3D4D8 */
     --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 0 0% 92.5%; /* #ececec */
+    --popover: 225 6% 84%; /* #D3D4D8 */
     --popover-foreground: 222.2 84% 4.9%;
     
     --primary: 251 82% 60%; /* #5442F1 - Indigo Blue */
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 240 10% 95%;
+    --secondary: 225 6% 84%;
     --secondary-foreground: 240 5.9% 10%;
 
-    --muted: 240 10% 95%;
+    --muted: 225 6% 84%;
     --muted-foreground: 240 3.8% 46.1%;
 
     --accent: 251 82% 60%; /* Changed to match primary */
@@ -29,8 +29,8 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 240 10% 90%;
-    --input: 240 10% 90%;
+    --border: 225 6% 79%;
+    --input: 225 6% 79%;
     --ring: 251 82% 60%;
 
     --radius: 0.8rem;
