@@ -19,7 +19,7 @@ const Card = React.forwardRef<
                 "rounded-lg border text-card-foreground shadow-sm",
                 isClearMode
                     ? isLightClear
-                        ? "border-0 bg-card/60 shadow-lg ring-1 ring-white/10" // Light mode liquid glass
+                        ? "border-0 bg-[#C8C8C8]/60 shadow-lg ring-1 ring-white/10" // Light mode liquid glass
                         : "border-0 bg-white/10 shadow-lg ring-1 ring-white/60" // Dark mode liquid glass
                     : "bg-card", // Standard solid card
                 className
