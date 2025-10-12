@@ -100,22 +100,16 @@ const fetchStockNewsFlow = ai.defineFlow(
       }
 
       const articles = await response.json();
-
-      // --- Start of Fix ---
-      // Log the raw response from the API to see its actual structure.
-      console.log(
-        'Raw response from Finnhub general news:',
-        JSON.stringify(articles, null, 2)
-      );
-
+      
       // Check if the response is an array before processing.
+      // The API might return an object with an error message instead of an array.
       if (!Array.isArray(articles)) {
         console.error(
-          "Finnhub's general news endpoint did not return an array. The flow will return null."
+          "Finnhub's general news endpoint did not return an array. The flow will return null.",
+          articles // Log the actual response for debugging
         );
         return null;
       }
-      // --- End of Fix ---
 
       return processNewsData(articles, generalNewsLimit);
     };
