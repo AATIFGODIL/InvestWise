@@ -229,7 +229,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                         onPointerUp={handlePointerUp}
                         onPointerLeave={handlePointerUp}
                         className={cn(
-                            "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-colors min-w-[150px] sm:min-w-[170px]",
+                            "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-colors min-w-[75px] sm:min-w-[170px]",
                             isClearMode
                                 ? isLightClear
                                     ? "bg-card/60 text-foreground ring-1 ring-white/20"
