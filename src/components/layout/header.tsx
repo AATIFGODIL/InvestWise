@@ -134,11 +134,17 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     router.push(href);
   };
 
-  const { displayedFavorites, totalWeight } = React.useMemo(() => {
-    let weight = 0;
-    const allFavorites = favorites;
-    
-    if (!isEditing) {
+    const { displayedFavorites, totalWeight, hiddenFavoritesCount } = React.useMemo(() => {
+        let weight = 0;
+        const allFavorites = favorites;
+
+        if (isEditing) {
+            allFavorites.forEach(fav => {
+                weight += fav.size === 'pill' ? 2 : 1;
+            });
+            return { displayedFavorites: allFavorites, totalWeight: weight, hiddenFavoritesCount: 0 };
+        }
+
         const visibleFavorites: Favorite[] = [];
         for (const fav of allFavorites) {
             const itemWeight = fav.size === 'pill' ? 2 : 1;
@@ -147,15 +153,13 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 visibleFavorites.push(fav);
             }
         }
-        return { displayedFavorites: visibleFavorites, totalWeight: weight };
-    }
-
-    allFavorites.forEach(fav => {
-        weight += fav.size === 'pill' ? 2 : 1;
-    });
-
-    return { displayedFavorites: allFavorites, totalWeight: weight };
-  }, [favorites, isEditing]);
+        
+        return {
+            displayedFavorites: visibleFavorites,
+            totalWeight: weight,
+            hiddenFavoritesCount: allFavorites.length - visibleFavorites.length,
+        };
+    }, [favorites, isEditing]);
   
   const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() => {
       if (!isEditing || totalWeight <= 6) {
@@ -251,7 +255,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 </div>
 
                 <AnimatePresence>
-                    {((isHovered && !isMobile) || isMobile || isEditing) && displayedFavorites.length > 0 && (
+                    {((isHovered && !isMobile) || isMobile || isEditing) && favorites.length > 0 && (
                       <motion.div
                         className="flex items-center"
                         variants={containerVariants}
@@ -262,21 +266,32 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                         <Reorder.Group
                             as="div"
                             axis="x"
-                            values={displayedFavorites}
+                            values={favorites}
                             onReorder={handleReorder}
                             className="flex items-center gap-3 pl-3"
                           >
-                            {displayedFavorites.map((fav) => (
-                                <FavoriteItem 
+                           {favorites.map(fav => (
+                                <motion.div
                                   key={fav.id}
-                                  favorite={fav} 
-                                  onClick={handleItemClick}
-                                  onRemove={removeFavorite}
-                                  variants={itemVariants}
-                                  isEditing={isEditing}
-                                  isPill={fav.size === 'pill'}
-                                />
-                            ))}
+                                  layout
+                                  initial={{ opacity: 0, scale: 0.5 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.5 }}
+                                  transition={{ duration: 0.2 }}
+                                  className={cn(
+                                    (isEditing || displayedFavorites.some(df => df.id === fav.id)) ? 'flex' : 'hidden'
+                                  )}
+                                >
+                                  <FavoriteItem
+                                    favorite={fav}
+                                    onClick={handleItemClick}
+                                    onRemove={removeFavorite}
+                                    variants={itemVariants}
+                                    isEditing={isEditing}
+                                    isPill={fav.size === 'pill'}
+                                  />
+                                </motion.div>
+                              ))}
                           </Reorder.Group>
                       </motion.div>
                     )}
