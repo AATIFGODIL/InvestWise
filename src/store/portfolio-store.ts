@@ -95,17 +95,19 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Make a copy of the registration date to avoid modifying the original
     const regDate = new Date(registrationDate);
     regDate.setHours(0, 0, 0, 0);
 
+    const totalDurationMs = today.getTime() - regDate.getTime();
+    const totalDurationDays = totalDurationMs > 0 ? Math.ceil(totalDurationMs / (1000 * 60 * 60 * 24)) : 1;
+
     const generateRangeData = (daysToLookBack: number): ChartDataPoint[] => {
+        const dataPoints: ChartDataPoint[] = [];
         const rangeStartDate = new Date(today);
         rangeStartDate.setDate(today.getDate() - daysToLookBack + 1);
 
         const actualStartDate = regDate > rangeStartDate ? regDate : rangeStartDate;
 
-        const tradingDays: Date[] = [];
         let currentDate = new Date(actualStartDate);
         while (currentDate <= today) {
             const dayOfWeek = currentDate.getDay();
@@ -114,46 +116,37 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
             const isHoliday = holidays.has(dateString);
 
             if (!isWeekend && !isHoliday) {
-                tradingDays.push(new Date(currentDate));
+                const elapsedMs = currentDate.getTime() - regDate.getTime();
+                const elapsedDays = Math.ceil(elapsedMs / (1000 * 60 * 60 * 24));
+                const progress = totalDurationDays > 0 ? Math.max(0, elapsedDays) / totalDurationDays : 0;
+                const interpolatedValue = totalValue * progress;
+
+                dataPoints.push({
+                    date: currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                    value: parseFloat(interpolatedValue.toFixed(2)),
+                });
             }
             currentDate.setDate(currentDate.getDate() + 1);
         }
 
-        // If no trading days are found (e.g., registered on a weekend),
-        // create a simple two-point line from registration to today.
-        if (tradingDays.length <= 1) {
-            const chartPoints = [
-                {
-                    date: regDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                    value: 0
-                },
-                {
-                    date: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                    value: totalValue
-                }
-            ];
-            // If the dates are the same, just show one point
-            if (chartPoints[0].date === chartPoints[1].date) {
-                return [chartPoints[1]];
-            }
-            return chartPoints;
+        // Ensure there is always a starting point if the range is before any trading day
+        if (dataPoints.length === 0 || new Date(dataPoints[0].date) > actualStartDate) {
+            dataPoints.unshift({
+                date: actualStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                value: 0
+            });
+        }
+        
+         // If only one data point exists (e.g. today is the first trading day), add a start point.
+        if (dataPoints.length === 1) {
+            dataPoints.unshift({
+                date: new Date(dataPoints[0].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                value: 0
+            });
         }
 
-        const totalTradingDaysSinceRegistration = tradingDays.filter(d => d >= regDate).length;
-        
-        return tradingDays.map((tradeDate, index) => {
-            const daysIntoTrading = index + 1;
-            const progress = totalTradingDaysSinceRegistration > 0
-                ? daysIntoTrading / totalTradingDaysSinceRegistration
-                : 1;
 
-            const interpolatedValue = totalValue * progress;
-
-            return {
-                date: tradeDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                value: parseFloat(interpolatedValue.toFixed(2)),
-            };
-        });
+        return dataPoints;
     };
 
     const dayMap: { [key: string]: number } = { '1W': 7, '1M': 30, '6M': 180, '1Y': 365 };
