@@ -15,18 +15,25 @@ const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY;
 
 const ArticleSchema = z.object({
   headline: z.string().describe("The headline of the news article."),
-  source: z.string().describe("The source of the news article (e.g., 'Reuters')."),
+  source: z
+    .string()
+    .describe("The source of the news article (e.g., 'Reuters')."),
   url: z.string().url().describe("The URL to the full article."),
   summary: z.string().optional().describe("A brief summary of the article."),
   image: z.string().url().optional().describe("URL for a thumbnail image."),
 });
 
 const StockNewsInputSchema = z.object({
-  symbol: z.string().optional().describe("The stock ticker symbol, e.g., 'AAPL' for Apple."),
+  symbol: z
+    .string()
+    .optional()
+    .describe("The stock ticker symbol, e.g., 'AAPL' for Apple."),
 });
 
 const StockNewsOutputSchema = z.object({
-  articles: z.array(ArticleSchema).describe("A list of recent news articles."),
+  articles: z
+    .array(ArticleSchema)
+    .describe('A list of recent news articles.'),
 });
 
 export type StockNewsInput = z.infer<typeof StockNewsInputSchema>;
@@ -37,29 +44,34 @@ export type StockNewsOutput = z.infer<typeof StockNewsOutputSchema>;
  * @param input An object containing the stock symbol.
  * @returns A promise that resolves to a list of articles or null if an error occurs.
  */
-export async function fetchStockNews(input: StockNewsInput): Promise<StockNewsOutput | null> {
+export async function fetchStockNews(
+  input: StockNewsInput
+): Promise<StockNewsOutput | null> {
   return fetchStockNewsFlow(input);
 }
 
 // Helper function to process and filter raw news data from the API.
-const processNewsData = (data: any[], limit: number): z.infer<typeof StockNewsOutputSchema> | null => {
-    if (!Array.isArray(data)) return null;
+const processNewsData = (
+  data: any[],
+  limit: number
+): z.infer<typeof StockNewsOutputSchema> | null => {
+  if (!Array.isArray(data)) return null;
 
-    const articles = data.slice(0, limit).map((item: any) => ({
-        headline: item.headline,
-        source: item.source,
-        url: item.url,
-        summary: item.summary,
-        image: item.image,
-    }));
+  const articles = data.slice(0, limit).map((item: any) => ({
+    headline: item.headline,
+    source: item.source,
+    url: item.url,
+    summary: item.summary,
+    image: item.image,
+  }));
 
-    const result = StockNewsOutputSchema.safeParse({ articles });
-    if (result.success) {
-        return result.data;
-    } else {
-        console.error("Failed to parse news data from Finnhub:", result.error);
-        return null;
-    }
+  const result = StockNewsOutputSchema.safeParse({ articles });
+  if (result.success) {
+    return result.data;
+  } else {
+    console.error('Failed to parse news data from Finnhub:', result.error);
+    return null;
+  }
 };
 
 const fetchStockNewsFlow = ai.defineFlow(
@@ -70,7 +82,7 @@ const fetchStockNewsFlow = ai.defineFlow(
   },
   async (input) => {
     if (!API_KEY) {
-      console.error("Finnhub API key not configured.");
+      console.error('Finnhub API key not configured.');
       return null;
     }
 
@@ -81,17 +93,26 @@ const fetchStockNewsFlow = ai.defineFlow(
     const fetchGeneralNews = async () => {
       const url = `https://finnhub.io/api/v1/news?category=general&token=${API_KEY}`;
       const response = await fetch(url);
-      if (!response.ok) throw new Error(`Finnhub API request for general news failed with status ${response.status}`);
-      
+      if (!response.ok) {
+        throw new Error(
+          `Finnhub API request for general news failed with status ${response.status}`
+        );
+      }
+
       const articles = await response.json();
 
       // --- Start of Fix ---
       // Log the raw response from the API to see its actual structure.
-      console.log("Raw response from Finnhub general news:", JSON.stringify(articles, null, 2));
+      console.log(
+        'Raw response from Finnhub general news:',
+        JSON.stringify(articles, null, 2)
+      );
 
       // Check if the response is an array before processing.
       if (!Array.isArray(articles)) {
-        console.error("Finnhub's general news endpoint did not return an array. The flow will return null.");
+        console.error(
+          "Finnhub's general news endpoint did not return an array. The flow will return null."
+        );
         return null;
       }
       // --- End of Fix ---
@@ -106,18 +127,23 @@ const fetchStockNewsFlow = ai.defineFlow(
         from.setDate(to.getDate() - 30); // Get news from the last 30 days
         const fromDateStr = from.toISOString().split('T')[0];
         const toDateStr = to.toISOString().split('T')[0];
-        
+
         // Fetch company-specific news
         const companyNewsUrl = `https://finnhub.io/api/v1/company-news?symbol=${input.symbol}&from=${fromDateStr}&to=${toDateStr}&token=${API_KEY}`;
         const companyResponse = await fetch(companyNewsUrl);
-        if (!companyResponse.ok) throw new Error(`Finnhub API request for company news failed with status ${companyResponse.status}`);
-        
+        if (!companyResponse.ok)
+          throw new Error(
+            `Finnhub API request for company news failed with status ${companyResponse.status}`
+          );
+
         const companyArticles = await companyResponse.json();
 
         // If no company articles are found, fall back to general news
         if (companyArticles.length === 0) {
-            console.log(`No news found for ${input.symbol}, falling back to general news.`);
-            return await fetchGeneralNews();
+          console.log(
+            `No news found for ${input.symbol}, falling back to general news.`
+          );
+          return await fetchGeneralNews();
         }
 
         return processNewsData(companyArticles, companyNewsLimit);
@@ -125,9 +151,8 @@ const fetchStockNewsFlow = ai.defineFlow(
         // If no symbol is provided, fetch general news directly.
         return await fetchGeneralNews();
       }
-
     } catch (error) {
-      console.error("Error in fetchStockNewsFlow:", error);
+      console.error('Error in fetchStockNewsFlow:', error);
       return null;
     }
   }
