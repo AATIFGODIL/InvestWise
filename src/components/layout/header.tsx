@@ -359,7 +359,9 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
            {isEditing && (
               <div className="mt-2 text-center text-xs font-semibold text-white">
                   {totalWeight > (isMobile ? 6 : 14) 
-                      ? `To fit on screen, please remove ${calculatedPillsToDelete > 0 ? `${calculatedPillsToDelete} pill${calculatedPillsToDelete > 1 ? 's' : ''}` : ''}${calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0 ? ' and ' : ''}${calculatedIconsToDelete > 0 ? `${calculatedIconsToDelete} icon${calculatedIconsToDelete > 1 ? 's' : ''}` : ''}`
+                      ?  <span className="shimmer-bg bg-clip-text text-transparent">
+                          {`To fit on screen, please remove ${calculatedPillsToDelete > 0 ? `${calculatedPillsToDelete} pill${calculatedPillsToDelete > 1 ? 's' : ''}` : ''}${calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0 ? ' and ' : ''}${calculatedIconsToDelete > 0 ? `${calculatedIconsToDelete} icon${calculatedIconsToDelete > 1 ? 's' : ''}` : ''}`}
+                         </span>
                       : ""
                   }
               </div>
