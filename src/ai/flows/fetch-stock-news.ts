@@ -82,7 +82,20 @@ const fetchStockNewsFlow = ai.defineFlow(
       const url = `https://finnhub.io/api/v1/news?category=general&token=${API_KEY}`;
       const response = await fetch(url);
       if (!response.ok) throw new Error(`Finnhub API request for general news failed with status ${response.status}`);
+      
       const articles = await response.json();
+
+      // --- Start of Fix ---
+      // Log the raw response from the API to see its actual structure.
+      console.log("Raw response from Finnhub general news:", JSON.stringify(articles, null, 2));
+
+      // Check if the response is an array before processing.
+      if (!Array.isArray(articles)) {
+        console.error("Finnhub's general news endpoint did not return an array. The flow will return null.");
+        return null;
+      }
+      // --- End of Fix ---
+
       return processNewsData(articles, generalNewsLimit);
     };
 
