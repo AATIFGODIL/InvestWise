@@ -98,16 +98,40 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
     const regDate = new Date(registrationDate);
     regDate.setHours(0, 0, 0, 0);
 
-    const totalDurationMs = today.getTime() - regDate.getTime();
-    const totalDurationDays = totalDurationMs > 0 ? Math.ceil(totalDurationMs / (1000 * 60 * 60 * 24)) : 1;
-
     const generateRangeData = (daysToLookBack: number): ChartDataPoint[] => {
         const dataPoints: ChartDataPoint[] = [];
         const rangeStartDate = new Date(today);
         rangeStartDate.setDate(today.getDate() - daysToLookBack + 1);
 
         const actualStartDate = regDate > rangeStartDate ? regDate : rangeStartDate;
+        
+        // Count total trading days in the period for interpolation
+        let tradingDaysCount = 0;
+        let tempDate = new Date(actualStartDate);
+        while(tempDate <= today) {
+            const dayOfWeek = tempDate.getDay();
+            const dateString = tempDate.toISOString().split('T')[0];
+            if (dayOfWeek !== 0 && dayOfWeek !== 6 && !holidays.has(dateString)) {
+                tradingDaysCount++;
+            }
+            tempDate.setDate(tempDate.getDate() + 1);
+        }
+        
+        if (tradingDaysCount === 0 && totalValue > 0) {
+            // Edge case: no trading days in the range (e.g., a long holiday weekend)
+            // Just show the current value.
+            return [{ date: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), value: totalValue }];
+        }
+        if (tradingDaysCount <= 1 && totalValue > 0) {
+            // If only one trading day, we need a start point to draw a line
+             return [
+                { date: actualStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), value: 0 },
+                { date: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), value: totalValue }
+             ];
+        }
 
+
+        let tradingDayIndex = 0;
         let currentDate = new Date(actualStartDate);
         while (currentDate <= today) {
             const dayOfWeek = currentDate.getDay();
@@ -116,11 +140,10 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
             const isHoliday = holidays.has(dateString);
 
             if (!isWeekend && !isHoliday) {
-                const elapsedMs = currentDate.getTime() - regDate.getTime();
-                const elapsedDays = Math.ceil(elapsedMs / (1000 * 60 * 60 * 24));
-                const progress = totalDurationDays > 0 ? Math.max(0, elapsedDays) / totalDurationDays : 0;
+                tradingDayIndex++;
+                const progress = tradingDaysCount > 1 ? (tradingDayIndex - 1) / (tradingDaysCount - 1) : 1;
                 const interpolatedValue = totalValue * progress;
-
+                
                 dataPoints.push({
                     date: currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
                     value: parseFloat(interpolatedValue.toFixed(2)),
@@ -129,22 +152,21 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
             currentDate.setDate(currentDate.getDate() + 1);
         }
 
-        // Ensure there is always a starting point if the range is before any trading day
-        if (dataPoints.length === 0 || new Date(dataPoints[0].date) > actualStartDate) {
-            dataPoints.unshift({
+        // Ensure there's a starting point if the first day was skipped
+        if (dataPoints.length > 0 && new Date(dataPoints[0].date).getTime() > actualStartDate.getTime()) {
+             dataPoints.unshift({
                 date: actualStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
                 value: 0
             });
         }
         
-         // If only one data point exists (e.g. today is the first trading day), add a start point.
-        if (dataPoints.length === 1) {
-            dataPoints.unshift({
-                date: new Date(dataPoints[0].date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                value: 0
-            });
+        // If empty after all that (e.g. brand new account on a weekend), create a simple two-point line
+        if (dataPoints.length === 0) {
+            dataPoints.push({ date: actualStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), value: 0});
+            if (today.getTime() > actualStartDate.getTime()) {
+                dataPoints.push({ date: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), value: totalValue });
+            }
         }
-
 
         return dataPoints;
     };
