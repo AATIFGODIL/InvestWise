@@ -217,8 +217,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (themeData.theme) useThemeStore.getState().setTheme(themeData.theme);
     if (typeof themeData.isClearMode === 'boolean') useThemeStore.getState().setClearMode(themeData.isClearMode);
     if (!user) return;
-    const userDocRef = doc(db, "users", user.uid);
-    await updateDoc(userDocRef, themeData);
+
+    // Create a clean object to send to Firestore, removing any undefined properties.
+    const updateData: { [key: string]: any } = {};
+    if (themeData.theme !== undefined) updateData.theme = themeData.theme;
+    if (themeData.isClearMode !== undefined) updateData.isClearMode = themeData.isClearMode;
+    if (themeData.primaryColor !== undefined) updateData.primaryColor = themeData.primaryColor;
+
+    // Only update if there's something to update.
+    if (Object.keys(updateData).length > 0) {
+      const userDocRef = doc(db, "users", user.uid);
+      await updateDoc(userDocRef, updateData);
+    }
   };
 
   const updatePrivacySettings = async (settings: Partial<Omit<PrivacyState, any>>) => {
