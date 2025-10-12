@@ -99,6 +99,11 @@ export async function handleStockNews(symbol: string): Promise<StockNewsResult> 
     if (!symbol) {
         return { success: false, error: "Stock symbol cannot be empty." };
     }
+    
+    // If the symbol is 'general', route it to the market news handler.
+    if (symbol.toLowerCase() === 'general') {
+        return handleMarketNews();
+    }
 
     try {
         const result = await fetchStockNews({ symbol });
