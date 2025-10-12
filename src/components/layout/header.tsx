@@ -357,11 +357,16 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             </div>
           </nav>
            {isEditing && (
-              <div className="mt-2 text-center text-xs font-semibold text-white">
+              <div
+                  className={cn(
+                      "mt-2 text-center text-xs font-semibold overflow-hidden",
+                      totalWeight > (isMobile ? 6 : 14) ? "shimmer-bg p-1 rounded-full" : ""
+                  )}
+              >
                   {totalWeight > (isMobile ? 6 : 14) 
-                      ?  <span className="shimmer-bg bg-clip-text text-transparent">
+                      ? <span className="text-white">
                           {`To fit on screen, please remove ${calculatedPillsToDelete > 0 ? `${calculatedPillsToDelete} pill${calculatedPillsToDelete > 1 ? 's' : ''}` : ''}${calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0 ? ' and ' : ''}${calculatedIconsToDelete > 0 ? `${calculatedIconsToDelete} icon${calculatedIconsToDelete > 1 ? 's' : ''}` : ''}`}
-                         </span>
+                        </span>
                       : ""
                   }
               </div>
