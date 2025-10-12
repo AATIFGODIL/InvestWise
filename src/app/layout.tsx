@@ -17,6 +17,7 @@ import useLoadingStore from '@/store/loading-store';
 import Header from '@/components/layout/header';
 import MoneyRain from '@/components/shared/money-rain';
 import { useBottomNavStore } from '@/store/bottom-nav-store';
+import RotateDevicePrompt from '@/components/shared/rotate-device-prompt';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -133,6 +134,7 @@ export default function RootLayout({
             </filter>
           </defs>
         </svg>
+        <RotateDevicePrompt />
         <ThemeProvider>
           <AuthProvider>
             <LayoutContent>{children}</LayoutContent>
