@@ -99,6 +99,7 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
     let currentDate = new Date(registrationDate);
     currentDate.setHours(0, 0, 0, 0);
 
+    // Find all valid trading days between registration and today
     const tradingDays: Date[] = [];
     while (currentDate <= today) {
         const dayOfWeek = currentDate.getDay();
@@ -108,49 +109,38 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
         }
         currentDate.setDate(currentDate.getDate() + 1);
     }
-
+    
+    // If there are trading days, generate chart data
     if (tradingDays.length > 0) {
-        const numDays = tradingDays.length;
-        let currentValue = 0;
-        const growthFactor = numDays > 1 ? Math.pow(totalValue, 1 / (numDays - 1)) : 1;
+        let previousValue = 0;
 
-        allTradingDaysData.push({
-            date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            value: 0.00,
-        });
-        
-        if (numDays === 1 && totalValue > 0) {
-             allTradingDaysData.push({
-                date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                value: totalValue,
-            });
-        } else {
-            for (let i = 1; i < numDays; i++) {
-                if (i === numDays - 1) {
-                    currentValue = totalValue;
-                } else {
-                    const idealValue = Math.pow(growthFactor, i);
-                    const noise = (Math.random() - 0.48) * (idealValue * 0.1); 
-                    currentValue = idealValue + noise;
-                }
-                allTradingDaysData.push({
-                    date: tradingDays[i].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                    value: Math.max(0, parseFloat(currentValue.toFixed(2))),
-                });
+        for (let i = 0; i < tradingDays.length; i++) {
+            let currentValue = 0;
+            if (i === tradingDays.length - 1) {
+                // The last point is always the current total value
+                currentValue = totalValue;
+            } else {
+                // Simulate a "random walk" for historical data
+                const changePercent = (Math.random() - 0.48) * 0.05; // Random change between approx -2.4% and +2.6%
+                const change = previousValue * changePercent;
+                currentValue = previousValue + change;
             }
+
+            allTradingDaysData.push({
+                date: tradingDays[i].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                value: Math.max(0, parseFloat(currentValue.toFixed(2))), // Ensure value is not negative
+            });
+            
+            previousValue = currentValue; // Set the base for the next day's calculation
         }
     }
     
-    const getRange = (days: number) => {
-        const data = allTradingDaysData.slice(-days);
-        if (data.length === 1) {
-             return [
-                { date: data[0].date, value: 0 },
-                { date: data[0].date, value: data[0].value }
-            ];
-        }
-        return data;
+    // If there's only one data point (e.g., first day of trading), create a flat line
+    if (allTradingDaysData.length === 1) {
+        allTradingDaysData.unshift({ date: allTradingDaysData[0].date, value: 0 });
     }
+
+    const getRange = (days: number) => allTradingDaysData.slice(-days);
 
     return {
         '1W': getRange(5),
