@@ -134,21 +134,23 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     router.push(href);
   };
 
-    const { displayedFavorites, totalWeight, hiddenFavoritesCount } = React.useMemo(() => {
+    const { displayedFavorites, totalWeight } = React.useMemo(() => {
         let weight = 0;
-        const allFavorites = favorites;
+        const visibleFavorites: Favorite[] = [];
+        
+        // Use a different limit for mobile vs desktop
+        const maxWeight = isMobile ? 6 : 14;
 
         if (isEditing) {
-            allFavorites.forEach(fav => {
+            favorites.forEach(fav => {
                 weight += fav.size === 'pill' ? 2 : 1;
             });
-            return { displayedFavorites: allFavorites, totalWeight: weight, hiddenFavoritesCount: 0 };
+            return { displayedFavorites: favorites, totalWeight: weight };
         }
 
-        const visibleFavorites: Favorite[] = [];
-        for (const fav of allFavorites) {
+        for (const fav of favorites) {
             const itemWeight = fav.size === 'pill' ? 2 : 1;
-            if (weight + itemWeight <= 6) {
+            if (weight + itemWeight <= maxWeight) {
                 weight += itemWeight;
                 visibleFavorites.push(fav);
             }
@@ -157,16 +159,16 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
         return {
             displayedFavorites: visibleFavorites,
             totalWeight: weight,
-            hiddenFavoritesCount: allFavorites.length - visibleFavorites.length,
         };
-    }, [favorites, isEditing]);
+    }, [favorites, isEditing, isMobile]);
   
   const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() => {
-      if (!isEditing || totalWeight <= 6) {
+      const maxWeight = isMobile ? 6 : 14;
+      if (!isEditing || totalWeight <= maxWeight) {
           return { calculatedPillsToDelete: 0, calculatedIconsToDelete: 0 };
       }
 
-      let excess = totalWeight - 6;
+      let excess = totalWeight - maxWeight;
       let pToDelete = 0;
       let iToDelete = 0;
 
@@ -184,7 +186,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
       }
       
       return { calculatedPillsToDelete: pToDelete, calculatedIconsToDelete: iToDelete };
-  }, [isEditing, totalWeight, displayedFavorites]);
+  }, [isEditing, totalWeight, displayedFavorites, isMobile]);
 
 
   const handleReorder = (newOrder: Favorite[]) => {
@@ -227,7 +229,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                         onPointerUp={handlePointerUp}
                         onPointerLeave={handlePointerUp}
                         className={cn(
-                            "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-colors min-w-[170px]",
+                            "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-colors min-w-[150px] sm:min-w-[170px]",
                             isClearMode
                                 ? isLightClear
                                     ? "bg-card/60 text-foreground ring-1 ring-white/20"
@@ -356,7 +358,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
           </nav>
            {isEditing && (
               <div className="mt-2 text-center text-xs font-semibold text-white">
-                  {totalWeight > 6 
+                  {totalWeight > (isMobile ? 6 : 14) 
                       ? `To fit on screen, please remove ${calculatedPillsToDelete > 0 ? `${calculatedPillsToDelete} pill${calculatedPillsToDelete > 1 ? 's' : ''}` : ''}${calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0 ? ' and ' : ''}${calculatedIconsToDelete > 0 ? `${calculatedIconsToDelete} icon${calculatedIconsToDelete > 1 ? 's' : ''}` : ''}`
                       : ""
                   }
