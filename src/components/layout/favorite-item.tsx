@@ -79,14 +79,20 @@ export default function FavoriteItem({ favorite, onClick, onRemove, variants, is
             animate={{ height, width }}
             transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         >
-             {isEditing && (
-                <button
-                    onClick={handleRemoveClick}
-                    className="absolute -top-1 -left-1 z-20 h-5 w-5 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/50"
-                >
-                    <Minus className="h-4 w-4 text-white" />
-                </button>
-            )}
+             <AnimatePresence>
+                {isEditing && (
+                    <motion.button
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.5 }}
+                        transition={{ duration: 0.2 }}
+                        onClick={handleRemoveClick}
+                        className="absolute -top-1 -left-1 z-20 h-5 w-5 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/50"
+                    >
+                        <Minus className="h-4 w-4 text-white" />
+                    </motion.button>
+                )}
+            </AnimatePresence>
             <AnimatePresence>
                 {isPill ? (
                     <motion.div
