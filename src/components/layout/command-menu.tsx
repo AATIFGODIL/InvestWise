@@ -258,15 +258,15 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
       removeFavorite(item.value);
       toast({ description: `${item.name} removed from favorites.` });
     } else {
-      const newFavorite: Omit<Favorite, 'id' | 'size'> = {
-        type: item.type,
-        name: item.name,
-        value: item.value,
-        iconName: item.icon ? (Object.entries(appIcons).find(([,Icon]) => Icon === item.icon)?.[0] || 'search') : item.value.charAt(0),
-        logoUrl: item.logoUrl,
-      }
-      addFavorite(newFavorite);
-      toast({ title: 'Favorite Added!', description: `${item.name} has been added to your favorites.` });
+        const newFavorite: Omit<Favorite, 'id' | 'size'> = {
+            type: item.type,
+            name: item.name,
+            value: item.value,
+            iconName: item.icon ? (Object.entries(appIcons).find(([,Icon]) => Icon === item.icon)?.[0] || 'search') : item.value.charAt(0),
+            ...(item.logoUrl && { logoUrl: item.logoUrl }), // Conditionally add logoUrl
+        };
+        addFavorite(newFavorite);
+        toast({ title: 'Favorite Added!', description: `${item.name} has been added to your favorites.` });
     }
   };
 
@@ -431,3 +431,5 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     </>
   );
 }
+
+    
