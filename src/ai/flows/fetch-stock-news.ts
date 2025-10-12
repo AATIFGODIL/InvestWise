@@ -88,10 +88,6 @@ const fetchStockNewsFlow = ai.defineFlow(
         return processNewsData(articles, generalNewsLimit);
       };
 
-      if (input.category === 'general') {
-        return await fetchGeneralNews();
-      } 
-      
       if (input.symbol) {
         const to = new Date();
         const from = new Date();
@@ -114,7 +110,7 @@ const fetchStockNewsFlow = ai.defineFlow(
         return processNewsData(companyArticles, companyNewsLimit);
 
       } else {
-        // If no symbol and no category is provided, default to general news
+        // If no symbol is provided (which includes category='general'), default to general news
         return await fetchGeneralNews();
       }
 
