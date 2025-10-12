@@ -356,19 +356,21 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 </DropdownMenu>
             </div>
           </nav>
-           {isEditing && (
+           {isEditing && totalWeight > (isMobile ? 6 : 14) && (
               <div
                   className={cn(
-                      "mt-2 text-center text-xs font-semibold overflow-hidden",
-                      totalWeight > (isMobile ? 6 : 14) ? "shimmer-bg p-1 rounded-full" : ""
+                      "mt-2 text-center text-xs font-semibold overflow-hidden p-2 rounded-full relative flex items-center justify-center h-10 w-auto mx-auto max-w-sm shimmer-bg",
+                      isClearMode
+                          ? isLightClear
+                              ? "bg-card/60 ring-1 ring-white/20"
+                              : "bg-white/10 ring-1 ring-white/60"
+                          : "bg-background ring-1 ring-border"
                   )}
+                  style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
               >
-                  {totalWeight > (isMobile ? 6 : 14) 
-                      ? <span className="text-white">
-                          {`To fit on screen, please remove ${calculatedPillsToDelete > 0 ? `${calculatedPillsToDelete} pill${calculatedPillsToDelete > 1 ? 's' : ''}` : ''}${calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0 ? ' and ' : ''}${calculatedIconsToDelete > 0 ? `${calculatedIconsToDelete} icon${calculatedIconsToDelete > 1 ? 's' : ''}` : ''}`}
-                        </span>
-                      : ""
-                  }
+                  <span className={cn(isClearMode && !isLightClear && "text-white")}>
+                      {`To fit, remove ${calculatedPillsToDelete > 0 ? `${calculatedPillsToDelete} pill${calculatedPillsToDelete > 1 ? 's' : ''}` : ''}${calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0 ? ' & ' : ''}${calculatedIconsToDelete > 0 ? `${calculatedIconsToDelete} icon${calculatedIconsToDelete > 1 ? 's' : ''}` : ''}`}
+                  </span>
               </div>
           )}
         </div>
