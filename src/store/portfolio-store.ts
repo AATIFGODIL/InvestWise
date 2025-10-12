@@ -96,51 +96,47 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
     today.setHours(0, 0, 0, 0);
     registrationDate.setHours(0, 0, 0, 0);
 
-    const totalDuration = Math.max(1, (today.getTime() - registrationDate.getTime()) / (1000 * 3600 * 24));
-
-    // If the user just signed up, show a simple dot at the current value.
-    if (totalDuration < 1) {
-        const dateLabel = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-        const singlePoint = [{ date: dateLabel, value: totalValue }];
-        return { '1W': singlePoint, '1M': singlePoint, '6M': singlePoint, '1Y': singlePoint };
-    }
-
     const generateRangeData = (daysToLookBack: number): ChartDataPoint[] => {
         const rangeStartDate = new Date(today);
         rangeStartDate.setDate(today.getDate() - daysToLookBack + 1);
 
         const actualStartDate = registrationDate > rangeStartDate ? registrationDate : rangeStartDate;
 
-        const dataPoints: ChartDataPoint[] = [];
+        const tradingDays: Date[] = [];
         let currentDate = new Date(actualStartDate);
-
-        // Add a point for the registration date if it's within the window but not the first day
-        if (registrationDate >= rangeStartDate && registrationDate.getTime() !== actualStartDate.getTime()) {
-             dataPoints.push({
-                date: registrationDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                value: 0,
-            });
-        }
-        
         while (currentDate <= today) {
-            const daysSinceRegistration = (currentDate.getTime() - registrationDate.getTime()) / (1000 * 3600 * 24);
-            const progress = Math.max(0, daysSinceRegistration / totalDuration);
-            const interpolatedValue = totalValue * progress;
-            
-            dataPoints.push({
-                date: currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                value: parseFloat(interpolatedValue.toFixed(2)),
-            });
+            const dayOfWeek = currentDate.getDay();
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            const dateString = currentDate.toISOString().split('T')[0];
+            const isHoliday = holidays.has(dateString);
+
+            if (!isWeekend && !isHoliday) {
+                tradingDays.push(new Date(currentDate));
+            }
             currentDate.setDate(currentDate.getDate() + 1);
         }
-        
-        // Ensure the first point is 0 if the registration date is the start of the chart
-        if (dataPoints.length > 0 && registrationDate.getTime() === actualStartDate.getTime()) {
-            dataPoints[0].value = 0;
+
+        if (tradingDays.length === 0) {
+            return [{ date: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), value: totalValue }];
         }
 
-        return dataPoints;
-    }
+        const totalTradingDaysSinceRegistration = tradingDays.filter(d => d >= registrationDate).length;
+
+        if (totalTradingDaysSinceRegistration <= 1) {
+            return [{ date: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), value: totalValue }];
+        }
+
+        return tradingDays.map((tradeDate, index) => {
+            const daysIntoTrading = index + 1;
+            const progress = daysIntoTrading / totalTradingDaysSinceRegistration;
+            const interpolatedValue = totalValue * progress;
+
+            return {
+                date: tradeDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                value: parseFloat(interpolatedValue.toFixed(2)),
+            };
+        });
+    };
 
     const dayMap: { [key: string]: number } = { '1W': 7, '1M': 30, '6M': 180, '1Y': 365 };
 
