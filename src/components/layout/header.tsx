@@ -357,22 +357,23 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             </div>
           </nav>
            {isEditing && totalWeight > (isMobile ? 6 : 14) && (
-              <div
-                  className={cn(
-                      "mt-2 text-center text-xs font-semibold overflow-hidden p-2 rounded-full relative flex items-center justify-center h-10 w-auto mx-auto max-w-sm shimmer-bg",
-                      isClearMode
-                          ? isLightClear
-                              ? "bg-card/60 ring-1 ring-white/20"
-                              : "bg-white/10 ring-1 ring-white/60"
-                          : "bg-background ring-1 ring-border"
-                  )}
-                  style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
-              >
-                  <span className={cn(isClearMode && !isLightClear && "text-white")}>
-                      {`To fit, remove ${calculatedPillsToDelete > 0 ? `${calculatedPillsToDelete} pill${calculatedPillsToDelete > 1 ? 's' : ''}` : ''}${calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0 ? ' & ' : ''}${calculatedIconsToDelete > 0 ? `${calculatedIconsToDelete} icon${calculatedIconsToDelete > 1 ? 's' : ''}` : ''}`}
-                  </span>
-              </div>
-          )}
+                <div
+                    className={cn(
+                        "mt-2 text-center text-xs font-semibold overflow-hidden p-2 rounded-full relative shimmer-bg",
+                        "mx-auto max-w-xs px-4",
+                        isClearMode
+                            ? isLightClear
+                                ? "bg-card/60 ring-1 ring-white/20 text-foreground"
+                                : "bg-white/10 ring-1 ring-white/60 text-white"
+                            : "bg-background ring-1 ring-border text-foreground"
+                    )}
+                    style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
+                >
+                    <span>
+                        {`To fit, remove ${calculatedPillsToDelete > 0 ? `${calculatedPillsToDelete} pill${calculatedPillsToDelete > 1 ? 's' : ''}` : ''}${calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0 ? ' & ' : ''}${calculatedIconsToDelete > 0 ? `${calculatedIconsToDelete} icon${calculatedIconsToDelete > 1 ? 's' : ''}` : ''}`}
+                    </span>
+                </div>
+            )}
         </div>
       </header>
       <CommandMenu 
