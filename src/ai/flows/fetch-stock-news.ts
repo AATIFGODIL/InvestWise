@@ -23,7 +23,6 @@ const ArticleSchema = z.object({
 
 const StockNewsInputSchema = z.object({
   symbol: z.string().optional().describe("The stock ticker symbol, e.g., 'AAPL' for Apple."),
-  category: z.string().optional().describe("The news category, e.g., 'general' for market news."),
 });
 
 const StockNewsOutputSchema = z.object({
@@ -35,7 +34,7 @@ export type StockNewsOutput = z.infer<typeof StockNewsOutputSchema>;
 
 /**
  * Fetches recent news. If a symbol is provided and has no news, it fetches general market news.
- * @param input An object containing the stock symbol or a category.
+ * @param input An object containing the stock symbol.
  * @returns A promise that resolves to a list of articles or null if an error occurs.
  */
 export async function fetchStockNews(input: StockNewsInput): Promise<StockNewsOutput | null> {
@@ -110,7 +109,7 @@ const fetchStockNewsFlow = ai.defineFlow(
 
         return processNewsData(companyArticles, companyNewsLimit);
       } else {
-        // If no symbol is provided (which includes category='general'), default to general news
+        // If no symbol is provided, fetch general news directly.
         return await fetchGeneralNews();
       }
 

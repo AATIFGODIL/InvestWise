@@ -126,7 +126,8 @@ export async function handleStockNews(symbol: string): Promise<StockNewsResult> 
  */
 export async function handleMarketNews(): Promise<StockNewsResult> {
     try {
-        const result = await fetchStockNews({ category: 'general' });
+        // Pass an empty object to fetch general news
+        const result = await fetchStockNews({});
         if (!result) {
              return { success: false, error: "Could not fetch market news at this time. Please try again later." };
         }
