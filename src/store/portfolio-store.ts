@@ -99,58 +99,58 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
     let currentDate = new Date(registrationDate);
     currentDate.setHours(0, 0, 0, 0);
 
-    // 1. Create a list of all valid trading days from registration until today
     const tradingDays: Date[] = [];
     while (currentDate <= today) {
         const dayOfWeek = currentDate.getDay();
-        const dateString = currentDate.toISOString().split('T')[0]; // "YYYY-MM-DD"
-        
+        const dateString = currentDate.toISOString().split('T')[0];
         if (dayOfWeek > 0 && dayOfWeek < 6 && !holidays.has(dateString)) {
             tradingDays.push(new Date(currentDate));
         }
         currentDate.setDate(currentDate.getDate() + 1);
     }
-    
-    // 2. Generate the data points based on the list of trading days
+
     if (tradingDays.length > 0) {
         const numDays = tradingDays.length;
         let currentValue = 0;
+        const growthFactor = numDays > 1 ? Math.pow(totalValue, 1 / (numDays - 1)) : 1;
 
-        // The first data point is always the first trading day with value 0
         allTradingDaysData.push({
             date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
             value: 0.00,
         });
-
-        // If there is more than one trading day, simulate growth
-        if (numDays > 1) {
-            const increment = totalValue / (numDays - 1);
-
+        
+        if (numDays === 1 && totalValue > 0) {
+             allTradingDaysData.push({
+                date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                value: totalValue,
+            });
+        } else {
             for (let i = 1; i < numDays; i++) {
                 if (i === numDays - 1) {
                     currentValue = totalValue;
                 } else {
-                    const noise = (Math.random() - 0.45) * increment * 0.6;
-                    currentValue += increment + noise;
+                    const idealValue = Math.pow(growthFactor, i);
+                    const noise = (Math.random() - 0.48) * (idealValue * 0.1); 
+                    currentValue = idealValue + noise;
                 }
-
                 allTradingDaysData.push({
                     date: tradingDays[i].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
                     value: Math.max(0, parseFloat(currentValue.toFixed(2))),
                 });
             }
         }
-        // If there's only one trading day but the user has value (e.g., from a deposit),
-        // add a second point for the same day to show the value.
-        else if (numDays === 1 && totalValue > 0) {
-             allTradingDaysData.push({
-                date: tradingDays[0].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                value: totalValue,
-            });
-        }
     }
-
-    const getRange = (days: number) => allTradingDaysData.slice(-days);
+    
+    const getRange = (days: number) => {
+        const data = allTradingDaysData.slice(-days);
+        if (data.length === 1) {
+             return [
+                { date: data[0].date, value: 0 },
+                { date: data[0].date, value: data[0].value }
+            ];
+        }
+        return data;
+    }
 
     return {
         '1W': getRange(5),
