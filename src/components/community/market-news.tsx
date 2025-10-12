@@ -131,16 +131,14 @@ export default function MarketNews({ limit }: MarketNewsProps) {
             {articlesToDisplay?.map((article) => (
                 <Link key={article.headline} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                     <div className="flex flex-col sm:flex-row gap-4">
-                        {article.image && (
-                            <div className="relative w-full sm:w-32 h-32 sm:h-auto flex-shrink-0">
-                                <Image
-                                    src={article.image}
-                                    alt={article.headline}
-                                    fill
-                                    className="rounded-md object-cover"
-                                />
-                            </div>
-                        )}
+                        <div className="relative w-full sm:w-32 h-32 sm:h-auto flex-shrink-0">
+                            <Image
+                                src={article.image || "https://placehold.co/600x400/27272a/FFF?text=News"}
+                                alt={article.headline}
+                                fill
+                                className="rounded-md object-cover"
+                            />
+                        </div>
                         <div className="flex-grow">
                              <p className="font-semibold text-md leading-tight">{article.headline}</p>
                              <p className="text-xs text-muted-foreground mt-1">{article.source}</p>
