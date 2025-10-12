@@ -94,13 +94,16 @@ const fetchHolidaysFromFinnhub = async (): Promise<Set<string>> => {
 const generateChartData = (totalValue: number, registrationDate: Date, holidays: Set<string>): ChartData => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    registrationDate.setHours(0, 0, 0, 0);
+
+    // Make a copy of the registration date to avoid modifying the original
+    const regDate = new Date(registrationDate);
+    regDate.setHours(0, 0, 0, 0);
 
     const generateRangeData = (daysToLookBack: number): ChartDataPoint[] => {
         const rangeStartDate = new Date(today);
         rangeStartDate.setDate(today.getDate() - daysToLookBack + 1);
 
-        const actualStartDate = registrationDate > rangeStartDate ? registrationDate : rangeStartDate;
+        const actualStartDate = regDate > rangeStartDate ? regDate : rangeStartDate;
 
         const tradingDays: Date[] = [];
         let currentDate = new Date(actualStartDate);
@@ -121,7 +124,7 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
         if (tradingDays.length <= 1) {
             const chartPoints = [
                 {
-                    date: registrationDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                    date: regDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
                     value: 0
                 },
                 {
@@ -136,7 +139,7 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
             return chartPoints;
         }
 
-        const totalTradingDaysSinceRegistration = tradingDays.filter(d => d >= registrationDate).length;
+        const totalTradingDaysSinceRegistration = tradingDays.filter(d => d >= regDate).length;
         
         return tradingDays.map((tradeDate, index) => {
             const daysIntoTrading = index + 1;
