@@ -45,6 +45,7 @@ interface PortfolioState {
     chartData: ChartData;
     marketHolidays: Set<string>;
     isLoading: boolean;
+    registrationDate: Date | null; // Add this
     fetchMarketHolidays: () => Promise<void>;
     updateLivePrices: () => Promise<void>;
     executeTrade: (trade: { symbol: string, qty: number, price: number, description: string }) => { success: boolean, error?: string };
@@ -187,6 +188,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
   marketHolidays: new Set(),
   chartData: { ...defaultChartData },
   isLoading: true,
+  registrationDate: null,
   
   fetchMarketHolidays: async () => {
     // Only fetch if not already fetched
@@ -227,10 +229,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
         const newSummary = calculatePortfolioSummary(updatedHoldings);
 
         set(state => {
-             // We need the registration date to regenerate the chart correctly.
-            // This is a limitation, but for now we'll update summary and holdings.
-            // The chart will be based on the new total value but won't reflect historical accuracy of this specific price update.
-            const registrationDate = new Date(); // This is a fallback.
+            const registrationDate = state.registrationDate || new Date(); 
             const newChartData = generateChartData(newSummary.totalValue, registrationDate, state.marketHolidays);
 
             return {
@@ -259,6 +258,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
       holdings: holdings,
       portfolioSummary: initialSummary,
       chartData: initialChartData,
+      registrationDate: registrationDate, // Store the date
       isLoading: false, // Set loading to false after initial data is set
     });
 
@@ -273,6 +273,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
       holdings: [],
       portfolioSummary: { ...defaultSummary },
       chartData: { ...defaultChartData },
+      registrationDate: null,
       isLoading: true, // Set to true on reset, will be false after new user data is loaded
     });
   },
@@ -348,7 +349,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
     useTransactionStore.getState().addTransaction(newTransaction);
 
     set(state => {
-        const registrationDate = new Date(); 
+        const registrationDate = state.registrationDate || new Date(); 
         const newChartData = generateChartData(newSummary.totalValue, registrationDate, state.marketHolidays);
 
         return {
