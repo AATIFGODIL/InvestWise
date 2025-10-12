@@ -135,12 +135,14 @@ export default function RootLayout({
           </defs>
         </svg>
         <RotateDevicePrompt />
-        <ThemeProvider>
-          <AuthProvider>
-            <LayoutContent>{children}</LayoutContent>
-          </AuthProvider>
-          <Toaster />
-        </ThemeProvider>
+        <div id="root-container">
+          <ThemeProvider>
+            <AuthProvider>
+              <LayoutContent>{children}</LayoutContent>
+            </AuthProvider>
+            <Toaster />
+          </ThemeProvider>
+        </div>
       </body>
     </html>
   );

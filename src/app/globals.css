@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -139,21 +138,11 @@
 
   @media (max-width: 767px) and (orientation: portrait) {
     #rotate-prompt {
-      position: fixed;
-      inset: 0;
-      z-index: 10000;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background-color: #020817; /* Same as dark background */
-      color: #FFFFFF;
-      text-align: center;
-      padding: 1rem;
     }
 
-    .rotate-phone-icon {
-      animation: rotate-animation 1.5s infinite;
+    body > #root-container {
+      display: none;
     }
   }
 
