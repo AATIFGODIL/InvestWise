@@ -75,19 +75,19 @@ const fetchStockNewsFlow = ai.defineFlow(
       return null;
     }
 
+    const generalNewsLimit = 10;
+    const companyNewsLimit = 5;
+
+    // Function to fetch general news
+    const fetchGeneralNews = async () => {
+      const url = `https://finnhub.io/api/v1/news?category=general&token=${API_KEY}`;
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Finnhub API request for general news failed with status ${response.status}`);
+      const articles = await response.json();
+      return processNewsData(articles, generalNewsLimit);
+    };
+
     try {
-      const generalNewsLimit = 10;
-      const companyNewsLimit = 5;
-
-      // Function to fetch general news
-      const fetchGeneralNews = async () => {
-        const url = `https://finnhub.io/api/v1/news?category=general&token=${API_KEY}`;
-        const response = await fetch(url);
-        if (!response.ok) throw new Error(`Finnhub API request failed with status ${response.status}`);
-        const articles = await response.json();
-        return processNewsData(articles, generalNewsLimit);
-      };
-
       if (input.symbol) {
         const to = new Date();
         const from = new Date();
@@ -98,17 +98,17 @@ const fetchStockNewsFlow = ai.defineFlow(
         // Fetch company-specific news
         const companyNewsUrl = `https://finnhub.io/api/v1/company-news?symbol=${input.symbol}&from=${fromDateStr}&to=${toDateStr}&token=${API_KEY}`;
         const companyResponse = await fetch(companyNewsUrl);
-        if (!companyResponse.ok) throw new Error(`Finnhub API request failed with status ${companyResponse.status}`);
+        if (!companyResponse.ok) throw new Error(`Finnhub API request for company news failed with status ${companyResponse.status}`);
         
         const companyArticles = await companyResponse.json();
 
         // If no company articles are found, fall back to general news
         if (companyArticles.length === 0) {
+            console.log(`No news found for ${input.symbol}, falling back to general news.`);
             return await fetchGeneralNews();
         }
 
         return processNewsData(companyArticles, companyNewsLimit);
-
       } else {
         // If no symbol is provided (which includes category='general'), default to general news
         return await fetchGeneralNews();
