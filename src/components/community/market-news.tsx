@@ -2,8 +2,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { handleMarketNews } from "@/app/actions";
-import type { StockNewsOutput } from "@/ai/flows/fetch-stock-news";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Newspaper, Loader2, AlertCircle } from "lucide-react";
@@ -12,38 +10,96 @@ import Image from "next/image";
 import { useThemeStore } from "@/store/theme-store";
 import { cn } from "@/lib/utils";
 
+const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY;
+
+export interface Article {
+  headline: string;
+  source: string;
+  url: string;
+  summary?: string;
+  image?: string;
+  datetime: number;
+}
+
+export async function fetchNewsOnClient(symbol?: string): Promise<Article[]> {
+  if (!API_KEY) {
+    throw new Error('Finnhub API key not configured.');
+  }
+
+  const companyNewsLimit = 5;
+  const generalNewsLimit = 15;
+
+  const fetchGeneralNews = async () => {
+    const categories = ['general', 'forex', 'crypto'];
+    const requests = categories.map(category => 
+      fetch(`https://finnhub.io/api/v1/news?category=${'${category}'}&token=${API_KEY}`)
+        .then(res => res.json())
+    );
+    const nestedArticles = await Promise.all(requests);
+    return nestedArticles.flat();
+  };
+  
+  let rawArticles = [];
+
+  if (symbol) {
+    const to = new Date();
+    const from = new Date();
+    from.setDate(to.getDate() - 30);
+    const fromDateStr = from.toLocaleDateString('sv-SE');
+    const toDateStr = to.toLocaleDateString('sv-SE');
+
+    const url = `https://finnhub.io/api/v1/company-news?symbol=${symbol}&from=${fromDateStr}&to=${toDateStr}&token=${API_KEY}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch company news');
+    
+    const companyArticles = await response.json();
+
+    if (companyArticles.length > 0) {
+      rawArticles = companyArticles.slice(0, companyNewsLimit);
+    } else {
+      rawArticles = await fetchGeneralNews();
+    }
+  } else {
+    rawArticles = await fetchGeneralNews();
+  }
+
+  const uniqueArticles = Array.from(new Map(rawArticles.map(item => [item.url, item])).values());
+  const sortedArticles = uniqueArticles.sort((a, b) => b.datetime - a.datetime);
+  
+  return sortedArticles.slice(0, symbol ? companyNewsLimit : generalNewsLimit);
+}
+
+
 interface MarketNewsProps {
   limit?: number;
 }
 
 export default function MarketNews({ limit }: MarketNewsProps) {
-  const [news, setNews] = useState<StockNewsOutput | null>(null);
+  const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isClearMode, theme } = useThemeStore();
   const isLightClear = isClearMode && theme === 'light';
 
   useEffect(() => {
-    async function fetchNews() {
-      setIsLoading(true);
-      setError(null);
+    async function getNews() {
       try {
-        const result = await handleMarketNews();
-        if (result.success && result.news) {
-          setNews(result.news);
-        } else {
-          setError(result.error || "An unknown error occurred.");
-        }
-      } catch (e: any) {
-        setError(e.message || "Failed to fetch market news.");
+        setIsLoading(true);
+        setError(null);
+        const fetchedArticles = await fetchNewsOnClient();
+        setArticles(fetchedArticles);
+      } catch (err) {
+        setError('Could not fetch news. Please try again later.');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    }
+    };
 
-    fetchNews();
+    getNews();
   }, []);
 
-  const articlesToDisplay = limit ? news?.articles.slice(0, limit) : news?.articles;
+  const articlesToDisplay = limit ? articles.slice(0, limit) : articles;
 
   return (
     <Card>
@@ -96,7 +152,7 @@ export default function MarketNews({ limit }: MarketNewsProps) {
           </div>
         )}
       </CardContent>
-      {limit && (news?.articles.length ?? 0) > limit && (
+      {limit && (articles.length ?? 0) > limit && (
         <CardFooter>
           <Button asChild variant="outline" className={cn(
                   "w-full ring-1 ring-white/60",
