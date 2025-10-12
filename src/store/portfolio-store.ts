@@ -92,61 +92,63 @@ const fetchHolidaysFromFinnhub = async (): Promise<Set<string>> => {
 };
 
 const generateChartData = (totalValue: number, registrationDate: Date, holidays: Set<string>): ChartData => {
-    const allTradingDaysData: ChartDataPoint[] = [];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    let currentDate = new Date(registrationDate);
-    currentDate.setHours(0, 0, 0, 0);
-
-    // Find all valid trading days between registration and today
-    const tradingDays: Date[] = [];
-    while (currentDate <= today) {
-        const dayOfWeek = currentDate.getDay();
-        const dateString = currentDate.toISOString().split('T')[0];
-        if (dayOfWeek > 0 && dayOfWeek < 6 && !holidays.has(dateString)) {
-            tradingDays.push(new Date(currentDate));
-        }
-        currentDate.setDate(currentDate.getDate() + 1);
-    }
-    
-    // If there are trading days, generate chart data
-    if (tradingDays.length > 0) {
-        let previousValue = 0;
-
-        for (let i = 0; i < tradingDays.length; i++) {
-            let currentValue = 0;
-            if (i === tradingDays.length - 1) {
-                // The last point is always the current total value
-                currentValue = totalValue;
-            } else {
-                // Simulate a "random walk" for historical data
-                const changePercent = (Math.random() - 0.48) * 0.05; // Random change between approx -2.4% and +2.6%
-                const change = previousValue * changePercent;
-                currentValue = previousValue + change;
+    const getTradingDaysInRange = (startDate: Date, endDate: Date): Date[] => {
+        const days: Date[] = [];
+        let currentDate = new Date(startDate);
+        while (currentDate <= endDate) {
+            const dayOfWeek = currentDate.getDay();
+            const dateString = currentDate.toISOString().split('T')[0];
+            if (dayOfWeek > 0 && dayOfWeek < 6 && !holidays.has(dateString)) {
+                days.push(new Date(currentDate));
             }
-
-            allTradingDaysData.push({
-                date: tradingDays[i].toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                value: Math.max(0, parseFloat(currentValue.toFixed(2))), // Ensure value is not negative
-            });
-            
-            previousValue = currentValue; // Set the base for the next day's calculation
+            currentDate.setDate(currentDate.getDate() + 1);
         }
-    }
+        return days;
+    };
+
+    const allTradingDaysSinceRegistration = getTradingDaysInRange(registrationDate, today);
+    const totalTradingDays = allTradingDaysSinceRegistration.length;
     
-    // If there's only one data point (e.g., first day of trading), create a flat line
-    if (allTradingDaysData.length === 1) {
-        allTradingDaysData.unshift({ date: allTradingDaysData[0].date, value: 0 });
+    if (totalTradingDays <= 1) {
+        // Not enough data for a line, show a flat line from 0 to current value
+        const dateLabel = today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const flatLine = [
+            { date: dateLabel, value: 0 },
+            { date: dateLabel, value: totalValue },
+        ];
+        return { '1W': flatLine, '1M': flatLine, '6M': flatLine, '1Y': flatLine };
     }
 
-    const getRange = (days: number) => allTradingDaysData.slice(-days);
+    const generateRangeData = (daysToLookBack: number): ChartDataPoint[] => {
+        const rangeStartDate = new Date(today);
+        rangeStartDate.setDate(today.getDate() - (daysToLookBack * 1.5)); // Look back a bit more to ensure we get enough trading days
+
+        const tradingDaysInRange = getTradingDaysInRange(rangeStartDate, today).slice(-daysToLookBack);
+        if (tradingDaysInRange.length === 0) return [];
+        
+        return tradingDaysInRange.map(day => {
+            const daysSinceRegistration = (day.getTime() - registrationDate.getTime()) / (1000 * 3600 * 24);
+            const allDaysSinceRegistrationTotal = (today.getTime() - registrationDate.getTime()) / (1000 * 3600 * 24);
+            
+            const progress = allDaysSinceRegistrationTotal > 0 ? daysSinceRegistration / allDaysSinceRegistrationTotal : 1;
+            
+            const interpolatedValue = totalValue * progress;
+            
+            return {
+                date: day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                value: parseFloat(interpolatedValue.toFixed(2)),
+            };
+        });
+    }
 
     return {
-        '1W': getRange(5),
-        '1M': getRange(22),
-        '6M': getRange(126),
-        '1Y': getRange(252),
+        '1W': generateRangeData(5),
+        '1M': generateRangeData(22),
+        '6M': generateRangeData(126),
+        '1Y': generateRangeData(252),
     };
 };
 
