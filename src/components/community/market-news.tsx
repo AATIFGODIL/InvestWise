@@ -133,7 +133,7 @@ export default function MarketNews({ limit }: MarketNewsProps) {
                     <div className="flex flex-col sm:flex-row gap-4">
                         <div className="relative w-full sm:w-32 h-32 sm:h-auto flex-shrink-0">
                             <Image
-                                src={article.image || "https://placehold.co/600x400/27272a/FFF?text=News"}
+                                src={article.image || "https://placehold.co/600x400/27272a/FFF"}
                                 alt={article.headline}
                                 fill
                                 className="rounded-md object-cover"
