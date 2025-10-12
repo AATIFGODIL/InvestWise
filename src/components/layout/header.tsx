@@ -360,7 +360,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 <div
                     className={cn(
                         "mt-2 text-center text-xs font-semibold overflow-hidden p-2 rounded-full relative shimmer-bg",
-                        "mx-auto max-w-xs px-4",
+                        "mx-auto max-w-[10rem] px-4",
                         isClearMode
                             ? isLightClear
                                 ? "bg-card/60 ring-1 ring-white/20 text-foreground"
