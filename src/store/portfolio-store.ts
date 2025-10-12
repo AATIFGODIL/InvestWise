@@ -116,19 +116,34 @@ const generateChartData = (totalValue: number, registrationDate: Date, holidays:
             currentDate.setDate(currentDate.getDate() + 1);
         }
 
-        if (tradingDays.length === 0) {
-            return [{ date: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), value: totalValue }];
+        // If no trading days are found (e.g., registered on a weekend),
+        // create a simple two-point line from registration to today.
+        if (tradingDays.length <= 1) {
+            const chartPoints = [
+                {
+                    date: registrationDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                    value: 0
+                },
+                {
+                    date: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                    value: totalValue
+                }
+            ];
+            // If the dates are the same, just show one point
+            if (chartPoints[0].date === chartPoints[1].date) {
+                return [chartPoints[1]];
+            }
+            return chartPoints;
         }
 
         const totalTradingDaysSinceRegistration = tradingDays.filter(d => d >= registrationDate).length;
-
-        if (totalTradingDaysSinceRegistration <= 1) {
-            return [{ date: today.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), value: totalValue }];
-        }
-
+        
         return tradingDays.map((tradeDate, index) => {
             const daysIntoTrading = index + 1;
-            const progress = daysIntoTrading / totalTradingDaysSinceRegistration;
+            const progress = totalTradingDaysSinceRegistration > 0
+                ? daysIntoTrading / totalTradingDaysSinceRegistration
+                : 1;
+
             const interpolatedValue = totalValue * progress;
 
             return {
