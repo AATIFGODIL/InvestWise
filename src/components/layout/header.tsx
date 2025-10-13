@@ -134,77 +134,82 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     router.push(href);
   };
 
-    const { displayedFavorites, totalWeight } = React.useMemo(() => {
-        const pills = favorites.filter(f => f.size === 'pill');
-        const icons = favorites.filter(f => f.size === 'icon');
+  const { displayedFavorites, totalWeight } = React.useMemo(() => {
+    const pills = favorites.filter(f => f.size === 'pill');
+    const icons = favorites.filter(f => f.size === 'icon');
 
-        if (isEditing) {
-            const weight = favorites.reduce((acc, fav) => acc + (fav.size === 'pill' ? 2 : 1), 0);
-            return { displayedFavorites: favorites, totalWeight: weight };
-        }
-        
-        const maxWeight = isMobile ? 6 : 14;
-
-        // Special case: 6 or more pills and on desktop, show 6 pills and 1 icon
-        if (!isMobile && pills.length >= 6) {
-            const visiblePills = pills.slice(0, 6);
-            const visibleIcons = icons.slice(0, 1);
-            return {
-                displayedFavorites: [...visiblePills, ...visibleIcons],
-                totalWeight: (6 * 2) + 1,
-            };
-        }
-        
-        // General case: fill up to maxWeight
-        let weight = 0;
-        const visibleFavorites: Favorite[] = [];
-        for (const fav of favorites) {
-            const itemWeight = fav.size === 'pill' ? 2 : 1;
-            if (weight + itemWeight <= maxWeight) {
-                weight += itemWeight;
-                visibleFavorites.push(fav);
-            }
-        }
-        
+    if (isEditing) {
+        const weight = favorites.reduce((acc, fav) => acc + (fav.size === 'pill' ? 2 : 1), 0);
+        return { displayedFavorites: favorites, totalWeight: weight };
+    }
+    
+    // Special case: 6 or more pills and on desktop, show 6 pills and 1 icon
+    if (!isMobile && pills.length >= 6) {
+        const visiblePills = pills.slice(0, 6);
+        const visibleIcons = icons.slice(0, 1);
         return {
-            displayedFavorites: visibleFavorites,
-            totalWeight: weight,
+            displayedFavorites: [...visiblePills, ...visibleIcons],
+            totalWeight: (6 * 2) + 1,
         };
-    }, [favorites, isEditing, isMobile]);
-  
-  const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() => {
+    }
+    
     const maxWeight = isMobile ? 6 : 14;
-    if (!isEditing || totalWeight <= maxWeight) {
+    
+    // General case: fill up to maxWeight
+    let weight = 0;
+    const visibleFavorites: Favorite[] = [];
+    for (const fav of favorites) {
+        const itemWeight = fav.size === 'pill' ? 2 : 1;
+        if (weight + itemWeight <= maxWeight) {
+            weight += itemWeight;
+            visibleFavorites.push(fav);
+        }
+    }
+    
+    return {
+        displayedFavorites: visibleFavorites,
+        totalWeight: weight,
+    };
+}, [favorites, isEditing, isMobile]);
+
+const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() => {
+    if (!isEditing) {
         return { calculatedPillsToDelete: 0, calculatedIconsToDelete: 0 };
     }
 
     const pills = favorites.filter(f => f.size === 'pill');
     const icons = favorites.filter(f => f.size === 'icon');
+    const currentWeight = pills.length * 2 + icons.length;
+    const maxWeight = isMobile ? 6 : 14;
 
-    // Case 1: More than 6 pills on desktop
+    // Case 1: More than 6 pills on desktop (specific rule)
     if (!isMobile && pills.length > 6) {
         const pToDelete = pills.length - 6;
         const iToDelete = icons.length > 1 ? icons.length - 1 : 0;
         return { calculatedPillsToDelete: pToDelete, calculatedIconsToDelete: iToDelete };
     }
 
-    // Case 2: General overflow
-    let excess = totalWeight - maxWeight;
-    let pToDelete = 0;
-    let iToDelete = 0;
+    // Case 2: General overflow based on weight
+    if (currentWeight > maxWeight) {
+        let excess = currentWeight - maxWeight;
+        let pToDelete = 0;
+        let iToDelete = 0;
 
-    // Greedily suggest removing icons first (as they are smaller)
-    const removableIcons = Math.min(excess, icons.length);
-    iToDelete = removableIcons;
-    excess -= removableIcons;
+        // Suggest removing icons first
+        const removableIcons = Math.min(excess, icons.length);
+        iToDelete = removableIcons;
+        excess -= removableIcons;
 
-    // Then suggest removing pills
-    if (excess > 0) {
-        pToDelete = Math.ceil(excess / 2);
+        // Then suggest removing pills
+        if (excess > 0) {
+            pToDelete = Math.ceil(excess / 2);
+        }
+        
+        return { calculatedPillsToDelete: pToDelete, calculatedIconsToDelete: iToDelete };
     }
-      
-    return { calculatedPillsToDelete: pToDelete, calculatedIconsToDelete: iToDelete };
-  }, [isEditing, totalWeight, favorites, isMobile]);
+
+    return { calculatedPillsToDelete: 0, calculatedIconsToDelete: 0 };
+}, [isEditing, favorites, isMobile]);
 
 
   const handleReorder = (newOrder: Favorite[]) => {
@@ -376,7 +381,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                 </DropdownMenu>
             </div>
           </nav>
-           {isEditing && totalWeight > (isMobile ? 6 : 14) && (
+           {(calculatedPillsToDelete > 0 || calculatedIconsToDelete > 0) && (
                 <div
                     className={cn(
                         "mt-2 text-center text-xs font-semibold overflow-hidden p-2 rounded-full relative",
