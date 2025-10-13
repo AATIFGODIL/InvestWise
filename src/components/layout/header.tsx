@@ -173,13 +173,13 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
 }, [favorites, isEditing, isMobile]);
 
 const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() => {
+    const pills = favorites.filter(f => f.size === 'pill');
+    const icons = favorites.filter(f => f.size === 'icon');
+
     if (!isEditing) {
         return { calculatedPillsToDelete: 0, calculatedIconsToDelete: 0 };
     }
 
-    const pills = favorites.filter(f => f.size === 'pill');
-    const icons = favorites.filter(f => f.size === 'icon');
-    
     // Case 1: More than 6 pills on desktop (specific rule)
     if (!isMobile && pills.length >= 7) {
         const pToDelete = pills.length - 6;
@@ -385,7 +385,7 @@ const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() =>
            {(calculatedPillsToDelete > 0 || calculatedIconsToDelete > 0) && (
                 <div
                     className={cn(
-                        "mt-2 text-center text-xs font-semibold overflow-hidden p-2 rounded-full relative",
+                        "mt-2 text-center text-xs font-semibold overflow-hidden p-2 rounded-full relative shimmer-bg",
                         "mx-auto max-w-[10rem] px-4",
                         isClearMode
                             ? isLightClear
