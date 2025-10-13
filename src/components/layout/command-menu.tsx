@@ -38,9 +38,8 @@ import {
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
 import useLoadingStore from "@/store/loading-store";
-import { handleStockPrediction, handleStockNews } from "@/app/actions";
+import { handleStockPrediction } from "@/app/actions";
 import type { StockPredictionOutput } from "@/ai/types/stock-prediction-types";
-import type { StockNewsOutput } from "@/ai/flows/fetch-stock-news";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { cn } from "@/lib/utils";
@@ -77,6 +76,12 @@ interface StockData {
   logoUrl: string;
 }
 
+interface NewsArticle {
+    headline: string;
+    source: string;
+    url: string;
+}
+
 interface CommandMenuProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -86,6 +91,29 @@ interface CommandMenuProps {
   isTradingViewOpen: boolean;
   onTradingViewOpenChange: (isOpen: boolean) => void;
 }
+
+async function fetchNewsForSymbol(symbol: string): Promise<NewsArticle[]> {
+  if (!API_KEY) {
+    console.error('Finnhub API key not configured.');
+    return [];
+  }
+  const to = new Date();
+  const from = new Date();
+  from.setDate(to.getDate() - 7); // Fetch news from the last 7 days
+  const fromDateStr = from.toISOString().split('T')[0];
+  const toDateStr = to.toISOString().split('T')[0];
+  const url = `https://finnhub.io/api/v1/company-news?symbol=${symbol}&from=${fromDateStr}&to=${toDateStr}&token=${API_KEY}`;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return [];
+    const data = await response.json();
+    return (data || []).slice(0, 3); // Return top 3 articles
+  } catch (error) {
+    console.error(`Failed to fetch news for ${symbol}:`, error);
+    return [];
+  }
+}
+
 
 export const appIcons: { [key: string]: React.ElementType } = { home: Home, briefcase: Briefcase, repeat: Repeat, barChart: BarChart, users: Users, users2: Users, trendingUp: TrendingUpIcon, star: Star, logOut: LogOut, user: User, settings: Settings, sun: Sun, moon: Moon, sparkles: Sparkles, creditCard: CreditCard, target: Target, history: History, brain: BrainCircuit, bookOpen: BookOpen, award: Award, party: PartyPopper, tradingview: TrendingUpIcon };
 
@@ -109,7 +137,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   const [selectedStock, setSelectedStock] = useState<StockData | null>(null);
   
   const [prediction, setPrediction] = useState<StockPredictionOutput | null>(null);
-  const [news, setNews] = useState<StockNewsOutput | null>(null);
+  const [news, setNews] = useState<NewsArticle[]>([]);
   
   const [isFetchingDetails, setIsFetchingDetails] = useState(false);
   const [isFetchingPrediction, setIsFetchingPrediction] = useState(false);
@@ -230,9 +258,9 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
         setIsFetchingPrediction(false);
     });
     setIsFetchingNews(true);
-    setNews(null);
-    handleStockNews(stock.symbol).then(res => {
-        if (res.success && res.news) setNews(res.news);
+    setNews([]);
+    fetchNewsForSymbol(stock.symbol).then(articles => {
+        setNews(articles);
         setIsFetchingNews(false);
     });
   };
@@ -243,7 +271,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   }, [displayedStocks]);
 
   const handleGoBack = () => {
-    setView("search"); setQuery(""); setSelectedStock(null); setPrediction(null); setNews(null);
+    setView("search"); setQuery(""); setSelectedStock(null); setPrediction(null); setNews([]);
   };
 
   const handleBuySellClick = (action: "buy" | "sell") => {
@@ -404,7 +432,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
                           {selectedStockHolding && (<div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Building className="h-4 w-4" /> Your Holdings</h4><div className="p-3 rounded-lg bg-muted/50"><div className="flex justify-between items-center"><span className="font-medium">{selectedStockHolding.qty} Shares</span><span className="font-medium">Value: ${(selectedStockHolding.qty * selectedStock.price).toFixed(2)}</span></div></div></div>)}
                           <div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><BrainCircuit className="h-4 w-4" /> AI Prediction</h4><div className="p-3 rounded-lg bg-muted/50 text-xs min-h-[60px] relative">{isFetchingPrediction ? (<div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/><span>Generating prediction...</span></div>) : prediction ? (<><div className="flex justify-between items-center mb-1"><Badge className={cn("text-white", prediction.confidence === "High" ? "bg-green-500" : prediction.confidence === "Medium" ? "bg-yellow-500" : "bg-red-500")}>{prediction.confidence} Confidence</Badge></div><p className="whitespace-pre-wrap">{prediction.prediction}</p></>
     ) : (<p className="text-muted-foreground">Could not load AI prediction.</p>)}</div></div>
-                          <div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Newspaper className="h-4 w-4" /> Recent News</h4><div className="space-y-2">{isFetchingNews ? (<div className="p-2 text-xs text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/><span>Fetching recent news...</span></div>) : news?.articles && news.articles.length > 0 ? (news.articles.map((article, i) => (<a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-muted/50 no-underline"><p className="font-medium truncate leading-tight whitespace-pre-wrap">{article.headline}</p><p className="text-xs text-muted-foreground">{article.source}</p></a>))) : (<div className="p-2 text-xs text-muted-foreground">No recent news found.</div>)}</div></div>
+                          <div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Newspaper className="h-4 w-4" /> Recent News</h4><div className="space-y-2">{isFetchingNews ? (<div className="p-2 text-xs text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin"/><span>Fetching recent news...</span></div>) : news.length > 0 ? (news.map((article, i) => (<a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-muted/50 no-underline"><p className="font-medium truncate leading-tight whitespace-pre-wrap">{article.headline}</p><p className="text-xs text-muted-foreground">{article.source}</p></a>))) : (<div className="p-2 text-xs text-muted-foreground">No recent news found.</div>)}</div></div>
                       </div></div>
                   )}
               </div>
@@ -431,5 +459,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     </>
   );
 }
+
+    
 
     
