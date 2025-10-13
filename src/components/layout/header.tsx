@@ -179,17 +179,18 @@ const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() =>
 
     const pills = favorites.filter(f => f.size === 'pill');
     const icons = favorites.filter(f => f.size === 'icon');
-    const currentWeight = pills.length * 2 + icons.length;
-    const maxWeight = isMobile ? 6 : 14;
-
+    
     // Case 1: More than 6 pills on desktop (specific rule)
-    if (!isMobile && pills.length > 6) {
+    if (!isMobile && pills.length >= 7) {
         const pToDelete = pills.length - 6;
-        const iToDelete = icons.length > 1 ? icons.length - 1 : 0;
+        const iToDelete = Math.max(0, icons.length - 1);
         return { calculatedPillsToDelete: pToDelete, calculatedIconsToDelete: iToDelete };
     }
 
     // Case 2: General overflow based on weight
+    const currentWeight = pills.length * 2 + icons.length;
+    const maxWeight = isMobile ? 6 : 14;
+
     if (currentWeight > maxWeight) {
         let excess = currentWeight - maxWeight;
         let pToDelete = 0;
@@ -222,8 +223,7 @@ const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() =>
     <>
       <header className="fixed top-0 left-0 right-0 z-30 p-2">
         <div className={cn(
-          "relative",
-          isEditing && "shimmer-bg"
+          "relative"
         )}>
           <nav 
             className={cn(
@@ -260,7 +260,8 @@ const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() =>
                                 ? isLightClear
                                     ? "bg-card/60 text-foreground ring-1 ring-white/20"
                                     : "bg-white/10 text-slate-100 ring-1 ring-white/60"
-                                : "bg-background text-foreground ring-1 ring-border"
+                                : "bg-background text-foreground ring-1 ring-border",
+                            isEditing && "shimmer-bg"
                         )}
                         onClick={() => !isEditing && setOpen(true)}
                         style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
