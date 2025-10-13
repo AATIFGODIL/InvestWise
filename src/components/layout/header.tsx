@@ -135,23 +135,23 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   };
 
     const { displayedFavorites, totalWeight } = React.useMemo(() => {
+        const pills = favorites.filter(f => f.size === 'pill');
+        const icons = favorites.filter(f => f.size === 'icon');
+
         if (isEditing) {
             const weight = favorites.reduce((acc, fav) => acc + (fav.size === 'pill' ? 2 : 1), 0);
             return { displayedFavorites: favorites, totalWeight: weight };
         }
-
-        const pills = favorites.filter(f => f.size === 'pill');
-        const icons = favorites.filter(f => f.size === 'icon');
+        
         const maxWeight = isMobile ? 6 : 14;
 
-        // Special case: 6 pills and 1 icon
+        // Special case: 6 or more pills and on desktop, show 6 pills and 1 icon
         if (!isMobile && pills.length >= 6) {
             const visiblePills = pills.slice(0, 6);
             const visibleIcons = icons.slice(0, 1);
-            const visibleFavorites = [...visiblePills, ...visibleIcons];
             return {
-                displayedFavorites: visibleFavorites,
-                totalWeight: 13,
+                displayedFavorites: [...visiblePills, ...visibleIcons],
+                totalWeight: (6 * 2) + 1,
             };
         }
         
@@ -173,30 +173,38 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     }, [favorites, isEditing, isMobile]);
   
   const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() => {
-      const maxWeight = isMobile ? 6 : 14;
-      if (!isEditing || totalWeight <= maxWeight) {
-          return { calculatedPillsToDelete: 0, calculatedIconsToDelete: 0 };
-      }
+    const maxWeight = isMobile ? 6 : 14;
+    if (!isEditing || totalWeight <= maxWeight) {
+        return { calculatedPillsToDelete: 0, calculatedIconsToDelete: 0 };
+    }
 
-      let excess = totalWeight - maxWeight;
-      let pToDelete = 0;
-      let iToDelete = 0;
+    const pills = favorites.filter(f => f.size === 'pill');
+    const icons = favorites.filter(f => f.size === 'icon');
 
-      const pills = displayedFavorites.filter(f => f.size === 'pill');
-      const icons = displayedFavorites.filter(f => f.size === 'icon');
+    // Case 1: More than 6 pills on desktop
+    if (!isMobile && pills.length > 6) {
+        const pToDelete = pills.length - 6;
+        const iToDelete = icons.length > 1 ? icons.length - 1 : 0;
+        return { calculatedPillsToDelete: pToDelete, calculatedIconsToDelete: iToDelete };
+    }
 
-      // Greedily suggest removing icons first
-      const removableIcons = Math.min(excess, icons.length);
-      iToDelete = removableIcons;
-      excess -= removableIcons;
+    // Case 2: General overflow
+    let excess = totalWeight - maxWeight;
+    let pToDelete = 0;
+    let iToDelete = 0;
 
-      // Then suggest removing pills
-      if (excess > 0) {
-          pToDelete = Math.ceil(excess / 2);
-      }
+    // Greedily suggest removing icons first (as they are smaller)
+    const removableIcons = Math.min(excess, icons.length);
+    iToDelete = removableIcons;
+    excess -= removableIcons;
+
+    // Then suggest removing pills
+    if (excess > 0) {
+        pToDelete = Math.ceil(excess / 2);
+    }
       
-      return { calculatedPillsToDelete: pToDelete, calculatedIconsToDelete: iToDelete };
-  }, [isEditing, totalWeight, displayedFavorites, isMobile]);
+    return { calculatedPillsToDelete: pToDelete, calculatedIconsToDelete: iToDelete };
+  }, [isEditing, totalWeight, favorites, isMobile]);
 
 
   const handleReorder = (newOrder: Favorite[]) => {
@@ -208,7 +216,10 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-30 p-2">
-        <div className="relative">
+        <div className={cn(
+          "relative",
+          isEditing && "shimmer-bg"
+        )}>
           <nav 
             className={cn(
               "relative flex h-16 w-full items-center justify-between rounded-full p-1 px-2 text-primary-foreground shadow-lg",
@@ -244,8 +255,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                                 ? isLightClear
                                     ? "bg-card/60 text-foreground ring-1 ring-white/20"
                                     : "bg-white/10 text-slate-100 ring-1 ring-white/60"
-                                : "bg-background text-foreground ring-1 ring-border",
-                            isEditing && "shimmer-bg"
+                                : "bg-background text-foreground ring-1 ring-border"
                         )}
                         onClick={() => !isEditing && setOpen(true)}
                         style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
@@ -369,7 +379,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
            {isEditing && totalWeight > (isMobile ? 6 : 14) && (
                 <div
                     className={cn(
-                        "mt-2 text-center text-xs font-semibold overflow-hidden p-2 rounded-full relative shimmer-bg",
+                        "mt-2 text-center text-xs font-semibold overflow-hidden p-2 rounded-full relative",
                         "mx-auto max-w-[10rem] px-4",
                         isClearMode
                             ? isLightClear
