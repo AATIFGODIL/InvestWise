@@ -135,19 +135,29 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   };
 
     const { displayedFavorites, totalWeight } = React.useMemo(() => {
-        let weight = 0;
-        const visibleFavorites: Favorite[] = [];
-        
-        // Use a different limit for mobile vs desktop
-        const maxWeight = isMobile ? 6 : 14;
-
         if (isEditing) {
-            favorites.forEach(fav => {
-                weight += fav.size === 'pill' ? 2 : 1;
-            });
+            const weight = favorites.reduce((acc, fav) => acc + (fav.size === 'pill' ? 2 : 1), 0);
             return { displayedFavorites: favorites, totalWeight: weight };
         }
 
+        const pills = favorites.filter(f => f.size === 'pill');
+        const icons = favorites.filter(f => f.size === 'icon');
+        const maxWeight = isMobile ? 6 : 14;
+
+        // Special case: 6 pills and 1 icon
+        if (!isMobile && pills.length >= 6) {
+            const visiblePills = pills.slice(0, 6);
+            const visibleIcons = icons.slice(0, 1);
+            const visibleFavorites = [...visiblePills, ...visibleIcons];
+            return {
+                displayedFavorites: visibleFavorites,
+                totalWeight: 13,
+            };
+        }
+        
+        // General case: fill up to maxWeight
+        let weight = 0;
+        const visibleFavorites: Favorite[] = [];
         for (const fav of favorites) {
             const itemWeight = fav.size === 'pill' ? 2 : 1;
             if (weight + itemWeight <= maxWeight) {
