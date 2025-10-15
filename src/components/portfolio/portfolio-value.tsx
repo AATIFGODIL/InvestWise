@@ -102,7 +102,7 @@ function PortfolioValue() {
                 <XAxis dataKey="date" />
                 <YAxis
                     domain={['dataMin', 'dataMax']}
-                    tickFormatter={(value) => `$${'${value.toLocaleString()}'}`}
+                    tickFormatter={(value) => `$${value.toLocaleString()}`}
                 />
                 <Tooltip
                     content={<CustomTooltip />}
