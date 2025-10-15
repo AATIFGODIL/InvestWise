@@ -20,6 +20,7 @@ import {
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePortfolioStore } from "@/store/portfolio-store";
+import { useThemeStore } from "@/store/theme-store";
 
 type TimeRange = '1W' | '1M' | '6M' | '1Y';
 
@@ -32,9 +33,24 @@ function PortfolioValue() {
   const todaysChangePercent = portfolioSummary.totalValue !== 0 ? (portfolioSummary.todaysChange / (portfolioSummary.totalValue - portfolioSummary.todaysChange)) * 100 : 0;
 
   const CustomTooltip = ({ active, payload, label }: any) => {
+    const { isClearMode, theme } = useThemeStore();
+    const isLightClear = isClearMode && theme === 'light';
+
     if (active && payload && payload.length) {
       return (
-        <div className="p-2 bg-background border border-border rounded-lg shadow-lg">
+        <div
+          className={cn(
+              "p-2 rounded-lg shadow-lg",
+              isClearMode
+                  ? isLightClear
+                      ? "border-0 bg-card/60 text-card-foreground ring-1 ring-white/10"
+                      : "border-0 bg-white/10 text-white ring-1 ring-white/60"
+                  : "border bg-background"
+          )}
+          style={{
+            backdropFilter: isClearMode ? "blur(16px)" : "none",
+          }}
+        >
           <p className="label text-sm text-muted-foreground">{`${label}`}</p>
           <p className="intro font-bold text-primary">{`$${payload[0].value.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}</p>
         </div>
@@ -86,10 +102,12 @@ function PortfolioValue() {
                 <XAxis dataKey="date" />
                 <YAxis
                     domain={['dataMin', 'dataMax']}
-                    tickFormatter={(value) => `$${value.toLocaleString()}`}
+                    tickFormatter={(value) => `$${'${value.toLocaleString()}'}`}
                 />
                 <Tooltip
                     content={<CustomTooltip />}
+                    animationDuration={100}
+                    animationEasing="ease-out"
                 />
                 <Line
                   type="monotone"
