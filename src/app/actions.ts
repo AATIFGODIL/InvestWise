@@ -37,15 +37,16 @@ type StockPredictionResult = {
 /**
  * Calls the investment chatbot AI flow to answer a user's query.
  * @param {string} query - The user's question about an investment term.
+ * @param {string} [fileDataUri] - Optional file data as a data URI string.
  * @returns {Promise<ActionResult>} An object with the chatbot's response or an error.
  */
-export async function handleInvestmentQuery(query: string): Promise<ActionResult> {
-  if (!query) {
+export async function handleInvestmentQuery(query: string, fileDataUri?: string): Promise<ActionResult> {
+  if (!query && !fileDataUri) {
     return { success: false, response: "", error: "Your question cannot be empty." };
   }
 
   try {
-    const result = await investmentChatbot({ query });
+    const result = await investmentChatbot({ query, fileDataUri });
     return { success: true, response: result.response };
   } catch (error) {
     console.error("Error calling investment chatbot flow:", error);

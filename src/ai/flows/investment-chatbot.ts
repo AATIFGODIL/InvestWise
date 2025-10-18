@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -20,15 +21,15 @@ import {
  * An asynchronous function that serves as the entry point for the investment chatbot.
  * It takes a user's query and returns a structured response from the AI.
  *
- * @param {InvestmentChatbotInput} input - The user's query wrapped in an object.
+ * @param {InvestmentChatbotInput} input - The user's query and optional file data.
  * @returns {Promise<InvestmentChatbotOutput>} A promise that resolves to the AI's response.
  */
 export async function investmentChatbot(input: InvestmentChatbotInput): Promise<InvestmentChatbotOutput> {
   return investmentChatbotFlow(input);
 }
 
-// This prompt instructs the AI on its persona and task. By defining its role as
-// a friendly assistant for beginners, we ensure the responses are helpful and easy to understand.
+// This prompt instructs the AI on its persona and task. It now handles both
+// text queries and optional media attachments.
 const prompt = ai.definePrompt({
   name: 'investmentChatbotPrompt',
   input: {schema: InvestmentChatbotInputSchema},
@@ -40,7 +41,12 @@ const prompt = ai.definePrompt({
 
   User's Question: {{{query}}}
 
-  Please provide a helpful and easy-to-understand explanation.`,
+  {{#if fileDataUri}}
+  The user has also attached the following file. Use it as context for your response.
+  Attached File: {{media url=fileDataUri}}
+  {{/if}}
+
+  Please provide a helpful and easy-to-understand explanation based on the user's query and any attached file.`,
 });
 
 // A Genkit flow orchestrates AI model calls and can include other logic.

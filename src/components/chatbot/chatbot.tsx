@@ -29,6 +29,7 @@ export default function Chatbot() {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const { isOpen, openChatbot, closeChatbot, initialMessage } = useChatbotStore();
   const { isClearMode, theme } = useThemeStore();
   const isLightClear = isClearMode && theme === 'light';
@@ -50,27 +51,41 @@ export default function Chatbot() {
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // For now, we'll just log it. Later we can handle the upload.
-      console.log("File selected:", file.name);
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
       toast({
         title: "File Attached",
-        description: `${file.name} is ready to be sent.`,
+        description: `${selectedFile.name} is ready to be sent.`,
       });
     }
   };
 
+  const fileToDataUri = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!input.trim()) return;
+    if (!input.trim() && !file) return;
 
     const userMessage: Message = { role: "user", content: input };
     setMessages((prev) => [...prev, userMessage, { role: "loading", content: "..." }]);
     setInput("");
+    
+    let fileDataUri: string | undefined = undefined;
+    if (file) {
+      fileDataUri = await fileToDataUri(file);
+    }
+    setFile(null); // Clear file after processing
 
     try {
-      const result = await handleInvestmentQuery(input);
+      const result = await handleInvestmentQuery(input, fileDataUri);
       if (result.success) {
         setMessages((prev) => {
           const newMessages = prev.filter((msg) => msg.role !== "loading");
@@ -164,6 +179,11 @@ export default function Chatbot() {
             </div>
           </ScrollArea>
           <div className="mt-auto">
+            {file && (
+              <div className="text-xs text-muted-foreground p-2">
+                Attached: {file.name}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="flex items-center gap-2">
               <input 
                 type="file" 
@@ -182,7 +202,7 @@ export default function Chatbot() {
                 autoComplete="off"
                 className="focus-visible:ring-primary"
               />
-              <Button type="submit" size="icon" disabled={!input.trim()}>
+              <Button type="submit" size="icon" disabled={!input.trim() && !file}>
                 <Send className="h-4 w-4" />
                 <span className="sr-only">Send</span>
               </Button>
