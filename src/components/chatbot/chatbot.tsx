@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useRef, useEffect, type FormEvent } from "react";
-import { Bot, Send, User, MessageCircleQuestion } from "lucide-react";
+import { Bot, Send, User, MessageCircleQuestion, Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -32,6 +32,7 @@ export default function Chatbot() {
   const { isOpen, openChatbot, closeChatbot, initialMessage } = useChatbotStore();
   const { isClearMode, theme } = useThemeStore();
   const isLightClear = isClearMode && theme === 'light';
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -43,6 +44,22 @@ export default function Chatbot() {
       });
     }
   }, [messages]);
+
+  const handleFileAttach = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // For now, we'll just log it. Later we can handle the upload.
+      console.log("File selected:", file.name);
+      toast({
+        title: "File Attached",
+        description: `${file.name} is ready to be sent.`,
+      });
+    }
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -148,6 +165,16 @@ export default function Chatbot() {
           </ScrollArea>
           <div className="mt-auto">
             <form onSubmit={handleSubmit} className="flex items-center gap-2">
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                className="hidden" 
+              />
+              <Button type="button" variant="ghost" size="icon" onClick={handleFileAttach}>
+                  <Paperclip className="h-5 w-5 text-muted-foreground" />
+                  <span className="sr-only">Attach file</span>
+              </Button>
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
