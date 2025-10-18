@@ -87,15 +87,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     );
   }
   
-  if ((user && isSpecialLayoutRoute) || isAuthOrOnboardingRoute) {
-      return (
-        <div className="flex flex-col h-screen">
-          <MainContent isLoading={isContentLoading}>{children}</MainContent>
-          <MoneyRain isActive={isRaining} />
-        </div>
-      );
-  }
-  
+  // This layout is now simplified. The MainContent wrapper handles the loading state internally.
   if (user) {
        return (
         <div className="flex flex-col h-screen">
@@ -104,6 +96,16 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           <BottomNav />
           <MoneyRain isActive={isRaining} />
         </div>
+      );
+  }
+  
+  // This will handle the auth and onboarding routes which don't need the main layout
+  if (isAuthOrOnboardingRoute) {
+      return (
+          <div className="flex flex-col h-screen">
+              <MainContent isLoading={false}>{children}</MainContent>
+              <MoneyRain isActive={isRaining} />
+          </div>
       );
   }
   
