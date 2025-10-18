@@ -16,6 +16,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useUserStore } from "@/store/user-store";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { useThemeStore } from "@/store/theme-store";
 
 export default function ProfileClient() {
   const router = useRouter();
@@ -26,6 +28,8 @@ export default function ProfileClient() {
   
   const [newImage, setNewImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -64,9 +68,23 @@ export default function ProfileClient() {
 
   return (
       <main className="container mx-auto p-4 space-y-8 pb-24 relative max-w-4xl">
-        <Button variant="ghost" size="icon" className="absolute top-4 left-4" onClick={() => router.back()}>
-          <ArrowLeft className="h-6 w-6" />
-        </Button>
+        <div className="absolute top-6 left-4 z-10">
+             <button
+                onClick={() => router.back()}
+                className={cn(
+                    "relative z-10 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-colors shimmer-bg",
+                    isClearMode
+                        ? isLightClear
+                            ? "bg-card/60 text-foreground ring-1 ring-white/20"
+                            : "bg-white/10 text-slate-100 ring-1 ring-white/60"
+                        : "bg-background text-foreground ring-1 ring-border"
+                )}
+                style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
+                >
+                <ArrowLeft className="h-6 w-6" />
+            </button>
+        </div>
+        
         <Card>
           <CardHeader>
             <CardTitle>Your Profile</CardTitle>

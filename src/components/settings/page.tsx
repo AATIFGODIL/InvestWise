@@ -183,10 +183,11 @@ const ThemeCard: React.FC<ThemeCardProps> = ({ label, themeType, isClear = false
 export default function SettingsClient() {
   const router = useRouter();
   const [parentalControl, setParentalControl] = useState(false);
-  const { theme, setTheme, isClearMode, setClearMode } = useThemeStore();
+  const { theme, setTheme, isClearMode, setClearMode, primaryColor } = useThemeStore();
   const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
   const { user, updateUserTheme, updatePrivacySettings } = useAuth();
   const [isClient, setIsClient] = useState(false);
+  const isLightClear = isClearMode && theme === 'light';
 
   useEffect(() => {
     setIsClient(true);
@@ -216,9 +217,22 @@ export default function SettingsClient() {
 
   return (
       <main className="container mx-auto p-4 space-y-8 pb-24 relative max-w-4xl">
-        <Button variant="ghost" size="icon" className="absolute top-4 left-4" onClick={() => router.back()}>
-          <ArrowLeft className="h-6 w-6" />
-        </Button>
+        <div className="absolute top-6 left-4 z-10">
+             <button
+                onClick={() => router.back()}
+                className={cn(
+                    "relative z-10 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-colors shimmer-bg",
+                    isClearMode
+                        ? isLightClear
+                            ? "bg-card/60 text-foreground ring-1 ring-white/20"
+                            : "bg-white/10 text-slate-100 ring-1 ring-white/60"
+                        : "bg-background text-foreground ring-1 ring-border"
+                )}
+                style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
+                >
+                <ArrowLeft className="h-6 w-6" />
+            </button>
+        </div>
         
         {user && <PaymentMethods userId={user.uid} />}
 
