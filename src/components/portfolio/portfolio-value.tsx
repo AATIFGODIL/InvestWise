@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  LineChart,
+  LineChart as RechartsLineChart,
   Line,
   XAxis,
   YAxis,
@@ -18,7 +18,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ArrowUp, ArrowDown, Briefcase } from "lucide-react";
+import { ArrowUp, ArrowDown, LineChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePortfolioStore } from "@/store/portfolio-store";
 import { useThemeStore } from "@/store/theme-store";
@@ -71,7 +71,7 @@ function PortfolioValue({ showTitle = false }: PortfolioValueProps) {
         <CardHeader>
             {showTitle && (
                 <CardTitle className="flex items-center gap-2 text-xl mb-4">
-                    <Briefcase className="h-5 w-5 text-primary" />
+                    <LineChart className="h-5 w-5 text-primary" />
                     Portfolio
                 </CardTitle>
             )}
@@ -100,7 +100,7 @@ function PortfolioValue({ showTitle = false }: PortfolioValueProps) {
         <CardContent>
           <div className="h-[450px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart
+              <RechartsLineChart
                 data={chartData[timeRange]}
                 margin={{
                   top: 5,
@@ -128,7 +128,7 @@ function PortfolioValue({ showTitle = false }: PortfolioValueProps) {
                   activeDot={{ r: 8 }}
                   name=""
                 />
-              </LineChart>
+              </RechartsLineChart>
             </ResponsiveContainer>
           </div>
         </CardContent>
