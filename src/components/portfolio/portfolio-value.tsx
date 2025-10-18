@@ -18,7 +18,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ArrowUp, ArrowDown, LineChart } from "lucide-react";
+import { ArrowUp, ArrowDown, BarChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePortfolioStore } from "@/store/portfolio-store";
 import { useThemeStore } from "@/store/theme-store";
@@ -71,7 +71,7 @@ function PortfolioValue({ showTitle = false }: PortfolioValueProps) {
         <CardHeader>
             {showTitle && (
                 <CardTitle className="flex items-center gap-2 text-xl mb-4">
-                    <LineChart className="h-5 w-5 text-primary" />
+                    <BarChart className="h-5 w-5 text-primary" />
                     Portfolio
                 </CardTitle>
             )}
