@@ -25,7 +25,11 @@ import { useThemeStore } from "@/store/theme-store";
 
 type TimeRange = '1W' | '1M' | '6M' | '1Y';
 
-function PortfolioValue() {
+interface PortfolioValueProps {
+    showTitle?: boolean;
+}
+
+function PortfolioValue({ showTitle = false }: PortfolioValueProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>('1W');
   const { portfolioSummary, chartData } = usePortfolioStore();
 
@@ -65,10 +69,12 @@ function PortfolioValue() {
   return (
     <Card>
         <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl mb-4">
-                <Briefcase className="h-5 w-5 text-primary" />
-                Portfolio Value
-            </CardTitle>
+            {showTitle && (
+                <CardTitle className="flex items-center gap-2 text-xl mb-4">
+                    <Briefcase className="h-5 w-5 text-primary" />
+                    Portfolio
+                </CardTitle>
+            )}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-baseline gap-2">
                     <p className="text-3xl font-bold">${portfolioSummary.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>

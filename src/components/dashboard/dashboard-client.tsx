@@ -89,7 +89,7 @@ export default function DashboardClient() {
         </div>
         
         <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
-        <PortfolioValue />
+        <PortfolioValue showTitle={true} />
         <Watchlist />
         <HoldingsSummary />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
