@@ -91,9 +91,9 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   if (user) {
        return (
         <div className="flex flex-col h-screen">
-          <Header onTriggerRain={handleTriggerRain} />
-          <MainContent isLoading={isContentLoading}>{children}</MainContent>
-          <BottomNav />
+          {!isSpecialLayoutRoute && <Header onTriggerRain={handleTriggerRain} />}
+          <MainContent isLoading={isContentLoading} isSpecialLayoutRoute={isSpecialLayoutRoute}>{children}</MainContent>
+          {!isSpecialLayoutRoute && <BottomNav />}
           <MoneyRain isActive={isRaining} />
         </div>
       );
