@@ -98,31 +98,34 @@ export default function useUserData(user: User | null) {
 
         if (userDoc.exists()) {
           const userData = userDoc.data();
-          const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
-          const transactions = userData.transactions || [];
           const primaryColor = userData.primaryColor || '#775DEF';
-
           const hslString = hexToHslString(primaryColor);
           document.documentElement.style.setProperty('--primary', hslString);
           setForegroundForContrast(primaryColor);
-          
+
+          // Essential data for immediate render
           useThemeStore.getState().setTheme(userData.theme || "light");
           useThemeStore.getState().setClearMode(userData.isClearMode || false);
           useThemeStore.getState().setPrimaryColor(primaryColor);
           useUserStore.getState().setUsername(userData.username || "Investor");
           useUserStore.getState().setPhotoURL(userData.photoURL || "");
-          usePortfolioStore.getState().loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
-          useGoalStore.getState().loadGoals(userData.goals || []);
-          useAutoInvestStore.getState().loadAutoInvestments(userData.autoInvestments || []);
-          useTransactionStore.getState().loadTransactions(transactions);
-          useWatchlistStore.getState().loadWatchlist(userData.watchlist || []);
-          useFavoritesStore.getState().loadFavorites(userData.favorites || []);
-          usePrivacyStore.getState().loadPrivacySettings({
-              leaderboardVisibility: userData.leaderboardVisibility || "public",
-              showQuests: userData.showQuests === undefined ? true : userData.showQuests,
-          });
 
-          useAutoInvestStore.getState().checkForDueTrades();
+          // Defer non-essential data loading
+          setTimeout(() => {
+              const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
+              usePortfolioStore.getState().loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
+              useGoalStore.getState().loadGoals(userData.goals || []);
+              useAutoInvestStore.getState().loadAutoInvestments(userData.autoInvestments || []);
+              useTransactionStore.getState().loadTransactions(userData.transactions || []);
+              useWatchlistStore.getState().loadWatchlist(userData.watchlist || []);
+              useFavoritesStore.getState().loadFavorites(userData.favorites || []);
+              usePrivacyStore.getState().loadPrivacySettings({
+                  leaderboardVisibility: userData.leaderboardVisibility || "public",
+                  showQuests: userData.showQuests === undefined ? true : userData.showQuests,
+              });
+              useAutoInvestStore.getState().checkForDueTrades();
+          }, 0);
+
         } else {
             console.log("User document not found for hydration, likely a new user.");
         }
