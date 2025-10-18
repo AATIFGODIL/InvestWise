@@ -22,6 +22,7 @@ import { ArrowUp, ArrowDown, BarChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePortfolioStore } from "@/store/portfolio-store";
 import { useThemeStore } from "@/store/theme-store";
+import { usePathname } from "next/navigation";
 
 type TimeRange = '1W' | '1M' | '6M' | '1Y';
 
@@ -29,10 +30,12 @@ interface PortfolioValueProps {
     showTitle?: boolean;
 }
 
-function PortfolioValue({ showTitle = false }: PortfolioValueProps) {
+function PortfolioValue({ showTitle: showTitleProp = false }: PortfolioValueProps) {
+  const pathname = usePathname();
   const [timeRange, setTimeRange] = useState<TimeRange>('1W');
   const { portfolioSummary, chartData } = usePortfolioStore();
 
+  const showTitle = showTitleProp && pathname === '/dashboard';
 
   const isTodaysChangePositive = portfolioSummary.todaysChange >= 0;
   const todaysChangePercent = portfolioSummary.totalValue !== 0 ? (portfolioSummary.todaysChange / (portfolioSummary.totalValue - portfolioSummary.todaysChange)) * 100 : 0;
@@ -70,7 +73,7 @@ function PortfolioValue({ showTitle = false }: PortfolioValueProps) {
     <Card>
         <CardHeader>
             {showTitle && (
-                <CardTitle className="flex items-center gap-2 text-lg mb-4">
+                <CardTitle className="flex items-center gap-2 text-xl mb-4">
                     <BarChart className="h-5 w-5 text-primary" />
                     Portfolio
                 </CardTitle>

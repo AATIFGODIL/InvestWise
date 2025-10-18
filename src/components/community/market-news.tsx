@@ -104,7 +104,7 @@ export default function MarketNews({ limit }: MarketNewsProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
+        <CardTitle className="flex items-center gap-2 text-xl">
             <Newspaper className="h-5 w-5 text-primary" />
             Market News
         </CardTitle>
