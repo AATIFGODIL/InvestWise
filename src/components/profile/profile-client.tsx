@@ -72,7 +72,7 @@ export default function ProfileClient() {
              <button
                 onClick={() => router.back()}
                 className={cn(
-                    "flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-colors shimmer-bg",
+                    "flex h-12 w-12 items-center justify-center rounded-lg shadow-lg transition-colors shimmer-bg",
                     isClearMode
                         ? isLightClear
                             ? "bg-card/60 text-foreground ring-1 ring-white/20"
