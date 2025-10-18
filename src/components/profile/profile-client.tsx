@@ -67,8 +67,8 @@ export default function ProfileClient() {
   };
 
   return (
-      <main className="container mx-auto p-4 space-y-8 pb-24 relative max-w-4xl">
-        <div className="absolute top-6 left-4 z-10">
+      <div className="relative">
+        <div className="absolute top-4 left-4 z-10">
              <button
                 onClick={() => router.back()}
                 className={cn(
@@ -84,87 +84,88 @@ export default function ProfileClient() {
                 <ArrowLeft className="h-6 w-6" />
             </button>
         </div>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Profile</CardTitle>
-            <CardDescription>
-              Manage your profile picture and view your account details.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {user ? (
-              <div className="flex flex-col items-center text-center space-y-4">
-                <Avatar className="w-32 h-32 border-4 border-primary/20">
-                  <AvatarImage src={previewUrl || photoURL || ''} alt="Profile Picture" />
-                  <AvatarFallback className="text-4xl">{username?.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <p className="font-semibold">{username || "Investor"}</p>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
-                <Button asChild variant="outline">
-                  <label htmlFor="file-upload" className="cursor-pointer">
-                    <Upload className="mr-2 h-4 w-4" />
-                    Choose Picture
-                  </label>
-                </Button>
-                <input id="file-upload" type="file" accept="image/*" onChange={handleFileChange} className="hidden" disabled={uploading} />
-
-                {newImage && (
-                    <Button onClick={handleSaveChanges} disabled={uploading}>
-                        {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                        Save Changes
-                    </Button>
-                )}
-              </div>
-            ) : (
-              <div className="text-center space-y-4 py-8">
-                <p className="text-muted-foreground">Please sign in to manage your profile.</p>
-                <Button asChild>
-                  <Link href="/auth/signin">
-                    <LogIn className="mr-2 h-4 w-4" />
-                    Go to Sign In
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {user && <PaymentMethods userId={user.uid} />}
-        
-        {user && (
+        <main className="container mx-auto p-4 space-y-8 pb-24 max-w-4xl">
             <Card>
-                <CardHeader>
-                    <CardTitle>Quick Links</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <CardHeader>
+                <CardTitle>Your Profile</CardTitle>
+                <CardDescription>
+                Manage your profile picture and view your account details.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                {user ? (
+                <div className="flex flex-col items-center text-center space-y-4">
+                    <Avatar className="w-32 h-32 border-4 border-primary/20">
+                    <AvatarImage src={previewUrl || photoURL || ''} alt="Profile Picture" />
+                    <AvatarFallback className="text-4xl">{username?.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <p className="font-semibold">{username || "Investor"}</p>
+                    <p className="text-sm text-muted-foreground">{user.email}</p>
                     <Button asChild variant="outline">
-                        <Link href="/trade">
-                            <Repeat className="mr-2 h-4 w-4"/>
-                            Trade
-                        </Link>
+                    <label htmlFor="file-upload" className="cursor-pointer">
+                        <Upload className="mr-2 h-4 w-4" />
+                        Choose Picture
+                    </label>
                     </Button>
-                    <Button asChild variant="outline">
-                        <Link href="/community">
-                            <Users className="mr-2 h-4 w-4"/>
-                            Community
-                        </Link>
+                    <input id="file-upload" type="file" accept="image/*" onChange={handleFileChange} className="hidden" disabled={uploading} />
+
+                    {newImage && (
+                        <Button onClick={handleSaveChanges} disabled={uploading}>
+                            {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                            Save Changes
+                        </Button>
+                    )}
+                </div>
+                ) : (
+                <div className="text-center space-y-4 py-8">
+                    <p className="text-muted-foreground">Please sign in to manage your profile.</p>
+                    <Button asChild>
+                    <Link href="/auth/signin">
+                        <LogIn className="mr-2 h-4 w-4" />
+                        Go to Sign In
+                    </Link>
                     </Button>
-                    <Button asChild variant="outline">
-                        <Link href="/portfolio">
-                            <Briefcase className="mr-2 h-4 w-4"/>
-                            Portfolio
-                        </Link>
-                    </Button>
-                    <Button asChild variant="outline">
-                        <Link href="/settings">
-                            <Settings className="mr-2 h-4 w-4"/>
-                            Settings
-                        </Link>
-                    </Button>
-                </CardContent>
+                </div>
+                )}
+            </CardContent>
             </Card>
-        )}
-      </main>
+
+            {user && <PaymentMethods userId={user.uid} />}
+            
+            {user && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Quick Links</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <Button asChild variant="outline">
+                            <Link href="/trade">
+                                <Repeat className="mr-2 h-4 w-4"/>
+                                Trade
+                            </Link>
+                        </Button>
+                        <Button asChild variant="outline">
+                            <Link href="/community">
+                                <Users className="mr-2 h-4 w-4"/>
+                                Community
+                            </Link>
+                        </Button>
+                        <Button asChild variant="outline">
+                            <Link href="/portfolio">
+                                <Briefcase className="mr-2 h-4 w-4"/>
+                                Portfolio
+                            </Link>
+                        </Button>
+                        <Button asChild variant="outline">
+                            <Link href="/settings">
+                                <Settings className="mr-2 h-4 w-4"/>
+                                Settings
+                            </Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            )}
+        </main>
+      </div>
   );
 }
