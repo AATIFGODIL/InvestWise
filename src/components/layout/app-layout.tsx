@@ -12,6 +12,30 @@ interface AppLayoutProps {
 }
 
 /**
+ * A lightweight hook that only checks for the essential user auth state.
+ * It does NOT trigger the full data hydration.
+ */
+function useLightweightAuth() {
+    const { user, hydrating: authHydrating } = useAuth();
+    const { username } = useUserStore();
+    const isLoading = authHydrating || (user && !username);
+    return { isLoading };
+}
+
+/**
+ * A hook for the default, data-heavy layout that hydrates all stores.
+ */
+function useDefaultAuth() {
+    const { user, hydrating: authHydrating } = useAuth();
+    const { loading: userDataLoading } = useUserData(user);
+    const { username } = useUserStore();
+    const isInitialLoading = authHydrating || (user && !username);
+    const isLoading = isInitialLoading || userDataLoading;
+    return { isLoading };
+}
+
+
+/**
  * Main application layout component.
  * It handles the loading state for user data hydration.
  *
@@ -21,17 +45,9 @@ interface AppLayoutProps {
  *   ideal for simpler pages like Profile or Settings.
  */
 export default function AppLayout({ children, variant = 'default' }: AppLayoutProps) {
-  const { user, hydrating: authHydrating } = useAuth();
-  const { username } = useUserStore();
+  const { isLoading } = variant === 'lightweight' ? useLightweightAuth() : useDefaultAuth();
   
-  // The 'lightweight' variant does not trigger the full data hydration from useUserData.
-  // It relies on the basic user info that is loaded by default in the useAuth hook.
-  const { loading: userDataLoading } = useUserData(user);
-
-  const isInitialLoading = authHydrating || (user && !username);
-  const isHeavyLoading = variant === 'default' && (isInitialLoading || userDataLoading);
-  
-  if (isHeavyLoading) {
+  if (isLoading) {
     return (
        <div className="flex-1 pt-20 flex items-center justify-center h-full w-full bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
