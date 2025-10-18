@@ -72,7 +72,6 @@ export default function PortfolioClient() {
               </Button>
           </div>
           <PortfolioValue />
-          <Watchlist />
           <div>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Holdings</h2>
@@ -83,6 +82,7 @@ export default function PortfolioClient() {
             </div>
             <HoldingsTable />
           </div>
+          <Watchlist />
             <AiPrediction />
           <Chatbot />
         </div>

@@ -6,6 +6,7 @@ import {
   Card,
   CardContent,
   CardHeader,
+  CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +18,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePortfolioStore } from "@/store/portfolio-store";
 import { useThemeStore } from "@/store/theme-store";
@@ -64,6 +65,10 @@ function PortfolioValue() {
   return (
     <Card>
         <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-xl mb-4">
+                <Briefcase className="h-5 w-5 text-primary" />
+                Portfolio Value
+            </CardTitle>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-baseline gap-2">
                     <p className="text-3xl font-bold">${portfolioSummary.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
@@ -99,7 +104,7 @@ function PortfolioValue() {
                 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
+                <XAxis dataKey="date" tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} />
                 <YAxis
                     domain={['dataMin', 'dataMax']}
                     tickFormatter={(value) => `$${value.toLocaleString()}`}
