@@ -149,7 +149,7 @@ export default function InvestmentBundles({ bundles, title, description, showDis
       <Dialog onOpenChange={(isOpen) => !isOpen && setSelectedBundle(null)}>
         <Card className="flex flex-col h-full">
           <CardHeader>
-            <CardTitle>{title}</CardTitle>
+            <CardTitle className="text-lg">{title}</CardTitle>
             <CardDescription>{description}</CardDescription>
           </CardHeader>
           <CardContent className="flex-grow">
