@@ -32,7 +32,7 @@ export default function CommunityLeaderboard() {
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base font-medium">Community Leaderboard</CardTitle>
+        <CardTitle className="text-xl">Community Leaderboard</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 px-4 pt-2 flex-grow">
         {isLoading ? (
