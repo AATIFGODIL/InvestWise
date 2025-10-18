@@ -103,8 +103,8 @@ export default function TradeHistory() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {history.map((tx) => (
-                  <TableRow key={tx.timestamp}>
+                {history.map((tx, index) => (
+                  <TableRow key={`${tx.timestamp}-${index}`}>
                     <TableCell>
                         <div className="text-sm font-medium">{new Date(tx.timestamp).toLocaleDateString()}</div>
                         <div className="text-xs text-muted-foreground">{new Date(tx.timestamp).toLocaleTimeString()}</div>
