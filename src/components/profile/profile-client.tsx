@@ -68,11 +68,11 @@ export default function ProfileClient() {
 
   return (
       <div className="relative">
-        <div className="absolute top-4 left-4 z-10">
+        <div className="fixed top-4 left-4 z-40">
              <button
                 onClick={() => router.back()}
                 className={cn(
-                    "relative z-10 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-colors shimmer-bg",
+                    "flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-colors shimmer-bg",
                     isClearMode
                         ? isLightClear
                             ? "bg-card/60 text-foreground ring-1 ring-white/20"
