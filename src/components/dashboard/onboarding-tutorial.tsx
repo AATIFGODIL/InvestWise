@@ -41,10 +41,8 @@ interface TooltipPosition {
 export default function OnboardingTutorial({ onComplete }: OnboardingTutorialProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null);
-  const [showBlur, setShowBlur] = useState(false);
 
   const updateHighlight = useCallback(() => {
-    // Remove class from all highlightable elements first
     document.querySelectorAll('.tutorial-highlight-active').forEach(el => {
       el.classList.remove('tutorial-highlight-active');
     });
@@ -57,15 +55,13 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
         
         const rect = element.getBoundingClientRect();
         setTooltipPosition({
-            top: rect.top - 8, 
+            top: rect.top, 
             left: rect.left,
             width: rect.width,
         });
 
-        // Delay the animation start to allow for scroll
         setTimeout(() => {
             element?.classList.add('tutorial-highlight-active');
-            setShowBlur(true); // Fade in the blur after the animation starts
         }, 300);
       }
     }
@@ -75,7 +71,6 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   useEffect(() => {
     updateHighlight();
 
-    // Cleanup function to remove the class when the component unmounts
     return () => {
       document.querySelectorAll('.tutorial-highlight-active').forEach(el => {
         el.classList.remove('tutorial-highlight-active');
@@ -85,7 +80,6 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
 
 
   const handleNext = () => {
-    setShowBlur(false); // Fade out the blur on next
     document.getElementById(steps[currentStepIndex].highlight)?.classList.remove('tutorial-highlight-active');
 
     if (currentStepIndex < steps.length - 1) {
@@ -96,7 +90,6 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   };
   
   const handleSkip = () => {
-    setShowBlur(false);
     document.getElementById(steps[currentStepIndex].highlight)?.classList.remove('tutorial-highlight-active');
     onComplete();
   };
@@ -105,15 +98,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   if (!step || !tooltipPosition) return null;
 
   return (
-    <div className="fixed inset-0 z-[100]">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: showBlur ? 1 : 0 }}
-        transition={{ duration: 0.3 }}
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={handleSkip}
-      />
-      
+    <div className="fixed inset-0 z-[100] pointer-events-none">
        <motion.div 
          key={`tooltip-${step.id}`}
          initial={{ opacity: 0, y: 20 }}
@@ -124,9 +109,8 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
              top: `${tooltipPosition.top}px`,
              left: `${tooltipPosition.left}px`,
              width: `${tooltipPosition.width}px`,
-             transform: 'translateY(-100%)', // Position above the element
          }}
-         className="w-full max-w-sm px-4 z-[120]"
+         className="w-full max-w-sm px-4 z-[120] pointer-events-auto"
        >
         <div className="text-center text-white p-4">
           <h3 className="font-bold text-xl drop-shadow-md">{step.title}</h3>
