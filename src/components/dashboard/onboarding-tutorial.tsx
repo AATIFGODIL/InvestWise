@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { X, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -27,34 +27,41 @@ const steps = [
 
 export default function OnboardingTutorial({ onComplete }: OnboardingTutorialProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [highlightedRect, setHighlightedRect] = useState<DOMRect | null>(null);
 
   const updateHighlight = useCallback(() => {
-    const step = steps[currentStepIndex];
-    if (step && step.highlight) {
+    // Remove class from all highlightable elements first
+    steps.forEach(step => {
       const element = document.getElementById(step.highlight);
+      element?.classList.remove('tutorial-highlight-active');
+    });
+
+    // Add class to the current active element
+    const currentStep = steps[currentStepIndex];
+    if (currentStep) {
+      const element = document.getElementById(currentStep.highlight);
       if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Add a delay to allow for scrolling before getting the rect
+        // The styling is now handled by the CSS class
         setTimeout(() => {
-          setHighlightedRect(element.getBoundingClientRect());
-        }, 300);
+             element?.classList.add('tutorial-highlight-active');
+        }, 300) // Delay to allow for scroll
       }
-    } else {
-      setHighlightedRect(null);
     }
   }, [currentStepIndex]);
 
+
   useEffect(() => {
     updateHighlight();
-    window.addEventListener('resize', updateHighlight);
-    window.addEventListener('scroll', updateHighlight);
 
+    // Cleanup function to remove the class when the component unmounts
     return () => {
-      window.removeEventListener('resize', updateHighlight);
-      window.removeEventListener('scroll', updateHighlight);
+      steps.forEach(step => {
+        const element = document.getElementById(step.highlight);
+        element?.classList.remove('tutorial-highlight-active');
+      });
     };
   }, [updateHighlight]);
+
 
   const handleNext = () => {
     if (currentStepIndex < steps.length - 1) {
@@ -76,32 +83,12 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onComplete}
       />
-
-       <AnimatePresence>
-        {highlightedRect && (
-          <motion.div
-            key={`highlight-${step.id}`}
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ 
-                opacity: 1,
-                scale: 1,
-                top: highlightedRect.top - 16,
-                left: highlightedRect.left - 16,
-                width: highlightedRect.width + 32,
-                height: highlightedRect.height + 32,
-            }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="absolute rounded-3xl bg-transparent pointer-events-none border-2 border-white/80 shadow-2xl shadow-white/20"
-          />
-        )}
-      </AnimatePresence>
       
        <motion.div 
          key={`tooltip-${step.id}`}
          initial={{ opacity: 0, y: 20 }}
          animate={{ opacity: 1, y: 0 }}
-         className="absolute top-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-20"
+         className="absolute top-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-[120]"
        >
         <div className="bg-transparent p-4 rounded-xl text-center text-white">
           <h3 className="font-bold text-xl drop-shadow-md">{step.title}</h3>
