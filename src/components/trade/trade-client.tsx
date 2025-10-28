@@ -24,6 +24,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useThemeStore } from "@/store/theme-store";
 import { motion } from "framer-motion";
+import { Skeleton } from "../ui/skeleton";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -80,14 +81,32 @@ const itemVariants = {
   },
 };
 
+const PageSkeleton = () => (
+    <div className="p-4 space-y-6 pb-24">
+        <Skeleton className="h-9 w-32" />
+        <div className="space-y-4">
+             <Skeleton className="h-[600px] w-full" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Skeleton className="h-[500px] w-full" />
+            <div className="space-y-6">
+                <Skeleton className="h-[250px] w-full" />
+                <Skeleton className="h-[250px] w-full" />
+            </div>
+        </div>
+         <Skeleton className="h-[400px] w-full" />
+    </div>
+)
+
 export default function TradeClient() {
   const searchParams = useSearchParams();
-  const initialSymbol = searchParams.get('symbol')?.toUpperCase() || "AAPL";
   const { toast } = useToast();
   const [isClient, setIsClient] = useState(false);
   const { isClearMode, theme } = useThemeStore();
   const isLightClear = isClearMode && theme === 'light';
 
+  const [initialSymbol, setInitialSymbol] = useState("AAPL");
+  
   const [widgetSymbol, setWidgetSymbol] = useState(initialSymbol);
   
   const [inputValue, setInputValue] = useState(initialSymbol);
@@ -100,7 +119,7 @@ export default function TradeClient() {
   const searchContainerRef = useRef<HTMLDivElement>(null);
 
   const [price, setPrice] = useState<number | null>(null);
-  const [loadingPrice, setLoadingPrice] = useState(false);
+  const [loadingPrice, setLoadingPrice] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const socketRef = useRef<WebSocket | null>(null);
   const { isMarketOpen, fetchMarketStatus } = useMarketStore();
@@ -109,17 +128,15 @@ export default function TradeClient() {
   const isSymbolInWatchlist = watchlist.includes(searchedSymbol);
   
   useEffect(() => {
-    if (isClient) {
-      setSearchedSymbol(initialSymbol);
-      setWidgetSymbol(initialSymbol);
-      setInputValue(initialSymbol);
-      fetchMarketStatus();
-    }
-  }, [isClient, initialSymbol, fetchMarketStatus]);
-
-  useEffect(() => {
+    const symbolFromParams = searchParams.get('symbol')?.toUpperCase() || "AAPL";
+    setInitialSymbol(symbolFromParams);
+    setWidgetSymbol(symbolFromParams);
+    setInputValue(symbolFromParams);
+    setSearchedSymbol(symbolFromParams);
+    fetchMarketStatus();
     setIsClient(true);
-  }, []);
+  }, [searchParams, fetchMarketStatus]);
+
 
   const fetchStockDetailsBySymbol = useCallback(async (symbol: string) => {
     const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
@@ -303,6 +320,9 @@ export default function TradeClient() {
         };
     }, []);
 
+  if (!isClient) {
+      return <PageSkeleton />;
+  }
 
   return (
       <main>

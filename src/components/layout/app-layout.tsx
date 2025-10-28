@@ -11,12 +11,11 @@ import { useAuth } from "@/hooks/use-auth";
  * checking if their required store data is available. This component
  * simply triggers the data fetching process.
  */
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default function AppLayout({ children, variant }: { children: React.ReactNode; variant?: 'default' | 'lightweight' }) {
   const { user } = useAuth();
   
   // This hook fetches all user data and populates the Zustand stores.
-  // It doesn't return a loading state anymore, as we are no longer blocking rendering.
-  // Components will reactively update as the stores are filled.
+  // It no longer blocks rendering. Components will reactively update as the stores are filled.
   useUserData(user);
 
   return <>{children}</>;
