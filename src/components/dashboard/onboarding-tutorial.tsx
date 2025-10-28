@@ -55,7 +55,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
         
         const rect = element.getBoundingClientRect();
         setTooltipPosition({
-            top: rect.top, 
+            top: rect.top - 80, // Position text ABOVE the card
             left: rect.left,
             width: rect.width,
         });
@@ -72,7 +72,10 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   useEffect(() => {
     updateHighlight();
 
+    window.addEventListener('resize', updateHighlight);
+    
     return () => {
+      window.removeEventListener('resize', updateHighlight);
       document.querySelectorAll('.tutorial-highlight-active').forEach(el => {
         el.classList.remove('tutorial-highlight-active');
       });
