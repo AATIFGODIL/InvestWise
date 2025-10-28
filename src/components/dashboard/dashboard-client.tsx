@@ -137,12 +137,14 @@ export default function DashboardClient() {
             <motion.div variants={itemVariants} id="portfolio-card-tutorial">
                 <PortfolioValue showTitle={true} />
             </motion.div>
-            <motion.div variants={itemVariants} id="watchlist-tutorial">
-                <Watchlist />
-            </motion.div>
-            <motion.div variants={itemVariants}>
-                <HoldingsSummary />
-            </motion.div>
+            <div id="holdings-watchlist-tutorial">
+                <motion.div variants={itemVariants} id="watchlist-tutorial">
+                    <Watchlist />
+                </motion.div>
+                <motion.div variants={itemVariants} className="mt-6">
+                    <HoldingsSummary />
+                </motion.div>
+            </div>
             <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div id="auto-invest-tutorial">
                     <AutoInvest />
