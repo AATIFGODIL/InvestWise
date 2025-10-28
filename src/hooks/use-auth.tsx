@@ -162,8 +162,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
       await signInWithEmailAndPassword(auth, email, pass);
-      toast({ title: "Signed In Successfully", description: "Welcome back!" });
-      router.push('/dashboard');
+      router.push('/auth/welcome-back');
     } catch(error: any) {
       hideLoading();
       throw error;
@@ -180,8 +179,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             toast({ title: "Account Created!", description: "Your email is verified. Let's get you started." });
             router.push('/onboarding/quiz');
         } else {
-            toast({ title: "Signed In Successfully", description: "Welcome back!" });
-            router.push('/dashboard');
+            router.push('/auth/welcome-back');
         }
     } catch (error: any) {
       hideLoading();
