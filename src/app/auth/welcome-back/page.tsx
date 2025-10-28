@@ -4,7 +4,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { useThemeStore } from "@/store/theme-store";
 import { AppleHelloEnglishEffect } from "@/components/ui/apple-hello-effect";
@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import useUserData from "@/hooks/use-user-data";
 import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function WelcomeBackPage() {
   const router = useRouter();
@@ -41,7 +42,12 @@ export default function WelcomeBackPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
-      <Card className="w-full max-w-md text-center">
+       <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-md text-center"
+      >
         <CardHeader>
            <div 
              className={cn(
@@ -68,7 +74,7 @@ export default function WelcomeBackPage() {
             You will be redirected automatically.
           </p>
         </CardContent>
-      </Card>
+      </motion.div>
     </div>
   );
 }
