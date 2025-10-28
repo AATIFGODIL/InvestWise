@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState, useEffect } from "react";
@@ -139,7 +138,7 @@ export default function DashboardClient() {
                 <motion.div variants={itemVariants}>
                     <Watchlist />
                 </motion.div>
-                <motion.div variants={itemVariants} className="mt-6">
+                <motion.div variants={itemVariants} className="mt-6" id="holdings-summary-tutorial">
                     <HoldingsSummary />
                 </motion.div>
             </div>

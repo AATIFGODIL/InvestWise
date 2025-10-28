@@ -27,7 +27,7 @@ const steps: Step[] = [
     id: 2,
     title: 'Your Holdings & Watchlist',
     description: 'Here you can see a summary of your top holdings and track stocks you are interested in.',
-    highlight: 'holdings-watchlist-tutorial',
+    highlight: 'holdings-summary-tutorial',
   },
 ];
 
@@ -112,6 +112,9 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   const step = steps[currentStepIndex];
   if (!step || !tooltipPosition) return null;
 
+  // Custom styling for step 2 to place text where the watchlist would be.
+  const isSecondStep = step.id === 2;
+
   return (
     <>
         {showBlur && (
@@ -121,7 +124,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            onClick={handleSkip} // Allow clicking the background to skip
+            onClick={handleSkip}
           />
         )}
         <motion.div 
