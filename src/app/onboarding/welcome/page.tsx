@@ -5,11 +5,16 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PartyPopper } from "lucide-react";
 import Link from "next/link";
+import { useThemeStore } from "@/store/theme-store";
+import { AppleHelloEnglishEffect } from "@/components/ui/apple-hello-effect";
+import { cn } from "@/lib/utils";
 
 export default function OnboardingWelcomePage() {
   const router = useRouter();
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
+
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -23,12 +28,21 @@ export default function OnboardingWelcomePage() {
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
       <Card className="w-full max-w-md text-center">
         <CardHeader>
-          <div className="mx-auto bg-primary text-primary-foreground rounded-full p-4 w-fit">
-            <PartyPopper className="h-10 w-10" />
+           <div 
+             className={cn(
+                "flex justify-center",
+                isClearMode 
+                    ? isLightClear 
+                        ? "text-black/60"
+                        : "text-white/80"
+                    : "text-primary"
+            )}
+           >
+            <AppleHelloEnglishEffect speed={1.1} />
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <CardTitle className="text-3xl">Welcome to InvestWise!</CardTitle>
+          <CardTitle className="text-3xl">Welcome to InvestWise.</CardTitle>
           <p className="text-muted-foreground">
             You're all set up. Let's start your investment journey together.
           </p>
