@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import { Loader2 } from "lucide-react";
+import PageSkeleton from "@/components/layout/page-skeleton";
 
 // This is the root page, which handles redirection based on auth state.
 export default function Home() {
@@ -22,8 +22,8 @@ export default function Home() {
   
   // Display a minimal loading state while the redirection logic runs.
   return (
-    <div className="flex h-screen w-screen items-center justify-center bg-background">
-      <Loader2 className="h-12 w-12 animate-spin text-primary" />
+    <div className="h-screen w-screen">
+      <PageSkeleton />
     </div>
   );
 }

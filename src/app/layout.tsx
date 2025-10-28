@@ -15,6 +15,7 @@ import Header from '@/components/layout/header';
 import MoneyRain from '@/components/shared/money-rain';
 import RotateDevicePrompt from '@/components/shared/rotate-device-prompt';
 import React from 'react';
+import PageSkeleton from '@/components/layout/page-skeleton';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -28,13 +29,11 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const { user, hydrating } = useAuth();
   const [isRaining, setIsRaining] = React.useState(false);
 
-  const isAuthRoute = pathname.startsWith('/auth');
-  const isOnboardingRoute = pathname.startsWith('/onboarding');
+  const isAuthRoute = pathname.startsWith('/auth') || pathname === '/';
   const isSpecialLayoutRoute = pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/certificate');
   
   if (hydrating) {
-    // Render a completely empty layout during hydration to avoid flashes of incorrect content
-    return <div className="h-screen w-screen bg-background" />;
+    return <PageSkeleton />;
   }
   
   const handleTriggerRain = () => {
@@ -54,17 +53,13 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       );
   }
   
-  // This handles all unauthenticated routes, plus onboarding routes
-  if (!user || isAuthRoute || isOnboardingRoute) {
-      return (
-          <div className="flex flex-col h-screen">
-              <MainContent>{children}</MainContent>
-              <MoneyRain isActive={isRaining} />
-          </div>
-      );
-  }
-  
-  return <div className="h-screen w-screen bg-background" />;
+  // This handles all unauthenticated routes
+  return (
+      <div className="flex flex-col h-screen">
+          <MainContent>{children}</MainContent>
+          <MoneyRain isActive={isRaining} />
+      </div>
+  );
 }
 
 export default function RootLayout({

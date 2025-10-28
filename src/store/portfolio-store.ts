@@ -46,6 +46,7 @@ interface PortfolioState {
     marketHolidays: Set<string>;
     isLoading: boolean;
     registrationDate: Date | null; // Add this
+    setLoading: (isLoading: boolean) => void;
     fetchMarketHolidays: () => Promise<void>;
     updateLivePrices: () => Promise<void>;
     executeTrade: (trade: { symbol: string, qty: number, price: number, description: string }) => { success: boolean, error?: string };
@@ -190,6 +191,8 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
   isLoading: true,
   registrationDate: null,
   
+  setLoading: (isLoading) => set({ isLoading }),
+
   fetchMarketHolidays: async () => {
     // Only fetch if not already fetched
     if (get().marketHolidays.size === 0) {
@@ -246,7 +249,6 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
 
 
   loadInitialData: (holdings, summary, registrationDate) => {
-    set({ isLoading: true });
     const { marketHolidays, updateLivePrices } = get();
     // Use stored summary if available, otherwise calculate from stored holdings
     const initialSummary = summary || calculatePortfolioSummary(holdings);
@@ -355,7 +357,8 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
         return {
             holdings: newHoldings,
             portfolioSummary: newSummary,
-            chartData: newChartData
+            chartData: newChartData,
+            isLoading: false // Ensure loading is false after trade
         }
     });
 

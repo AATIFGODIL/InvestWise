@@ -13,11 +13,29 @@ import { Briefcase, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { usePortfolioStore } from "@/store/portfolio-store";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "../ui/skeleton";
 
 export default function HoldingsSummary() {
-  const { holdings } = usePortfolioStore();
+  const { holdings, isLoading } = usePortfolioStore();
 
   const topHoldings = holdings.slice(0, 3);
+
+  if (isLoading) {
+    return (
+        <Card>
+            <CardHeader>
+                <Skeleton className="h-6 w-48" />
+            </CardHeader>
+            <CardContent className="space-y-3">
+                <Skeleton className="h-16 w-full skeleton-shimmer" />
+                <Skeleton className="h-16 w-full skeleton-shimmer" />
+            </CardContent>
+            <CardFooter>
+                 <Skeleton className="h-10 w-full" />
+            </CardFooter>
+        </Card>
+    )
+  }
 
   if (holdings.length === 0) {
     return null; // Don't render the card if there are no holdings

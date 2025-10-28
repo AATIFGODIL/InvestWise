@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { type User } from 'firebase/auth';
 import { doc, getDoc, type Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
@@ -73,23 +73,18 @@ function hexToHslString(hex: string): string {
 
 /**
  * A custom hook to fetch all user-related data from Firestore and hydrate
- * the application's state (Zustand stores) upon user login. This ensures
- * that the entire app has access to the most up-to-date user information.
+ * the application's state (Zustand stores) upon user login.
  *
  * @param user The Firebase auth user object.
- * @returns An object containing the loading state.
  */
 export default function useUserData(user: User | null) {
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) {
-      setLoading(false);
       return;
     }
 
     const fetchAndHydrate = async () => {
-      setLoading(true);
       try {
         await usePortfolioStore.getState().fetchMarketHolidays();
         
@@ -103,6 +98,9 @@ export default function useUserData(user: User | null) {
           document.documentElement.style.setProperty('--primary', hslString);
           setForegroundForContrast(primaryColor);
 
+          // Set loading state in stores
+          usePortfolioStore.getState().setLoading(true);
+
           // Essential data for immediate render
           useThemeStore.getState().setTheme(userData.theme || "light");
           useThemeStore.getState().setClearMode(userData.isClearMode || false);
@@ -110,34 +108,30 @@ export default function useUserData(user: User | null) {
           useUserStore.getState().setUsername(userData.username || "Investor");
           useUserStore.getState().setPhotoURL(userData.photoURL || "");
 
-          // Defer non-essential data loading
-          setTimeout(() => {
-              const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
-              usePortfolioStore.getState().loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
-              useGoalStore.getState().loadGoals(userData.goals || []);
-              useAutoInvestStore.getState().loadAutoInvestments(userData.autoInvestments || []);
-              useTransactionStore.getState().loadTransactions(userData.transactions || []);
-              useWatchlistStore.getState().loadWatchlist(userData.watchlist || []);
-              useFavoritesStore.getState().loadFavorites(userData.favorites || []);
-              usePrivacyStore.getState().loadPrivacySettings({
-                  leaderboardVisibility: userData.leaderboardVisibility || "public",
-                  showQuests: userData.showQuests === undefined ? true : userData.showQuests,
-              });
-              useAutoInvestStore.getState().checkForDueTrades();
-          }, 0);
+          // Load all data into stores
+          const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
+          usePortfolioStore.getState().loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
+          useGoalStore.getState().loadGoals(userData.goals || []);
+          useAutoInvestStore.getState().loadAutoInvestments(userData.autoInvestments || []);
+          useTransactionStore.getState().loadTransactions(userData.transactions || []);
+          useWatchlistStore.getState().loadWatchlist(userData.watchlist || []);
+          useFavoritesStore.getState().loadFavorites(userData.favorites || []);
+          usePrivacyStore.getState().loadPrivacySettings({
+              leaderboardVisibility: userData.leaderboardVisibility || "public",
+              showQuests: userData.showQuests === undefined ? true : userData.showQuests,
+          });
+          
+          useAutoInvestStore.getState().checkForDueTrades();
 
         } else {
             console.log("User document not found for hydration, likely a new user.");
         }
       } catch (error) {
         console.error("Failed to fetch and hydrate user data:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchAndHydrate();
   }, [user]); 
 
-  return { loading };
 }

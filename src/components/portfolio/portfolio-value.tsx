@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { usePortfolioStore } from "@/store/portfolio-store";
 import { useThemeStore } from "@/store/theme-store";
 import { usePathname } from "next/navigation";
+import { Skeleton } from "../ui/skeleton";
 
 type TimeRange = '1W' | '1M' | '6M' | '1Y';
 
@@ -33,7 +34,7 @@ interface PortfolioValueProps {
 function PortfolioValue({ showTitle: showTitleProp = false }: PortfolioValueProps) {
   const pathname = usePathname();
   const [timeRange, setTimeRange] = useState<TimeRange>('1W');
-  const { portfolioSummary, chartData } = usePortfolioStore();
+  const { portfolioSummary, chartData, isLoading } = usePortfolioStore();
 
   const showTitle = showTitleProp && pathname === '/dashboard';
 
@@ -67,6 +68,33 @@ function PortfolioValue({ showTitle: showTitleProp = false }: PortfolioValueProp
 
     return null;
   };
+
+  if (isLoading) {
+    return (
+        <Card>
+            <CardHeader>
+                {showTitle && (
+                    <Skeleton className="h-7 w-40 mb-4" />
+                )}
+                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="space-y-2">
+                        <Skeleton className="h-8 w-48" />
+                        <Skeleton className="h-5 w-32" />
+                    </div>
+                     <div className="flex gap-1">
+                        <Skeleton className="h-9 w-12" />
+                        <Skeleton className="h-9 w-12" />
+                        <Skeleton className="h-9 w-12" />
+                        <Skeleton className="h-9 w-12" />
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <Skeleton className="h-[450px] w-full skeleton-shimmer" />
+            </CardContent>
+        </Card>
+    )
+  }
 
 
   return (
