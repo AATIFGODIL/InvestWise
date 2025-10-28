@@ -3,9 +3,9 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
-import Loading from "./loading";
+import { Loader2 } from "lucide-react";
 
-// Redirect to the sign-in page by default.
+// This is the root page, which handles redirection based on auth state.
 export default function Home() {
   const router = useRouter();
   const { user, hydrating } = useAuth();
@@ -20,5 +20,10 @@ export default function Home() {
     }
   }, [user, hydrating, router]);
   
-  return <Loading />;
+  // Display a minimal loading state while the redirection logic runs.
+  return (
+    <div className="flex h-screen w-screen items-center justify-center bg-background">
+      <Loader2 className="h-12 w-12 animate-spin text-primary" />
+    </div>
+  );
 }
