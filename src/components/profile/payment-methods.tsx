@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CreditCard, PlusCircle, Loader2 } from "lucide-react";
+import { CreditCard, PlusCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import AddPaymentMethod from "./add-payment-method";
 import { useUserStore } from "@/store/user-store";
+import { Skeleton } from "../ui/skeleton";
 
 interface PaymentMethodsProps {
   userId: string;
@@ -52,9 +53,7 @@ export default function PaymentMethods({ userId }: PaymentMethodsProps) {
       </CardHeader>
       <CardContent>
         {loading ? (
-            <div className="flex items-center justify-center p-4">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
+           <Skeleton className="h-14 w-full skeleton-shimmer" />
         ) : paymentMethodToken ? (
           <div className="p-4 rounded-lg bg-muted/50 flex items-center justify-between">
             <div className="flex items-center gap-3">

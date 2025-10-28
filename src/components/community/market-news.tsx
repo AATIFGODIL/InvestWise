@@ -4,11 +4,12 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Newspaper, Loader2, AlertCircle } from "lucide-react";
+import { Newspaper, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useThemeStore } from "@/store/theme-store";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "../ui/skeleton";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY;
 
@@ -101,6 +102,21 @@ export default function MarketNews({ limit }: MarketNewsProps) {
 
   const articlesToDisplay = limit ? articles.slice(0, limit) : articles;
 
+  const NewsSkeleton = () => (
+    <div className="space-y-4">
+        {[...Array(limit || 3)].map((_, i) => (
+            <div key={i} className="flex flex-col sm:flex-row gap-4 p-4 rounded-lg bg-muted/50">
+                <Skeleton className="relative w-full sm:w-32 h-32 sm:h-auto flex-shrink-0 rounded-md skeleton-shimmer" />
+                <div className="flex-grow space-y-2">
+                    <Skeleton className="h-5 w-full skeleton-shimmer" />
+                    <Skeleton className="h-4 w-1/4 skeleton-shimmer" />
+                    <Skeleton className="h-10 w-full skeleton-shimmer" />
+                </div>
+            </div>
+        ))}
+    </div>
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -114,9 +130,7 @@ export default function MarketNews({ limit }: MarketNewsProps) {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="flex items-center justify-center p-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          </div>
+            <NewsSkeleton />
         ) : error ? (
             <div className="flex flex-col items-center justify-center p-8 text-destructive">
                 <AlertCircle className="h-8 w-8 mb-2" />

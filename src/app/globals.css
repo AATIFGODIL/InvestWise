@@ -111,7 +111,7 @@
     filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.7));
   }
 
-  /* Shimmer effect for edit mode */
+  /* Shimmer effect for header favorites */
   .shimmer-bg {
     background-image: linear-gradient(
       -60deg,
@@ -120,16 +120,55 @@
       transparent 70%
     );
     background-size: 200% 100%;
-    animation: shimmer 2s linear infinite;
+    animation: shimmer-header 2s linear infinite;
   }
 
-  @keyframes shimmer {
+  @keyframes shimmer-header {
     0% {
       background-position: 200% 0;
     }
     100% {
       background-position: -200% 0;
     }
+  }
+
+  /* New double shimmer effect for skeleton loaders */
+  .skeleton-shimmer {
+    position: relative;
+    overflow: hidden;
+    background-color: hsl(var(--muted) / 0.5);
+  }
+
+  .skeleton-shimmer::after, .skeleton-shimmer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.05), transparent);
+    animation-duration: 2.5s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+  }
+
+  .skeleton-shimmer::after {
+    animation-name: shimmer-skeleton;
+  }
+
+  .skeleton-shimmer::before {
+    animation-name: shimmer-skeleton-2;
+    animation-delay: 0.5s;
+  }
+
+  @keyframes shimmer-skeleton {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(200%); }
+  }
+  
+  @keyframes shimmer-skeleton-2 {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(200%); }
   }
   
   #rotate-prompt {

@@ -5,6 +5,7 @@ import { getClientToken, vaultPaymentMethod } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { Skeleton } from "../ui/skeleton";
 
 export default function AddPaymentMethod({ userId, onCardSaved }: { userId: string, onCardSaved: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -89,9 +90,7 @@ export default function AddPaymentMethod({ userId, onCardSaved }: { userId: stri
   return (
     <div>
       {isLoading && (
-        <div className="flex items-center justify-center h-40">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+        <Skeleton className="h-40 w-full skeleton-shimmer" />
       )}
       <div ref={containerRef} id="dropin-container" className={isLoading ? 'hidden' : ''}></div>
       <Button onClick={handleSave} disabled={isLoading || isSaving} className="w-full mt-4">

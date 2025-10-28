@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, Loader2, Trash2 } from "lucide-react";
+import { Star, Trash2 } from "lucide-react";
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ import { useThemeStore } from "@/store/theme-store";
 import TradeDialogCMDK from "../trade/trade-dialog-cmdk";
 import { useRouter, usePathname } from "next/navigation";
 import { useBottomNavStore } from "@/store/bottom-nav-store";
+import { Skeleton } from "../ui/skeleton";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -27,7 +28,7 @@ export default function Watchlist() {
     const pathname = usePathname();
     const { watchlist, removeSymbol } = useWatchlistStore();
     const { toast } = useToast();
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [watchlistData, setWatchlistData] = useState<WatchlistItemData[]>([]);
     const { isClearMode } = useThemeStore();
     const { setActiveIndex, setSamePageIndex } = useBottomNavStore();
@@ -40,6 +41,7 @@ export default function Watchlist() {
         const fetchWatchlistData = async () => {
             if (watchlist.length === 0) {
                 setWatchlistData([]);
+                setIsLoading(false);
                 return;
             }
             setIsLoading(true);
@@ -52,8 +54,10 @@ export default function Watchlist() {
                     change: parseFloat((Math.random() * 10 - 5).toFixed(2)),
                     changePercent: parseFloat((Math.random() * 5 - 2.5).toFixed(2)),
                 }));
-                setWatchlistData(simulatedData);
-                setIsLoading(false);
+                setTimeout(() => {
+                    setWatchlistData(simulatedData);
+                    setIsLoading(false);
+                }, 1000); // Simulate network delay
                 return;
             }
 
@@ -109,17 +113,15 @@ export default function Watchlist() {
         const tradeUrl = `/trade?symbol=${symbol}`;
         
         if (pathname === '/trade') {
-             // If already on trade page, trigger same-page animation and update URL
             setSamePageIndex(tradePageIndex);
-            router.push(tradeUrl, { scroll: false }); // Prevent Next.js from scrolling
-            window.scrollTo(0, 0); // Manually scroll to top
+            router.push(tradeUrl, { scroll: false });
+            window.scrollTo(0, 0);
         } else {
-            // If on another page, trigger the full navigation animation
             setActiveIndex(tradePageIndex);
         }
     };
     
-    if (watchlist.length === 0) {
+    if (watchlist.length === 0 && !isLoading) {
         return (
             <Card>
                 <CardHeader>
@@ -148,8 +150,10 @@ export default function Watchlist() {
                 </CardHeader>
                 <CardContent>
                     {isLoading ? (
-                        <div className="flex justify-center items-center h-24">
-                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        <div className="space-y-2">
+                            {[...Array(Math.max(watchlist.length, 1))].map((_, i) => (
+                                <Skeleton key={i} className="h-14 w-full skeleton-shimmer" />
+                            ))}
                         </div>
                     ) : (
                         <div className="space-y-2">

@@ -285,8 +285,8 @@ export default function SettingsClient() {
             <CardContent className="space-y-8">
                 {!isClient ? (
                     <div className="space-y-4">
-                        <Skeleton className="h-24 w-full" />
-                        <Skeleton className="h-40 w-full" />
+                        <Skeleton className="h-32 w-full skeleton-shimmer" />
+                        <Skeleton className="h-48 w-full skeleton-shimmer" />
                     </div>
                 ) : (
                     <>

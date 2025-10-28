@@ -17,7 +17,6 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { questions } from "@/data/quiz";
-import useLoadingStore from "@/store/loading-store";
 
 type Answers = Record<string, number | number[]>;
 
@@ -25,7 +24,6 @@ export default function OnboardingQuizPage() {
   const router = useRouter();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
-  const { showLoading } = useLoadingStore();
 
   const handleNext = () => {
     if (currentQuestionIndex < questions.length - 1) {
@@ -36,7 +34,6 @@ export default function OnboardingQuizPage() {
   };
 
   const handleNavigate = () => {
-    showLoading(); // Show loading screen immediately
     calculateProfile();
     const userProfile = localStorage.getItem('userProfile');
     if (userProfile === "Student") {

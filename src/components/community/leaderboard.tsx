@@ -18,11 +18,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Crown, Loader2 } from "lucide-react";
+import { Crown } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { getLeaderboardData, type LeaderboardUser } from "@/app/actions";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "../ui/skeleton";
 
 export default function Leaderboard() {
   const { user } = useAuth();
@@ -56,8 +57,10 @@ export default function Leaderboard() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="flex items-center justify-center h-40">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="space-y-2">
+            {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full skeleton-shimmer" />
+            ))}
           </div>
         ) : error ? (
            <p className="text-destructive text-center">{error}</p>
