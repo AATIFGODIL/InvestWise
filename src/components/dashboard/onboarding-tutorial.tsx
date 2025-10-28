@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -45,16 +44,14 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   const [showBlur, setShowBlur] = useState(false);
 
   useEffect(() => {
-    // Lock the scroll when the component mounts
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
 
-    // This is the cleanup function that runs when the component unmounts
     return () => {
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
     };
-  }, []); // The empty array [] means this effect runs only once on mount
+  }, []);
 
   const updateHighlight = useCallback(() => {
     document.querySelectorAll('.tutorial-highlight-active').forEach(el => {
@@ -116,12 +113,9 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   if (!step || !tooltipPosition) return null;
 
   return (
-    // This is now a React Fragment, which doesn't render a DOM element,
-    // allowing the two motion.divs to be direct siblings in the stacking order.
     <>
         {showBlur && (
           <motion.div
-            // The blur gets its own z-index (bottom layer)
             className="fixed inset-0 bg-black/50 z-[100] pointer-events-auto"
             style={{ backdropFilter: 'blur(8px)' }}
             initial={{ opacity: 0 }}
@@ -136,13 +130,12 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
           style={{
-              position: 'fixed', // Use fixed positioning
+              position: 'fixed',
               top: `${tooltipPosition.top}px`,
               left: `${tooltipPosition.left}px`,
               width: `${tooltipPosition.width}px`,
               height: `${tooltipPosition.height}px`,
           }}
-          // The tooltip gets the highest z-index and positions the text inside
           className="flex justify-center items-start z-[120] pointer-events-auto pt-8"
         >
          <div className="text-center text-white p-4 max-w-sm">
