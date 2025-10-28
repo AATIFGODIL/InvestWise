@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -41,6 +40,7 @@ interface TooltipPosition {
 export default function OnboardingTutorial({ onComplete }: OnboardingTutorialProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null);
+  const [showBlur, setShowBlur] = useState(false);
 
   const updateHighlight = useCallback(() => {
     document.querySelectorAll('.tutorial-highlight-active').forEach(el => {
@@ -62,6 +62,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
 
         setTimeout(() => {
             element?.classList.add('tutorial-highlight-active');
+            setShowBlur(true);
         }, 300);
       }
     }
@@ -80,6 +81,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
 
 
   const handleNext = () => {
+    setShowBlur(false);
     document.getElementById(steps[currentStepIndex].highlight)?.classList.remove('tutorial-highlight-active');
 
     if (currentStepIndex < steps.length - 1) {
@@ -90,6 +92,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   };
   
   const handleSkip = () => {
+    setShowBlur(false);
     document.getElementById(steps[currentStepIndex].highlight)?.classList.remove('tutorial-highlight-active');
     onComplete();
   };
@@ -99,6 +102,15 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
 
   return (
     <div className="fixed inset-0 z-[100] pointer-events-none">
+       {showBlur && (
+         <motion.div
+            className="absolute inset-0 bg-black/50"
+            style={{ backdropFilter: 'blur(8px)' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          />
+       )}
        <motion.div 
          key={`tooltip-${step.id}`}
          initial={{ opacity: 0, y: 20 }}
