@@ -36,12 +36,25 @@ interface TooltipPosition {
   top: number;
   left: number;
   width: number;
+  height: number;
 }
 
 export default function OnboardingTutorial({ onComplete }: OnboardingTutorialProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null);
   const [showBlur, setShowBlur] = useState(false);
+
+  useEffect(() => {
+    // Lock the scroll when the component mounts
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    // This is the cleanup function that runs when the component unmounts
+    return () => {
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+  }, []); // The empty array [] means this effect runs only once on mount
 
   const updateHighlight = useCallback(() => {
     document.querySelectorAll('.tutorial-highlight-active').forEach(el => {
@@ -56,9 +69,10 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
         
         const rect = element.getBoundingClientRect();
         setTooltipPosition({
-            top: rect.top, // Position text AT THE TOP of the card
+            top: rect.top,
             left: rect.left,
             width: rect.width,
+            height: rect.height,
         });
 
         setTimeout(() => {
@@ -72,9 +86,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
 
   useEffect(() => {
     updateHighlight();
-
     window.addEventListener('resize', updateHighlight);
-    
     return () => {
       window.removeEventListener('resize', updateHighlight);
       document.querySelectorAll('.tutorial-highlight-active').forEach(el => {
@@ -87,7 +99,6 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   const handleNext = () => {
     setShowBlur(false);
     document.getElementById(steps[currentStepIndex].highlight)?.classList.remove('tutorial-highlight-active');
-
     if (currentStepIndex < steps.length - 1) {
       setCurrentStepIndex(currentStepIndex + 1);
     } else {
@@ -105,43 +116,49 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   if (!step || !tooltipPosition) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] pointer-events-none">
-       {showBlur && (
-         <motion.div
-            className="absolute inset-0 bg-black/50"
+    // This is now a React Fragment, which doesn't render a DOM element,
+    // allowing the two motion.divs to be direct siblings in the stacking order.
+    <>
+        {showBlur && (
+          <motion.div
+            // The blur gets its own z-index (bottom layer)
+            className="fixed inset-0 bg-black/50 z-[100] pointer-events-auto"
             style={{ backdropFilter: 'blur(8px)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
+            onClick={handleSkip} // Allow clicking the background to skip
           />
-       )}
-       <motion.div 
-         key={`tooltip-${step.id}`}
-         initial={{ opacity: 0, y: 20 }}
-         animate={{ opacity: 1, y: 0 }}
-         exit={{ opacity: 0 }}
-         style={{
-             position: 'absolute',
-             top: `${tooltipPosition.top}px`,
-             left: `${tooltipPosition.left}px`,
-             width: `${tooltipPosition.width}px`,
-         }}
-         className="w-full flex justify-center z-[120] pointer-events-auto"
-       >
-        <div className="text-center text-white p-4 max-w-sm">
-          <h3 className="font-bold text-xl drop-shadow-md">{step.title}</h3>
-          <p className="text-sm mt-1 drop-shadow-md">{step.description}</p>
-          <div className="flex justify-between items-center mt-4">
+        )}
+        <motion.div 
+          key={`tooltip-${step.id}`}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          style={{
+              position: 'fixed', // Use fixed positioning
+              top: `${tooltipPosition.top}px`,
+              left: `${tooltipPosition.left}px`,
+              width: `${tooltipPosition.width}px`,
+              height: `${tooltipPosition.height}px`,
+          }}
+          // The tooltip gets the highest z-index and positions the text inside
+          className="flex justify-center items-start z-[120] pointer-events-auto pt-8"
+        >
+         <div className="text-center text-white p-4 max-w-sm">
+           <h3 className="font-bold text-xl drop-shadow-md">{step.title}</h3>
+           <p className="text-sm mt-1 drop-shadow-md">{step.description}</p>
+           <div className="flex justify-between items-center mt-4">
              <Button variant="ghost" size="sm" onClick={handleSkip} className="text-white hover:text-white hover:bg-white/10">
-                <X className="mr-2 h-4 w-4" /> Skip
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleNext} className="text-white hover:text-white hover:bg-white/10">
-              {currentStepIndex < steps.length - 1 ? 'Next' : 'Finish'}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </motion.div>
-    </div>
+               <X className="mr-2 h-4 w-4" /> Skip
+             </Button>
+             <Button variant="ghost" size="sm" onClick={handleNext} className="text-white hover:text-white hover:bg-white/10">
+               {currentStepIndex < steps.length - 1 ? 'Next' : 'Finish'}
+               <ArrowRight className="ml-2 h-4 w-4" />
+             </Button>
+           </div>
+         </div>
+       </motion.div>
+    </>
   );
 }
