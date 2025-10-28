@@ -15,6 +15,29 @@ import { useAuth } from "@/hooks/use-auth";
 import { useMarketStore } from "@/store/market-store";
 import Watchlist from "../dashboard/watchlist";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut",
+    },
+  },
+};
 
 export default function PortfolioClient() {
   const { toast } = useToast();
@@ -63,16 +86,23 @@ export default function PortfolioClient() {
 
   return (
       <main>
-        <div className="p-4 space-y-6 pb-24">
-          <div className="flex justify-between items-center">
+        <motion.div 
+            className="p-4 space-y-6 pb-24"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+        >
+          <motion.div variants={itemVariants} className="flex justify-between items-center">
               <h1 className="text-2xl font-bold">Portfolio</h1>
               <Button onClick={handleAddFunds} className={cn("ring-1 ring-white/60")}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add $100 (Demo)
               </Button>
-          </div>
-          <PortfolioValue />
-          <div>
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <PortfolioValue />
+          </motion.div>
+          <motion.div variants={itemVariants}>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Holdings</h2>
                 <div className="flex items-center gap-2 text-sm text-primary">
@@ -81,11 +111,15 @@ export default function PortfolioClient() {
               </div>
             </div>
             <HoldingsTable />
-          </div>
-          <Watchlist />
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <Watchlist />
+          </motion.div>
+          <motion.div variants={itemVariants}>
             <AiPrediction />
+          </motion.div>
           <Chatbot />
-        </div>
+        </motion.div>
       </main>
   );
 }

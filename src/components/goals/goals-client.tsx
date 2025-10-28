@@ -6,6 +6,7 @@ import GoalList from "@/components/goals/goal-list";
 import Chatbot from "@/components/chatbot/chatbot";
 import { useGoalStore } from "@/store/goal-store";
 import YouTubePlayer from "../shared/youtube-player";
+import { motion } from "framer-motion";
 
 const videos = [
     {
@@ -20,29 +21,60 @@ const videos = [
     }
 ]
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut",
+    },
+  },
+};
+
 export default function GoalsClient() {
   const { goals, addGoal } = useGoalStore();
 
   return (
     <main>
-      <div className="p-4 space-y-6 pb-24">
-        <h1 className="text-2xl font-bold">Goals</h1>
+      <motion.div 
+        className="p-4 space-y-6 pb-24"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.h1 variants={itemVariants} className="text-2xl font-bold">Goals</motion.h1>
         
-        <CreateGoal onAddGoal={addGoal} />
+        <motion.div variants={itemVariants}>
+          <CreateGoal onAddGoal={addGoal} />
+        </motion.div>
 
-        <GoalList goals={goals} />
+        <motion.div variants={itemVariants}>
+          <GoalList goals={goals} />
+        </motion.div>
 
-        <div className="space-y-4 pt-4">
+        <motion.div variants={itemVariants} className="space-y-4 pt-4">
             <h2 className="text-xl font-bold">Learn About Goals</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 {videos.map((video) => (
                     <YouTubePlayer key={video.title} videoTitle={video.title} description={video.description} youtubeUrl={video.youtubeUrl} />
                 ))}
             </div>
-        </div>
+        </motion.div>
         
         <Chatbot />
-      </div>
+      </motion.div>
     </main>
   );
 }

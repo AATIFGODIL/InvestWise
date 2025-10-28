@@ -23,6 +23,7 @@ import { CommandItem, CommandList } from "../ui/command";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useThemeStore } from "@/store/theme-store";
+import { motion } from "framer-motion";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -56,6 +57,28 @@ const videos = [
         youtubeUrl: "https://www.youtube.com/watch?v=sWTnFS10tdQ"
     }
 ]
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut",
+    },
+  },
+};
 
 export default function TradeClient() {
   const searchParams = useSearchParams();
@@ -283,105 +306,112 @@ export default function TradeClient() {
 
   return (
       <main>
-        <div className="p-4 space-y-6 pb-24">
-        <h1 className="text-2xl font-bold">Trade</h1>
+        <motion.div 
+            className="p-4 space-y-6 pb-24"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+        >
+        <motion.h1 variants={itemVariants} className="text-2xl font-bold">Trade</motion.h1>
         
-        <Card>
-            <CardHeader>
-                <div className="flex justify-between items-center flex-wrap gap-4">
-                    <div className="flex items-center gap-2">
-                        <CardTitle>Stock Chart</CardTitle>
-                        <Button variant="ghost" size="icon" onClick={handleToggleWatchlist} className="h-8 w-8">
-                            <Star className={cn("h-5 w-5", isSymbolInWatchlist ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
-                        </Button>
+        <motion.div variants={itemVariants}>
+            <Card>
+                <CardHeader>
+                    <div className="flex justify-between items-center flex-wrap gap-4">
+                        <div className="flex items-center gap-2">
+                            <CardTitle>Stock Chart</CardTitle>
+                            <Button variant="ghost" size="icon" onClick={handleToggleWatchlist} className="h-8 w-8">
+                                <Star className={cn("h-5 w-5", isSymbolInWatchlist ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
+                            </Button>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-primary">
+                            <Clock className="h-4 w-4" />
+                            <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-primary">
-                        <Clock className="h-4 w-4" />
-                        <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
-                    </div>
-                </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div ref={searchContainerRef} className="relative">
-                    <div className={cn(
-                        "relative flex h-12 w-full items-center rounded-full px-4 text-primary-foreground shadow-lg",
-                        isClearMode
-                            ? isLightClear
-                                ? "bg-card/60 ring-1 ring-white/10"
-                                : "bg-white/10 ring-1 ring-white/60"
-                            : "bg-card ring-1 ring-border"
-                    )} style={{ backdropFilter: "blur(16px)" }}>
-                        <Search className={cn("h-5 w-5", isClearMode ? "text-slate-100" : "text-muted-foreground")} />
-                        <Input
-                            value={inputValue}
-                            onChange={(e) => {
-                                setInputValue(e.target.value.toUpperCase())
-                                setShowSuggestions(true)
-                            }}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleSearch();
-                                }
-                            }}
-                            onFocus={() => setShowSuggestions(true)}
-                            placeholder="Search stocks..."
-                            className={cn(
-                                "w-full h-full bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base placeholder:text-muted-foreground",
-                                isLightClear ? "text-foreground" : (isClearMode ? "text-slate-100" : "text-foreground")
-                            )}
-                        />
-                        {loadingPrice && searchedSymbol === inputValue.toUpperCase() && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
-                    </div>
-
-                    {showSuggestions && inputValue && (
-                         <div 
-                           className={cn(
-                            "absolute top-full mt-2 w-full rounded-3xl shadow-lg z-20 overflow-hidden",
-                            isClearMode 
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div ref={searchContainerRef} className="relative">
+                        <div className={cn(
+                            "relative flex h-12 w-full items-center rounded-full px-4 text-primary-foreground shadow-lg",
+                            isClearMode
                                 ? isLightClear
                                     ? "bg-card/60 ring-1 ring-white/10"
                                     : "bg-white/10 ring-1 ring-white/60"
-                                : "bg-background border"
-                           )}
-                           style={{ backdropFilter: "blur(16px)" }}
-                         >
-                            <CommandList>
-                                {isFetchingDetails && <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>}
-                                {!isFetchingDetails && displayedStocks.length === 0 && <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>}
-                                {displayedStocks.map(stock => (
-                                    <CommandItem key={stock.symbol} onSelect={() => handleStockSelection(stock)}>
-                                         <div className="flex justify-between items-center w-full">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-8 w-8 bg-muted">
-                                                     <AvatarImage src={stock.logoUrl} alt={stock.name} />
-                                                    <AvatarFallback>{stock.symbol.charAt(0)}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p>{stock.name}</p>
-                                                    <p className="text-xs text-muted-foreground">{stock.symbol}</p>
+                                : "bg-card ring-1 ring-border"
+                        )} style={{ backdropFilter: "blur(16px)" }}>
+                            <Search className={cn("h-5 w-5", isClearMode ? "text-slate-100" : "text-muted-foreground")} />
+                            <Input
+                                value={inputValue}
+                                onChange={(e) => {
+                                    setInputValue(e.target.value.toUpperCase())
+                                    setShowSuggestions(true)
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        handleSearch();
+                                    }
+                                }}
+                                onFocus={() => setShowSuggestions(true)}
+                                placeholder="Search stocks..."
+                                className={cn(
+                                    "w-full h-full bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-base placeholder:text-muted-foreground",
+                                    isLightClear ? "text-foreground" : (isClearMode ? "text-slate-100" : "text-foreground")
+                                )}
+                            />
+                            {loadingPrice && searchedSymbol === inputValue.toUpperCase() && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
+                        </div>
+
+                        {showSuggestions && inputValue && (
+                             <div 
+                               className={cn(
+                                "absolute top-full mt-2 w-full rounded-3xl shadow-lg z-20 overflow-hidden",
+                                isClearMode 
+                                    ? isLightClear
+                                        ? "bg-card/60 ring-1 ring-white/10"
+                                        : "bg-white/10 ring-1 ring-white/60"
+                                    : "bg-background border"
+                               )}
+                               style={{ backdropFilter: "blur(16px)" }}
+                             >
+                                <CommandList>
+                                    {isFetchingDetails && <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>}
+                                    {!isFetchingDetails && displayedStocks.length === 0 && <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>}
+                                    {displayedStocks.map(stock => (
+                                        <CommandItem key={stock.symbol} onSelect={() => handleStockSelection(stock)}>
+                                             <div className="flex justify-between items-center w-full">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-8 w-8 bg-muted">
+                                                         <AvatarImage src={stock.logoUrl} alt={stock.name} />
+                                                        <AvatarFallback>{stock.symbol.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p>{stock.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{stock.symbol}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="font-mono">${stock.price.toFixed(2)}</p>
+                                                    <p className={cn("text-xs", stock.change >= 0 ? "text-green-500" : "text-red-500")}>
+                                                        {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+                                                    </p>
                                                 </div>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="font-mono">${stock.price.toFixed(2)}</p>
-                                                <p className={cn("text-xs", stock.change >= 0 ? "text-green-500" : "text-red-500")}>
-                                                    {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </CommandItem>
-                                ))}
-                            </CommandList>
-                        </div>
-                    )}
-                </div>
-                {error && <p className="text-destructive text-sm">{error}</p>}
-                <div className="h-[400px] md:h-[500px] w-full">
-                    {isClient && <TradingViewWidget symbol={widgetSymbol} onSymbolChange={handleWidgetSymbolChange}/>}
-                </div>
-            </CardContent>
-        </Card>
+                                        </CommandItem>
+                                    ))}
+                                </CommandList>
+                            </div>
+                        )}
+                    </div>
+                    {error && <p className="text-destructive text-sm">{error}</p>}
+                    <div className="h-[400px] md:h-[500px] w-full">
+                        {isClient && <TradingViewWidget symbol={widgetSymbol} onSymbolChange={handleWidgetSymbolChange}/>}
+                    </div>
+                </CardContent>
+            </Card>
+        </motion.div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TradeForm 
                 selectedSymbol={searchedSymbol}
                 selectedPrice={price}
@@ -391,35 +421,37 @@ export default function TradeClient() {
                 <Watchlist />
                 <AiPredictionTrade initialSymbol={searchedSymbol} />
             </div>
-        </div>
+        </motion.div>
 
-        <InvestmentBundles
-            title="Explore Specialized Bundles"
-            description="Discover themed collections for more focused strategies."
-            bundles={specializedBundles}
-        />
+        <motion.div variants={itemVariants}>
+            <InvestmentBundles
+                title="Explore Specialized Bundles"
+                description="Discover themed collections for more focused strategies."
+                bundles={specializedBundles}
+            />
+        </motion.div>
         
-        <Card>
-            <CardHeader>
-                <CardTitle>Stock Screener</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[600px]">
-                    <TradingViewScreener />
-            </CardContent>
-        </Card>
-
-        <div className="space-y-4 pt-4">
+        <motion.div variants={itemVariants}>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Stock Screener</CardTitle>
+                </CardHeader>
+                <CardContent className="h-[600px]">
+                        <TradingViewScreener />
+                </CardContent>
+            </Card>
+        </motion.div>
+        
+        <motion.div variants={itemVariants} className="space-y-4 pt-4">
             <h2 className="text-xl font-bold">Learn About Trading</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {videos.map((video) => (
                     <YouTubePlayer key={video.title} videoTitle={video.title} description={video.description} youtubeUrl={video.youtubeUrl} />
                 ))}
             </div>
-        </div>
+        </motion.div>
         
-        </div>
+        </motion.div>
       </main>
   );
 }
-
-    
