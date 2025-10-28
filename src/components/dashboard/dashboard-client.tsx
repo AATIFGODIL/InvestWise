@@ -66,10 +66,8 @@ export default function DashboardClient() {
       const profile = localStorage.getItem('userProfile');
       setUserProfile(profile);
 
-      const hasSeenTutorial = localStorage.getItem('hasCompletedOnboardingTutorial');
-      if (!hasSeenTutorial) {
-        setShowTutorial(true);
-      }
+      // Temporarily always show the tutorial for testing
+      setShowTutorial(true);
     }
     fetchMarketStatus();
   }, [fetchMarketStatus]);
@@ -138,7 +136,7 @@ export default function DashboardClient() {
                 <PortfolioValue showTitle={true} />
             </motion.div>
             <div id="holdings-watchlist-tutorial">
-                <motion.div variants={itemVariants} id="watchlist-tutorial">
+                <motion.div variants={itemVariants}>
                     <Watchlist />
                 </motion.div>
                 <motion.div variants={itemVariants} className="mt-6">
