@@ -88,7 +88,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   }
   
   // This layout is now simplified. The MainContent wrapper handles the loading state internally.
-  if (user) {
+  if (user && pathname !== '/auth/welcome-back') {
        return (
         <div className="flex flex-col h-screen">
           {!isSpecialLayoutRoute && <Header onTriggerRain={handleTriggerRain} />}
@@ -100,7 +100,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   }
   
   // This will handle the auth and onboarding routes which don't need the main layout
-  if (isAuthOrOnboardingRoute) {
+  if (isAuthOrOnboardingRoute || (user && pathname === '/auth/welcome-back')) {
       return (
           <div className="flex flex-col h-screen">
               <MainContent isLoading={false}>{children}</MainContent>
