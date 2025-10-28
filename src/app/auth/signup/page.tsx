@@ -21,6 +21,7 @@ import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import useLoadingStore from '@/store/loading-store';
 import { useThemeStore } from '@/store/theme-store';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 
 // A simple SVG component for the Google icon.
@@ -105,144 +106,151 @@ export default function SignUpPage() {
   return (
     <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
       <FinanceBackground />
-       <Card
-        className={cn(
-            "w-full max-w-sm relative z-10",
-            isClearMode 
-                ? isLightClear
-                    ? "bg-card/60 ring-1 ring-white/10"
-                    : "bg-white/10 ring-1 ring-white/60"
-                : ""
-        )}
-        style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
+       <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="w-full max-w-sm relative z-10"
       >
-        <div className="flex justify-center items-center pt-8 gap-2">
-            <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
-        </div>
-        <CardHeader>
-          <CardTitle className="text-2xl">Create an Account</CardTitle>
-          <CardDescription>
-            Join InvestWise to start your investment journey today.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Sign-Up Failed</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+        <Card
+          className={cn(
+              "w-full",
+              isClearMode 
+                  ? isLightClear
+                      ? "bg-card/60 ring-1 ring-white/10"
+                      : "bg-white/10 ring-1 ring-white/60"
+                  : ""
           )}
-          <div className="grid gap-2">
-            <Button variant="outline" onClick={signInWithGoogle} disabled={isSigningUp} className="w-full">
-                <GoogleIcon /> Continue with Google
-            </Button>
+          style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
+        >
+          <div className="flex justify-center items-center pt-8 gap-2">
+              <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
           </div>
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-                <span className={cn("px-2 text-muted-foreground", isClearMode && !isLightClear ? "bg-card" : "bg-background")}>Or continue with</span>
-            </div>
-          </div>
-          <form onSubmit={handleSignUp} className="grid gap-4">
+          <CardHeader>
+            <CardTitle className="text-2xl">Create an Account</CardTitle>
+            <CardDescription>
+              Join InvestWise to start your investment journey today.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Sign-Up Failed</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+            )}
             <div className="grid gap-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="your_username"
-                required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                disabled={isSigningUp}
-              />
+              <Button variant="outline" onClick={signInWithGoogle} disabled={isSigningUp} className="w-full">
+                  <GoogleIcon /> Continue with Google
+              </Button>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="email">Email</Label>
-              <Input 
-                id="email" 
-                type="email" 
-                placeholder="name@example.com" 
-                required 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isSigningUp}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input 
-                  id="password" 
-                  type={showPassword ? "text" : "password"} 
-                  required 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pr-10"
-                  disabled={isSigningUp}
-                />
-                 <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="icon" 
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
-                  onClick={() => setShowPassword(prev => !prev)}
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                  <span className={cn("px-2 text-muted-foreground", isClearMode && !isLightClear ? "bg-card" : "bg-background")}>Or continue with</span>
               </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="confirm-password">Confirm Password</Label>
-              <div className="relative">
-                <Input 
-                  id="confirm-password" 
-                  type={showConfirmPassword ? "text" : "password"}
-                  required 
-                  value={confirmPassword} 
-                  onChange={(e) => setConfirmPassword(e.target.value)} 
-                  className="pr-10"
+            <form onSubmit={handleSignUp} className="grid gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="your_username"
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   disabled={isSigningUp}
                 />
-                 <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="icon" 
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
-                  onClick={() => setShowConfirmPassword(prev => !prev)}
-                >
-                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </Button>
               </div>
-            </div>
-            <div className="text-xs text-muted-foreground">
-                By creating an account, you agree to our{" "}
-                <Link href="#" className="underline">
-                  Terms and Conditions
-                </Link>
-                .
-            </div>
-            <Button type="submit" className="w-full" disabled={isSigningUp}>
-              {isSigningUp ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Creating Account...
-                </>
-              ) : (
-                'Create Account'
-              )}
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className="text-center text-sm">
-          Already have an account?&nbsp;
-          <Link href="/auth/signin" className="underline" onClick={handleNavigateToSignIn}>
-            Sign In
-          </Link>
-        </CardFooter>
-      </Card>
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email</Label>
+                <Input 
+                  id="email" 
+                  type="email" 
+                  placeholder="name@example.com" 
+                  required 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isSigningUp}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Input 
+                    id="password" 
+                    type={showPassword ? "text" : "password"} 
+                    required 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pr-10"
+                    disabled={isSigningUp}
+                  />
+                   <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
+                    onClick={() => setShowPassword(prev => !prev)}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <div className="relative">
+                  <Input 
+                    id="confirm-password" 
+                    type={showConfirmPassword ? "text" : "password"}
+                    required 
+                    value={confirmPassword} 
+                    onChange={(e) => setConfirmPassword(e.target.value)} 
+                    className="pr-10"
+                    disabled={isSigningUp}
+                  />
+                   <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="icon" 
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
+                    onClick={() => setShowConfirmPassword(prev => !prev)}
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                  By creating an account, you agree to our{" "}
+                  <Link href="#" className="underline">
+                    Terms and Conditions
+                  </Link>
+                  .
+              </div>
+              <Button type="submit" className="w-full" disabled={isSigningUp}>
+                {isSigningUp ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating Account...
+                  </>
+                ) : (
+                  'Create Account'
+                )}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="text-center text-sm">
+            Already have an account?&nbsp;
+            <Link href="/auth/signin" className="underline" onClick={handleNavigateToSignIn}>
+              Sign In
+            </Link>
+          </CardFooter>
+        </Card>
+      </motion.div>
     </div>
   );
 }

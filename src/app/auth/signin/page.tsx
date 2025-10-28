@@ -22,6 +22,7 @@ import useLoadingStore from '@/store/loading-store';
 import { useToast } from '@/hooks/use-toast';
 import { useThemeStore } from '@/store/theme-store';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 // A simple SVG component for the Google icon.
 const GoogleIcon = () => (
@@ -126,121 +127,128 @@ export default function SignInPage() {
   return (
     <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
       <FinanceBackground />
-      <Card
-        className={cn(
-            "w-full max-w-sm relative z-10",
-            isClearMode 
-                ? isLightClear
-                    ? "bg-card/60 ring-1 ring-white/10"
-                    : "bg-white/10 ring-1 ring-white/60"
-                : ""
-        )}
-        style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="w-full max-w-sm relative z-10"
       >
-          <div className="flex justify-center items-center pt-8 gap-2">
-              <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
-          </div>
-          <CardHeader>
-            <CardTitle className="text-2xl">Welcome Back!</CardTitle>
-            <CardDescription>
-              Sign in to continue your investment journey.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Sign-In Failed</AlertTitle>
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <div className="grid gap-2">
-              <Button variant="outline" onClick={handleGoogleSignIn} className="w-full" disabled={isEmailLoading || isGoogleLoading}>
-                  {isGoogleLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Signing in...
-                    </>
-                  ) : (
-                    <>
-                      <GoogleIcon /> Continue with Google
-                    </>
-                  )}
-              </Button>
+        <Card
+          className={cn(
+              "w-full",
+              isClearMode 
+                  ? isLightClear
+                      ? "bg-card/60 ring-1 ring-white/10"
+                      : "bg-white/10 ring-1 ring-white/60"
+                  : ""
+          )}
+          style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
+        >
+            <div className="flex justify-center items-center pt-8 gap-2">
+                <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
             </div>
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                  <span className={cn("px-2 text-muted-foreground", isClearMode && !isLightClear ? "bg-card" : "bg-background")}>Or continue with</span>
-              </div>
-            </div>
-            <form onSubmit={handleEmailSignIn} className="grid gap-4">
+            <CardHeader>
+              <CardTitle className="text-2xl">Welcome Back!</CardTitle>
+              <CardDescription>
+                Sign in to continue your investment journey.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertTitle>Sign-In Failed</AlertTitle>
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="name@example.com" 
-                  required 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isEmailLoading || isGoogleLoading}
-                />
+                <Button variant="outline" onClick={handleGoogleSignIn} className="w-full" disabled={isEmailLoading || isGoogleLoading}>
+                    {isGoogleLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Signing in...
+                      </>
+                    ) : (
+                      <>
+                        <GoogleIcon /> Continue with Google
+                      </>
+                    )}
+                </Button>
               </div>
-              <div className="grid gap-2">
-                 <div className="flex items-center justify-between">
-                    <Label htmlFor="password">Password</Label>
-                    <button
-                        type="button"
-                        onClick={handlePasswordReset}
-                        className="text-sm underline"
-                    >
-                        Forgot password?
-                    </button>
-                 </div>
-                <div className="relative">
-                  <Input 
-                    id="password" 
-                    type={showPassword ? 'text' : 'password'}
-                    required 
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pr-10"
-                    disabled={isEmailLoading || isGoogleLoading}
-                  />
-                  <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="icon" 
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
-                    onClick={() => setShowPassword(prev => !prev)}
-                    disabled={isEmailLoading || isGoogleLoading}
-                  >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </Button>
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                    <span className={cn("px-2 text-muted-foreground", isClearMode && !isLightClear ? "bg-card" : "bg-background")}>Or continue with</span>
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={isEmailLoading || isGoogleLoading}>
-                {isEmailLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing In...
-                  </>
-                ) : (
-                  'Sign In with Email'
-                )}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="text-center text-sm">
-            Don&apos;t have an account?&nbsp;
-            <Link href="/auth/signup" className="underline" onClick={handleNavigateToSignUp}>
-              Sign Up
-            </Link>
-          </CardFooter>
-      </Card>
+              <form onSubmit={handleEmailSignIn} className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    placeholder="name@example.com" 
+                    required 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isEmailLoading || isGoogleLoading}
+                  />
+                </div>
+                <div className="grid gap-2">
+                   <div className="flex items-center justify-between">
+                      <Label htmlFor="password">Password</Label>
+                      <button
+                          type="button"
+                          onClick={handlePasswordReset}
+                          className="text-sm underline"
+                      >
+                          Forgot password?
+                      </button>
+                   </div>
+                  <div className="relative">
+                    <Input 
+                      id="password" 
+                      type={showPassword ? 'text' : 'password'}
+                      required 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pr-10"
+                      disabled={isEmailLoading || isGoogleLoading}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
+                      onClick={() => setShowPassword(prev => !prev)}
+                      disabled={isEmailLoading || isGoogleLoading}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <Button type="submit" className="w-full" disabled={isEmailLoading || isGoogleLoading}>
+                  {isEmailLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Signing In...
+                    </>
+                  ) : (
+                    'Sign In with Email'
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+            <CardFooter className="text-center text-sm">
+              Don&apos;t have an account?&nbsp;
+              <Link href="/auth/signup" className="underline" onClick={handleNavigateToSignUp}>
+                Sign Up
+              </Link>
+            </CardFooter>
+        </Card>
+      </motion.div>
     </div>
   );
 }

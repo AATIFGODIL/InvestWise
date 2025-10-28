@@ -3,6 +3,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
 import { recommendedBundles, specializedBundles } from "@/data/bundles";
 import CongratulationsBanner from "@/components/dashboard/congratulations-banner";
 import Chatbot from "@/components/chatbot/chatbot";
@@ -29,6 +30,28 @@ const GoalProgress = dynamic(() => import("@/components/dashboard/goal-progress"
 const InvestmentBundles = dynamic(() => import("@/components/dashboard/investment-bundles"), {
     ssr: false,
 });
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      duration: 0.3,
+      ease: "easeOut",
+    },
+  },
+};
 
 export default function DashboardClient() {
   const [userProfile, setUserProfile] = useState<string | null>(null);
@@ -79,35 +102,52 @@ export default function DashboardClient() {
 
   return (
     <main>
-        <div className="p-4 space-y-6 pb-40">
-        <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">Explore</h1>
-            <div className="flex items-center gap-2 text-sm text-primary">
-                <Clock className="h-4 w-4" />
-                <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
-            </div>
-        </div>
-        
-        <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
-        <PortfolioValue showTitle={true} />
-        <Watchlist />
-        <HoldingsSummary />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <AutoInvest />
-            <AiPrediction />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <GoalProgress />
-            <CommunityLeaderboard />
-        </div>
-        <MarketNews limit={3} />
-        <div className="space-y-4 pt-4">
-            <h2 className="text-xl font-bold">Educational Content</h2>
-            <EducationalContent content={educationalContent} />
-        </div>
-        <InvestmentBundles {...bundleProps} />
-        <Chatbot />
-        </div>
+        <motion.div 
+            className="p-4 space-y-6 pb-40"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+        >
+            <motion.div variants={itemVariants} className="flex justify-between items-center">
+                <h1 className="text-2xl font-bold">Explore</h1>
+                <div className="flex items-center gap-2 text-sm text-primary">
+                    <Clock className="h-4 w-4" />
+                    <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+                </div>
+            </motion.div>
+            
+            <motion.div variants={itemVariants}>
+                <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
+            </motion.div>
+            <motion.div variants={itemVariants}>
+                <PortfolioValue showTitle={true} />
+            </motion.div>
+            <motion.div variants={itemVariants}>
+                <Watchlist />
+            </motion.div>
+            <motion.div variants={itemVariants}>
+                <HoldingsSummary />
+            </motion.div>
+            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <AutoInvest />
+                <AiPrediction />
+            </motion.div>
+            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <GoalProgress />
+                <CommunityLeaderboard />
+            </motion.div>
+            <motion.div variants={itemVariants}>
+                <MarketNews limit={3} />
+            </motion.div>
+            <motion.div variants={itemVariants} className="space-y-4 pt-4">
+                <h2 className="text-xl font-bold">Educational Content</h2>
+                <EducationalContent content={educationalContent} />
+            </motion.div>
+            <motion.div variants={itemVariants}>
+                <InvestmentBundles {...bundleProps} />
+            </motion.div>
+            <Chatbot />
+        </motion.div>
     </main>
   );
 }

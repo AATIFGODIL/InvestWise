@@ -19,6 +19,7 @@ import { AlertCircle, Eye, EyeOff, Loader2, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useThemeStore } from '@/store/theme-store';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 // A decorative background component with subtle financial-themed patterns.
 const FinanceBackground = () => (
@@ -206,32 +207,39 @@ export default function ResetPasswordPage() {
     return (
         <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
             <FinanceBackground />
-            <Card
-                className={cn(
-                    "w-full max-w-md relative z-10",
-                    isClearMode 
-                        ? isLightClear
-                            ? "bg-card/60 ring-1 ring-white/10"
-                            : "bg-white/10 ring-1 ring-white/60"
-                        : ""
-                )}
-                style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                className="w-full max-w-md relative z-10"
             >
-                <div className="flex justify-center items-center pt-8 gap-2">
-                    <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
-                </div>
-                <CardHeader>
-                    <CardTitle className="text-2xl">Reset Your Password</CardTitle>
-                    <CardDescription>
-                    Enter a new password for your account below.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
-                        <ResetPasswordForm />
-                    </Suspense>
-                </CardContent>
-            </Card>
+                <Card
+                    className={cn(
+                        "w-full",
+                        isClearMode 
+                            ? isLightClear
+                                ? "bg-card/60 ring-1 ring-white/10"
+                                : "bg-white/10 ring-1 ring-white/60"
+                            : ""
+                    )}
+                    style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
+                >
+                    <div className="flex justify-center items-center pt-8 gap-2">
+                        <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
+                    </div>
+                    <CardHeader>
+                        <CardTitle className="text-2xl">Reset Your Password</CardTitle>
+                        <CardDescription>
+                        Enter a new password for your account below.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>}>
+                            <ResetPasswordForm />
+                        </Suspense>
+                    </CardContent>
+                </Card>
+            </motion.div>
         </div>
     )
 }
