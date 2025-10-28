@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CardHeader, CardContent, CardTitle } from "@/components/ui/card";
@@ -17,22 +17,24 @@ import { motion } from "framer-motion";
 export default function WelcomeBackPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { loading: userDataLoading } = useUserData(user);
+  useUserData(user); // This hook now just triggers data hydration
+  const [isReady, setIsReady] = useState(false);
   const { isClearMode, theme } = useThemeStore();
   const isLightClear = isClearMode && theme === 'light';
 
   useEffect(() => {
-    // Wait for user data (especially theme) to be loaded before redirecting
-    if (userDataLoading) return;
+    // Wait for user object and stores to hydrate before redirecting
+    if (user) {
+      setIsReady(true);
+      const timer = setTimeout(() => {
+        router.push("/dashboard");
+      }, 5000); // Redirect after 5 seconds
 
-    const timer = setTimeout(() => {
-      router.push("/dashboard");
-    }, 5000); // Redirect after 5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [router, user]);
 
-    return () => clearTimeout(timer);
-  }, [router, userDataLoading]);
-
-  if (userDataLoading) {
+  if (!isReady) {
     return (
        <div className="flex items-center justify-center h-screen w-full bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
