@@ -112,9 +112,6 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   const step = steps[currentStepIndex];
   if (!step || !tooltipPosition) return null;
 
-  // Custom styling for step 2 to place text where the watchlist would be.
-  const isSecondStep = step.id === 2;
-
   return (
     <>
         {showBlur && (
