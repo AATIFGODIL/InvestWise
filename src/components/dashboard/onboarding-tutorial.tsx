@@ -73,7 +73,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onComplete}
       />
 
@@ -81,17 +81,18 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
         {highlightedRect && (
           <motion.div
             key={`highlight-${step.id}`}
-            initial={{ opacity: 0 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ 
                 opacity: 1,
+                scale: 1,
                 top: highlightedRect.top - 16,
                 left: highlightedRect.left - 16,
                 width: highlightedRect.width + 32,
                 height: highlightedRect.height + 32,
             }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="absolute rounded-3xl bg-white/10 pointer-events-none border-2 border-white/50"
+            className="absolute rounded-3xl bg-transparent pointer-events-none border-2 border-white/80 shadow-2xl shadow-white/20"
           />
         )}
       </AnimatePresence>
@@ -102,14 +103,14 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
          animate={{ opacity: 1, y: 0 }}
          className="absolute top-20 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-20"
        >
-        <div className="bg-background/80 backdrop-blur-xl p-4 rounded-xl shadow-2xl border border-border">
-          <h3 className="font-bold text-lg">{step.title}</h3>
-          <p className="text-sm text-muted-foreground mt-1">{step.description}</p>
+        <div className="bg-transparent p-4 rounded-xl text-center text-white">
+          <h3 className="font-bold text-xl drop-shadow-md">{step.title}</h3>
+          <p className="text-sm mt-1 drop-shadow-md">{step.description}</p>
           <div className="flex justify-between items-center mt-4">
-             <Button variant="ghost" size="sm" onClick={onComplete}>
+             <Button variant="ghost" size="sm" onClick={onComplete} className="text-white hover:text-white hover:bg-white/10">
                 <X className="mr-2 h-4 w-4" /> Skip
             </Button>
-            <Button size="sm" onClick={handleNext}>
+            <Button variant="ghost" size="sm" onClick={handleNext} className="text-white hover:text-white hover:bg-white/10">
               {currentStepIndex < steps.length - 1 ? 'Next' : 'Finish'}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
