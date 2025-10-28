@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -55,7 +56,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
         
         const rect = element.getBoundingClientRect();
         setTooltipPosition({
-            top: rect.top - 80, // Position text ABOVE the card
+            top: rect.top, // Position text AT THE TOP of the card
             left: rect.left,
             width: rect.width,
         });
@@ -125,9 +126,9 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
              left: `${tooltipPosition.left}px`,
              width: `${tooltipPosition.width}px`,
          }}
-         className="w-full max-w-sm px-4 z-[120] pointer-events-auto"
+         className="w-full flex justify-center z-[120] pointer-events-auto"
        >
-        <div className="text-center text-white p-4">
+        <div className="text-center text-white p-4 max-w-sm">
           <h3 className="font-bold text-xl drop-shadow-md">{step.title}</h3>
           <p className="text-sm mt-1 drop-shadow-md">{step.description}</p>
           <div className="flex justify-between items-center mt-4">
