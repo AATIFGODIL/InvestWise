@@ -25,8 +25,8 @@ const steps: Step[] = [
   },
   {
     id: 2,
-    title: 'Your Holdings & Watchlist',
-    description: 'Here you can see a summary of your top holdings and track stocks you are interested in.',
+    title: 'Your Top Holdings',
+    description: 'This area shows a summary of the top stocks you own. A full list is on the Portfolio page.',
     highlight: 'holdings-summary-tutorial',
   },
 ];
@@ -95,7 +95,12 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
 
   const handleNext = () => {
     setShowBlur(false);
-    document.getElementById(steps[currentStepIndex].highlight)?.classList.remove('tutorial-highlight-active');
+    const currentHighlightId = steps[currentStepIndex].highlight;
+    const element = document.getElementById(currentHighlightId);
+    if (element) {
+      element.classList.remove('tutorial-highlight-active');
+    }
+
     if (currentStepIndex < steps.length - 1) {
       setCurrentStepIndex(currentStepIndex + 1);
     } else {
@@ -105,7 +110,11 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   
   const handleSkip = () => {
     setShowBlur(false);
-    document.getElementById(steps[currentStepIndex].highlight)?.classList.remove('tutorial-highlight-active');
+    const currentHighlightId = steps[currentStepIndex].highlight;
+    const element = document.getElementById(currentHighlightId);
+    if (element) {
+      element.classList.remove('tutorial-highlight-active');
+    }
     onComplete();
   };
 
