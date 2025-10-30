@@ -11,6 +11,8 @@ import { investmentChatbot } from "@/ai/flows/investment-chatbot";
 import type { InvestmentChatbotOutput } from "@/ai/types/investment-chatbot-types";
 import { stockPrediction } from "@/ai/flows/stock-prediction";
 import type { StockPredictionOutput } from "@/ai/types/stock-prediction-types";
+import { createAvatar } from "@/ai/flows/create-avatar-flow";
+import type { CreateAvatarInput, CreateAvatarOutput } from "@/ai/flows/create-avatar-flow";
 import { gateway } from "@/lib/braintree";
 import { db } from "@/lib/firebase/admin";
 import { type BraintreeGateway, type Customer, type Transaction as BraintreeTransaction } from "braintree";
@@ -81,6 +83,28 @@ export async function handleStockPrediction(symbol: string): Promise<StockPredic
             error: error.message || "An unexpected error occurred while generating the prediction.",
         };
     }
+}
+
+/**
+ * Calls the AI avatar creation flow.
+ * @param {CreateAvatarInput} input - The user's prompt and/or photo.
+ * @returns {Promise<{success: boolean, avatar?: CreateAvatarOutput, error?: string}>} The generated avatar or an error.
+ */
+export async function handleAvatarCreation(input: CreateAvatarInput): Promise<{success: boolean, avatar?: CreateAvatarOutput, error?: string}> {
+  if (!input.prompt && !input.photoDataUri) {
+    return { success: false, error: "Please provide a prompt or a photo." };
+  }
+
+  try {
+    const result = await createAvatar(input);
+    return { success: true, avatar: result };
+  } catch (error: any) {
+    console.error("Error calling avatar creation flow:", error);
+    return {
+      success: false,
+      error: error.message || "An unexpected error occurred while creating your avatar.",
+    };
+  }
 }
 
 

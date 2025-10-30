@@ -23,7 +23,7 @@ import {
   Briefcase,
   Settings,
   ArrowLeft,
-  Image as ImageIcon,
+  Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
 import PaymentMethods from '@/components/profile/payment-methods';
@@ -33,7 +33,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useThemeStore } from '@/store/theme-store';
-import AvatarSelectionDialog from './avatar-selection-dialog';
+import CreateAvatarDialog from './create-avatar-dialog';
 
 export default function ProfileClient() {
   const router = useRouter();
@@ -159,14 +159,14 @@ export default function ProfileClient() {
                     <Button asChild variant="outline">
                         <label htmlFor="file-upload" className="cursor-pointer">
                             <Upload className="mr-2 h-4 w-4" />
-                            Upload
+                            Upload Photo
                         </label>
                     </Button>
                     <input id="file-upload" type="file" accept="image/*" onChange={handleFileChange} className="hidden" disabled={uploading} />
 
                      <Button variant="outline" onClick={() => setIsAvatarDialogOpen(true)}>
-                        <ImageIcon className="mr-2 h-4 w-4" />
-                        Choose Avatar
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Create with AI
                     </Button>
                 </div>
 
@@ -232,10 +232,10 @@ export default function ProfileClient() {
         )}
       </main>
 
-       <AvatarSelectionDialog 
+       <CreateAvatarDialog 
         isOpen={isAvatarDialogOpen}
         onOpenChange={setIsAvatarDialogOpen}
-        onAvatarSelect={handleAvatarSelect}
+        onAvatarCreated={handleAvatarSelect}
       />
     </div>
   );
