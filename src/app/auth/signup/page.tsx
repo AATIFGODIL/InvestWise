@@ -72,18 +72,19 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isSigningUp, setIsSigningUp] = useState(false);
+  const [isEmailLoading, setIsEmailLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const isLightClear = isClearMode && theme === 'light';
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
         setError("Passwords do not match!");
         return;
     }
     setError(null);
-    setIsSigningUp(true);
+    setIsEmailLoading(true);
     showLoading(); // Show global loading overlay immediately
 
     try {
@@ -92,8 +93,21 @@ export default function SignUpPage() {
       await signUp(email, password, username);
     } catch (err: any) {
       // If there's an error, hide the loading screen and show the error message.
-      setIsSigningUp(false);
+      setIsEmailLoading(false);
       setError(err.message);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setIsGoogleLoading(true);
+    try {
+      await signInWithGoogle();
+      // Redirect is handled by the useAuth hook.
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsGoogleLoading(false);
     }
   };
 
@@ -146,8 +160,17 @@ export default function SignUpPage() {
                 </Alert>
             )}
             <div className="grid gap-2">
-              <Button variant="outline" onClick={signInWithGoogle} disabled={isSigningUp} className="w-full">
-                  <GoogleIcon /> Continue with Google
+              <Button variant="outline" onClick={handleGoogleSignIn} disabled={isEmailLoading || isGoogleLoading} className="w-full">
+                  {isGoogleLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Signing in...
+                      </>
+                    ) : (
+                      <>
+                        <GoogleIcon /> Continue with Google
+                      </>
+                    )}
               </Button>
             </div>
             <div className="relative">
@@ -158,7 +181,7 @@ export default function SignUpPage() {
                   <span className={cn("px-2 text-muted-foreground", isClearMode && !isLightClear ? "bg-card" : "bg-background")}>Or continue with</span>
               </div>
             </div>
-            <form onSubmit={handleSignUp} className="grid gap-4">
+            <form onSubmit={handleEmailSignUp} className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="username">Username</Label>
                 <Input
@@ -168,7 +191,7 @@ export default function SignUpPage() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  disabled={isSigningUp}
+                  disabled={isEmailLoading || isGoogleLoading}
                 />
               </div>
               <div className="grid gap-2">
@@ -180,7 +203,7 @@ export default function SignUpPage() {
                   required 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={isSigningUp}
+                  disabled={isEmailLoading || isGoogleLoading}
                 />
               </div>
               <div className="grid gap-2">
@@ -193,7 +216,7 @@ export default function SignUpPage() {
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)}
                     className="pr-10"
-                    disabled={isSigningUp}
+                    disabled={isEmailLoading || isGoogleLoading}
                   />
                    <Button 
                     type="button" 
@@ -216,7 +239,7 @@ export default function SignUpPage() {
                     value={confirmPassword} 
                     onChange={(e) => setConfirmPassword(e.target.value)} 
                     className="pr-10"
-                    disabled={isSigningUp}
+                    disabled={isEmailLoading || isGoogleLoading}
                   />
                    <Button 
                     type="button" 
@@ -236,8 +259,8 @@ export default function SignUpPage() {
                   </Link>
                   .
               </div>
-              <Button type="submit" className="w-full" disabled={isSigningUp}>
-                {isSigningUp ? (
+              <Button type="submit" className="w-full" disabled={isEmailLoading || isGoogleLoading}>
+                {isEmailLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Creating Account...
