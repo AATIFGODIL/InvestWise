@@ -47,7 +47,25 @@ export default function BottomNav() {
   });
   const [hasMounted, setHasMounted] = useState(false);
   const [itemTransforms, setItemTransforms] = useState<Record<number, string>>({});
+  const [showGlow, setShowGlow] = useState(false);
 
+
+  useEffect(() => {
+    // Check for the glow effect flag on component mount
+    if (sessionStorage.getItem('showGlowEffect') === 'true') {
+      setShowGlow(true);
+
+      // We don't remove the flag here; let the Header component handle it
+      // to ensure all components can react to it before it's gone.
+
+      // Turn off the glow after a few seconds
+      const timer = setTimeout(() => {
+        setShowGlow(false);
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const WIDTH_FACTOR = isMobile ? 0.95 : 0.55;
   const MIN_GLIDER_WIDTH = 28;
@@ -381,7 +399,8 @@ export default function BottomNav() {
                 ? isLightClear 
                     ? "bg-card/60"
                     : "bg-white/10"
-                : "bg-card"
+                : "bg-card",
+            showGlow && "login-glow"
         )}
         style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
       >

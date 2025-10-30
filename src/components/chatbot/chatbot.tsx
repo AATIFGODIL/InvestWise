@@ -34,8 +34,23 @@ export default function Chatbot() {
   const { isClearMode, theme } = useThemeStore();
   const isLightClear = isClearMode && theme === 'light';
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showGlow, setShowGlow] = useState(false);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Check for the glow effect flag on component mount
+    if (sessionStorage.getItem('showGlowEffect') === 'true') {
+      setShowGlow(true);
+
+      // Turn off the glow after a few seconds
+      const timer = setTimeout(() => {
+        setShowGlow(false);
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -116,7 +131,8 @@ export default function Chatbot() {
                 ? isLightClear
                     ? "bg-card/60 text-foreground" // Light Clear
                     : "bg-white/10 text-white" // Dark Clear
-                : "bg-card text-card-foreground" // Solid
+                : "bg-card text-card-foreground", // Solid
+              showGlow && "login-glow"
           )}
           style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
           onClick={() => openChatbot()}

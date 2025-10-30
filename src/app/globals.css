@@ -171,6 +171,36 @@
     0% { transform: translateX(0); }
     100% { transform: translateX(200%); }
   }
+
+  /* Login Glow Effect */
+  .login-glow {
+    position: relative;
+    overflow: hidden;
+  }
+  .login-glow::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 150%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--primary) / 0.2),
+      transparent
+    );
+    animation: login-shimmer 1.5s ease-in-out;
+  }
+
+  @keyframes login-shimmer {
+    0% {
+      transform: translateX(0) skewX(-20deg);
+    }
+    100% {
+      transform: translateX(170%) skewX(-20deg);
+    }
+  }
   
   #rotate-prompt {
     display: none;

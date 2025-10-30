@@ -1,7 +1,7 @@
 
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Search, Bell, Settings, LogOut, User as UserIcon, Minus, TrendingUpIcon } from "lucide-react";
 import { CommandMenu, appIcons } from "./command-menu";
 import { Button } from "../ui/button";
@@ -62,9 +62,27 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const [isHovered, setIsHovered] = React.useState(false);
   const isMobile = useIsMobile();
   const [isTradingViewOpen, setIsTradingViewOpen] = React.useState(false);
+  const [showGlow, setShowGlow] = React.useState(false);
 
   const [isEditing, setEditing] = React.useState(false);
   const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
+  
+  useEffect(() => {
+    // Check for the glow effect flag on component mount
+    if (sessionStorage.getItem('showGlowEffect') === 'true') {
+      setShowGlow(true);
+      
+      // Remove the flag so it doesn't run again
+      sessionStorage.removeItem('showGlowEffect');
+
+      // Turn off the glow after a few seconds
+      const timer = setTimeout(() => {
+        setShowGlow(false);
+      }, 4000); // 4 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const handlePointerDown = () => {
     longPressTimer.current = setTimeout(() => {
@@ -232,7 +250,8 @@ const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() =>
                   ? isLightClear
                       ? "bg-card/60 ring-1 ring-white/10"
                       : "bg-white/10 ring-1 ring-white/60"
-                  : "bg-card ring-1 ring-white/60"
+                  : "bg-card ring-1 ring-white/60",
+              showGlow && "login-glow"
             )}
             style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
             onMouseEnter={() => setIsHovered(true)}

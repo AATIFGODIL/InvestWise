@@ -26,6 +26,9 @@ export default function WelcomeBackPage() {
     // Wait for user object and stores to hydrate before redirecting
     if (user) {
       setIsReady(true);
+      // Set a session flag to trigger the glow effect on the next page
+      sessionStorage.setItem('showGlowEffect', 'true');
+
       const timer = setTimeout(() => {
         router.push("/dashboard");
       }, 5000); // Redirect after 5 seconds
