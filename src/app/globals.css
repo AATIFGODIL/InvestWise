@@ -258,9 +258,21 @@
   }
   
   @keyframes draw-border {
-      0% { stroke-dashoffset: var(--path-length); }
-      50% { stroke-dashoffset: 0; }
-      75% { stroke-dashoffset: 0; }
-      100% { stroke-dashoffset: var(--path-length); }
+    0% {
+      /* Start: Path is hidden */
+      stroke-dashoffset: var(--path-length);
+    }
+    50% {
+      /* Drawn: Path is fully visible */
+      stroke-dashoffset: 0;
+    }
+    75% {
+      /* Hold: Path stays visible */
+      stroke-dashoffset: 0;
+    }
+    100% {
+      /* Retrace: Path vanishes by retracing */
+      stroke-dashoffset: var(--path-length);
+    }
   }
 }
