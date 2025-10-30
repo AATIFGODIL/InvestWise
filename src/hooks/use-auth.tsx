@@ -102,6 +102,33 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
   return { isNew: true };
 };
 
+// Helper function to convert hex to HSL string for CSS variables
+function hexToHslString(hex: string): string {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    if (!result) return '251 82% 60%'; // Default HSL if hex is invalid
+
+    const r = parseInt(result[1], 16) / 255;
+    const g = parseInt(result[2], 16) / 255;
+    const b = parseInt(result[3], 16) / 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0, l = (max + min) / 2;
+
+    if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+
+    return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -181,15 +208,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             router.push('/auth/welcome-back');
         }
     } catch (error: any) {
-      hideLoading();
-      console.error("Popup sign-in failed:", error);
+      // Don't hide loading here. onAuthStateChanged will handle it.
+      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+        console.log("Sign-in popup closed by user.");
+        hideLoading(); // Only hide loading if the user intentionally closes it.
         toast({
-            variant: "destructive",
-            title: "Sign In Failed",
-            description: error.code === 'auth/popup-closed-by-user' 
-            ? "The sign-in window was closed. Please try again."
-            : error.message || "An unknown error occurred.",
+            title: "Sign-in Cancelled",
+            description: "The sign-in window was closed. Please try again.",
         });
+      } else {
+        console.error("Popup sign-in failed:", error);
+          toast({
+              variant: "destructive",
+              title: "Sign In Failed",
+              description: error.message || "An unknown error occurred.",
+          });
+          hideLoading(); // Hide loading on other unexpected errors.
+      }
     }
   };
 
@@ -213,6 +248,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUserTheme = async (themeData: { theme?: Theme, isClearMode?: boolean, primaryColor?: string }) => {
     if (themeData.theme) useThemeStore.getState().setTheme(themeData.theme);
     if (typeof themeData.isClearMode === 'boolean') useThemeStore.getState().setClearMode(themeData.isClearMode);
+    if (themeData.primaryColor) useThemeStore.getState().setPrimaryColor(themeData.primaryColor);
+    
     if (!user) return;
 
     // Create a clean object to send to Firestore, removing any undefined properties.
