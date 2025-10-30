@@ -28,7 +28,7 @@ const steps: Step[] = [
   },
   {
     id: 1,
-    title: 'Portfolio',
+    title: '',
     description: 'This is your main portfolio overview. Track your total value and how your investments are performing over time.',
     highlight: 'portfolio-card-tutorial',
   },
@@ -74,32 +74,40 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
         return;
     }
 
+    // --- NEW POLLING LOGIC ---
+    // This function will try to find the element, and if it fails,
+    // it will try again every 50ms, up to 40 times (2 seconds).
     const findElement = (retriesLeft: number) => {
-        // Use requestAnimationFrame to wait for the next paint
-        requestAnimationFrame(() => {
-            const element = document.getElementById(currentStep.highlight);
+      const element = document.getElementById(currentStep.highlight);
 
-            if (element) {
-                const rect = element.getBoundingClientRect();
-                setTooltipPosition({
-                    top: rect.top,
-                    left: rect.left,
-                    width: rect.width,
-                    height: rect.height,
-                });
-
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                element.classList.add('tutorial-highlight-active');
-                setShowBlur(true);
-            } else if (retriesLeft > 0) {
-                setTimeout(() => findElement(retriesLeft - 1), 50);
-            } else {
-                console.error(`TUTORIAL ERROR: Element not found after multiple retries: ${currentStep.highlight}`);
-            }
+      if (element) {
+        // --- Found it! ---
+        const rect = element.getBoundingClientRect();
+        setTooltipPosition({
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
         });
+
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.classList.add('tutorial-highlight-active');
+        setShowBlur(true);
+      } else if (retriesLeft > 0) {
+        // --- Not found, try again ---
+        setTimeout(() => findElement(retriesLeft - 1), 50);
+      } else {
+        // --- Out of retries, give up ---
+        console.error(`TUTORIAL ERROR: Element not found after multiple retries: ${currentStep.highlight}`);
+        onComplete(); // End tutorial if an element can't be found
+      }
     };
 
-    findElement(20); // Start polling
+    // Start polling, giving it 40 retries (2 seconds total)
+    findElement(40);
+    // --- END OF NEW LOGIC ---
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStepIndex]);
 
 
@@ -123,9 +131,9 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
     };
   }, []);
 
-  // Auto-advance for the intro and first step
+  // Auto-advance for the intro step
   useEffect(() => {
-      if (currentStepIndex === 0 || currentStepIndex === 1) {
+      if (currentStepIndex === 0) {
           const timer = setTimeout(() => {
               handleNext();
           }, 10000);
