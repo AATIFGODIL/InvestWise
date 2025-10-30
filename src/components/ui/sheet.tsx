@@ -4,7 +4,7 @@
 import * as React from "react"
 import * as SheetPrimitive from "@radix-ui/react-dialog"
 import { cva, type VariantProps } from "class-variance-authority"
-import { X, ArrowLeft } from "lucide-react"
+import { X, ArrowLeft, ArrowRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { useThemeStore } from "@/store/theme-store"
@@ -58,46 +58,14 @@ interface SheetContentProps
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
   SheetContentProps
->(({ side = "right", className, children, style, ...props }, ref) => {
+>(({ side = "right", className, children, ...props }, ref) => {
     const { isClearMode, theme } = useThemeStore();
     const isLightClear = isClearMode && theme === "light";
-    const [isResizing, setIsResizing] = React.useState(false);
-    const [width, setWidth] = React.useState<number | null>(null);
+    const [isExpanded, setIsExpanded] = React.useState(false);
 
-    const handleMouseDown = (e: React.MouseEvent) => {
-        e.preventDefault();
-        setIsResizing(true);
+    const handleToggleExpand = () => {
+        setIsExpanded(prev => !prev);
     };
-
-    const handleMouseUp = React.useCallback(() => {
-        setIsResizing(false);
-    }, []);
-
-    const handleMouseMove = React.useCallback((e: MouseEvent) => {
-        if (isResizing) {
-            const newWidth = window.innerWidth - e.clientX;
-            const minWidth = 400; // e.g. sm:max-w-sm
-            const maxWidth = window.innerWidth * 0.9; // 90% of screen width
-            if (newWidth > minWidth && newWidth < maxWidth) {
-                setWidth(newWidth);
-            }
-        }
-    }, [isResizing]);
-
-    React.useEffect(() => {
-        if (isResizing) {
-            window.addEventListener('mousemove', handleMouseMove);
-            window.addEventListener('mouseup', handleMouseUp);
-        } else {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
-        }
-        return () => {
-            window.removeEventListener('mousemove', handleMouseMove);
-            window.removeEventListener('mouseup', handleMouseUp);
-        };
-    }, [isResizing, handleMouseMove, handleMouseUp]);
-
 
     return (
       <SheetPortal>
@@ -106,6 +74,7 @@ const SheetContent = React.forwardRef<
           ref={ref}
           className={cn(
               sheetVariants({ side }),
+              isExpanded ? "w-[90vw]" : "sm:max-w-sm", // Apply conditional width
               isClearMode
                 ? isLightClear
                     ? "border-0 bg-card/60 text-card-foreground ring-1 ring-white/10"
@@ -114,20 +83,16 @@ const SheetContent = React.forwardRef<
               className
           )}
           style={{
-            width: width ? `${width}px` : undefined,
             backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none",
-            ...style,
           }}
           {...props}
         >
-          <div
-            onMouseDown={handleMouseDown}
-            className="absolute left-0 top-0 h-full w-2 cursor-ew-resize group"
+          <button
+            onClick={handleToggleExpand}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-8 w-8 bg-primary/80 text-primary-foreground rounded-full items-center justify-center transition-all hidden sm:flex group hover:scale-110 active:scale-95"
           >
-             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-8 bg-primary/20 text-primary rounded-full items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden sm:flex">
-                 <ArrowLeft className="h-5 w-5" />
-            </div>
-          </div>
+             {isExpanded ? <ArrowRight className="h-5 w-5" /> : <ArrowLeft className="h-5 w-5" />}
+          </button>
           {children}
           <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
             <X className="h-4 w-4" />
