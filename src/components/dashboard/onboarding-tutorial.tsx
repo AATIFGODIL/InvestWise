@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -20,13 +21,13 @@ const steps: Step[] = [
   {
     id: 1,
     title: 'Your Portfolio Snapshot',
-    description: 'Track your portfolio value and stock movements. Find more details on the Portfolio page.',
+    description: 'This is your main portfolio overview. Track your total value and how your investments are performing over time.',
     highlight: 'portfolio-card-tutorial',
   },
   {
     id: 2,
-    title: 'Your Top Holdings',
-    description: 'This area shows a summary of the top stocks you own. A full list is on the Portfolio page.',
+    title: 'My Top Holdings',
+    description: 'This area shows a summary of the top stocks you own. A full list is available on the Portfolio page.',
     highlight: 'holdings-summary-tutorial',
   },
 ];
@@ -43,44 +44,34 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null);
   const [showBlur, setShowBlur] = useState(false);
 
-  useEffect(() => {
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-    };
-  }, []);
-
+  // Function to calculate and set the highlight position
   const updateHighlight = useCallback(() => {
+    const currentStep = steps[currentStepIndex];
+    const element = document.getElementById(currentStep.highlight);
+
     document.querySelectorAll('.tutorial-highlight-active').forEach(el => {
       el.classList.remove('tutorial-highlight-active');
     });
 
-    const currentStep = steps[currentStepIndex];
-    if (currentStep) {
-      const element = document.getElementById(currentStep.highlight);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
+    if (element) {
+      // Use a timeout to ensure the element is in its final position after any layout shifts
+      setTimeout(() => {
         const rect = element.getBoundingClientRect();
         setTooltipPosition({
-            top: rect.top,
-            left: rect.left,
-            width: rect.width,
-            height: rect.height,
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          height: rect.height,
         });
 
-        setTimeout(() => {
-            element?.classList.add('tutorial-highlight-active');
-            setShowBlur(true);
-        }, 300);
-      }
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.classList.add('tutorial-highlight-active');
+        setShowBlur(true);
+      }, 50); // A small delay is often enough
     }
   }, [currentStepIndex]);
 
-
+  // Run on initial mount and when the step changes
   useEffect(() => {
     updateHighlight();
     window.addEventListener('resize', updateHighlight);
@@ -92,15 +83,16 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
     };
   }, [updateHighlight]);
 
+  // Lock body scroll when the tutorial is active
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   const handleNext = () => {
     setShowBlur(false);
-    const currentHighlightId = steps[currentStepIndex].highlight;
-    const element = document.getElementById(currentHighlightId);
-    if (element) {
-      element.classList.remove('tutorial-highlight-active');
-    }
-
     if (currentStepIndex < steps.length - 1) {
       setCurrentStepIndex(currentStepIndex + 1);
     } else {
@@ -110,16 +102,16 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   
   const handleSkip = () => {
     setShowBlur(false);
-    const currentHighlightId = steps[currentStepIndex].highlight;
-    const element = document.getElementById(currentHighlightId);
-    if (element) {
-      element.classList.remove('tutorial-highlight-active');
-    }
     onComplete();
   };
 
   const step = steps[currentStepIndex];
   if (!step || !tooltipPosition) return null;
+
+  const isSecondStep = step.id === 2;
+
+  // Determine the top position for the tooltip text
+  const textTopPosition = isSecondStep ? tooltipPosition.top - 120 : tooltipPosition.top;
 
   return (
     <>
@@ -140,7 +132,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
           exit={{ opacity: 0 }}
           style={{
               position: 'fixed',
-              top: `${tooltipPosition.top}px`,
+              top: `${textTopPosition}px`,
               left: `${tooltipPosition.left}px`,
               width: `${tooltipPosition.width}px`,
               height: `${tooltipPosition.height}px`,
