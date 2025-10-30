@@ -22,12 +22,12 @@ const SheetOverlay = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SheetPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
   <SheetPrimitive.Overlay
+    ref={ref}
     className={cn(
       "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}
-    ref={ref}
   />
 ))
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName
@@ -74,14 +74,14 @@ const SheetContent = React.forwardRef<
     }, []);
 
     const handleMouseMove = React.useCallback((e: MouseEvent) => {
-      if (isResizing) {
-          const newWidth = window.innerWidth - e.clientX;
-          const minWidth = 400; // e.g. sm:max-w-sm
-          const maxWidth = window.innerWidth * 0.9; // 90% of screen width
-          if (newWidth > minWidth && newWidth < maxWidth) {
-              setWidth(newWidth);
-          }
-      }
+        if (isResizing) {
+            const newWidth = window.innerWidth - e.clientX;
+            const minWidth = 400; // e.g. sm:max-w-sm
+            const maxWidth = window.innerWidth * 0.9; // 90% of screen width
+            if (newWidth > minWidth && newWidth < maxWidth) {
+                setWidth(newWidth);
+            }
+        }
     }, [isResizing]);
 
     React.useEffect(() => {
