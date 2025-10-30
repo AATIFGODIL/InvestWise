@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect } from 'react';
@@ -72,12 +71,13 @@ export default function FavoriteItem({ favorite, onClick, onRemove, variants, is
         <Reorder.Item
             value={favorite}
             variants={variants}
+            layout // Animate layout changes
+            whileDrag={{ scale: 1.1, zIndex: 50 }} // Lift and scale item while dragging
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
             className={cn("z-10 flex-shrink-0", containerClasses)}
             style={{ backdropFilter: "blur(2px)" }}
             onClick={() => onClick(favorite)}
-            whileDrag={{ scale: 1.1 }}
             animate={{ height, width }}
-            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
         >
              <AnimatePresence>
                 {isEditing && (
