@@ -28,13 +28,13 @@ const steps: Step[] = [
   },
   {
     id: 1,
-    title: '',
+    title: 'Portfolio',
     description: 'This is your main portfolio overview. Track your total value and how your investments are performing over time.',
     highlight: 'portfolio-card-tutorial',
   },
   {
     id: 2,
-    title: 'My Top Holdings',
+    title: '',
     description: 'This area shows a summary of the top stocks you own. A full list is available on the Portfolio page.',
     highlight: 'holdings-summary-tutorial',
   },
