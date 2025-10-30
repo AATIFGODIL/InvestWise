@@ -10,13 +10,10 @@ interface AnimatedBorderProps {
 export default function AnimatedBorder({ className }: AnimatedBorderProps) {
     const { isClearMode } = useThemeStore();
 
-    // The card dimensions are 382x532 with a 12px radius.
     const width = 382;
     const height = 532;
     const radius = 12;
 
-    // Calculate the length of a single half-path
-    // Top-half + Left side + Bottom-half
     const halfPathLength = (width / 2 - radius) + (height - 2 * radius) + (width / 2 - radius) + (Math.PI * radius);
 
     return (
@@ -36,7 +33,7 @@ export default function AnimatedBorder({ className }: AnimatedBorderProps) {
                 <path
                     d={`M${width/2},1 H${radius} A${radius-1} ${radius-1} 0 0 0 1,${radius+1} V${height-radius-1} A${radius-1} ${radius-1} 0 0 0 ${radius},${height-1} H${width/2}`}
                     className={cn(
-                        "stroke-primary [animation:draw-border_2s_linear_forwards]"
+                        "stroke-primary [animation:draw-border_4s_linear_forwards]"
                     )}
                     strokeWidth="2"
                     strokeLinecap="round"
@@ -51,7 +48,7 @@ export default function AnimatedBorder({ className }: AnimatedBorderProps) {
                 <path
                     d={`M${width/2},1 H${width-radius} A${radius-1} ${radius-1} 0 0 1 ${width-1},${radius+1} V${height-radius-1} A${radius-1} ${radius-1} 0 0 1 ${width-radius},${height-1} H${width/2}`}
                     className={cn(
-                        "stroke-primary [animation:draw-border_2s_linear_forwards]"
+                        "stroke-primary [animation:draw-border_4s_linear_forwards]"
                     )}
                     strokeWidth="2"
                     strokeLinecap="round"
