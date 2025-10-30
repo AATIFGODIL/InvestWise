@@ -10,7 +10,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { cn } from '@/lib/utils';
 import avatars from '@/data/avatars.json';
 
 interface AvatarSelectionDialogProps {
@@ -30,12 +29,12 @@ export default function AvatarSelectionDialog({
         <DialogHeader>
           <DialogTitle>Choose Your Avatar</DialogTitle>
           <DialogDescription>
-            Select a pre-made avatar for your profile.
+            Select a Memoji avatar for your profile.
           </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue={avatars.categories[0].id} className="flex-grow flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
             {avatars.categories.map((category) => (
               <TabsTrigger key={category.id} value={category.id}>
                 {category.name}
