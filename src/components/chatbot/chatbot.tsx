@@ -69,10 +69,6 @@ export default function Chatbot() {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      toast({
-        title: "File Attached",
-        description: `${selectedFile.name} is ready to be sent.`,
-      });
     }
   };
 
