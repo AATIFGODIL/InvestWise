@@ -26,7 +26,6 @@ import {
   Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
-import PaymentMethods from '@/components/profile/payment-methods';
 import { useAuth } from '@/hooks/use-auth';
 import { useUserStore } from '@/store/user-store';
 import { useToast } from '@/hooks/use-toast';
@@ -80,14 +79,11 @@ export default function ProfileClient() {
     try {
         const fileRef = ref(storage, `profilePictures/${user.uid}`);
 
-        // If a new file was uploaded from the user's device
         if (newImageFile) {
             await uploadBytes(fileRef, newImageFile);
             finalUrl = await getDownloadURL(fileRef);
         } 
-        // If a new avatar was generated (which is a data URI in previewUrl)
         else if (previewUrl && previewUrl.startsWith('data:image')) {
-            // The AI generates a data URI, which needs to be uploaded to get a real URL
             await uploadString(fileRef, previewUrl, 'data_url');
             finalUrl = await getDownloadURL(fileRef);
         }
@@ -96,17 +92,15 @@ export default function ProfileClient() {
             throw new Error("Could not determine the final image URL.");
         }
 
-        // Update Firebase Auth and Firestore
         await updateProfile(user, { photoURL: finalUrl });
         const userDocRef = doc(db, 'users', user.uid);
         await updateDoc(userDocRef, { photoURL: finalUrl });
         
-        // Update local state
         setPhotoURL(finalUrl);
 
         toast({ title: 'Success!', description: 'Your profile has been updated.' });
         setNewImageFile(null);
-        setPreviewUrl(null); // Clear preview after saving
+        setPreviewUrl(null);
 
     } catch (err) {
       console.error('Upload error:', err);
@@ -139,7 +133,7 @@ export default function ProfileClient() {
           <ArrowLeft className="h-6 w-6" />
         </button>
       </div>
-      <main className="container mx-auto p-4 space-y-8 pb-24 max-w-4xl">
+      <main className="space-y-8">
         <Card>
           <CardHeader>
             <CardTitle>Your Profile</CardTitle>
@@ -201,8 +195,6 @@ export default function ProfileClient() {
             )}
           </CardContent>
         </Card>
-
-        {user && <PaymentMethods userId={user.uid} />}
 
         {user && (
           <Card>
