@@ -6,7 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Crown, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { getLeaderboardData, type LeaderboardUser } from "@/app/actions";
@@ -52,6 +52,7 @@ export default function CommunityLeaderboard() {
                     {investor.rank === 1 ? <Crown className="h-5 w-5 text-yellow-500" /> : investor.rank}
                   </span>
                   <Avatar className="h-8 w-8">
+                    <AvatarImage src={investor.photoURL} alt={investor.name} />
                     <AvatarFallback>{investor.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <p className="text-sm font-medium">{isYou ? "You" : investor.name}</p>

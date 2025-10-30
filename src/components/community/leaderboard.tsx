@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Crown } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { getLeaderboardData, type LeaderboardUser } from "@/app/actions";
@@ -88,6 +88,7 @@ export default function Leaderboard() {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar>
+                            <AvatarImage src={investor.photoURL} alt={investor.name} />
                             <AvatarFallback>{investor.name.charAt(0)}</AvatarFallback>
                           </Avatar>
                           <span className="font-medium">{investor.name}</span>

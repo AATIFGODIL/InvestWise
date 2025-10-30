@@ -235,6 +235,7 @@ export type LeaderboardUser = {
   rank: number;
   uid: string;
   name: string;
+  photoURL: string;
   gain: number;
 };
 
@@ -263,13 +264,14 @@ export async function getLeaderboardData(): Promise<{ success: boolean; data?: L
         const sortedUsers = usersData.sort((a, b) => (b.portfolio?.summary?.totalGainLoss || 0) - (a.portfolio?.summary?.totalGainLoss || 0));
 
         // Format the data for the leaderboard, anonymizing names where needed.
-        const leaderboardData = sortedUsers.slice(0, 10).map((userData, index) => {
+        const leaderboardData: LeaderboardUser[] = sortedUsers.slice(0, 10).map((userData, index) => {
             const isAnonymous = userData.leaderboardVisibility === 'anonymous';
             
             return {
                 rank: index + 1,
                 uid: userData.uid,
                 name: isAnonymous ? 'Anonymous Investor' : userData.username || 'Investor',
+                photoURL: userData.photoURL || '',
                 gain: userData.portfolio?.summary?.totalGainLoss || 0,
             };
         });
