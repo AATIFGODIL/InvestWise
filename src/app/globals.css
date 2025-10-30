@@ -253,6 +253,10 @@
   }
 
   /* Animated Border Keyframes */
+  .animated-border-path {
+      animation: draw-border 4s linear forwards;
+  }
+  
   @keyframes draw-border {
       0% { stroke-dashoffset: var(--path-length); }
       50% { stroke-dashoffset: 0; }

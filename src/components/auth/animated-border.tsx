@@ -32,9 +32,7 @@ export default function AnimatedBorder({ className }: AnimatedBorderProps) {
                 {/* Left Path */}
                 <path
                     d={`M${width/2},1 H${radius} A${radius-1} ${radius-1} 0 0 0 1,${radius+1} V${height-radius-1} A${radius-1} ${radius-1} 0 0 0 ${radius},${height-1} H${width/2}`}
-                    className={cn(
-                        "stroke-primary [animation:draw-border_4s_linear_forwards]"
-                    )}
+                    className="stroke-primary animated-border-path"
                     strokeWidth="2"
                     strokeLinecap="round"
                     style={{
@@ -47,9 +45,7 @@ export default function AnimatedBorder({ className }: AnimatedBorderProps) {
                  {/* Right Path */}
                 <path
                     d={`M${width/2},1 H${width-radius} A${radius-1} ${radius-1} 0 0 1 ${width-1},${radius+1} V${height-radius-1} A${radius-1} ${radius-1} 0 0 1 ${width-radius},${height-1} H${width/2}`}
-                    className={cn(
-                        "stroke-primary [animation:draw-border_4s_linear_forwards]"
-                    )}
+                    className="stroke-primary animated-border-path"
                     strokeWidth="2"
                     strokeLinecap="round"
                     style={{
