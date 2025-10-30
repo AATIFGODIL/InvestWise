@@ -29,7 +29,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const { user, hydrating } = useAuth();
   const [isRaining, setIsRaining] = React.useState(false);
 
-  const isAuthRoute = pathname.startsWith('/auth') || pathname === '/';
+  const isAuthOrOnboardingRoute = pathname.startsWith('/auth') || pathname.startsWith('/onboarding') || pathname === '/';
   const isSpecialLayoutRoute = pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/certificate');
   
   if (hydrating) {
@@ -46,7 +46,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   };
   
   // Render layout based on user auth state and route
-  if (user && !isAuthRoute) {
+  if (user && !isAuthOrOnboardingRoute) {
        return (
         <div className="flex flex-col h-screen">
           {!isSpecialLayoutRoute && <Header onTriggerRain={handleTriggerRain} />}
@@ -57,7 +57,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       );
   }
   
-  // This handles all unauthenticated routes
+  // This handles all unauthenticated and onboarding routes
   return (
       <div className="flex flex-col h-screen">
           <MainContent>{children}</MainContent>
