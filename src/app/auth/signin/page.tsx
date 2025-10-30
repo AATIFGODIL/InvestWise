@@ -128,7 +128,7 @@ export default function SignInPage() {
     <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
       <FinanceBackground />
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, rotateY: 15 }}
+        initial={{ opacity: 0, scale: 0.9, rotateY: 15 }}
         animate={{ opacity: 1, scale: 1, rotateY: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="w-full max-w-sm relative z-10"
