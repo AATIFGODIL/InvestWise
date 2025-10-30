@@ -1,0 +1,70 @@
+{
+    "categories": [
+        {
+            "id": "boy-young",
+            "name": "Boy (13-17)",
+            "images": [
+                { "url": "https://images.unsplash.com/photo-1639747280804-dd2d6b3d883e?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji boy" },
+                { "url": "https://images.unsplash.com/photo-1639747280894-a164d2aa6333?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji boy dark skin" },
+                { "url": "https://images.unsplash.com/photo-1639747280929-9892283e57a6?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji boy curly hair" },
+                { "url": "https://images.unsplash.com/photo-1639747280818-681b83134372?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji boy glasses" },
+                { "url": "https://images.unsplash.com/photo-1639747280938-356a1084b6f1?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji boy beanie" }
+            ]
+        },
+        {
+            "id": "girl-young",
+            "name": "Girl (13-17)",
+            "images": [
+                { "url": "https://images.unsplash.com/photo-1639747280838-b384c3127599?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji girl" },
+                { "url": "https://images.unsplash.com/photo-1639747280846-86c478a3563b?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji girl dark skin" },
+                { "url": "https://images.unsplash.com/photo-1639747280993-2748b0a1a547?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji girl red hair" },
+                { "url": "https://images.unsplash.com/photo-1639747280816-0279e8308df4?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji girl headphones" },
+                { "url": "https://images.unsplash.com/photo-1639747280829-9e8e5b6b1b5e?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji girl pigtails" }
+            ]
+        },
+        {
+            "id": "man-18",
+            "name": "Man (18-30)",
+            "images": [
+                { "url": "https://images.unsplash.com/photo-1639747280892-a6ac73e4bce0?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji man beard" },
+                { "url": "https://images.unsplash.com/photo-1639747280988-5136979694b7?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji man dark skin" },
+                { "url": "https://images.unsplash.com/photo-1639747280836-9e671b56a3f2?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji man blonde hair" },
+                { "url": "https://images.unsplash.com/photo-1639747280928-1121c2a84036?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji man glasses" },
+                { "url": "https://images.unsplash.com/photo-1639747280963-7186178a3d46?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji man suit" }
+            ]
+        },
+        {
+            "id": "woman-18",
+            "name": "Woman (18-30)",
+            "images": [
+                { "url": "https://images.unsplash.com/photo-1639747280848-1b3c9b73c4d1?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji woman long hair" },
+                { "url": "https://images.unsplash.com/photo-1639747280992-1cf1a7c413b1?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji woman dark skin" },
+                { "url": "https://images.unsplash.com/photo-1639747280936-3a5a8747a8a0?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji woman glasses" },
+                { "url": "https://images.unsplash.com/photo-1639747280812-73f135b13853?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji woman curly hair" },
+                { "url": "https://images.unsplash.com/photo-1639747280922-7776b6d51a37?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji woman formal" }
+            ]
+        },
+        {
+            "id": "man-31",
+            "name": "Man (31-45)",
+            "images": [
+                { "url": "https://images.unsplash.com/photo-1639747280825-f736c533b3a9?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji man grey hair" },
+                { "url": "https://images.unsplash.com/photo-1639747280854-8c4a15a0c3f5?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji man mature dark skin" },
+                { "url": "https://images.unsplash.com/photo-1639747280891-947f3b89b14c?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji man bald" },
+                { "url": "https://images.unsplash.com/photo-1639747280809-54d6d338e5c2?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji man professional" },
+                { "url": "https://images.unsplash.com/photo-1639747280927-46324835697c?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji man smiling" }
+            ]
+        },
+        {
+            "id": "woman-31",
+            "name": "Woman (31-45)",
+            "images": [
+                { "url": "https://images.unsplash.com/photo-1639747280844-cd4141638a16?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji woman professional" },
+                { "url": "https://images.unsplash.com/photo-1639747280951-518292d83f4f?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji woman dark skin mature" },
+                { "url": "https://images.unsplash.com/photo-1639747280841-615024227f2f?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji woman short hair" },
+                { "url": "https://images.unsplash.com/photo-1639747280931-6b8c8d8c9c0d?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji woman smiling" },
+                { "url": "https://images.unsplash.com/photo-1639747280918-f2b0a1f2f8a4?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", "hint": "memoji woman glasses mature" }
+            ]
+        }
+    ]
+}
