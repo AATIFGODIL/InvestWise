@@ -187,14 +187,15 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     };
 }, [favorites, isEditing, isMobile]);
 
-const { calculatedPillsToDelete, calculatedIconsToDelete, overflowMessage } = React.useMemo(() => {
-    let pills = favorites.filter(f => f.size === 'pill');
-    let icons = favorites.filter(f => f.size === 'icon');
+const { overflowMessage } = React.useMemo(() => {
     let calculatedPillsToDelete = 0;
     let calculatedIconsToDelete = 0;
     let message = '';
-    
+
     if (isEditing) {
+        const pills = favorites.filter(f => f.size === 'pill');
+        const icons = favorites.filter(f => f.size === 'icon');
+        
         if (!isMobile && pills.length >= 7) {
             calculatedPillsToDelete = pills.length - 6;
             calculatedIconsToDelete = Math.max(0, icons.length - 1);
@@ -212,20 +213,18 @@ const { calculatedPillsToDelete, calculatedIconsToDelete, overflowMessage } = Re
             }
         }
         
-        if (calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0) {
+        if (calculatedPillsToDelete === 1 && calculatedIconsToDelete === 0 && !isMobile) {
+            message = "To fit, modify 1 pill";
+        } else if (calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0) {
             message = `To fit, remove ${calculatedPillsToDelete} pill(s) & ${calculatedIconsToDelete} icon(s)`;
         } else if (calculatedPillsToDelete > 0) {
-             if (calculatedPillsToDelete === 1 && calculatedIconsToDelete === 0 && !isMobile) {
-                message = "To fit, modify 1 pill";
-             } else {
-                message = `To fit, remove ${calculatedPillsToDelete} pill(s)`;
-             }
+            message = `To fit, remove ${calculatedPillsToDelete} pill(s)`;
         } else if (calculatedIconsToDelete > 0) {
             message = `To fit, remove ${calculatedIconsToDelete} icon(s)`;
         }
     }
     
-    return { calculatedPillsToDelete, calculatedIconsToDelete, overflowMessage: message };
+    return { overflowMessage: message };
 }, [isEditing, favorites, isMobile]);
 
 
@@ -266,7 +265,7 @@ const { calculatedPillsToDelete, calculatedIconsToDelete, overflowMessage } = Re
               </h1>
             </Link>
             
-              <div className="flex-1 flex justify-center items-center h-full sm:mx-2 overflow-x-hidden">
+              <div className="flex-1 flex justify-center items-center h-full sm:mx-2 overflow-x-auto hide-scrollbar">
                 <div className="relative z-10">
                     <motion.button
                         onPointerDown={handlePointerDown}
@@ -403,8 +402,7 @@ const { calculatedPillsToDelete, calculatedIconsToDelete, overflowMessage } = Re
            {overflowMessage && (
                 <div
                     className={cn(
-                        "mt-2 text-center text-xs font-semibold overflow-hidden p-2 rounded-full relative shimmer-bg",
-                        "mx-auto w-fit px-3",
+                        "mt-2 text-center text-xs font-semibold overflow-hidden p-2 rounded-full relative shimmer-bg max-w-xs mx-auto px-4",
                         isClearMode
                             ? isLightClear
                                 ? "bg-card/60 ring-1 ring-white/20 text-foreground"
