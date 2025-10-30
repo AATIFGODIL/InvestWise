@@ -33,7 +33,11 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const isSpecialLayoutRoute = pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/certificate');
   
   if (hydrating) {
-    return <PageSkeleton />;
+    return (
+      <div className="h-screen w-screen">
+        <PageSkeleton />
+      </div>
+    );
   }
   
   const handleTriggerRain = () => {
