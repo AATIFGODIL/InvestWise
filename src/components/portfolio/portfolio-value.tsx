@@ -36,7 +36,7 @@ function PortfolioValue({ showTitle: showTitleProp = false }: PortfolioValueProp
   const [timeRange, setTimeRange] = useState<TimeRange>('1W');
   const { portfolioSummary, chartData, isLoading } = usePortfolioStore();
 
-  const showTitle = showTitleProp && pathname === '/dashboard';
+  const showTitle = showTitleProp && pathname === '/explore';
 
   const isTodaysChangePositive = portfolioSummary.todaysChange >= 0;
   const todaysChangePercent = portfolioSummary.totalValue !== 0 ? (portfolioSummary.todaysChange / (portfolioSummary.totalValue - portfolioSummary.todaysChange)) * 100 : 0;
