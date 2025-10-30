@@ -254,7 +254,7 @@
 
   /* Animated Border Keyframes */
   .animated-border-path {
-      animation: draw-border 4s linear forwards;
+      animation: draw-border 2s linear forwards;
   }
   
   @keyframes draw-border {
