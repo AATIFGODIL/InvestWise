@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { updateProfile } from 'firebase/auth';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, uploadString } from 'firebase/storage';
 import { storage, db } from '@/lib/firebase/config';
 import { doc, updateDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
@@ -75,13 +75,20 @@ export default function ProfileClient() {
     }
 
     setUploading(true);
-    let finalUrl = previewUrl;
+    let finalUrl = '';
 
     try {
-        // If there's a new file, upload it to storage
+        const fileRef = ref(storage, `profilePictures/${user.uid}`);
+
+        // If a new file was uploaded from the user's device
         if (newImageFile) {
-            const fileRef = ref(storage, `profilePictures/${user.uid}`);
             await uploadBytes(fileRef, newImageFile);
+            finalUrl = await getDownloadURL(fileRef);
+        } 
+        // If a new avatar was generated (which is a data URI in previewUrl)
+        else if (previewUrl && previewUrl.startsWith('data:image')) {
+            // The AI generates a data URI, which needs to be uploaded to get a real URL
+            await uploadString(fileRef, previewUrl, 'data_url');
             finalUrl = await getDownloadURL(fileRef);
         }
 
