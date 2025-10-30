@@ -74,8 +74,8 @@ const SheetContent = React.forwardRef<
           ref={ref}
           className={cn(
               sheetVariants({ side }),
-              "transition-all duration-300 ease-in-out", // Added transition for width
-              isExpanded ? "w-[90vw]" : "sm:max-w-sm", // Apply conditional width
+              "transition-all duration-300 ease-in-out",
+              isExpanded ? "w-[90vw] sm:max-w-none" : "sm:max-w-sm",
               isClearMode
                 ? isLightClear
                     ? "border-0 bg-card/60 text-card-foreground ring-1 ring-white/10"
