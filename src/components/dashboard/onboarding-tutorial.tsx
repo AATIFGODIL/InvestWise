@@ -47,28 +47,32 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   // Function to calculate and set the highlight position
   const updateHighlight = useCallback(() => {
     const currentStep = steps[currentStepIndex];
-    const element = document.getElementById(currentStep.highlight);
 
+    // Clear any previous highlight
     document.querySelectorAll('.tutorial-highlight-active').forEach(el => {
       el.classList.remove('tutorial-highlight-active');
     });
 
-    if (element) {
-      // Use a timeout to ensure the element is in its final position after any layout shifts
-      setTimeout(() => {
+    // FIX 1: Wait for DOM to update, then find the element
+    setTimeout(() => {
+      const element = document.getElementById(currentStep.highlight);
+
+      if (element) {
         const rect = element.getBoundingClientRect();
         setTooltipPosition({
           top: rect.top,
           left: rect.left,
           width: rect.width,
-          height: rect.height,
+          height: rect.height, // This 'height' is passed but not used on motion.div
         });
 
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         element.classList.add('tutorial-highlight-active');
         setShowBlur(true);
-      }, 50); // A small delay is often enough
-    }
+      } else {
+        console.warn(`Tutorial element not found: ${currentStep.highlight}`);
+      }
+    }, 100); // Increased delay to 100ms
   }, [currentStepIndex]);
 
   // Run on initial mount and when the step changes
@@ -93,6 +97,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
 
   const handleNext = () => {
     setShowBlur(false);
+    setTooltipPosition(null); // <-- This ensures a smooth transition
     if (currentStepIndex < steps.length - 1) {
       setCurrentStepIndex(currentStepIndex + 1);
     } else {
@@ -102,16 +107,15 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   
   const handleSkip = () => {
     setShowBlur(false);
+    setTooltipPosition(null); // <-- This ensures a smooth transition
     onComplete();
   };
 
   const step = steps[currentStepIndex];
   if (!step || !tooltipPosition) return null;
 
-  const isSecondStep = step.id === 2;
-
-  // Determine the top position for the tooltip text
-  const textTopPosition = isSecondStep ? tooltipPosition.top - 120 : tooltipPosition.top;
+  // FIX 2: Position the text box at the top of the element
+  const textTopPosition = tooltipPosition.top;
 
   return (
     <>
@@ -135,9 +139,9 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
               top: `${textTopPosition}px`,
               left: `${tooltipPosition.left}px`,
               width: `${tooltipPosition.width}px`,
-              height: `${tooltipPosition.height}px`,
+              // FIX 3: REMOVED the 'height' property
           }}
-          className="flex justify-center items-start z-[120] pointer-events-auto pt-8"
+          className="flex justify-center items-center z-[120] pointer-events-auto"
         >
          <div className="text-center text-white p-4 max-w-sm">
            <h3 className="font-bold text-xl drop-shadow-md">{step.title}</h3>
