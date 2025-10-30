@@ -30,7 +30,10 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const [isRaining, setIsRaining] = React.useState(false);
 
   const isAuthOrOnboardingRoute = pathname.startsWith('/auth') || pathname.startsWith('/onboarding') || pathname === '/';
-  const isSpecialLayoutRoute = pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/certificate');
+  
+  // Explicitly check for special layout routes like profile, settings, and certificate.
+  // Add onboarding to this list to ensure it gets the correct layout treatment.
+  const isSpecialLayoutRoute = pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/certificate') || pathname.startsWith('/onboarding');
   
   if (hydrating) {
     return (
@@ -50,7 +53,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
        return (
         <div className="flex flex-col h-screen">
           {!isSpecialLayoutRoute && <Header onTriggerRain={handleTriggerRain} />}
-          <MainContent isSpecialLayoutRoute={isSpecialLayoutRoute}>{children}</MainContent>
+          <MainContent isSpecialLayoutRoute={isSpecialLayoutRoute} disableScroll={isSpecialLayoutRoute}>{children}</MainContent>
           {!isSpecialLayoutRoute && <BottomNav />}
           <MoneyRain isActive={isRaining} />
         </div>
