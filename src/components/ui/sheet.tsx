@@ -1,9 +1,10 @@
+
 "use client"
 
 import * as React from "react"
 import * as SheetPrimitive from "@radix-ui/react-dialog"
 import { cva, type VariantProps } from "class-variance-authority"
-import { X } from "lucide-react"
+import { X, ArrowLeft } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { useThemeStore } from "@/store/theme-store"
@@ -60,6 +61,43 @@ const SheetContent = React.forwardRef<
 >(({ side = "right", className, children, style, ...props }, ref) => {
     const { isClearMode, theme } = useThemeStore();
     const isLightClear = isClearMode && theme === "light";
+    const [isResizing, setIsResizing] = React.useState(false);
+    const [width, setWidth] = React.useState<number | null>(null);
+
+    const handleMouseDown = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsResizing(true);
+    };
+
+    const handleMouseUp = React.useCallback(() => {
+        setIsResizing(false);
+    }, []);
+
+    const handleMouseMove = React.useCallback((e: MouseEvent) => {
+      if (isResizing) {
+          const newWidth = window.innerWidth - e.clientX;
+          const minWidth = 400; // e.g. sm:max-w-sm
+          const maxWidth = window.innerWidth * 0.9; // 90% of screen width
+          if (newWidth > minWidth && newWidth < maxWidth) {
+              setWidth(newWidth);
+          }
+      }
+    }, [isResizing]);
+
+    React.useEffect(() => {
+        if (isResizing) {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+        } else {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        }
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isResizing, handleMouseMove, handleMouseUp]);
+
 
     return (
       <SheetPortal>
@@ -70,17 +108,26 @@ const SheetContent = React.forwardRef<
               sheetVariants({ side }),
               isClearMode
                 ? isLightClear
-                    ? "border-0 bg-card/60 text-card-foreground ring-1 ring-white/10" // Light clear
-                    : "border-0 bg-white/10 text-white ring-1 ring-white/60" // Dark clear
-                : "bg-background", // Solid
+                    ? "border-0 bg-card/60 text-card-foreground ring-1 ring-white/10"
+                    : "border-0 bg-white/10 text-white ring-1 ring-white/60"
+                : "bg-background",
               className
           )}
           style={{
+            width: width ? `${width}px` : undefined,
             backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none",
             ...style,
           }}
           {...props}
         >
+          <div
+            onMouseDown={handleMouseDown}
+            className="absolute left-0 top-0 h-full w-2 cursor-ew-resize group"
+          >
+             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-8 bg-primary/20 text-primary rounded-full items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden sm:flex">
+                 <ArrowLeft className="h-5 w-5" />
+            </div>
+          </div>
           {children}
           <SheetPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
             <X className="h-4 w-4" />
