@@ -1,4 +1,3 @@
-
 "use client"
 
 import * as React from "react"
@@ -33,7 +32,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName
 
 const sheetVariants = cva(
-  "fixed z-50 gap-4 p-6 shadow-lg transition-transform duration-500 ease-in-out",
+  "fixed z-50 gap-4 p-6 shadow-lg transition-transform duration-500 ease-in-out", // This controls the slide-in/out
   {
     variants: {
       side: {
@@ -67,6 +66,10 @@ const SheetContent = React.forwardRef<
         setIsExpanded(prev => !prev);
     };
 
+    // --- LIQUID TRANSITION ---
+    const liquidEasing = "cubic-bezier(0.68, -0.55, 0.27, 1.55)";
+    // --- END LIQUID TRANSITION ---
+
     return (
       <SheetPortal>
         <SheetOverlay />
@@ -74,7 +77,8 @@ const SheetContent = React.forwardRef<
           ref={ref}
           className={cn(
               sheetVariants({ side }),
-              "transition-[width] duration-300 ease-in-out",
+              // Updated transition for width expansion
+              "transition-[width] duration-500", // Use a slightly longer duration for the effect
               isExpanded ? "w-[90vw] sm:max-w-none" : "sm:max-w-sm",
               isClearMode
                 ? isLightClear
@@ -85,12 +89,18 @@ const SheetContent = React.forwardRef<
           )}
           style={{
             backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none",
+            // Apply the custom liquid easing function to the width transition
+            transitionTimingFunction: liquidEasing,
           }}
           {...props}
         >
           <button
             onClick={handleToggleExpand}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-8 w-8 bg-primary/80 text-primary-foreground rounded-full items-center justify-center transition-all hidden sm:flex group hover:scale-110 active:scale-95"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 h-8 w-8 bg-primary/80 text-primary-foreground rounded-full items-center justify-center transition-all duration-300 hidden sm:flex group hover:scale-110 active:scale-95"
+            style={{
+              // Apply the same liquid easing to the button's hover/active states
+              transitionTimingFunction: liquidEasing,
+            }}
           >
              {isExpanded ? <ArrowRight className="h-5 w-5" /> : <ArrowLeft className="h-5 w-5" />}
           </button>
