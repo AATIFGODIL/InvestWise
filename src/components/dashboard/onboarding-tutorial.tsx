@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { X, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AppleHelloEnglishEffect } from '@/components/ui/apple-hello-effect';
+import { useThemeStore } from '@/store/theme-store';
+import { cn } from '@/lib/utils';
 
 interface OnboardingTutorialProps {
   onComplete: () => void;
@@ -13,10 +16,16 @@ interface Step {
   id: number;
   title: string;
   description: string;
-  highlight: string;
+  highlight: string; // 'intro-step' for the special welcome message
 }
 
 const steps: Step[] = [
+  {
+    id: 0,
+    title: 'Welcome to InvestWise.',
+    description: 'Lets begin.',
+    highlight: 'intro-step',
+  },
   {
     id: 1,
     title: 'Your Portfolio Snapshot',
@@ -42,6 +51,8 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null);
   const [showBlur, setShowBlur] = useState(false);
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
 
   // Function to calculate and set the highlight position
   const updateHighlight = useCallback(() => {
@@ -52,7 +63,19 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
       el.classList.remove('tutorial-highlight-active');
     });
 
-    // --- NEW POLLING LOGIC ---
+    if (currentStep.highlight === 'intro-step') {
+        // Center the welcome message on the screen
+        setTooltipPosition({
+            top: window.innerHeight / 2 - 150, // Adjust for vertical centering
+            left: window.innerWidth / 2 - 200, // Adjust for horizontal centering
+            width: 400,
+            height: 300,
+        });
+        setShowBlur(true);
+        return; // No element to highlight
+    }
+
+
     // This function will try to find the element, and if it fails,
     // it will try again every 100ms, up to 20 times (2 seconds).
     const findElement = (retriesLeft: number) => {
@@ -85,8 +108,6 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
 
     // Start polling, giving it 20 retries
     findElement(20);
-    // --- END OF NEW LOGIC ---
-
   }, [currentStepIndex, onComplete]);
 
   // Run on initial mount and when the step changes
@@ -109,6 +130,18 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
     };
   }, []);
 
+  // Auto-advance for the intro step
+  useEffect(() => {
+      if (currentStepIndex === 0) {
+          const timer = setTimeout(() => {
+              handleNext();
+          }, 10000); // 10 seconds
+
+          return () => clearTimeout(timer);
+      }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStepIndex]);
+
   const handleNext = () => {
     setShowBlur(false);
     setTooltipPosition(null); // <-- This ensures a smooth transition
@@ -128,7 +161,8 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   const step = steps[currentStepIndex];
   if (!step || !tooltipPosition) return null;
 
-  // Position the text box at the top of the highlighted element
+  const isIntroStep = step.highlight === 'intro-step';
+
   const textTopPosition = tooltipPosition.top;
 
   return (
@@ -140,14 +174,15 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
-            onClick={handleSkip}
+            onClick={isIntroStep ? undefined : handleSkip}
           />
         )}
         <motion.div 
           key={`tooltip-${step.id}`}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
           style={{
               position: 'fixed',
               top: `${textTopPosition}px`,
@@ -157,17 +192,38 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
           className="flex justify-center items-center z-[120] pointer-events-auto"
         >
          <div className="text-center text-white p-4 max-w-sm">
-           <h3 className="font-bold text-xl drop-shadow-md">{step.title}</h3>
-           <p className="text-sm mt-1 drop-shadow-md">{step.description}</p>
-           <div className="flex justify-between items-center mt-4">
-             <Button variant="ghost" size="sm" onClick={handleSkip} className="text-white hover:text-white hover:bg-white/10">
-               <X className="mr-2 h-4 w-4" /> Skip
-             </Button>
-             <Button variant="ghost" size="sm" onClick={handleNext} className="text-white hover:text-white hover:bg-white/10">
-               {currentStepIndex < steps.length - 1 ? 'Next' : 'Finish'}
-               <ArrowRight className="ml-2 h-4 w-4" />
-             </Button>
-           </div>
+            {isIntroStep ? (
+                <>
+                    <div 
+                        className={cn(
+                            "flex justify-center mb-4",
+                            isClearMode 
+                                ? isLightClear 
+                                    ? "text-black/60"
+                                    : "text-white/80"
+                                : "text-primary"
+                        )}
+                    >
+                        <AppleHelloEnglishEffect speed={1.1} />
+                    </div>
+                    <h3 className="font-bold text-2xl drop-shadow-md">{step.title}</h3>
+                    <p className="text-lg mt-1 drop-shadow-md">{step.description}</p>
+                </>
+            ) : (
+                <>
+                    <h3 className="font-bold text-xl drop-shadow-md">{step.title}</h3>
+                    <p className="text-sm mt-1 drop-shadow-md">{step.description}</p>
+                    <div className="flex justify-between items-center mt-4">
+                        <Button variant="ghost" size="sm" onClick={handleSkip} className="text-white hover:text-white hover:bg-white/10">
+                        <X className="mr-2 h-4 w-4" /> Skip
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={handleNext} className="text-white hover:text-white hover:bg-white/10">
+                        {currentStepIndex < steps.length - 1 ? 'Next' : 'Finish'}
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                    </div>
+                </>
+            )}
          </div>
        </motion.div>
     </>
