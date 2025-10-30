@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -53,27 +52,42 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
       el.classList.remove('tutorial-highlight-active');
     });
 
-    // FIX 1: Wait for DOM to update, then find the element
-    setTimeout(() => {
+    // --- NEW POLLING LOGIC ---
+    // This function will try to find the element, and if it fails,
+    // it will try again every 100ms, up to 20 times (2 seconds).
+    const findElement = (retriesLeft: number) => {
       const element = document.getElementById(currentStep.highlight);
 
       if (element) {
+        // --- Found it! ---
         const rect = element.getBoundingClientRect();
         setTooltipPosition({
           top: rect.top,
           left: rect.left,
           width: rect.width,
-          height: rect.height, // This 'height' is passed but not used on motion.div
+          height: rect.height,
         });
 
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         element.classList.add('tutorial-highlight-active');
         setShowBlur(true);
+      } else if (retriesLeft > 0) {
+        // --- Not found, try again ---
+        console.log(`Tutorial element not found, retrying... ${retriesLeft} retries left.`);
+        setTimeout(() => findElement(retriesLeft - 1), 100);
       } else {
-        console.warn(`Tutorial element not found: ${currentStep.highlight}`);
+        // --- Out of retries, give up ---
+        console.error(`TUTORIAL ERROR: Element not found after 20 retries: ${currentStep.highlight}`);
+        // We could optionally skip the step or end the tutorial here
+        // onComplete();
       }
-    }, 100); // Increased delay to 100ms
-  }, [currentStepIndex]);
+    };
+
+    // Start polling, giving it 20 retries
+    findElement(20);
+    // --- END OF NEW LOGIC ---
+
+  }, [currentStepIndex, onComplete]);
 
   // Run on initial mount and when the step changes
   useEffect(() => {
@@ -114,7 +128,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   const step = steps[currentStepIndex];
   if (!step || !tooltipPosition) return null;
 
-  // FIX 2: Position the text box at the top of the element
+  // Position the text box at the top of the highlighted element
   const textTopPosition = tooltipPosition.top;
 
   return (
@@ -139,7 +153,6 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
               top: `${textTopPosition}px`,
               left: `${tooltipPosition.left}px`,
               width: `${tooltipPosition.width}px`,
-              // FIX 3: REMOVED the 'height' property
           }}
           className="flex justify-center items-center z-[120] pointer-events-auto"
         >
