@@ -16,7 +16,7 @@ interface Step {
   id: number;
   title: string;
   description: string;
-  highlight: string; // 'intro-step' for the special welcome message
+  highlight: string;
 }
 
 const steps: Step[] = [
@@ -28,7 +28,7 @@ const steps: Step[] = [
   },
   {
     id: 1,
-    title: 'Your Portfolio Snapshot',
+    title: '',
     description: 'This is your main portfolio overview. Track your total value and how your investments are performing over time.',
     highlight: 'portfolio-card-tutorial',
   },
@@ -64,51 +64,44 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
     });
 
     if (currentStep.highlight === 'intro-step') {
-        // Center the welcome message on the screen
         setTooltipPosition({
-            top: window.innerHeight / 2 - 150, // Adjust for vertical centering
-            left: window.innerWidth / 2 - 200, // Adjust for horizontal centering
+            top: window.innerHeight / 2 - 150,
+            left: window.innerWidth / 2 - 200,
             width: 400,
             height: 300,
         });
         setShowBlur(true);
-        return; // No element to highlight
+        return;
     }
 
-
-    // This function will try to find the element, and if it fails,
-    // it will try again every 100ms, up to 20 times (2 seconds).
     const findElement = (retriesLeft: number) => {
-      const element = document.getElementById(currentStep.highlight);
+        // Use requestAnimationFrame to wait for the next paint
+        requestAnimationFrame(() => {
+            const element = document.getElementById(currentStep.highlight);
 
-      if (element) {
-        // --- Found it! ---
-        const rect = element.getBoundingClientRect();
-        setTooltipPosition({
-          top: rect.top,
-          left: rect.left,
-          width: rect.width,
-          height: rect.height,
+            if (element) {
+                const rect = element.getBoundingClientRect();
+                setTooltipPosition({
+                    top: rect.top,
+                    left: rect.left,
+                    width: rect.width,
+                    height: rect.height,
+                });
+
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.classList.add('tutorial-highlight-active');
+                setShowBlur(true);
+            } else if (retriesLeft > 0) {
+                setTimeout(() => findElement(retriesLeft - 1), 50);
+            } else {
+                console.error(`TUTORIAL ERROR: Element not found after multiple retries: ${currentStep.highlight}`);
+            }
         });
-
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        element.classList.add('tutorial-highlight-active');
-        setShowBlur(true);
-      } else if (retriesLeft > 0) {
-        // --- Not found, try again ---
-        console.log(`Tutorial element not found, retrying... ${retriesLeft} retries left.`);
-        setTimeout(() => findElement(retriesLeft - 1), 100);
-      } else {
-        // --- Out of retries, give up ---
-        console.error(`TUTORIAL ERROR: Element not found after 20 retries: ${currentStep.highlight}`);
-        // We could optionally skip the step or end the tutorial here
-        // onComplete();
-      }
     };
 
-    // Start polling, giving it 20 retries
-    findElement(20);
-  }, [currentStepIndex, onComplete]);
+    findElement(20); // Start polling
+  }, [currentStepIndex]);
+
 
   // Run on initial mount and when the step changes
   useEffect(() => {
@@ -130,12 +123,12 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
     };
   }, []);
 
-  // Auto-advance for the intro step
+  // Auto-advance for the intro and first step
   useEffect(() => {
-      if (currentStepIndex === 0) {
+      if (currentStepIndex === 0 || currentStepIndex === 1) {
           const timer = setTimeout(() => {
               handleNext();
-          }, 10000); // 10 seconds
+          }, 10000);
 
           return () => clearTimeout(timer);
       }
@@ -144,7 +137,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
 
   const handleNext = () => {
     setShowBlur(false);
-    setTooltipPosition(null); // <-- This ensures a smooth transition
+    setTooltipPosition(null);
     if (currentStepIndex < steps.length - 1) {
       setCurrentStepIndex(currentStepIndex + 1);
     } else {
@@ -154,7 +147,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   
   const handleSkip = () => {
     setShowBlur(false);
-    setTooltipPosition(null); // <-- This ensures a smooth transition
+    setTooltipPosition(null);
     onComplete();
   };
 
@@ -162,8 +155,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   if (!step || !tooltipPosition) return null;
 
   const isIntroStep = step.highlight === 'intro-step';
-
-  const textTopPosition = tooltipPosition.top;
+  const textTopPosition = isIntroStep ? tooltipPosition.top : tooltipPosition.top;
 
   return (
     <>
@@ -211,7 +203,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                 </>
             ) : (
                 <>
-                    <h3 className="font-bold text-xl drop-shadow-md">{step.title}</h3>
+                    {step.title && <h3 className="font-bold text-xl drop-shadow-md">{step.title}</h3>}
                     <p className="text-sm mt-1 drop-shadow-md">{step.description}</p>
                     <div className="flex justify-between items-center mt-4">
                         <Button variant="ghost" size="sm" onClick={handleSkip} className="text-white hover:text-white hover:bg-white/10">
