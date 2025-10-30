@@ -8,16 +8,19 @@ interface AnimatedBorderProps {
 }
 
 export default function AnimatedBorder({ className }: AnimatedBorderProps) {
-    // We only need isClearMode from the store for this component's logic
     const { isClearMode } = useThemeStore();
 
-    // Calculate the path length:
-    // Radius = 10 (from 1 to 11, 43 to 53)
-    // Straight side length = 43 - 11 = 32
-    // Total straight length = 32 * 4 = 128
-    // Corner (4 * 1/4 * 2 * PI * R) = 2 * PI * 10 ≈ 62.83
-    // Total path length ≈ 128 + 62.83 = 190.83
-    const pathLength = 191; // Round up
+    // The new card dimensions are 382x532 with a 12px radius.
+    const width = 382;
+    const height = 532;
+    const radius = 12;
+
+    // Calculate the new path length:
+    // Straight sides: 2 * (width - 2*radius) + 2 * (height - 2*radius)
+    // Corners: 2 * PI * radius
+    const straightLength = 2 * (width - 2 * radius) + 2 * (height - 2 * radius);
+    const cornerLength = 2 * Math.PI * radius;
+    const pathLength = straightLength + cornerLength;
 
     return (
         <div
@@ -30,23 +33,21 @@ export default function AnimatedBorder({ className }: AnimatedBorderProps) {
                 className="absolute inset-0 w-full h-full"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
-                preserveAspectRatio="none"
-                // 1. ADDED: The viewBox to scale the path correctly.
-                viewBox="0 0 54 54"
+                // 1. UPDATED: The viewBox now matches the card's exact dimensions.
+                viewBox={`0 0 ${width} ${height}`}
             >
                 <path
-                    d="M1,11 V43 C1,48.5228 5.47715,53 11,53 H43 C48.5228,53 53,48.5228 53,43 V11 C53,5.47715 48.5228,1 43,1 H11 C5.47715,1 1,5.47715 1,11"
+                    // 2. UPDATED: The path is redrawn for the new 382x532 coordinate system with a 12px radius.
+                    d={`M1,${radius} V${height - radius} A${radius - 1} ${radius - 1} 0 0 0 ${radius},${height - 1} H${width - radius} A${radius - 1} ${radius - 1} 0 0 0 ${width - 1},${height - radius} V${radius} A${radius - 1} ${radius - 1} 0 0 0 ${width - radius},1 H${radius} A${radius - 1} ${radius - 1} 0 0 0 1,${radius}`}
                     className={cn(
                         "stroke-primary [animation:draw-border_2s_linear_forwards]"
-                        // 3. REMOVED: Redundant drop-shadow and dasharray/offset
                     )}
                     strokeWidth="2"
                     strokeLinecap="round"
                     style={{
-                        // 2. ADDED: Correct path length for the animation
+                        // 3. UPDATED: The path length is recalculated for the new dimensions.
                         strokeDasharray: pathLength,
                         strokeDashoffset: pathLength,
-                        // 3. This is the single, clean source of truth for the shadow
                         filter: isClearMode ? 'drop-shadow(0 0 3px hsl(var(--primary)))' : 'none',
                         vectorEffect: "non-scaling-stroke",
                     }}
