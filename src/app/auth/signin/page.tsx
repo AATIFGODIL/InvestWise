@@ -93,7 +93,7 @@ export default function SignInPage() {
     try {
       await signInWithGoogle();
       // Redirect is also handled by the useAuth hook.
-    } catch (err: any) => {
+    } catch (err: any) {
       setError(err.message);
     } finally {
       setIsGoogleLoading(false);
