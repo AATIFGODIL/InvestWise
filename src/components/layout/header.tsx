@@ -266,10 +266,7 @@ const { calculatedPillsToDelete, calculatedIconsToDelete, overflowMessage } = Re
               </h1>
             </Link>
             
-              <div className={cn(
-                  "flex-1 flex justify-center items-center h-full sm:mx-2",
-                  isEditing ? "overflow-x-hidden" : "overflow-x-auto"
-                )}>
+              <div className="flex-1 flex justify-center items-center h-full sm:mx-2 overflow-x-hidden">
                 <div className="relative z-10">
                     <motion.button
                         onPointerDown={handlePointerDown}
