@@ -77,7 +77,7 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
     photoURL: user.photoURL || "",
     theme: "light",
     isClearMode: false,
-    primaryColor: "#8B5CF6",
+    primaryColor: "#775DEF", // Default purple color
     leaderboardVisibility: "public",
     showQuests: true,
     createdAt: new Date(),
@@ -116,8 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     usePortfolioStore.getState().resetPortfolio();
     useGoalStore.getState().resetGoals();
     useAutoInvestStore.getState().resetAutoInvest();
-    useThemeStore.getState().setTheme("light");
-    useThemeStore.getState().setClearMode(false);
+    useThemeStore.getState().resetTheme();
     usePrivacyStore.getState().resetPrivacySettings();
     useWatchlistStore.getState().resetWatchlist();
     useTransactionStore.getState().resetTransactions();

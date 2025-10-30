@@ -3,13 +3,16 @@ import { create } from 'zustand';
 
 export type Theme = "light" | "dark";
 
+const defaultPrimaryColor = '#775DEF';
+
 interface ThemeState {
   theme: Theme;
   isClearMode: boolean;
-  primaryColor: string; // Add primary color to the store
+  primaryColor: string;
   setTheme: (theme: Theme) => void;
   setClearMode: (isClear: boolean) => void;
-  setPrimaryColor: (color: string) => void; // Add setter for primary color
+  setPrimaryColor: (color: string) => void;
+  resetTheme: () => void; // Add reset method
 }
 
 const getInitialTheme = (): Theme => {
@@ -35,7 +38,7 @@ const getInitialPrimaryColor = (): string => {
         const storedColor = localStorage.getItem('primaryColor');
         if (storedColor) return storedColor;
     }
-    return '#775DEF'; // Default color
+    return defaultPrimaryColor;
 }
 
 export const useThemeStore = create<ThemeState>((set) => ({
@@ -65,5 +68,22 @@ export const useThemeStore = create<ThemeState>((set) => ({
           localStorage.setItem('primaryColor', color);
       }
       set({ primaryColor: color });
+  },
+
+  resetTheme: () => {
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem('theme');
+        localStorage.removeItem('isClearMode');
+        localStorage.removeItem('primaryColor');
+    }
+    const root = document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add('light'); // Default to light theme
+
+    set({ 
+        theme: 'light', 
+        isClearMode: false, 
+        primaryColor: defaultPrimaryColor 
+    });
   }
 }));
