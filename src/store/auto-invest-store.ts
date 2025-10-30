@@ -118,10 +118,20 @@ export const useAutoInvestStore = create<AutoInvestState>((set, get) => ({
 
         if (dueInvestments.length === 0) return;
         
-        const { addNotification } = useNotificationStore.getState();
+        const { addNotification, notifications } = useNotificationStore.getState();
         const { setPendingTrade } = usePendingTradeStore.getState();
 
         for (const investment of dueInvestments) {
+            const notificationId = `autotrade-${investment.id}`;
+
+            // Check if a notification for this trade already exists today
+            const alreadyNotified = notifications.some(n => 
+                n.id === notificationId &&
+                new Date(n.createdAt).toDateString() === today.toDateString()
+            );
+
+            if (alreadyNotified) continue; // Skip if already notified today
+
             // Fetch current price for the pending trade
             const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${investment.symbol}&token=${API_KEY}`);
             const data = await res.json();
@@ -139,10 +149,10 @@ export const useAutoInvestStore = create<AutoInvestState>((set, get) => ({
             });
             
             addNotification({
-                id: `autotrade-${investment.id}`,
+                id: notificationId,
                 title: 'Auto-Invest Approval Needed',
                 description: `Your scheduled investment for ${investment.symbol} is ready.`,
-                href: '/trade',
+                href: '/explore',
                 type: 'default',
                 read: false,
                 createdAt: new Date().toISOString()
