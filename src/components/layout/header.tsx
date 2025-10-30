@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect } from 'react';
@@ -151,13 +152,12 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     router.push(href);
   };
 
-  const { displayedFavorites, totalWeight } = React.useMemo(() => {
+  const { displayedFavorites } = React.useMemo(() => {
     const pills = favorites.filter(f => f.size === 'pill');
     const icons = favorites.filter(f => f.size === 'icon');
 
     if (isEditing) {
-        const weight = favorites.reduce((acc, fav) => acc + (fav.size === 'pill' ? 2 : 1), 0);
-        return { displayedFavorites: favorites, totalWeight: weight };
+        return { displayedFavorites: favorites };
     }
     
     // Special case: 6 or more pills and on desktop, show 6 pills and 1 icon
@@ -166,7 +166,6 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
         const visibleIcons = icons.slice(0, 1);
         return {
             displayedFavorites: [...visiblePills, ...visibleIcons],
-            totalWeight: (6 * 2) + 1,
         };
     }
     
@@ -185,49 +184,50 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     
     return {
         displayedFavorites: visibleFavorites,
-        totalWeight: weight,
     };
 }, [favorites, isEditing, isMobile]);
 
-const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() => {
-    const pills = favorites.filter(f => f.size === 'pill');
-    const icons = favorites.filter(f => f.size === 'icon');
-
-    if (!isEditing) {
-        return { calculatedPillsToDelete: 0, calculatedIconsToDelete: 0 };
-    }
-
-    // Case 1: More than 6 pills on desktop (specific rule)
-    if (!isMobile && pills.length >= 7) {
-        const pToDelete = pills.length - 6;
-        const iToDelete = Math.max(0, icons.length - 1);
-        return { calculatedPillsToDelete: pToDelete, calculatedIconsToDelete: iToDelete };
-    }
-
-    // Case 2: General overflow based on weight
-    const currentWeight = pills.length * 2 + icons.length;
-    const maxWeight = isMobile ? 6 : 14;
-
-    if (currentWeight > maxWeight) {
-        let excess = currentWeight - maxWeight;
-        let pToDelete = 0;
-        let iToDelete = 0;
-
-        // Suggest removing icons first
-        const removableIcons = Math.min(excess, icons.length);
-        iToDelete = removableIcons;
-        excess -= removableIcons;
-
-        // Then suggest removing pills
-        if (excess > 0) {
-            pToDelete = Math.ceil(excess / 2);
+const { calculatedPillsToDelete, calculatedIconsToDelete, overflowMessage } = React.useMemo(() => {
+    let pills = favorites.filter(f => f.size === 'pill');
+    let icons = favorites.filter(f => f.size === 'icon');
+    let calculatedPillsToDelete = 0;
+    let calculatedIconsToDelete = 0;
+    let message = '';
+    
+    if (isEditing) {
+        if (!isMobile && pills.length >= 7) {
+            calculatedPillsToDelete = pills.length - 6;
+            calculatedIconsToDelete = Math.max(0, icons.length - 1);
+        } else {
+            const currentWeight = pills.length * 2 + icons.length;
+            const maxWeight = isMobile ? 6 : 14;
+            if (currentWeight > maxWeight) {
+                let excess = currentWeight - maxWeight;
+                const removableIcons = Math.min(excess, icons.length);
+                calculatedIconsToDelete = removableIcons;
+                excess -= removableIcons;
+                if (excess > 0) {
+                    calculatedPillsToDelete = Math.ceil(excess / 2);
+                }
+            }
         }
         
-        return { calculatedPillsToDelete: pToDelete, calculatedIconsToDelete: iToDelete };
+        if (calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0) {
+            message = `To fit, remove ${calculatedPillsToDelete} pill(s) & ${calculatedIconsToDelete} icon(s)`;
+        } else if (calculatedPillsToDelete > 0) {
+             if (calculatedPillsToDelete === 1 && calculatedIconsToDelete === 0 && !isMobile) {
+                message = "To fit, modify 1 pill";
+             } else {
+                message = `To fit, remove ${calculatedPillsToDelete} pill(s)`;
+             }
+        } else if (calculatedIconsToDelete > 0) {
+            message = `To fit, remove ${calculatedIconsToDelete} icon(s)`;
+        }
     }
-
-    return { calculatedPillsToDelete: 0, calculatedIconsToDelete: 0 };
+    
+    return { calculatedPillsToDelete, calculatedIconsToDelete, overflowMessage: message };
 }, [isEditing, favorites, isMobile]);
+
 
 
   const handleReorder = (newOrder: Favorite[]) => {
@@ -266,7 +266,10 @@ const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() =>
               </h1>
             </Link>
             
-              <div className="flex-1 flex justify-center items-center h-full sm:mx-2 overflow-x-auto">
+              <div className={cn(
+                  "flex-1 flex justify-center items-center h-full sm:mx-2",
+                  isEditing ? "overflow-x-hidden" : "overflow-x-auto"
+                )}>
                 <div className="relative z-10">
                     <motion.button
                         onPointerDown={handlePointerDown}
@@ -400,11 +403,11 @@ const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() =>
                 </DropdownMenu>
             </div>
           </nav>
-           {(calculatedPillsToDelete > 0 || calculatedIconsToDelete > 0) && (
+           {overflowMessage && (
                 <div
                     className={cn(
                         "mt-2 text-center text-xs font-semibold overflow-hidden p-2 rounded-full relative shimmer-bg",
-                        "mx-auto max-w-[10rem] px-4",
+                        "mx-auto w-fit px-3",
                         isClearMode
                             ? isLightClear
                                 ? "bg-card/60 ring-1 ring-white/20 text-foreground"
@@ -413,9 +416,7 @@ const { calculatedPillsToDelete, calculatedIconsToDelete } = React.useMemo(() =>
                     )}
                     style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
                 >
-                    <span>
-                        {`To fit, remove ${calculatedPillsToDelete > 0 ? `${calculatedPillsToDelete} pill${calculatedPillsToDelete > 1 ? 's' : ''}` : ''}${calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0 ? ' & ' : ''}${calculatedIconsToDelete > 0 ? `${calculatedIconsToDelete} icon${calculatedIconsToDelete > 1 ? 's' : ''}` : ''}`}
-                    </span>
+                    <span>{overflowMessage}</span>
                 </div>
             )}
         </div>
