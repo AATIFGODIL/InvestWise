@@ -254,9 +254,9 @@
 
   /* Animated Border Keyframes */
   @keyframes draw-border {
-      0% { stroke-dashoffset: 168; }
+      0% { stroke-dashoffset: var(--path-length); }
       50% { stroke-dashoffset: 0; }
       75% { stroke-dashoffset: 0; }
-      100% { stroke-dashoffset: 168; }
+      100% { stroke-dashoffset: var(--path-length); }
   }
 }
