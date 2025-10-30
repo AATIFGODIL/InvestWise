@@ -62,14 +62,14 @@ export default function DashboardClient() {
   const [showTutorial, setShowTutorial] = useState(false);
 
   useEffect(() => {
-    // Check for the user's profile (from the onboarding quiz) in localStorage
-    // to personalize the content they see on the dashboard.
     if (typeof window !== 'undefined') {
       const profile = localStorage.getItem('userProfile');
       setUserProfile(profile);
 
-      // Temporarily always show the tutorial for testing
-      setShowTutorial(true);
+      const hasCompletedTutorial = localStorage.getItem('hasCompletedOnboardingTutorial');
+      if (!hasCompletedTutorial) {
+        setShowTutorial(true);
+      }
     }
     fetchMarketStatus();
   }, [fetchMarketStatus]);

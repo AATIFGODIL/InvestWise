@@ -70,8 +70,10 @@ export default function ExploreClient() {
       const profile = localStorage.getItem('userProfile');
       setUserProfile(profile);
 
-      // Temporarily always show the tutorial for testing
-      setShowTutorial(true);
+      const hasCompletedTutorial = localStorage.getItem('hasCompletedOnboardingTutorial');
+      if (!hasCompletedTutorial) {
+        setShowTutorial(true);
+      }
     }
     fetchMarketStatus();
   }, [fetchMarketStatus]);
