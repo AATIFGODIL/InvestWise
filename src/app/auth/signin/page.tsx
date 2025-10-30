@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useThemeStore } from '@/store/theme-store';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import AnimatedBorder from '@/components/auth/animated-border';
 
 // A simple SVG component for the Google icon.
 const GoogleIcon = () => (
@@ -63,6 +64,7 @@ export default function SignInPage() {
   const { showLoading } = useLoadingStore();
   const { toast } = useToast();
   const { isClearMode, theme } = useThemeStore();
+  const [isAnimationComplete, setIsAnimationComplete] = useState(false);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -131,12 +133,13 @@ export default function SignInPage() {
         initial={{ opacity: 0, scale: 0.8, rotateY: 180 }}
         animate={{ opacity: 1, scale: 1, rotateY: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
+        onAnimationComplete={() => setIsAnimationComplete(true)}
         className="w-full max-w-sm relative z-10"
         style={{ perspective: "1000px" }}
       >
         <Card
           className={cn(
-              "w-full",
+              "w-full relative",
               isClearMode 
                   ? isLightClear
                       ? "bg-card/60 ring-1 ring-white/10"
@@ -145,6 +148,7 @@ export default function SignInPage() {
           )}
           style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
         >
+            {isAnimationComplete && <AnimatedBorder />}
             <div className="flex justify-center items-center pt-8 gap-2">
                 <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
             </div>

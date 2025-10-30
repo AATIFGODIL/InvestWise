@@ -22,6 +22,7 @@ import useLoadingStore from '@/store/loading-store';
 import { useThemeStore } from '@/store/theme-store';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import AnimatedBorder from '@/components/auth/animated-border';
 
 
 // A simple SVG component for the Google icon.
@@ -62,6 +63,7 @@ export default function SignUpPage() {
   const { signUp, signInWithGoogle } = useAuth();
   const { showLoading } = useLoadingStore();
   const { isClearMode, theme } = useThemeStore();
+  const [isAnimationComplete, setIsAnimationComplete] = useState(false);
   
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -110,12 +112,13 @@ export default function SignUpPage() {
         initial={{ opacity: 0, scale: 0.8, rotateY: 180 }}
         animate={{ opacity: 1, scale: 1, rotateY: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
+        onAnimationComplete={() => setIsAnimationComplete(true)}
         className="w-full max-w-sm relative z-10"
         style={{ perspective: "1000px" }}
       >
         <Card
           className={cn(
-              "w-full",
+              "w-full relative",
               isClearMode 
                   ? isLightClear
                       ? "bg-card/60 ring-1 ring-white/10"
@@ -124,6 +127,7 @@ export default function SignUpPage() {
           )}
           style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
         >
+          {isAnimationComplete && <AnimatedBorder />}
           <div className="flex justify-center items-center pt-8 gap-2">
               <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
           </div>
