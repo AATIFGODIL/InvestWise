@@ -17,18 +17,21 @@ import CommunityLeaderboard from "@/components/dashboard/community-leaderboard";
 import MarketNews from "@/components/community/market-news";
 import HoldingsSummary from "@/components/dashboard/holdings-summary";
 import OnboardingTutorial from "@/components/dashboard/onboarding-tutorial";
+import { Skeleton } from "../ui/skeleton";
 
 // These components are loaded dynamically to improve initial page load performance.
 // They will only be loaded when they are needed, reducing the client-side JavaScript bundle size.
 const PortfolioValue = dynamic(() => import("@/components/portfolio/portfolio-value"), { 
     ssr: false,
-    loading: () => <div className="h-[550px] w-full animate-pulse rounded-lg bg-muted" />,
+    loading: () => <Skeleton className="h-[550px] w-full" />,
 });
 const GoalProgress = dynamic(() => import("@/components/dashboard/goal-progress"), {
     ssr: false,
+    loading: () => <Skeleton className="h-full w-full min-h-[200px]" />,
 });
 const InvestmentBundles = dynamic(() => import("@/components/dashboard/investment-bundles"), {
     ssr: false,
+    loading: () => <Skeleton className="h-[400px] w-full" />,
 });
 
 const containerVariants = {
