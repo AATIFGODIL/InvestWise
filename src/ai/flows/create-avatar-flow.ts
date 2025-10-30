@@ -5,29 +5,16 @@
  * user's text prompt and/or an uploaded reference photo.
  *
  * - createAvatar: The main function that clients call to generate an avatar.
- * - CreateAvatarInput: The type for the input (prompt and/or photo).
- * - CreateAvatarOutput: The type for the output (the generated image data URI).
  */
 
 import { ai } from '@/ai/genkit';
 import { googleAI } from '@genkit-ai/google-genai';
-import { z } from 'zod';
-
-export const CreateAvatarInputSchema = z.object({
-  prompt: z.string().optional().describe("The user's text description for the avatar."),
-  photoDataUri: z
-    .string()
-    .optional()
-    .describe(
-      "A photo of a person to use as a reference, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
-    ),
-});
-export type CreateAvatarInput = z.infer<typeof CreateAvatarInputSchema>;
-
-export const CreateAvatarOutputSchema = z.object({
-  avatarDataUri: z.string().describe('The generated avatar image as a data URI.'),
-});
-export type CreateAvatarOutput = z.infer<typeof CreateAvatarOutputSchema>;
+import {
+  CreateAvatarInputSchema,
+  type CreateAvatarInput,
+  CreateAvatarOutputSchema,
+  type CreateAvatarOutput,
+} from '@/ai/types/create-avatar-types';
 
 export async function createAvatar(input: CreateAvatarInput): Promise<CreateAvatarOutput> {
   return createAvatarFlow(input);

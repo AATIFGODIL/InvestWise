@@ -12,7 +12,7 @@ import type { InvestmentChatbotOutput } from "@/ai/types/investment-chatbot-type
 import { stockPrediction } from "@/ai/flows/stock-prediction";
 import type { StockPredictionOutput } from "@/ai/types/stock-prediction-types";
 import { createAvatar } from "@/ai/flows/create-avatar-flow";
-import type { CreateAvatarInput, CreateAvatarOutput } from "@/ai/flows/create-avatar-flow";
+import type { CreateAvatarInput, CreateAvatarOutput } from "@/ai/types/create-avatar-types";
 import { gateway } from "@/lib/braintree";
 import { db } from "@/lib/firebase/admin";
 import { type BraintreeGateway, type Customer, type Transaction as BraintreeTransaction } from "braintree";
