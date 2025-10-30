@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -34,7 +35,7 @@ export default function AvatarSelectionDialog({
         </DialogHeader>
 
         <Tabs defaultValue={avatars.categories[0].id} className="flex-grow flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5">
             {avatars.categories.map((category) => (
               <TabsTrigger key={category.id} value={category.id}>
                 {category.name}
