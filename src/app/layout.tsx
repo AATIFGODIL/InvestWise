@@ -60,7 +60,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   // This handles all unauthenticated and onboarding routes
   return (
       <div className="flex flex-col h-screen">
-          <MainContent>{children}</MainContent>
+          <MainContent disableScroll={true}>{children}</MainContent>
           <MoneyRain isActive={isRaining} />
       </div>
   );
