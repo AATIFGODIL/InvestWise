@@ -36,7 +36,7 @@ function PortfolioValue({ showTitle: showTitleProp = false }: PortfolioValueProp
   const [timeRange, setTimeRange] = useState<TimeRange>('1W');
   const { portfolioSummary, chartData, isLoading } = usePortfolioStore();
 
-  const showTitle = showTitleProp && pathname === '/explore';
+  const showTitle = showTitleProp || pathname === '/explore';
 
   const isTodaysChangePositive = portfolioSummary.todaysChange >= 0;
   const todaysChangePercent = portfolioSummary.totalValue !== 0 ? (portfolioSummary.todaysChange / (portfolioSummary.totalValue - portfolioSummary.todaysChange)) * 100 : 0;
@@ -74,7 +74,10 @@ function PortfolioValue({ showTitle: showTitleProp = false }: PortfolioValueProp
         <Card>
             <CardHeader>
                 {showTitle && (
-                    <Skeleton className="h-7 w-40 mb-4" />
+                    <CardTitle className="flex items-center gap-2 text-xl mb-4">
+                        <BarChart className="h-6 w-6 text-primary" />
+                        Portfolio
+                    </CardTitle>
                 )}
                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="space-y-2">
@@ -102,7 +105,7 @@ function PortfolioValue({ showTitle: showTitleProp = false }: PortfolioValueProp
         <CardHeader>
             {showTitle && (
                 <CardTitle className="flex items-center gap-2 text-xl mb-4">
-                    <BarChart className="h-6 w-6 text-primary" />
+                    <BarChart className="h-5 w-5 text-primary" />
                     Portfolio
                 </CardTitle>
             )}
