@@ -6,10 +6,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Newspaper, AlertCircle } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import { useThemeStore } from "@/store/theme-store";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "../ui/skeleton";
+import { formatDistanceToNow } from 'date-fns';
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY;
 
@@ -21,6 +22,18 @@ export interface Article {
   image?: string;
   datetime: number;
 }
+
+// Function to get a high-contrast, visually distinct color based on the source name
+const getSourceColor = (sourceName: string) => {
+    let hash = 0;
+    for (let i = 0; i < sourceName.length; i++) {
+        hash = sourceName.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const h = hash % 360;
+    // Use a fixed saturation and lightness for good contrast and vibrancy
+    return `hsl(${h}, 70%, 80%)`;
+};
+
 
 export async function fetchNewsOnClient(symbol?: string): Promise<Article[]> {
   if (!API_KEY) {
@@ -103,15 +116,15 @@ export default function MarketNews({ limit }: MarketNewsProps) {
   const articlesToDisplay = limit ? articles.slice(0, limit) : articles;
 
   const NewsSkeleton = () => (
-    <div className="space-y-4">
-        {[...Array(limit || 3)].map((_, i) => (
-            <div key={i} className="flex flex-col sm:flex-row gap-4 p-4 rounded-lg bg-muted/50">
-                <Skeleton className="relative w-full sm:w-32 h-32 sm:h-auto flex-shrink-0 rounded-md skeleton-shimmer" />
-                <div className="flex-grow space-y-2">
-                    <Skeleton className="h-5 w-full skeleton-shimmer" />
-                    <Skeleton className="h-4 w-1/4 skeleton-shimmer" />
-                    <Skeleton className="h-10 w-full skeleton-shimmer" />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+        {[...Array(limit || 6)].map((_, i) => (
+            <div key={i} className="space-y-2">
+                <div className="flex items-center gap-2">
+                    <Skeleton className="h-6 w-6 rounded-full" />
+                    <Skeleton className="h-4 w-32" />
                 </div>
+                <Skeleton className="h-5 w-full" />
+                <Skeleton className="h-5 w-3/4" />
             </div>
         ))}
     </div>
@@ -141,24 +154,25 @@ export default function MarketNews({ limit }: MarketNewsProps) {
             <p>No recent news found.</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
             {articlesToDisplay?.map((article) => (
-                <Link key={article.headline} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="relative w-full sm:w-32 h-32 sm:h-auto flex-shrink-0">
-                            <Image
-                                src={article.image || "https://placehold.co/600x400/27272a/FFF"}
-                                alt={article.headline}
-                                fill
-                                className="rounded-md object-cover"
-                            />
-                        </div>
-                        <div className="flex-grow">
-                             <p className="font-semibold text-md leading-tight">{article.headline}</p>
-                             <p className="text-xs text-muted-foreground mt-1">{article.source}</p>
-                             <p className="text-sm mt-2 line-clamp-2">{article.summary}</p>
-                        </div>
+                <Link key={article.url} href={article.url} target="_blank" rel="noopener noreferrer" className="block group">
+                    <div className="flex items-center gap-2 mb-1">
+                        <Avatar className="h-5 w-5">
+                            <AvatarFallback
+                                className="text-xs font-bold text-black"
+                                style={{ backgroundColor: getSourceColor(article.source) }}
+                            >
+                                {article.source.charAt(0)}
+                            </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs font-medium text-muted-foreground">{article.source}</span>
+                        <span className="text-xs text-muted-foreground">·</span>
+                        <span className="text-xs text-muted-foreground">
+                            {formatDistanceToNow(new Date(article.datetime * 1000), { addSuffix: true })}
+                        </span>
                     </div>
+                     <p className="font-semibold text-md leading-tight group-hover:underline">{article.headline}</p>
                 </Link>
             ))}
           </div>
