@@ -14,10 +14,12 @@ import Watchlist from "@/components/dashboard/watchlist";
 import EducationalContent from "./educational-content";
 import { educationalContent } from "@/data/education";
 import CommunityLeaderboard from "@/components/dashboard/community-leaderboard";
-import MarketNews from "@/components/community/market-news";
+import TradingViewNewsWidget from "../shared/trading-view-news-widget";
 import HoldingsSummary from "@/components/dashboard/holdings-summary";
 import OnboardingTutorial from "@/components/dashboard/onboarding-tutorial";
 import { Skeleton } from "../ui/skeleton";
+import { Card, CardHeader, CardTitle } from "../ui/card";
+import { Newspaper } from "lucide-react";
 
 // These components are loaded dynamically to improve initial page load performance.
 // They will only be loaded when they are needed, reducing the client-side JavaScript bundle size.
@@ -159,8 +161,19 @@ export default function DashboardClient() {
                     <CommunityLeaderboard />
                  </div>
             </motion.div>
-            <motion.div variants={itemVariants}>
-                <MarketNews limit={3} />
+             <motion.div variants={itemVariants}>
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-xl">
+                            <Newspaper className="h-5 w-5 text-primary" />
+                            Market News
+                        </CardTitle>
+                    </CardHeader>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4 px-2 sm:px-6 pb-6">
+                        <TradingViewNewsWidget displayMode="compact" />
+                        <TradingViewNewsWidget displayMode="compact" />
+                    </div>
+                </Card>
             </motion.div>
             <motion.div variants={itemVariants} className="space-y-4 pt-4">
                 <h2 className="text-xl font-bold">Educational Content</h2>

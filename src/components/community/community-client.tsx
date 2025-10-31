@@ -13,8 +13,10 @@ import { usePrivacyStore } from "@/store/privacy-store";
 import YouTubePlayer from "../shared/youtube-player";
 import { useThemeStore } from "@/store/theme-store";
 import { cn } from "@/lib/utils";
-import MarketNews from "./market-news";
+import TradingViewNewsWidget from "../shared/trading-view-news-widget";
 import { motion } from "framer-motion";
+import { Card, CardHeader, CardTitle } from "../ui/card";
+import { Newspaper } from "lucide-react";
 
 const videos = [
     {
@@ -115,7 +117,18 @@ export default function CommunityClient() {
           </div>
       </motion.div>
       <motion.div variants={itemVariants}>
-        <MarketNews />
+         <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                    <Newspaper className="h-5 w-5 text-primary" />
+                    Market News
+                </CardTitle>
+            </CardHeader>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4 px-2 sm:px-6 pb-6">
+                <TradingViewNewsWidget displayMode="regular" />
+                <TradingViewNewsWidget displayMode="regular" />
+            </div>
+        </Card>
       </motion.div>
       <Chatbot />
       </motion.div>
