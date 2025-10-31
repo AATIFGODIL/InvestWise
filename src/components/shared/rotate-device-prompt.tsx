@@ -15,7 +15,10 @@ export default function RotateDevicePrompt() {
     useEffect(() => {
         setIsClient(true);
     }, []);
+    
+    return null;
 
+    /*
     return (
         <div 
             id="rotate-prompt"
@@ -44,4 +47,5 @@ export default function RotateDevicePrompt() {
             </div>
         </div>
     );
+    */
 }
