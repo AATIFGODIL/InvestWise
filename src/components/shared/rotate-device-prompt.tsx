@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -16,9 +15,7 @@ export default function RotateDevicePrompt() {
         setIsClient(true);
     }, []);
     
-    return null;
 
-    /*
     return (
         <div 
             id="rotate-prompt"
@@ -47,5 +44,4 @@ export default function RotateDevicePrompt() {
             </div>
         </div>
     );
-    */
 }
