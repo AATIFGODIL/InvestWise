@@ -52,6 +52,7 @@ const DialogContent = React.forwardRef<
                 : "border bg-background", // Solid
             className
           )}
+          // COPY-THIS: For the glass look (backdrop filter)
           style={{
             backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none",
           }}

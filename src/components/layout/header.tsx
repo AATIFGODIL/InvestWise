@@ -243,21 +243,23 @@ const { overflowMessage } = React.useMemo(() => {
         )}>
           <nav 
             className={cn(
-              "relative flex h-16 w-full items-center justify-between rounded-full p-1 px-2 text-primary-foreground shadow-lg",
+              "relative flex h-16 w-full items-center justify-between rounded-3xl p-1 px-2 shadow-lg",
               isClearMode 
                   ? isLightClear
                       ? "bg-card/60 ring-1 ring-white/10"
                       : "bg-white/10 ring-1 ring-white/60"
                   : "bg-card ring-1 ring-white/60",
+              // COPY-THIS: To apply the glow effect
               showGlow && "login-glow"
             )}
+            // COPY-THIS: For the glass look (backdrop filter)
             style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
             <Link 
               href="/dashboard" 
-              className="flex h-full shrink-0 items-center rounded-full bg-primary px-3 sm:px-4 shadow-md"
+              className="flex h-full shrink-0 items-center rounded-3xl bg-primary px-3 sm:px-4 shadow-md"
               onClick={(e) => handleNavigate(e, '/dashboard')}
             >
               <h1 className="text-md sm:text-lg font-bold text-primary-foreground">
@@ -272,7 +274,7 @@ const { overflowMessage } = React.useMemo(() => {
                         onPointerUp={handlePointerUp}
                         onPointerLeave={handlePointerUp}
                         className={cn(
-                            "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-colors min-w-[75px] sm:min-w-[170px]",
+                            "relative z-10 flex h-12 items-center justify-center gap-2 rounded-3xl px-4 shadow-lg transition-colors min-w-[75px] sm:min-w-[170px]",
                             isClearMode
                                 ? isLightClear
                                     ? "bg-card/60 text-foreground ring-1 ring-white/20"

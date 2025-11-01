@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -87,6 +88,7 @@ const SheetContent = React.forwardRef<
                 : "bg-background",
               className
           )}
+          // COPY-THIS: For the glass look (backdrop filter)
           style={{
             backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none",
             // Apply the custom liquid easing function to the width transition

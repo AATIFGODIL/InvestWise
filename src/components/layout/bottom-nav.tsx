@@ -394,14 +394,16 @@ export default function BottomNav() {
       <nav
         ref={navRef}
         className={cn(
-            "relative flex h-16 items-center justify-around rounded-full p-1 shadow-2xl shadow-black/20 ring-1 ring-white/60",
+            "relative flex h-16 items-center justify-around rounded-3xl p-1 px-2 shadow-2xl shadow-black/20 ring-1 ring-white/60",
             isClearMode 
                 ? isLightClear 
                     ? "bg-card/60"
                     : "bg-white/10"
                 : "bg-card",
+            // COPY-THIS: To apply the glow effect
             showGlow && "login-glow"
         )}
+        // COPY-THIS: For the glass look (backdrop filter)
         style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
       >
         <div

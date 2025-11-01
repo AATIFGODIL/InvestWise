@@ -122,14 +122,16 @@ export default function Chatbot() {
         <Button
           variant="outline"
           className={cn(
-              "w-full justify-between items-center p-3 h-auto rounded-full shadow-2xl shadow-black/20 ring-1 ring-white/60 hover:bg-primary/10",
+              "w-full justify-between items-center p-3 h-auto rounded-3xl shadow-2xl shadow-black/20 ring-1 ring-white/60 hover:bg-primary/10",
                isClearMode 
                 ? isLightClear
                     ? "bg-card/60 text-foreground" // Light Clear
                     : "bg-white/10 text-white" // Dark Clear
                 : "bg-card text-card-foreground", // Solid
+              // COPY-THIS: To apply the glow effect
               showGlow && "login-glow"
           )}
+          // COPY-THIS: For the glass look (backdrop filter)
           style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
           onClick={() => openChatbot()}
         >

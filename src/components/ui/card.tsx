@@ -24,6 +24,7 @@ const Card = React.forwardRef<
                     : "bg-card", // Standard solid card
                 className
             )}
+            // COPY-THIS: For the glass look (backdrop filter)
             style={{
                 backdropFilter: isClearMode ? "blur(16px)" : "none",
                 ...style,

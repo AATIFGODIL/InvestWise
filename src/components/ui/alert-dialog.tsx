@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -49,6 +50,7 @@ const AlertDialogContent = React.forwardRef<
                 : "border bg-background", // Solid
             className
           )}
+          // COPY-THIS: For the glass look (backdrop filter)
           style={{
             backdropFilter: isClearMode ? "blur(16px)" : "none",
           }}

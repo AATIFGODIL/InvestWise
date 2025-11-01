@@ -172,7 +172,7 @@
     100% { transform: translateX(200%); }
   }
 
-  /* Login Glow Effect */
+  /* COPY-THIS: For the login glow effect */
   .login-glow {
     position: relative;
     overflow: hidden;

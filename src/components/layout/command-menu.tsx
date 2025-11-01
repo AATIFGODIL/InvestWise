@@ -349,7 +349,9 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
         <>
           <div className="fixed inset-0 z-50 bg-black/80" onClick={() => onOpenChange(false)} />
           <div className="fixed inset-x-0 inset-y-0 z-50 flex items-center justify-center p-4 pt-24 pb-24">
-            <div className={cn("w-full max-w-lg overflow-hidden rounded-xl shadow-2xl", isClearMode ? "shadow-black/20 bg-white/10 ring-1 ring-white/60 border-0" : "bg-popover border")} style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}>
+            <div className={cn("w-full max-w-lg overflow-hidden rounded-xl shadow-2xl", isClearMode ? "shadow-black/20 bg-white/10 ring-1 ring-white/60 border-0" : "bg-popover border")} 
+                 // COPY-THIS: For the glass look (backdrop filter)
+                 style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}>
               <div className={cn(isClearMode ? "text-primary-foreground" : "text-popover-foreground")}>
                   <div className={cn("flex items-center border-b px-3", isClearMode ? "border-border/50" : "border-border")}>
                       {view === "stock-detail" ? ( <Button variant="ghost" size="icon" className={cn("mr-2 h-8 w-8 shrink-0", isClearMode ? "hover:bg-white/10" : "")} onClick={handleGoBack}><ArrowLeft className="h-4 w-4" /></Button> ) : ( <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" /> )}

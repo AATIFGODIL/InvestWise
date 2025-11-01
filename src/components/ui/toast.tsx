@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -63,6 +64,7 @@ const Toast = React.forwardRef<
         ),
         className
       )}
+      // COPY-THIS: For the glass look (backdrop filter)
       style={{
           backdropFilter: isClearMode && isDefaultVariant ? "blur(16px)" : "none",
       }}

@@ -139,6 +139,7 @@ export default function SignUpPage() {
                       : "bg-white/10 ring-1 ring-white/60"
                   : ""
           )}
+          // COPY-THIS: For the glass look (backdrop filter)
           style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
         >
           {isAnimationComplete && <AnimatedBorder />}

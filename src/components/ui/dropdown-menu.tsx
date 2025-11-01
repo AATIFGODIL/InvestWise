@@ -61,6 +61,7 @@ const DropdownMenuSubContent = React.forwardRef<
           : "border bg-popover text-popover-foreground",
         className
       )}
+      // COPY-THIS: For the glass look (backdrop filter)
       style={{
         backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none",
       }}
@@ -91,6 +92,7 @@ const DropdownMenuContent = React.forwardRef<
             : "border bg-popover text-popover-foreground",
           className
         )}
+        // COPY-THIS: For the glass look (backdrop filter)
         style={{
           backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none",
         }}
