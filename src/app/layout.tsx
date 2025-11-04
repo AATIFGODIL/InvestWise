@@ -5,18 +5,14 @@ import { usePathname } from 'next/navigation';
 import { Poppins } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import ThemeProvider from "@/components/layout/theme-provider";
-import BottomNav from "@/components/layout/bottom-nav";
-import MainContent from "@/components/layout/main-content";
 import "./globals.css";
 import Script from "next/script";
-import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { AuthProvider } from "@/hooks/use-auth";
 import '../lib/firebase/config';
-import Header from '@/components/layout/header';
-import MoneyRain from '@/components/shared/money-rain';
 import RotateDevicePrompt from '@/components/shared/rotate-device-prompt';
 import React from 'react';
-import PageSkeleton from '@/components/layout/page-skeleton';
 import dynamic from 'next/dynamic';
+import PageSkeleton from '@/components/layout/page-skeleton';
 
 const poppins = Poppins({
   subsets: ["latin"],

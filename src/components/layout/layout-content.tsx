@@ -2,7 +2,7 @@
 "use client";
 
 import { usePathname } from 'next/navigation';
-import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/use-auth";
 import Header from '@/components/layout/header';
 import BottomNav from "@/components/layout/bottom-nav";
 import MainContent from "@/components/layout/main-content";
@@ -17,7 +17,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
 
   const isAuthOrOnboardingRoute = pathname.startsWith('/auth') || pathname.startsWith('/onboarding') || pathname === '/';
   
-  const isSpecialLayoutRoute = pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/certificate') || pathname.startsWith('/onboarding');
+  const isSpecialLayoutRoute = pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/certificate');
   
   if (hydrating) {
     return (
@@ -36,7 +36,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
        return (
         <div className="flex flex-col h-screen">
           {!isSpecialLayoutRoute && <Header onTriggerRain={handleTriggerRain} />}
-          <MainContent isSpecialLayoutRoute={isSpecialLayoutRoute} disableScroll={isSpecialLayoutRoute}>{children}</MainContent>
+          <MainContent isSpecialLayoutRoute={isSpecialLayoutRoute}>{children}</MainContent>
           {!isSpecialLayoutRoute && <BottomNav />}
           <MoneyRain isActive={isRaining} />
         </div>
