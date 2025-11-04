@@ -16,7 +16,7 @@
  * - /roles_admin/{userId}: Admin role assignments. Presence of a document indicates admin status.
  *
  * Key Security Decisions:
- * - User listing is disallowed to protect user privacy.
+ * - User listing is now allowed to support the community leaderboard feature.
  * - Assets and investment bundles are publicly readable to facilitate discovery.
  * - Admin privileges are determined by the presence of a document in the `/roles_admin/{userId}` collection.
  * - Default security posture for ambiguous relationships is owner-only access.
@@ -36,8 +36,8 @@ service cloud.firestore {
      * @path /users/{userId}
      * @allow (create, update, get, delete) - User 'user123' can create/update/get/delete their own profile.
      *   Request: auth.uid = 'user123', path = '/databases/(default)/documents/users/user123', data.id = 'user123'
-     * @allow (list) - User 'user123' can list user profile documents.
-     *   Request: auth.uid = 'user123', path = '/databases/(default)/documents/users'
+     * @allow (list) - Any authenticated user can list users for the leaderboard.
+     *   Request: auth.uid != null, path = '/databases/(default)/documents/users'
      * @deny (create, update, get, delete) - User 'user456' cannot create/update/get/delete user 'user123' profile.
      *   Request: auth.uid = 'user456', path = '/databases/(default)/documents/users/user123', data.id = 'user123'
      * @principle Enforces document ownership for writes and restricts read access to the owner.
@@ -48,7 +48,7 @@ service cloud.firestore {
       }
 
       allow get: if isOwner(userId);
-      allow list: if false; // User listing is disallowed for privacy.
+      allow list: if request.auth != null; // Allow listing for leaderboard if user is authenticated.
       allow create: if isOwner(userId) && request.resource.data.id == userId;
       allow update: if isOwner(userId) && resource.data.id == userId;
       allow delete: if isOwner(userId) && resource.data.id == userId;
