@@ -261,21 +261,21 @@ export async function getLeaderboardData(): Promise<{ success: boolean; data?: L
                 uid: doc.id,
                 ...doc.data(),
             }))
-            .filter(user => user.leaderboardVisibility === 'public' || user.leaderboardVisibility === 'anonymous');
+            .filter(user => (user as any).leaderboardVisibility === 'public' || (user as any).leaderboardVisibility === 'anonymous');
         
         // Sort users by their total portfolio gain/loss in descending order.
-        const sortedUsers = usersData.sort((a, b) => (b.portfolio?.summary?.totalGainLoss || 0) - (a.portfolio?.summary?.totalGainLoss || 0));
+        const sortedUsers = usersData.sort((a, b) => ((b as any).portfolio?.summary?.totalGainLoss || 0) - ((a as any).portfolio?.summary?.totalGainLoss || 0));
 
         // Format the data for the leaderboard, anonymizing names where needed.
         const leaderboardData: LeaderboardUser[] = sortedUsers.slice(0, 10).map((userData, index) => {
-            const isAnonymous = userData.leaderboardVisibility === 'anonymous';
+            const isAnonymous = (userData as any).leaderboardVisibility === 'anonymous';
             
             return {
                 rank: index + 1,
-                uid: userData.uid,
-                name: isAnonymous ? 'Anonymous Investor' : userData.username || 'Investor',
-                photoURL: userData.photoURL || '',
-                gain: userData.portfolio?.summary?.totalGainLoss || 0,
+                uid: (userData as any).uid,
+                name: isAnonymous ? 'Anonymous Investor' : (userData as any).username || 'Investor',
+                photoURL: (userData as any).photoURL || '',
+                gain: (userData as any).portfolio?.summary?.totalGainLoss || 0,
             };
         });
 
@@ -305,7 +305,7 @@ export async function getTradeHistory(userId: string): Promise<{ success: boolea
         const transactions = userDoc.data()?.transactions || [];
 
         return { success: true, data: transactions };
-    } catch (error: any) {
+    } catch (error: any).
         console.error("Error fetching trade history:", error);
         return { success: false, error: "Failed to fetch trade history." };
     }
