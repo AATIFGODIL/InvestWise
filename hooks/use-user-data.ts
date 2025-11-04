@@ -7,7 +7,7 @@ import { doc, getDoc, type Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 
 // Import all necessary store hooks
-import useUserStore from "@/store/user-store";
+import { useUserStore } from "@/store/user-store";
 import usePortfolioStore from "@/store/portfolio-store";
 import useNotificationStore from "@/store/notification-store";
 import useGoalStore from "@/store/goal-store";
