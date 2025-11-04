@@ -1,4 +1,3 @@
-
 "use client";
 
 import {
@@ -37,7 +36,7 @@ export default function TopNews() {
             <Newspaper className="h-5 w-5"/>
             Top News
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-foreground">
             The latest headlines impacting the market.
         </CardDescription>
       </CardHeader>
