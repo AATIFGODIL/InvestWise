@@ -19,4 +19,7 @@ export interface UserData {
   autoInvestments?: any[]; // Define more strictly if needed
   leaderboardVisibility?: 'public' | 'hidden' | 'anonymous';
   showQuests?: boolean;
+  watchlist?: string[];
+  transactions?: Transaction[];
+  paymentMethodToken?: string;
 }
