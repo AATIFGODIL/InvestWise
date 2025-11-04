@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useRef, memo } from 'react';
+import React, { useEffect, useRef, memo, useState } from 'react';
 import { useThemeStore } from '@/store/theme-store';
 
 interface TradingViewMiniChartProps {
@@ -11,10 +11,18 @@ interface TradingViewMiniChartProps {
 const TradingViewMiniChart: React.FC<TradingViewMiniChartProps> = ({ symbol }) => {
   const container = useRef<HTMLDivElement>(null);
   const { theme } = useThemeStore();
-  const scriptExists = useRef(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const widgetId = `tradingview-mini-chart-${symbol}-${Math.random().toString(36).substring(7)}`;
 
   useEffect(() => {
-    if (!container.current || scriptExists.current) return;
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted || !container.current) return;
+
+    // Clear previous widget before creating a new one
+    container.current.innerHTML = '';
 
     const script = document.createElement("script");
     script.src = "https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
@@ -29,16 +37,17 @@ const TradingViewMiniChart: React.FC<TradingViewMiniChartProps> = ({ symbol }) =
       "colorTheme": theme,
       "isTransparent": true,
       "autosize": true,
-      "largeChartUrl": ""
+      "largeChartUrl": "",
+      "container_id": widgetId
     });
 
     container.current.appendChild(script);
-    scriptExists.current = true;
 
-  }, [symbol, theme]);
+    // No cleanup function needed as we clear the container at the start of the effect
+  }, [symbol, theme, isMounted, widgetId]);
 
   return (
-    <div className="tradingview-widget-container h-full w-full" ref={container}>
+    <div id={widgetId} className="tradingview-widget-container h-full w-full" ref={container}>
       <div className="tradingview-widget-container__widget"></div>
     </div>
   );

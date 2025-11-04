@@ -46,7 +46,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "../ui/badge";
 import { usePortfolioStore } from "@/store/portfolio-store";
 import TradeDialogCMDK from "../trade/trade-dialog-cmdk";
-import TradingViewMiniChart from "../shared/trading-view-mini-chart";
+import dynamic from 'next/dynamic';
 import { CommandInput, CommandItem, CommandList, CommandSeparator } from "../ui/command";
 import { useAuth } from "@/hooks/use-auth";
 import { useThemeStore } from "@/store/theme-store";
@@ -61,6 +61,11 @@ import TradingViewWidget from "../shared/trading-view-widget";
 
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
+
+const TradingViewMiniChart = dynamic(() => import("../shared/trading-view-mini-chart"), {
+  ssr: false,
+});
+
 
 interface StockSearchResult {
     symbol: string;
