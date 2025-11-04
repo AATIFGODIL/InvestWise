@@ -12,4 +12,4 @@ export const educationalContent = [
     filePath: "/deliverable.png",
     type: 'image',
   }
-];
+] as const;
