@@ -1,18 +1,13 @@
-
-"use client";
-
-import { usePathname } from 'next/navigation';
+import type { Metadata } from 'next';
 import { Poppins } from "next/font/google";
 import { Toaster } from "@/components/ui/toaster";
 import ThemeProvider from "@/components/layout/theme-provider";
 import "./globals.css";
 import Script from "next/script";
-import { AuthProvider } from "@/hooks/use-auth";
-import '../lib/firebase/config';
 import RotateDevicePrompt from '@/components/shared/rotate-device-prompt';
 import React from 'react';
-import dynamic from 'next/dynamic';
-import PageSkeleton from '@/components/layout/page-skeleton';
+import { AuthProvider } from '@/hooks/use-auth';
+import LayoutContent from '@/components/layout/layout-content';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -20,16 +15,10 @@ const poppins = Poppins({
   variable: "--font-body",
 });
 
-// Dynamically import the main layout content to ensure it's client-side only
-const LayoutContent = dynamic(() => import('@/components/layout/layout-content'), {
-  ssr: false,
-  loading: () => (
-    <div className="h-screen w-screen">
-      <PageSkeleton />
-    </div>
-  ),
-});
-
+export const metadata: Metadata = {
+  title: 'InvestWise',
+  description: 'Your personal investment journey.',
+};
 
 export default function RootLayout({
   children,
@@ -39,7 +28,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <title>InvestWise</title>
         <Script src="https://s3.tradingview.com/tv.js" strategy="beforeInteractive" />
       </head>
       <body className={`${poppins.variable} font-body antialiased`}>
@@ -55,7 +43,7 @@ export default function RootLayout({
         <div id="root-container">
           <ThemeProvider>
             <AuthProvider>
-              <LayoutContent>{children}</LayoutContent>
+                <LayoutContent>{children}</LayoutContent>
             </AuthProvider>
             <Toaster />
           </ThemeProvider>

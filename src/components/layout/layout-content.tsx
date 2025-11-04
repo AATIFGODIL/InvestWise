@@ -1,19 +1,25 @@
-
 "use client";
 
 import { usePathname } from 'next/navigation';
 import { useAuth } from "@/hooks/use-auth";
-import Header from '@/components/layout/header';
-import BottomNav from "@/components/layout/bottom-nav";
 import MainContent from "@/components/layout/main-content";
 import MoneyRain from '@/components/shared/money-rain';
 import PageSkeleton from '@/components/layout/page-skeleton';
 import React from 'react';
+import useUserData from '@/hooks/use-user-data';
+import dynamic from 'next/dynamic';
+
+// Dynamically import client-heavy components
+const Header = dynamic(() => import('@/components/layout/header'), { ssr: false });
+const BottomNav = dynamic(() => import('@/components/layout/bottom-nav'), { ssr: false });
+
 
 export default function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user, hydrating } = useAuth();
   const [isRaining, setIsRaining] = React.useState(false);
+  
+  useUserData(user);
 
   const isAuthOrOnboardingRoute = pathname.startsWith('/auth') || pathname.startsWith('/onboarding') || pathname === '/';
   
@@ -29,7 +35,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
   
   const handleTriggerRain = () => {
     setIsRaining(true);
-    setTimeout(() => setIsRaining(false), 5000); // Let it rain for 5 seconds
+    setTimeout(() => setIsRaining(false), 5000);
   };
   
   if (user && !isAuthOrOnboardingRoute) {
