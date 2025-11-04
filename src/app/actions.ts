@@ -4,7 +4,7 @@
 /**
  * @fileOverview Server Actions for the application.
  * This file contains asynchronous functions that can be called directly from client components
- * to handle server-side logic like AI interactions.
+ * to handle server-side logic like AI interactions and secure payment processing.
  */
 
 import { investmentChatbot } from "@/ai/flows/investment-chatbot";
@@ -13,6 +13,9 @@ import { stockPrediction } from "@/ai/flows/stock-prediction";
 import type { StockPredictionOutput } from "@/ai/types/stock-prediction-types";
 import { createAvatar } from "@/ai/flows/create-avatar-flow";
 import type { CreateAvatarInput, CreateAvatarOutput } from "@/ai/types/create-avatar-types";
+import { getBraintreeGateway } from "@/lib/braintree";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
 
 
 /**
@@ -104,5 +107,60 @@ export async function handleAvatarCreation(input: CreateAvatarInput): Promise<{s
       success: false,
       error: error.message || "An unexpected error occurred while creating your avatar.",
     };
+  }
+}
+
+/**
+ * Generates a Braintree client token to initialize the Drop-in UI.
+ * @returns {Promise<string>} The Braintree client token.
+ * @throws {Error} If the token generation fails.
+ */
+export async function getClientToken(): Promise<string> {
+    const gateway = getBraintreeGateway();
+    const response = await gateway.clientToken.generate({});
+    if (!response.success) {
+        throw new Error("Failed to generate Braintree client token.");
+    }
+    return response.clientToken;
+}
+
+interface VaultPaymentMethodArgs {
+  nonce: string;
+  userId: string;
+}
+
+/**
+ * Creates a payment method in the Braintree vault and associates the token with the user's Firebase document.
+ * @param {VaultPaymentMethodArgs} args - The payment nonce and user ID.
+ * @returns {Promise<{success: boolean, error?: string}>} An object indicating success or failure.
+ */
+export async function vaultPaymentMethod({ nonce, userId }: VaultPaymentMethodArgs): Promise<{success: boolean, error?: string}> {
+  const gateway = getBraintreeGateway();
+  try {
+    const result = await gateway.paymentMethod.create({
+      paymentMethodNonce: nonce,
+      customerId: userId, // Use Firebase UID as Braintree Customer ID
+      options: {
+        makeDefault: true,
+        failOnDuplicatePaymentMethod: true,
+      },
+    });
+
+    if (!result.success) {
+      console.error("Braintree error:", result.message);
+      return { success: false, error: result.message };
+    }
+    
+    // The token for the vaulted payment method
+    const token = result.paymentMethod.token;
+
+    // Save the payment method token to the user's document in Firestore
+    const userDocRef = doc(db, 'users', userId);
+    await updateDoc(userDocRef, { paymentMethodToken: token });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("Error vaulting payment method:", error);
+    return { success: false, error: error.message || 'An unknown error occurred.' };
   }
 }
