@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
@@ -7,7 +6,6 @@ import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search, Loader2, Clock, Star } from "lucide-react";
-import TradeForm from "@/components/trade/trade-form";
 import AiPredictionTrade from "@/components/ai/ai-prediction-trade";
 import { specializedBundles } from "@/data/bundles";
 import { Input } from "@/components/ui/input";
@@ -26,6 +24,11 @@ import { Skeleton } from "../ui/skeleton";
 const TradingViewWidget = dynamic(() => import("@/components/shared/trading-view-widget"), {
     ssr: false,
     loading: () => <Skeleton className="h-[400px] md:h-[500px] w-full" />,
+});
+
+const TradeForm = dynamic(() => import("@/components/trade/trade-form"), {
+    ssr: false,
+    loading: () => <Skeleton className="h-[500px] w-full" />,
 });
 
 const TradingViewScreener = dynamic(() => import("@/components/shared/trading-view-screener"), {
