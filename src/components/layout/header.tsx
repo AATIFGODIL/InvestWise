@@ -243,7 +243,7 @@ const { overflowMessage } = React.useMemo(() => {
         )}>
           <nav 
             className={cn(
-              "relative flex h-16 w-full items-center justify-between rounded-3xl p-1 px-2 shadow-lg",
+              "relative flex h-16 w-full items-center justify-between rounded-full p-1 px-2 shadow-lg",
               isClearMode 
                   ? isLightClear
                       ? "bg-card/60 ring-1 ring-white/10"
@@ -259,7 +259,7 @@ const { overflowMessage } = React.useMemo(() => {
           >
             <Link 
               href="/dashboard" 
-              className="flex h-full shrink-0 items-center rounded-3xl bg-primary px-3 sm:px-4 shadow-md"
+              className="flex h-full shrink-0 items-center rounded-full bg-primary px-3 sm:px-4 shadow-md"
               onClick={(e) => handleNavigate(e, '/dashboard')}
             >
               <h1 className="text-md sm:text-lg font-bold text-primary-foreground">
@@ -274,7 +274,7 @@ const { overflowMessage } = React.useMemo(() => {
                         onPointerUp={handlePointerUp}
                         onPointerLeave={handlePointerUp}
                         className={cn(
-                            "relative z-10 flex h-12 items-center justify-center gap-2 rounded-3xl px-4 shadow-lg transition-colors min-w-[75px] sm:min-w-[170px]",
+                            "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-colors min-w-[75px] sm:min-w-[170px]",
                             isClearMode
                                 ? isLightClear
                                     ? "bg-card/60 text-foreground ring-1 ring-white/20"
