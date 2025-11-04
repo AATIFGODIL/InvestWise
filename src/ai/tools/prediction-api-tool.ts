@@ -18,8 +18,8 @@ export const getPredictionFromApi = ai.defineTool(
   {
     name: 'getPredictionFromApi',
     description: 'Fetches a stock price prediction from the custom Python API.',
-    inputSchema: StockPredictionInputSchema,
-    outputSchema: RawStockPredictionOutputSchema,
+    input: { schema: StockPredictionInputSchema },
+    output: { schema: RawStockPredictionOutputSchema },
   },
   async (input) => {
     // Reading the API URL from environment variables is a security best practice.
