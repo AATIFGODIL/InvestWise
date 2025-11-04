@@ -462,7 +462,7 @@ export default function TradeClient() {
         </motion.div>
 
         <motion.div variants={itemVariants}>
-            <InvestmentBundles
+             <InvestmentBundles
                 title="Explore Specialized Bundles"
                 description="Discover themed collections for more focused strategies."
                 bundles={specializedBundles}
@@ -492,5 +492,4 @@ export default function TradeClient() {
         </motion.div>
       </main>
   );
-
-    
+}
