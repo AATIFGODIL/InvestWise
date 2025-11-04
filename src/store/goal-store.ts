@@ -4,6 +4,8 @@ import { doc, updateDoc, getFirestore } from "firebase/firestore";
 import { auth } from '@/lib/firebase/config';
 import { type Goal } from "@/data/goals";
 
+export type { Goal };
+
 interface GoalState {
   goals: Goal[];
   loadGoals: (goals: Goal[]) => void;

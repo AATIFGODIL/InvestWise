@@ -31,3 +31,5 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
     
     resetTransactions: () => set({ transactions: [] }),
 }));
+
+export type { Transaction as TransactionType };
