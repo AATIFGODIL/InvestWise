@@ -17,6 +17,6 @@ export interface UserData {
   notifications?: any[]; // Define more strictly if needed
   goals?: Goal[];
   autoInvestments?: any[]; // Define more strictly if needed
-  leaderboardVisibility?: 'public' | 'private' | 'anonymous';
+  leaderboardVisibility?: 'public' | 'hidden' | 'anonymous';
   showQuests?: boolean;
 }
