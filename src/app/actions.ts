@@ -176,7 +176,7 @@ export async function vaultPaymentMethod(data: { nonce: string; userId: string }
         }
 
         // Find the default payment method and get its token.
-        const defaultPaymentMethod = braintreeCustomer.paymentMethods?.find(pm => pm.isDefault());
+        const defaultPaymentMethod = braintreeCustomer.paymentMethods?.find(pm => pm.default);
         const token = defaultPaymentMethod?.token;
 
         if (!token) {
