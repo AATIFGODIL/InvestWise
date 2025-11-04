@@ -43,15 +43,15 @@ service cloud.firestore {
      * @principle Enforces document ownership for writes and restricts read access to the owner.
      */
     match /users/{userId} {
-      function isOwner(userId) {
+      function isOwner() {
         return request.auth != null && request.auth.uid == userId;
       }
 
-      allow get: if isOwner(userId);
+      allow get: if isOwner();
       allow list: if request.auth != null; // Allow listing for leaderboard if user is authenticated.
-      allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isOwner(userId) && resource.data.id == userId;
-      allow delete: if isOwner(userId) && resource.data.id == userId;
+      allow create: if isOwner() && request.resource.data.uid == userId;
+      allow update: if isOwner();
+      allow delete: if isOwner();
     }
 
     /**
@@ -66,14 +66,14 @@ service cloud.firestore {
      * @principle Enforces document ownership for writes and restricts read access to the owner.
      */
     match /users/{userId}/holdings/{holdingId} {
-      function isOwner(userId) {
+      function isOwner() {
         return request.auth != null && request.auth.uid == userId;
       }
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isOwner(userId) && resource.data.userId == userId;
-      allow delete: if isOwner(userId) && resource.data.userId == userId;
+      allow get: if isOwner();
+      allow list: if isOwner();
+      allow create: if isOwner() && request.resource.data.userId == userId;
+      allow update: if isOwner() && resource.data.userId == userId;
+      allow delete: if isOwner() && resource.data.userId == userId;
     }
 
     /**
@@ -88,14 +88,14 @@ service cloud.firestore {
      * @principle Enforces document ownership for writes and restricts read access to the owner.
      */
     match /users/{userId}/transactions/{transactionId} {
-      function isOwner(userId) {
+      function isOwner() {
         return request.auth != null && request.auth.uid == userId;
       }
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isOwner(userId) && resource.data.userId == userId;
-      allow delete: if isOwner(userId) && resource.data.userId == userId;
+      allow get: if isOwner();
+      allow list: if isOwner();
+      allow create: if isOwner() && request.resource.data.userId == userId;
+      allow update: if isOwner() && resource.data.userId == userId;
+      allow delete: if isOwner() && resource.data.userId == userId;
     }
 
     /**
@@ -157,15 +157,15 @@ service cloud.firestore {
       *   Request: auth.uid = 'user123', path = '/databases/(default)/documents/roles_admin'
       */
     match /roles_admin/{userId} {
-        function isOwner(userId) {
+        function isOwner() {
             return request.auth != null && request.auth.uid == userId;
         }
 
-        allow get: if isOwner(userId);
+        allow get: if isOwner();
         allow list: if false;
-        allow create: if isOwner(userId);
+        allow create: if isOwner();
         allow update: if false;
-        allow delete: if isOwner(userId);
+        allow delete: if isOwner();
     }
   }
 }

@@ -219,15 +219,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const updateUserTheme = async (themeData: { theme?: Theme, isClearMode?: boolean, primaryColor?: string }) => {
-    if (!user) return; // Only save to Firestore if a user is logged in
+    if (!user) return;
     
-    // Create a clean object to send to Firestore, removing any undefined properties.
     const updateData: { [key: string]: any } = {};
     if (themeData.theme !== undefined) updateData.theme = themeData.theme;
     if (themeData.isClearMode !== undefined) updateData.isClearMode = themeData.isClearMode;
     if (themeData.primaryColor !== undefined) updateData.primaryColor = themeData.primaryColor;
 
-    // Only update if there's something to update.
     if (Object.keys(updateData).length > 0) {
       const userDocRef = doc(db, "users", user.uid);
       await updateDoc(userDocRef, updateData);
