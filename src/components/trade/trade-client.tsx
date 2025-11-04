@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Search, Loader2, Clock, Star } from "lucide-react";
 import TradeForm from "@/components/trade/trade-form";
 import AiPredictionTrade from "@/components/ai/ai-prediction-trade";
-import InvestmentBundles from "../dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
 import { Input } from "@/components/ui/input";
 import { useMarketStore } from "@/store/market-store";
@@ -37,6 +36,11 @@ const TradingViewScreener = dynamic(() => import("@/components/shared/trading-vi
 const YouTubePlayer = dynamic(() => import('../shared/youtube-player'), {
   ssr: false,
   loading: () => <Skeleton className="h-full w-full aspect-video" />,
+});
+
+const InvestmentBundles = dynamic(() => import("../dashboard/investment-bundles"), {
+    ssr: false,
+    loading: () => <Skeleton className="h-[400px] w-full" />,
 });
 
 
@@ -488,4 +492,5 @@ export default function TradeClient() {
         </motion.div>
       </main>
   );
-}
+
+    
