@@ -49,19 +49,19 @@ export default function useUserData(user: User | null) {
           const { setTheme } = useThemeStore.getState();
           const { loadPrivacySettings } = usePrivacyStore.getState();
           
-          const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
+          const createdAt = ((userData as any).createdAt as Timestamp)?.toDate() || new Date();
 
           // Hydrate all stores with the fetched data
-          setTheme(userData.theme || "light");
-          setUsername(userData.username || "Investor");
-          setPhotoURL(userData.photoURL || "");
-          loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
-          setNotifications(userData.notifications || []);
-          loadGoals(userData.goals || []);
-          loadAutoInvestments(userData.autoInvestments || []);
+          setTheme((userData as any).theme || "light");
+          setUsername((userData as any).username || "Investor");
+          setPhotoURL((userData as any).photoURL || "");
+          loadInitialData((userData as any).portfolio?.holdings || [], (userData as any).portfolio?.summary || null, createdAt);
+          setNotifications((userData as any).notifications || []);
+          loadGoals((userData as any).goals || []);
+          loadAutoInvestments((userData as any).autoInvestments || []);
           loadPrivacySettings({
-              leaderboardVisibility: userData.leaderboardVisibility || "public",
-              showQuests: userData.showQuests === undefined ? true : userData.showQuests,
+              leaderboardVisibility: (userData as any).leaderboardVisibility || "public",
+              showQuests: (userData as any).showQuests === undefined ? true : (userData as any).showQuests,
           });
 
         } else {

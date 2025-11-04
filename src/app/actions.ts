@@ -305,7 +305,7 @@ export async function getTradeHistory(userId: string): Promise<{ success: boolea
         const transactions = userDoc.data()?.transactions || [];
 
         return { success: true, data: transactions };
-    } catch (error: any).
+    } catch (error: any) {
         console.error("Error fetching trade history:", error);
         return { success: false, error: "Failed to fetch trade history." };
     }
