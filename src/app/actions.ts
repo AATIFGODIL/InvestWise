@@ -13,9 +13,9 @@ import { stockPrediction } from "@/ai/flows/stock-prediction";
 import type { StockPredictionOutput } from "@/ai/types/stock-prediction-types";
 import { createAvatar } from "@/ai/flows/create-avatar-flow";
 import type { CreateAvatarInput, CreateAvatarOutput } from "@/ai/types/create-avatar-types";
-import { gateway } from "@/lib/braintree";
+import { getBraintreeGateway } from "@/lib/braintree";
 import { db } from "@/lib/firebase/admin";
-import { type BraintreeGateway, type Customer, type Transaction as BraintreeTransaction } from "braintree";
+import { type BraintreeGateway, type Customer, type PaymentMethod, type Transaction as BraintreeTransaction } from "braintree";
 import { type Transaction } from "@/store/transaction-store";
 import { type UserData } from "@/types/user";
 
@@ -120,6 +120,7 @@ export async function handleAvatarCreation(input: CreateAvatarInput): Promise<{s
  * @returns {Promise<string>} A promise that resolves to the Braintree client token.
  */
 export async function getClientToken(): Promise<string> {
+    const gateway = getBraintreeGateway();
     try {
         const response = await gateway.clientToken.generate({});
         return response.clientToken;
@@ -138,6 +139,8 @@ export async function getClientToken(): Promise<string> {
  */
 export async function vaultPaymentMethod(data: { nonce: string; userId: string }): Promise<{ success: boolean; token?: string }> {
     const { nonce, userId } = data;
+    const gateway = getBraintreeGateway();
+    
     if (!nonce || !userId) {
         throw new Error("Payment nonce and User ID are required to save a card.");
     }
@@ -177,7 +180,7 @@ export async function vaultPaymentMethod(data: { nonce: string; userId: string }
         }
 
         // Find the default payment method and get its token.
-        const defaultPaymentMethod = braintreeCustomer.paymentMethods?.find(pm => (pm as any).default);
+        const defaultPaymentMethod = braintreeCustomer.paymentMethods?.find(pm => pm.isDefault());
         const token = defaultPaymentMethod?.token;
 
         if (!token) {
@@ -204,6 +207,8 @@ export async function vaultPaymentMethod(data: { nonce: string; userId: string }
  */
 export async function createTransaction(data: { userId: string; amount: string }): Promise<{ success: boolean; transactionId?: string }> {
     const { userId, amount } = data;
+    const gateway = getBraintreeGateway();
+    
     if (!userId || !amount) {
         throw new Error("User ID and transaction amount are required.");
     }

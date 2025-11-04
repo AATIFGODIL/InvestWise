@@ -1,30 +1,33 @@
 
 import admin from 'firebase-admin';
-import { config } from 'dotenv';
 
-// Load environment variables from .env file
-config();
+// This is a global variable that will be cached across invocations.
+let app: admin.app.App;
 
-// Define a function to get the initialized Firebase Admin app
+/**
+ * Initializes and returns the Firebase Admin SDK app instance.
+ * It ensures that initialization only happens once, making it safe for
+ * serverless environments where code might be re-initialized.
+ */
 function getFirebaseAdmin() {
-  // If the app is already initialized, return it
-  if (admin.apps.length > 0) {
-    return admin.app();
+  // If the app is already initialized, return it to prevent re-initialization.
+  if (app) {
+    return app;
   }
 
-  // Check if the service account key is available in environment variables
+  // Check for the service account key in environment variables.
   if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-    console.error('FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set.');
-    throw new Error('Firebase Admin SDK credentials are not set. The application cannot start.');
+    throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY is not set. The Admin SDK cannot be initialized.');
   }
 
   try {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
     
-    // Initialize the app
-    const app = admin.initializeApp({
+    // Initialize the app with the service account credentials.
+    app = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
+    
     console.log("Firebase Admin SDK initialized successfully.");
     return app;
   } catch (error: any) {
@@ -33,9 +36,11 @@ function getFirebaseAdmin() {
   }
 }
 
-// Initialize the app by calling the function
-const app = getFirebaseAdmin();
+// Immediately call the function to initialize and cache the app instance.
+const initializedApp = getFirebaseAdmin();
 
-// Export the initialized services
-export const auth = app.auth();
-export const db = app.firestore();
+// Export the initialized services for use in other server-side files.
+export const auth = initializedApp.auth();
+export const db = initializedApp.firestore();
+
+    

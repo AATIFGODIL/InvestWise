@@ -8,7 +8,7 @@ import useVideoProgressStore from './video-progress-store';
 import { doc, getDoc, updateDoc, getFirestore, Timestamp } from "firebase/firestore";
 import { auth } from '@/lib/firebase/config';
 
-interface Quest {
+export interface Quest {
     title: string;
     progress: number;
 }

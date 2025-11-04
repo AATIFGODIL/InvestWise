@@ -15,7 +15,7 @@ export interface Holding {
     annualRatePercent: number;
 }
 
-interface PortfolioSummary {
+export interface PortfolioSummary {
     totalValue: number;
     todaysChange: number;
     totalGainLoss: number;

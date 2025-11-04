@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { doc, updateDoc, getFirestore } from "firebase/firestore";
 import { auth } from '@/lib/firebase/config';
 
-export interface Notification {
+export interface AppNotification {
   id: string;
   title: string;
   description: string;
@@ -14,14 +14,14 @@ export interface Notification {
 }
 
 interface NotificationState {
-  notifications: Notification[];
+  notifications: AppNotification[];
   unreadCount: number;
-  setNotifications: (notifications: Notification[]) => void;
-  addNotification: (notification: Notification) => void;
+  setNotifications: (notifications: AppNotification[]) => void;
+  addNotification: (notification: AppNotification) => void;
   removeNotification: (id: string) => void;
 }
 
-const updateNotificationsInFirestore = (notifications: Notification[]) => {
+const updateNotificationsInFirestore = (notifications: AppNotification[]) => {
     const user = auth.currentUser;
     if (!user) return;
 

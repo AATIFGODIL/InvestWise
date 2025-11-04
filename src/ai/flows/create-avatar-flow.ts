@@ -21,38 +21,6 @@ export async function createAvatar(input: CreateAvatarInput): Promise<CreateAvat
   return createAvatarFlow(input);
 }
 
-// This prompt guides the AI to generate avatars in a specific style.
-// It conditionally includes the prompt and photo based on user input.
-const prompt = ai.definePrompt({
-  name: 'createAvatarPrompt',
-  input: { schema: CreateAvatarInputSchema },
-  output: { schema: CreateAvatarOutputSchema },
-  model: googleAI.model('gemini-2.5-flash-image-preview'),
-  config: {
-    // Crucially, we must specify that we expect both TEXT and IMAGE in the response
-    // even if we only use the image. This is a requirement for this model.
-    responseModalities: ['TEXT', 'IMAGE'],
-  },
-  prompt: `You are an expert 3D avatar designer. Your task is to generate a unique 3D avatar in the style of an Apple Memoji.
-
-The avatar should be on a clean, simple, and flat background, preferably light grey or white, to make it suitable as a profile picture.
-
-Use the following inputs to create the avatar:
-
-{{#if prompt}}
-User's Description: {{{prompt}}}
-{{/if}}
-
-{{#if photoDataUri}}
-Reference Photo: {{media url=photoDataUri}}
-If a photo is provided, it should be the primary reference. Analyze the person's features, hair, and style to inspire the Memoji.
-{{/if}}
-
-Generate the avatar and provide the image data.
-`,
-});
-
-// The flow orchestrates the call to the AI model.
 const createAvatarFlow = ai.defineFlow(
   {
     name: 'createAvatarFlow',
@@ -60,20 +28,23 @@ const createAvatarFlow = ai.defineFlow(
     outputSchema: CreateAvatarOutputSchema,
   },
   async (input) => {
+    // Construct the text prompt
+    const textPrompt = `You are an expert 3D avatar designer. Your task is to generate a unique 3D avatar in the style of an Apple Memoji. The avatar should be on a clean, simple, and flat background, preferably light grey or white, to make it suitable as a profile picture. Use the following inputs to create the avatar: ${
+      input.prompt ? `User's Description: ${input.prompt}` : ''
+    } ${
+      input.photoDataUri ? 'If a photo is provided, it should be the primary reference. Analyze the person\'s features, hair, and style to inspire the Memoji.' : ''
+    }`;
+
+    // Construct the prompt parts for the AI model
+    const promptParts = [{ text: textPrompt }];
+    if (input.photoDataUri) {
+      promptParts.push({ media: { url: input.photoDataUri } });
+    }
+
     // Generate the avatar using the prompt and the provided input.
     const { media, text } = await ai.generate({
       model: googleAI.model('gemini-2.5-flash-image-preview'),
-      prompt: [
-        {text: `You are an expert 3D avatar designer. Your task is to generate a unique 3D avatar in the style of an Apple Memoji.
-
-The avatar should be on a clean, simple, and flat background, preferably light grey or white, to make it suitable as a profile picture.
-
-Use the following inputs to create the avatar:
-${input.prompt ? `User's Description: ${input.prompt}` : ''}
-`
-        },
-        ...(input.photoDataUri ? [{media: {url: input.photoDataUri}}] : [])
-      ],
+      prompt: promptParts,
       config: {
         responseModalities: ['TEXT', 'IMAGE'],
       },
@@ -87,3 +58,5 @@ ${input.prompt ? `User's Description: ${input.prompt}` : ''}
     return { avatarDataUri: media.url };
   }
 );
+
+    
