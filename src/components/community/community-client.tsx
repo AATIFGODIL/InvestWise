@@ -10,13 +10,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CommunityTrends from "@/components/dashboard/community-trends";
 import Chatbot from "@/components/chatbot/chatbot";
 import { usePrivacyStore } from "@/store/privacy-store";
-import YouTubePlayer from "../shared/youtube-player";
 import { useThemeStore } from "@/store/theme-store";
 import { cn } from "@/lib/utils";
 import TradingViewNewsWidget from "../shared/trading-view-news-widget";
 import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle } from "../ui/card";
 import { Newspaper } from "lucide-react";
+import dynamic from 'next/dynamic';
+import { Skeleton } from "../ui/skeleton";
+
+const YouTubePlayer = dynamic(() => import('../shared/youtube-player'), {
+  ssr: false,
+  loading: () => <Skeleton className="h-full w-full aspect-video" />,
+});
+
 
 const videos = [
     {

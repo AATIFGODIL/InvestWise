@@ -5,8 +5,15 @@ import CreateGoal from "@/components/goals/create-goal";
 import GoalList from "@/components/goals/goal-list";
 import Chatbot from "@/components/chatbot/chatbot";
 import { useGoalStore } from "@/store/goal-store";
-import YouTubePlayer from "../shared/youtube-player";
 import { motion } from "framer-motion";
+import dynamic from 'next/dynamic';
+import { Skeleton } from "../ui/skeleton";
+
+const YouTubePlayer = dynamic(() => import('../shared/youtube-player'), {
+  ssr: false,
+  loading: () => <Skeleton className="h-full w-full aspect-video" />,
+});
+
 
 const videos = [
     {
