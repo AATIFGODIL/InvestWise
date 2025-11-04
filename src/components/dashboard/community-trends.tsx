@@ -170,7 +170,7 @@ export default function CommunityTrends({ showViewAllButton = true, limit }: Com
           <div>
             <h4 className="font-semibold mb-2">Constituent Stocks</h4>
             <div className="space-y-2">
-              {selectedBundle?.stocks.map((stock) => (
+              {selectedBundle?.stocks?.map((stock) => (
                 <DialogClose asChild key={stock.symbol}>
                   <button
                     className="flex items-center justify-between p-2 rounded-md hover:bg-accent w-full text-left"
