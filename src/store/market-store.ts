@@ -48,3 +48,8 @@ export const useMarketStore = create<MarketState>((set) => ({
     }
   },
 }));
+
+export interface MarketHoliday {
+    atDate: string; // "YYYY-MM-DD"
+    eventName: string;
+}
