@@ -1,4 +1,3 @@
-
 "use client";
 
 import TradeClient from '@/components/trade/trade-client';
