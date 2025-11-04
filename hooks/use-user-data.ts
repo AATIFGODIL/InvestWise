@@ -8,12 +8,12 @@ import { db } from "@/lib/firebase/config";
 
 // Import all necessary store hooks
 import { useUserStore } from "@/store/user-store";
-import usePortfolioStore from "@/store/portfolio-store";
-import useNotificationStore from "@/store/notification-store";
-import useGoalStore from "@/store/goal-store";
-import useAutoInvestStore from "@/store/auto-invest-store";
-import useThemeStore from "@/store/theme-store";
-import usePrivacyStore from "@/store/privacy-store";
+import { usePortfolioStore } from "@/store/portfolio-store";
+import { useNotificationStore } from "@/store/notification-store";
+import { useGoalStore } from "@/store/goal-store";
+import { useAutoInvestStore } from "@/store/auto-invest-store";
+import { useThemeStore } from "@/store/theme-store";
+import { usePrivacyStore } from "@/store/privacy-store";
 
 /**
  * A hook to fetch and hydrate all user-related data from Firestore
