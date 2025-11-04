@@ -1,5 +1,12 @@
 
-export const educationalContent = [
+export type EducationalContentItem = {
+  title: string;
+  description: string;
+  filePath: string;
+  type: 'image' | 'video' | 'pdf';
+};
+
+export const educationalContent: EducationalContentItem[] = [
   {
     title: "Market Structures Explained",
     description: "A finance infographic explaining different market structures.",
@@ -12,4 +19,4 @@ export const educationalContent = [
     filePath: "/deliverable.png",
     type: 'image',
   }
-] as const;
+];
