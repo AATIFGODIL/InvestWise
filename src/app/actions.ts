@@ -176,7 +176,7 @@ export async function vaultPaymentMethod(data: { nonce: string; userId: string }
         }
 
         // Find the default payment method and get its token.
-        const defaultPaymentMethod = braintreeCustomer.paymentMethods?.find(pm => pm.default);
+        const defaultPaymentMethod = braintreeCustomer.paymentMethods?.find(pm => (pm as any).default);
         const token = defaultPaymentMethod?.token;
 
         if (!token) {
@@ -310,5 +310,3 @@ export async function getTradeHistory(userId: string): Promise<{ success: boolea
         return { success: false, error: "Failed to fetch trade history." };
     }
 }
-
-    
