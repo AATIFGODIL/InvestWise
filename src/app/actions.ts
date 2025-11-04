@@ -97,6 +97,9 @@ export async function handleAvatarCreation(input: CreateAvatarInput): Promise<{s
 
   try {
     const result = await createAvatar(input);
+    if (!result || !result.avatarDataUri) {
+      throw new Error("The AI model did not return an image. Please try a different prompt or image.");
+    }
     return { success: true, avatar: result };
   } catch (error: any) {
     console.error("Error calling avatar creation flow:", error);
@@ -173,7 +176,7 @@ export async function vaultPaymentMethod(data: { nonce: string; userId: string }
         }
 
         // Find the default payment method and get its token.
-        const defaultPaymentMethod = braintreeCustomer.paymentMethods?.find(pm => pm.default);
+        const defaultPaymentMethod = braintreeCustomer.paymentMethods?.find(pm => pm.isDefault());
         const token = defaultPaymentMethod?.token;
 
         if (!token) {
@@ -307,3 +310,5 @@ export async function getTradeHistory(userId: string): Promise<{ success: boolea
         return { success: false, error: "Failed to fetch trade history." };
     }
 }
+
+    
