@@ -12,7 +12,7 @@ interface ThemeState {
   setTheme: (theme: Theme) => void;
   setClearMode: (isClear: boolean) => void;
   setPrimaryColor: (color: string) => void;
-  resetTheme: () => void; // Add reset method
+  resetTheme: () => void;
 }
 
 // Helper function to convert hex to HSL string for CSS variables
@@ -42,41 +42,15 @@ function hexToHslString(hex: string): string {
     return `${Math.round(h * 360)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
-
-const getInitialTheme = (): Theme => {
-  if (typeof window !== 'undefined') {
-    const storedTheme = localStorage.getItem('theme');
-    if (storedTheme === 'light' || storedTheme === 'dark') {
-      return storedTheme;
-    }
-  }
-  return 'light';
-};
-
-const getInitialClearMode = (): boolean => {
-  if (typeof window !== 'undefined') {
-    const storedClearMode = localStorage.getItem('isClearMode');
-    return storedClearMode === 'true';
-  }
-  return false;
-};
-
-const getInitialPrimaryColor = (): string => {
-    if (typeof window !== 'undefined') {
-        const storedColor = localStorage.getItem('primaryColor');
-        if (storedColor) return storedColor;
-    }
-    return defaultPrimaryColor;
-}
-
+// The store now initializes with a default state, not from localStorage.
+// The `use-user-data` hook is responsible for hydrating this store from Firestore.
 export const useThemeStore = create<ThemeState>((set) => ({
-  theme: getInitialTheme(),
-  isClearMode: getInitialClearMode(),
-  primaryColor: getInitialPrimaryColor(),
+  theme: 'light',
+  isClearMode: false,
+  primaryColor: defaultPrimaryColor,
   
   setTheme: (theme) => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('theme', theme);
       const root = document.documentElement;
       root.classList.remove('light', 'dark');
       root.classList.add(theme);
@@ -85,25 +59,21 @@ export const useThemeStore = create<ThemeState>((set) => ({
   },
 
   setClearMode: (isClear) => {
-     if (typeof window !== 'undefined') {
-      localStorage.setItem('isClearMode', String(isClear));
-    }
     set({ isClearMode: isClear });
   },
 
   setPrimaryColor: (color: string) => {
-      if (typeof window !== 'undefined') {
-          localStorage.setItem('primaryColor', color);
-      }
+      // Set the color in the store for reactivity
       set({ primaryColor: color });
+      
+      // Also update the CSS variable directly for immediate visual feedback
+      if (typeof window !== 'undefined') {
+          document.documentElement.style.setProperty('--primary', hexToHslString(color));
+      }
   },
 
   resetTheme: () => {
     if (typeof window !== 'undefined') {
-        localStorage.removeItem('theme');
-        localStorage.removeItem('isClearMode');
-        localStorage.removeItem('primaryColor');
-
         const root = document.documentElement;
         root.classList.remove('light', 'dark');
         root.classList.add('light'); // Default to light theme
