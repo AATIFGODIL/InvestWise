@@ -16,6 +16,7 @@ import MoneyRain from '@/components/shared/money-rain';
 import RotateDevicePrompt from '@/components/shared/rotate-device-prompt';
 import React from 'react';
 import PageSkeleton from '@/components/layout/page-skeleton';
+import dynamic from 'next/dynamic';
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -23,51 +24,16 @@ const poppins = Poppins({
   variable: "--font-body",
 });
 
-// Inner component to safely use hooks
-function LayoutContent({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const { user, hydrating } = useAuth();
-  const [isRaining, setIsRaining] = React.useState(false);
+// Dynamically import the main layout content to ensure it's client-side only
+const LayoutContent = dynamic(() => import('@/components/layout/layout-content'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-screen w-screen">
+      <PageSkeleton />
+    </div>
+  ),
+});
 
-  const isAuthOrOnboardingRoute = pathname.startsWith('/auth') || pathname.startsWith('/onboarding') || pathname === '/';
-  
-  // Explicitly check for special layout routes like profile, settings, and certificate.
-  // Add onboarding to this list to ensure it gets the correct layout treatment.
-  const isSpecialLayoutRoute = pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/certificate') || pathname.startsWith('/onboarding');
-  
-  if (hydrating) {
-    return (
-      <div className="h-screen w-screen">
-        <PageSkeleton />
-      </div>
-    );
-  }
-  
-  const handleTriggerRain = () => {
-    setIsRaining(true);
-    setTimeout(() => setIsRaining(false), 5000); // Let it rain for 5 seconds
-  };
-  
-  // Render layout based on user auth state and route
-  if (user && !isAuthOrOnboardingRoute) {
-       return (
-        <div className="flex flex-col h-screen">
-          {!isSpecialLayoutRoute && <Header onTriggerRain={handleTriggerRain} />}
-          <MainContent isSpecialLayoutRoute={isSpecialLayoutRoute} disableScroll={isSpecialLayoutRoute}>{children}</MainContent>
-          {!isSpecialLayoutRoute && <BottomNav />}
-          <MoneyRain isActive={isRaining} />
-        </div>
-      );
-  }
-  
-  // This handles all unauthenticated and onboarding routes
-  return (
-      <div className="flex flex-col h-screen">
-          <MainContent disableScroll={true}>{children}</MainContent>
-          <MoneyRain isActive={isRaining} />
-      </div>
-  );
-}
 
 export default function RootLayout({
   children,
