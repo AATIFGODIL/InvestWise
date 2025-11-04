@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { type User } from 'firebase/auth';
 import { doc, getDoc, type Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
+import { type UserData } from "@/types/user";
 
 // Import all necessary store hooks
 import { useUserStore } from "@/store/user-store";
@@ -38,7 +39,7 @@ export default function useUserData(user: User | null) {
         const userDoc = await getDoc(userDocRef);
 
         if (userDoc.exists()) {
-          const userData = userDoc.data();
+          const userData = userDoc.data() as UserData;
 
           // Get the update functions from each store
           const { setUsername, setPhotoURL } = useUserStore.getState();
@@ -49,19 +50,19 @@ export default function useUserData(user: User | null) {
           const { setTheme } = useThemeStore.getState();
           const { loadPrivacySettings } = usePrivacyStore.getState();
           
-          const createdAt = ((userData as any).createdAt as Timestamp)?.toDate() || new Date();
+          const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
 
           // Hydrate all stores with the fetched data
-          setTheme((userData as any).theme || "light");
-          setUsername((userData as any).username || "Investor");
-          setPhotoURL((userData as any).photoURL || "");
-          loadInitialData((userData as any).portfolio?.holdings || [], (userData as any).portfolio?.summary || null, createdAt);
-          setNotifications((userData as any).notifications || []);
-          loadGoals((userData as any).goals || []);
-          loadAutoInvestments((userData as any).autoInvestments || []);
+          setTheme(userData.theme || "light");
+          setUsername(userData.username || "Investor");
+          setPhotoURL(userData.photoURL || "");
+          loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
+          setNotifications(userData.notifications || []);
+          loadGoals(userData.goals || []);
+          loadAutoInvestments(userData.autoInvestments || []);
           loadPrivacySettings({
-              leaderboardVisibility: (userData as any).leaderboardVisibility || "public",
-              showQuests: (userData as any).showQuests === undefined ? true : (userData as any).showQuests,
+              leaderboardVisibility: userData.leaderboardVisibility || "public",
+              showQuests: userData.showQuests === undefined ? true : userData.showQuests,
           });
 
         } else {

@@ -17,6 +17,7 @@ import { gateway } from "@/lib/braintree";
 import { db } from "@/lib/firebase/admin";
 import { type BraintreeGateway, type Customer, type Transaction as BraintreeTransaction } from "braintree";
 import { type Transaction } from "@/store/transaction-store";
+import { type UserData } from "@/types/user";
 
 /**
  * A standardized result type for server actions to ensure consistent responses.
@@ -209,7 +210,7 @@ export async function createTransaction(data: { userId: string; amount: string }
     
     // Retrieve the user's vaulted payment method token from Firestore.
     const userDoc = await db.collection("users").doc(userId).get();
-    const token = userDoc.data()?.paymentMethodToken;
+    const token = (userDoc.data() as UserData)?.paymentMethodToken;
 
     if (!token) {
         throw new Error("No payment method on file for this user. Please add one in your profile.");
@@ -259,23 +260,23 @@ export async function getLeaderboardData(): Promise<{ success: boolean; data?: L
         const usersData = usersSnapshot.docs
             .map(doc => ({
                 uid: doc.id,
-                ...doc.data(),
+                ...(doc.data() as UserData),
             }))
-            .filter(user => (user as any).leaderboardVisibility === 'public' || (user as any).leaderboardVisibility === 'anonymous');
+            .filter(user => user.leaderboardVisibility === 'public' || user.leaderboardVisibility === 'anonymous');
         
         // Sort users by their total portfolio gain/loss in descending order.
-        const sortedUsers = usersData.sort((a, b) => ((b as any).portfolio?.summary?.totalGainLoss || 0) - ((a as any).portfolio?.summary?.totalGainLoss || 0));
+        const sortedUsers = usersData.sort((a, b) => (b.portfolio?.summary?.totalGainLoss || 0) - (a.portfolio?.summary?.totalGainLoss || 0));
 
         // Format the data for the leaderboard, anonymizing names where needed.
         const leaderboardData: LeaderboardUser[] = sortedUsers.slice(0, 10).map((userData, index) => {
-            const isAnonymous = (userData as any).leaderboardVisibility === 'anonymous';
+            const isAnonymous = userData.leaderboardVisibility === 'anonymous';
             
             return {
                 rank: index + 1,
-                uid: (userData as any).uid,
-                name: isAnonymous ? 'Anonymous Investor' : (userData as any).username || 'Investor',
-                photoURL: (userData as any).photoURL || '',
-                gain: (userData as any).portfolio?.summary?.totalGainLoss || 0,
+                uid: userData.uid,
+                name: isAnonymous ? 'Anonymous Investor' : userData.username || 'Investor',
+                photoURL: userData.photoURL || '',
+                gain: userData.portfolio?.summary?.totalGainLoss || 0,
             };
         });
 
@@ -302,7 +303,7 @@ export async function getTradeHistory(userId: string): Promise<{ success: boolea
             return { success: false, error: "User not found." };
         }
         
-        const transactions = userDoc.data()?.transactions || [];
+        const transactions = (userDoc.data() as UserData)?.transactions || [];
 
         return { success: true, data: transactions };
     } catch (error: any) {
