@@ -2,13 +2,13 @@
 'use client';
 
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search, Loader2, Clock, Star } from "lucide-react";
 import TradingViewWidget from "@/components/shared/trading-view-widget";
 import TradeForm from "@/components/trade/trade-form";
-import TradingViewScreener from "@/components/shared/trading-view-screener";
 import AiPredictionTrade from "@/components/ai/ai-prediction-trade";
 import InvestmentBundles from "../dashboard/investment-bundles";
 import { specializedBundles } from "@/data/bundles";
@@ -25,6 +25,12 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { useThemeStore } from "@/store/theme-store";
 import { motion } from "framer-motion";
 import { Skeleton } from "../ui/skeleton";
+
+const TradingViewScreener = dynamic(() => import("@/components/shared/trading-view-screener"), {
+    ssr: false,
+    loading: () => <Skeleton className="h-[600px] w-full" />,
+});
+
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
