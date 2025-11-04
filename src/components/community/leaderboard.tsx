@@ -20,10 +20,20 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Crown } from "lucide-react";
 import { Badge } from "../ui/badge";
-import { getLeaderboardData, type LeaderboardUser } from "@/app/actions";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "../ui/skeleton";
+import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
+import type { UserData } from "@/types/user";
+
+export type LeaderboardUser = {
+  rank: number;
+  uid: string;
+  name: string;
+  photoURL: string;
+  gain: number;
+};
 
 export default function Leaderboard() {
   const { user } = useAuth();
@@ -35,11 +45,35 @@ export default function Leaderboard() {
     const fetchLeaderboard = async () => {
       setIsLoading(true);
       setError(null);
-      const result = await getLeaderboardData();
-      if (result.success && result.data) {
-        setLeaderboardData(result.data);
-      } else {
-        setError(result.error || "Could not load leaderboard.");
+      try {
+        const usersRef = collection(db, "users");
+        const q = query(
+          usersRef,
+          where("leaderboardVisibility", "in", ["public", "anonymous"]),
+          orderBy("portfolio.summary.totalGainLoss", "desc"),
+          limit(10)
+        );
+        const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          setLeaderboardData([]);
+        } else {
+          const usersData = querySnapshot.docs.map((doc, index) => {
+            const data = doc.data() as UserData;
+            const isAnonymous = data.leaderboardVisibility === 'anonymous';
+            return {
+              rank: index + 1,
+              uid: doc.id,
+              name: isAnonymous ? 'Anonymous Investor' : data.username || 'Investor',
+              photoURL: data.photoURL || '',
+              gain: data.portfolio?.summary?.totalGainLoss || 0,
+            };
+          });
+          setLeaderboardData(usersData);
+        }
+      } catch (err: any) {
+        console.error(err);
+        setError("Could not load leaderboard data. Please check your connection and try again.");
       }
       setIsLoading(false);
     };

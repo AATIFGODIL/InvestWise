@@ -2,7 +2,6 @@
 "use client";
 
 import { useState } from "react";
-import { getTradeHistory } from "@/app/actions";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,36 +25,13 @@ import { type Transaction } from "@/store/transaction-store";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { useThemeStore } from "@/store/theme-store";
+import { useTransactionStore } from "@/store/transaction-store";
+
 
 export default function TradeHistory() {
-  const { user } = useAuth();
   const { toast } = useToast();
-  const [history, setHistory] = useState<Transaction[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { transactions } = useTransactionStore();
   const [isOpen, setIsOpen] = useState(false);
-
-  const handleFetchHistory = async () => {
-    if (!user) return;
-    setIsLoading(true);
-    setError(null);
-
-    const result = await getTradeHistory(user.uid);
-
-    if (result.success && result.data) {
-      // Sort by most recent first
-      const sortedData = result.data.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      setHistory(sortedData);
-    } else {
-      setError(result.error || "An unknown error occurred.");
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Could not fetch your trade history.",
-      });
-    }
-    setIsLoading(false);
-  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -63,7 +39,6 @@ export default function TradeHistory() {
         <Button
           variant="default"
           className={cn("w-full sm:w-auto ring-1 ring-white/60")}
-          onClick={handleFetchHistory}
         >
           <History className="h-4 w-4 mr-2" />
           Trade History
@@ -77,16 +52,7 @@ export default function TradeHistory() {
           </DialogDescription>
         </DialogHeader>
         <div className="max-h-[60vh] overflow-y-auto">
-          {isLoading ? (
-            <div className="flex items-center justify-center p-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center p-8 text-destructive">
-                <AlertCircle className="h-8 w-8 mb-2" />
-                <p>{error}</p>
-            </div>
-          ) : history.length === 0 ? (
+          {transactions.length === 0 ? (
             <div className="text-center p-8 text-muted-foreground">
                 <p>You haven't made any trades yet.</p>
             </div>
@@ -103,7 +69,7 @@ export default function TradeHistory() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {history.map((tx, index) => (
+                {transactions.map((tx, index) => (
                   <TableRow key={`${tx.timestamp}-${index}`}>
                     <TableCell>
                         <div className="text-sm font-medium">{new Date(tx.timestamp).toLocaleDateString()}</div>
