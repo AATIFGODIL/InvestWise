@@ -5,7 +5,13 @@ import { config } from 'dotenv';
 // Load environment variables from .env file
 config();
 
-function initializeFirebaseAdmin() {
+// Define a function to get the initialized Firebase Admin app
+function getFirebaseAdmin() {
+  // If the app is already initialized, return it
+  if (admin.apps.length > 0) {
+    return admin.app();
+  }
+
   // Check if the service account key is available in environment variables
   if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
     console.error('FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set.');
@@ -15,22 +21,21 @@ function initializeFirebaseAdmin() {
   try {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
     
-    // Initialize the app if it hasn't been initialized yet
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-      });
-      console.log("Firebase Admin SDK initialized successfully.");
-    }
+    // Initialize the app
+    const app = admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+    console.log("Firebase Admin SDK initialized successfully.");
+    return app;
   } catch (error: any) {
     console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY or initialize Firebase Admin SDK:', error.message);
     throw new Error('Could not initialize Firebase Admin SDK. Please check your service account key.');
   }
 }
 
-// Initialize the SDK
-initializeFirebaseAdmin();
+// Initialize the app by calling the function
+const app = getFirebaseAdmin();
 
 // Export the initialized services
-export const auth = admin.auth();
-export const db = admin.firestore();
+export const auth = app.auth();
+export const db = app.firestore();
