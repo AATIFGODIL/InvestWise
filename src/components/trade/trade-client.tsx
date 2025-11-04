@@ -7,7 +7,6 @@ import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search, Loader2, Clock, Star } from "lucide-react";
-import TradingViewWidget from "@/components/shared/trading-view-widget";
 import TradeForm from "@/components/trade/trade-form";
 import AiPredictionTrade from "@/components/ai/ai-prediction-trade";
 import InvestmentBundles from "../dashboard/investment-bundles";
@@ -18,7 +17,6 @@ import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import Watchlist from "../dashboard/watchlist";
-import YouTubePlayer from "../shared/youtube-player";
 import { CommandItem, CommandList } from "../ui/command";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useDebounce } from "@/hooks/use-debounce";
@@ -26,9 +24,19 @@ import { useThemeStore } from "@/store/theme-store";
 import { motion } from "framer-motion";
 import { Skeleton } from "../ui/skeleton";
 
+const TradingViewWidget = dynamic(() => import("@/components/shared/trading-view-widget"), {
+    ssr: false,
+    loading: () => <Skeleton className="h-[400px] md:h-[500px] w-full" />,
+});
+
 const TradingViewScreener = dynamic(() => import("@/components/shared/trading-view-screener"), {
     ssr: false,
     loading: () => <Skeleton className="h-[600px] w-full" />,
+});
+
+const YouTubePlayer = dynamic(() => import('../shared/youtube-player'), {
+  ssr: false,
+  loading: () => <Skeleton className="h-full w-full aspect-video" />,
 });
 
 
