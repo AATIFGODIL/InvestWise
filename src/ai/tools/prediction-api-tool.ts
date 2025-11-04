@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -18,8 +19,8 @@ export const getPredictionFromApi = ai.defineTool(
   {
     name: 'getPredictionFromApi',
     description: 'Fetches a stock price prediction from the custom Python API.',
-    input: { schema: StockPredictionInputSchema },
-    output: { schema: RawStockPredictionOutputSchema },
+    inputSchema: StockPredictionInputSchema,
+    outputSchema: RawStockPredictionOutputSchema,
   },
   async (input) => {
     // Reading the API URL from environment variables is a security best practice.
