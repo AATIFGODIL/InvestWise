@@ -8,8 +8,7 @@ import { getStorage } from "firebase/storage";
 // This function determines which Firebase config to use.
 const getFirebaseConfig = (): FirebaseOptions => {
   try {
-    // process.env.NEXT_PUBLIC_FIREBASE_CONFIG is automatically set by Firebase App Hosting.
-    // It's a JSON string, so we need to parse it.
+    // This variable is set by the next.config.js file in production builds.
     if (process.env.NEXT_PUBLIC_FIREBASE_CONFIG) {
       return JSON.parse(process.env.NEXT_PUBLIC_FIREBASE_CONFIG);
     }
@@ -17,7 +16,7 @@ const getFirebaseConfig = (): FirebaseOptions => {
     console.error("Could not parse NEXT_PUBLIC_FIREBASE_CONFIG", e);
   }
 
-  // Fallback for local development.
+  // Fallback for local development using individual environment variables.
   // These are client-side variables, so they must be prefixed with NEXT_PUBLIC_.
   return {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "mock-api-key",
