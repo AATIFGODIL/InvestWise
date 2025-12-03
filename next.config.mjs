@@ -1,10 +1,25 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-
-  // This block is crucial for ensuring the production Firebase config is available client-side.
-  // It reads the server-side environment variable provided by Firebase App Hosting
-  // and exposes it as a public, client-accessible variable.
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.logokit.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.brandfetch.io',
+      },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      }
+    ],
+  },
   env: {
     NEXT_PUBLIC_FIREBASE_CONFIG: process.env.FIREBASE_WEBAPP_CONFIG,
   },
