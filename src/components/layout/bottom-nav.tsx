@@ -35,7 +35,7 @@ export default function BottomNav() {
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const animationStateRef = useRef<AnimationState>("idle");
   const dragStartInfo = useRef<{ x: number; left: number; width: number } | null>(null);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | null>(null);
 
   const { isClearMode, theme } = useThemeStore();
   const { activeIndex: externalActiveIndex, samePageIndex, clearActiveIndex } = useBottomNavStore();
