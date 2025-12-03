@@ -15,36 +15,65 @@ export default function Icon() {
       <div
         style={{
           fontSize: 24,
-          background: 'transparent',
+          background: '#775DEF', // Signature purple background
           width: '100%',
           height: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#775DEF', // Signature purple
+          color: 'white',
+          borderRadius: '20%', // Rounded corners for icon look
           fontWeight: 900,
           fontFamily: 'sans-serif',
           position: 'relative',
         }}
       >
-        {/* The "I" acting as a vertical line of symmetry */}
-        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', height: '80%', width: '4px', background: '#775DEF' }}></div>
-        
-        {/* The "W" parts */}
-        <div style={{ display: 'flex', alignItems: 'flex-end', height: '80%', gap: '2px' }}>
-            <div style={{ width: '4px', height: '100%', background: '#775DEF', transform: 'skewX(-15deg)' }}></div>
-            <div style={{ width: '4px', height: '60%', background: '#775DEF', transform: 'skewX(15deg)' }}></div>
-             {/* Space for the central I */}
-            <div style={{ width: '6px' }}></div>
-            <div style={{ width: '4px', height: '60%', background: '#775DEF', transform: 'skewX(-15deg)' }}></div>
-            <div style={{ width: '4px', height: '100%', background: '#775DEF', transform: 'skewX(15deg)' }}></div>
+        <div style={{ position: 'relative', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {/* The "I" acting as a vertical line of symmetry */}
+            <div style={{ 
+                position: 'absolute', 
+                left: '50%', 
+                transform: 'translateX(-50%)', 
+                height: '80%', 
+                width: '3px', 
+                background: 'white',
+                borderRadius: '1px'
+            }}></div>
+            
+            {/* The "W" parts - Symmetric around the I */}
+            <div style={{ width: '100%', height: '80%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                {/* Left arm of W */}
+                <div style={{ 
+                    width: '3px', 
+                    height: '100%', 
+                    background: 'white', 
+                    borderRadius: '1px',
+                    transform: 'rotate(-15deg)',
+                    transformOrigin: 'bottom right',
+                    marginRight: '2px'
+                }}></div>
+                
+                {/* Right arm of W */}
+                <div style={{ 
+                    width: '3px', 
+                    height: '100%', 
+                    background: 'white', 
+                    borderRadius: '1px',
+                    transform: 'rotate(15deg)',
+                    transformOrigin: 'bottom left',
+                    marginLeft: '2px'
+                }}></div>
+            </div>
+            {/* Inner legs of W connecting to I */}
+             <div style={{ position: 'absolute', bottom: 0, width: '100%', height: '60%', display: 'flex', justifyContent: 'center', alignItems: 'flex-end' }}>
+                 <div style={{ width: '3px', height: '100%', background: 'white', transform: 'rotate(15deg)', transformOrigin: 'bottom right', marginRight: '1px', borderRadius: '1px' }}></div>
+                 <div style={{ width: '3px', height: '100%', background: 'white', transform: 'rotate(-15deg)', transformOrigin: 'bottom left', marginLeft: '1px', borderRadius: '1px' }}></div>
+             </div>
         </div>
       </div>
     ),
     // ImageResponse options
     {
-      // For convenience, we can re-use the exported icons size metadata
-      // config to also set the ImageResponse's width and height.
       ...size,
     }
   )
