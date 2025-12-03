@@ -36,7 +36,7 @@ const createAvatarFlow = ai.defineFlow(
     }`;
 
     // Construct the prompt parts for the AI model
-    const promptParts = [{ text: textPrompt }];
+    const promptParts: Array<{ text: string } | { media: { url: string } }> = [{ text: textPrompt }];
     if (input.photoDataUri) {
       promptParts.push({ media: { url: input.photoDataUri } });
     }
@@ -58,5 +58,3 @@ const createAvatarFlow = ai.defineFlow(
     return { avatarDataUri: media.url };
   }
 );
-
-    
