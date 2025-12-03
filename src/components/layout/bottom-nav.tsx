@@ -383,9 +383,7 @@ export default function BottomNav() {
     }
     
     dragStartInfo.current = null;
-    if (animationStateRef.current !== "descending") {
-       setAnimationState("idle");
-    }
+    setAnimationState("idle");
   };
 
 
