@@ -12,7 +12,7 @@ interface FavoritesEditorProps {
 }
 
 export default function FavoritesEditor({ isOpen, onOpenChange }: FavoritesEditorProps) {
-    const { favorites, setFavorites } = useFavoritesStore();
+    const { favorites, setFavorites, removeFavorite } = useFavoritesStore();
     
     const pills = favorites.filter(f => f.size === 'pill');
     const icons = favorites.filter(f => f.size === 'icon');
@@ -50,6 +50,7 @@ export default function FavoritesEditor({ isOpen, onOpenChange }: FavoritesEdito
                                     key={fav.id}
                                     favorite={fav}
                                     onSelect={() => {}}
+                                    onRemove={removeFavorite}
                                     variants={{}}
                                     isEditing={true}
                                     isPill={true}
@@ -70,6 +71,7 @@ export default function FavoritesEditor({ isOpen, onOpenChange }: FavoritesEdito
                                     key={fav.id}
                                     favorite={fav}
                                     onSelect={() => {}}
+                                    onRemove={removeFavorite}
                                     variants={{}}
                                     isEditing={true}
                                     isPill={false}
@@ -82,5 +84,3 @@ export default function FavoritesEditor({ isOpen, onOpenChange }: FavoritesEdito
         </Dialog>
     );
 }
-
-    

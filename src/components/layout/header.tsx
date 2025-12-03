@@ -331,7 +331,7 @@ const { overflowMessage } = React.useMemo(() => {
                                 >
                                   <FavoriteItem
                                     favorite={fav}
-                                    onClick={handleItemClick}
+                                    onSelect={handleItemClick}
                                     onRemove={removeFavorite}
                                     variants={itemVariants}
                                     isEditing={isEditing}

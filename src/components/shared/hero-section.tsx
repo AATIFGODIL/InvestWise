@@ -42,7 +42,7 @@ const icons = [
 export function HeroSection() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const iconElements = useRef<any>({});
-  const animationFrameId = useRef<number>();
+  const animationFrameId = useRef<number | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
