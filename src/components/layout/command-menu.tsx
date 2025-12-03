@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -70,6 +69,8 @@ const TradingViewMiniChart = dynamic(() => import("../shared/trading-view-mini-c
 interface StockSearchResult {
     symbol: string;
     description: string;
+    type: string;
+    displaySymbol: string;
 }
 
 interface StockData {

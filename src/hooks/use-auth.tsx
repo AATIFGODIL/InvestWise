@@ -248,6 +248,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await sendPasswordResetEmail(auth, email);
   };
 
+  const handleVerifyPasswordResetCode = async (code: string) => {
+    return await verifyPasswordResetCode(auth, code);
+  };
+
+  const handleConfirmPasswordReset = async (code: string, newPassword: string) => {
+    await confirmPasswordReset(auth, code, newPassword);
+  };
+
   const signOut = async () => {
     showLoading();
     await firebaseSignOut(auth);
@@ -269,8 +277,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updatePrivacySettings,
         updateFavorites,
         sendPasswordReset,
-        verifyPasswordResetCode,
-        confirmPasswordReset,
+        verifyPasswordResetCode: handleVerifyPasswordResetCode,
+        confirmPasswordReset: handleConfirmPasswordReset,
       }}
     >
       {children}

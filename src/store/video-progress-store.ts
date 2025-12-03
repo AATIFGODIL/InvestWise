@@ -5,6 +5,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 interface VideoProgressState {
   watchedVideos: Set<string>;
   markVideoAsWatched: (videoTitle: string) => void;
+  toggleWatchedVideo: (videoTitle: string) => void;
   resetVideoProgress: () => void;
 }
 
@@ -21,6 +22,16 @@ const useVideoProgressStore = create<VideoProgressState>()(
           }
           return { watchedVideos: newSet };
         }),
+      toggleWatchedVideo: (videoTitle) =>
+        set((state) => {
+            const newSet = new Set(state.watchedVideos);
+            if (newSet.has(videoTitle)) {
+                newSet.delete(videoTitle);
+            } else {
+                newSet.add(videoTitle);
+            }
+            return { watchedVideos: newSet };
+        }),
       resetVideoProgress: () => set({ watchedVideos: new Set() }),
     }),
     {
@@ -36,8 +47,8 @@ const useVideoProgressStore = create<VideoProgressState>()(
           return value;
         },
         reviver: (key, value) => {
-          if (typeof value === 'object' && value !== null && value._type === 'set') {
-            return new Set(value.value);
+          if (typeof value === 'object' && value !== null && (value as any)._type === 'set') {
+            return new Set((value as any).value);
           }
           return value;
         },

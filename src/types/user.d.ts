@@ -4,11 +4,14 @@ import { type Goal } from "@/data/goals";
 import { type Holding, type PortfolioSummary } from "@/store/portfolio-store";
 import { type Transaction } from "@/store/transaction-store";
 import { type Theme } from "@/store/theme-store";
+import { type Favorite } from "@/store/favorites-store";
 
 export interface UserData {
   username?: string;
   photoURL?: string;
   theme?: Theme;
+  isClearMode?: boolean;
+  primaryColor?: string;
   createdAt?: Timestamp;
   portfolio?: {
     holdings: Holding[];
@@ -22,4 +25,5 @@ export interface UserData {
   watchlist?: string[];
   transactions?: Transaction[];
   paymentMethodToken?: string;
+  favorites?: Favorite[];
 }

@@ -14,14 +14,14 @@ const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
 interface FavoriteItemProps {
   favorite: Favorite;
-  onClick: (fav: Favorite) => void;
+  onSelect: (fav: Favorite) => void;
   onRemove: (id: string) => void;
   variants: any;
   isEditing: boolean;
   isPill: boolean;
 }
 
-export default function FavoriteItem({ favorite, onClick, onRemove, variants, isEditing, isPill }: FavoriteItemProps) {
+export default function FavoriteItem({ favorite, onSelect, onRemove, variants, isEditing, isPill }: FavoriteItemProps) {
     const { isClearMode, theme } = useThemeStore();
     const isMobile = useIsMobile();
     const isLightClear = isClearMode && theme === 'light';
@@ -76,7 +76,7 @@ export default function FavoriteItem({ favorite, onClick, onRemove, variants, is
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
             className={cn("z-10 flex-shrink-0", containerClasses)}
             style={{ backdropFilter: "blur(2px)" }}
-            onClick={() => onClick(favorite)}
+            onClick={() => onSelect(favorite)}
             animate={{ height, width }}
         >
              <AnimatePresence>

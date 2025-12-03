@@ -12,7 +12,6 @@ import {
   Euro,
   Bitcoin,
 } from "lucide-react";
-import { TennisIcon } from "@/components/icons";
 
 function TennisBallIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -29,7 +28,6 @@ function TennisBallIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 const icons = [
-  { component: TennisIcon },
   { component: TennisBallIcon },
   { component: DollarSign },
   { component: Euro },
@@ -91,6 +89,7 @@ export function HeroSection() {
       }
 
       draw() {
+        if (!ctx) return;
         const path = paths[this.pathIndex];
         if (!path) return;
 
@@ -147,6 +146,7 @@ export function HeroSection() {
     }
 
     function animate() {
+      if (!ctx) return;
       ctx.clearRect(0, 0, width, height);
       particles.forEach((p) => {
         p.update();

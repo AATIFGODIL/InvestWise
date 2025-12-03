@@ -52,6 +52,8 @@ const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 interface StockSearchResult {
     symbol: string;
     description: string;
+    type: string;
+    displaySymbol: string;
 }
 
 interface StockData {
