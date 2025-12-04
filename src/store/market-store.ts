@@ -8,8 +8,6 @@ interface MarketState {
   fetchMarketStatus: () => void;
 }
 
-const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
-
 export const useMarketStore = create<MarketState>((set) => ({
   isMarketOpen: null,
   isLoading: false,
@@ -18,21 +16,16 @@ export const useMarketStore = create<MarketState>((set) => ({
   fetchMarketStatus: async () => {
     set({ isLoading: true, error: null });
 
-    if (!API_KEY) {
-        console.error("Finnhub API key not configured. Market status is unavailable.");
-        set({ 
-            isMarketOpen: false, 
-            isLoading: false, 
-            error: "Market status is currently unavailable." 
-        });
-        return;
-    }
-
     try {
-        const res = await fetch(`https://finnhub.io/api/v1/stock/market-status?exchange=US&token=${API_KEY}`);
+        // Corrected: Call the new, secure, server-side API route
+        const res = await fetch('/api/market-status');
+        
         if (!res.ok) {
-            throw new Error(`Finnhub API error: ${res.statusText}`);
+            // Handle errors from our own API route
+            const errorData = await res.json();
+            throw new Error(errorData.error || `API error: ${res.statusText}`);
         }
+        
         const data = await res.json();
         
         // The API returns a boolean `isOpen` property.
