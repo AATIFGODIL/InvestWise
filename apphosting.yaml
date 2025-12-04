@@ -9,3 +9,6 @@ runConfig:
   maxInstances: 5
   # Make the preview accessible to anyone with the URL.
   access: public
+secretEnvironmentVariables:
+  - key: FINNHUB_API_KEY
+    secret: FINNHUB_API_KEY
