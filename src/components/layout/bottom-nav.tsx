@@ -99,7 +99,7 @@ export default function BottomNav() {
       height: "calc(100% - 12px)",
       transform: `translateX(${left}px) translateY(-50%)`,
       opacity: 1,
-      transition: options.immediate ? "none" : "transform 300ms ease-in-out, width 300ms ease-in-out, opacity 200ms ease-in-out",
+      transition: options.immediate ? "none" : "transform 160ms ease-in-out, width 160ms ease-in-out, opacity 110ms ease-in-out",
       backgroundColor: "hsl(var(--primary))",
       top: "50%",
       left: 0,
@@ -177,7 +177,7 @@ export default function BottomNav() {
         transform: `translateX(${startLeft}px) translateY(-50%)`,
         backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
         boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
-        transition: "all 150ms ease-in-out",
+        transition: "all 80ms ease-in-out",
         border: '1px solid hsla(0, 0%, 100%, 0.6)',
         height: 'calc(100% + 16px)',
         backdropFilter: 'blur(16px)',
@@ -192,16 +192,16 @@ export default function BottomNav() {
                 transform: `translateX(${endLeft}px) translateY(-50%)`,
                 backgroundColor: "hsl(var(--primary))",
                 boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
-                transition: "all 150ms ease-in-out",
+                transition: "all 80ms ease-in-out",
                 border: '1px solid transparent',
                 height: 'calc(100% - 12px)',
                 backdropFilter: 'none',
             }));
              const idleTimeout = setTimeout(() => {
                 setAnimationState("idle");
-            }, 170);
+            }, 90);
             return () => clearTimeout(idleTimeout);
-        }, 150);
+        }, 80);
         return () => clearTimeout(settleTimeout);
       }
 
@@ -212,10 +212,10 @@ export default function BottomNav() {
           ...prev,
           width: `${endWidth}px`,
           transform: `translateX(${endLeft}px) translateY(-50%)`,
-          transition: "all 500ms ease-in-out",
+          transition: "all 280ms ease-in-out",
         }));
         animationFrameRef.current = requestAnimationFrame(animateItemTransforms);
-      }, 150);
+      }, 80);
 
       const settleTimeout = setTimeout(() => {
         setAnimationState("descending");
@@ -225,18 +225,18 @@ export default function BottomNav() {
           transform: `translateX(${endLeft}px) translateY(-50%)`,
           backgroundColor: "hsl(var(--primary))",
           boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
-          transition: "all 150ms ease-in-out",
+          transition: "all 80ms ease-in-out",
           border: '1px solid transparent',
           height: 'calc(100% - 12px)',
           backdropFilter: 'none',
         }));
-      }, 650);
+      }, 360);
 
       const idleTimeout = setTimeout(() => {
         setAnimationState("idle");
         if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
         setItemTransforms({});
-      }, 820);
+      }, 450);
       
       return () => {
           clearTimeout(slideTimeout);
@@ -298,7 +298,7 @@ export default function BottomNav() {
         transform: `translateX(${startLeft}px) translateY(-50%)`,
         backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
         boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
-        transition: "all 200ms ease-in-out",
+        transition: "all 110ms ease-in-out",
         border: '1px solid hsla(0, 0%, 100%, 0.6)',
         backdropFilter: 'blur(16px)',
       }));
@@ -366,7 +366,7 @@ export default function BottomNav() {
             transform: `translateX(${endLeft}px) translateY(-50%)`,
             backgroundColor: "hsl(var(--primary))",
             boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
-            transition: "all 350ms ease-in-out",
+            transition: "all 190ms ease-in-out",
             border: '1px solid transparent',
             height: 'calc(100% - 12px)',
             backdropFilter: 'none',
@@ -377,7 +377,7 @@ export default function BottomNav() {
                 router.push(navItems[closestIndex].href);
             }
              setAnimationState("idle");
-        }, 350)
+        }, 190)
 
         return () => clearTimeout(navigationTimeout);
     }
@@ -427,14 +427,14 @@ export default function BottomNav() {
             >
               <div
                 className={cn(
-                  "flex flex-col items-center transition-all duration-300",
+                  "flex flex-col items-center transition-all duration-150",
                    isActive 
                     ? "text-primary-foreground" 
                     : isLightClear ? "text-foreground" : (isClearMode ? "text-slate-100" : "text-muted-foreground")
                 )}
                  style={{ 
                     transform: itemTransforms[index] || 'translateY(0px)',
-                    transition: 'transform 300ms cubic-bezier(0.22, 1, 0.36, 1)',
+                    transition: 'transform 160ms ease-in-out',
                  }}
               >
                 <item.icon className="h-6 w-6" />
