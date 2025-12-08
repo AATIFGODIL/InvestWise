@@ -12,3 +12,9 @@ runConfig:
 secretEnvironmentVariables:
   - key: FINNHUB_API_KEY
     secret: FINNHUB_API_KEY
+  - key: BRAINTREE_MERCHANT_ID
+    secret: BRAINTREE_MERCHANT_ID
+  - key: BRAINTREE_PUBLIC_KEY
+    secret: BRAINTREE_PUBLIC_KEY
+  - key: BRAINTREE_PRIVATE_KEY
+    secret: BRAINTREE_PRIVATE_KEY
