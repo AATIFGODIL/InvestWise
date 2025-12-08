@@ -77,7 +77,7 @@ export default function BottomNav() {
   const getRef = (index: number) => (el: HTMLAnchorElement | null) => {
     itemRefs.current[index] = el;
   };
-  
+
   const setAnimationState = (state: AnimationState) => {
     animationStateRef.current = state;
   };
@@ -99,7 +99,7 @@ export default function BottomNav() {
       height: "calc(100% - 12px)",
       transform: `translateX(${left}px) translateY(-50%)`,
       opacity: 1,
-      transition: options.immediate ? "none" : "transform 300ms ease, width 300ms ease, opacity 200ms ease",
+      transition: options.immediate ? "none" : "transform 300ms ease, width 300ms ease, opacity 200ms ease, background-color 300ms ease",
       backgroundColor: "hsl(var(--primary))",
       top: "50%",
       left: 0,
@@ -126,7 +126,7 @@ export default function BottomNav() {
 
       const itemRect = itemEl.getBoundingClientRect();
       const itemCenter = itemRect.left - navRect.left + itemRect.width / 2;
-      
+
       const distance = Math.abs(itemCenter - (gliderRect.left - navRect.left + gliderRect.width / 2));
       const effectRadius = gliderRect.width * 0.8;
 
@@ -142,84 +142,51 @@ export default function BottomNav() {
     setItemTransforms(newTransforms);
 
     if (animationStateRef.current === 'sliding' || animationStateRef.current === 'dragging') {
-        animationFrameRef.current = requestAnimationFrame(animateItemTransforms);
+      animationFrameRef.current = requestAnimationFrame(animateItemTransforms);
     }
   }, []);
 
   const animateTo = useCallback((clickedIndex: number, isSamePage: boolean = false) => {
     if (animationStateRef.current !== "idle" || clickedIndex === -1) return;
-    
+
     // Prevent animation if it's not a same-page action and the index is already active
     if (!isSamePage && clickedIndex === activeIndex) return;
 
-      const navEl = navRef.current;
-      const startItem = itemRefs.current[activeIndex];
-      const endItem = itemRefs.current[clickedIndex];
+    const navEl = navRef.current;
+    const startItem = itemRefs.current[activeIndex];
+    const endItem = itemRefs.current[clickedIndex];
 
-      if (!navEl || !startItem || !endItem) {
-          if (!isSamePage) router.push(navItems[clickedIndex].href);
-          return;
-      }
-      
-      setAnimationState("rising");
-      const navRect = navEl.getBoundingClientRect();
-      const startRect = startItem.getBoundingClientRect();
-      const endRect = endItem.getBoundingClientRect();
+    if (!navEl || !startItem || !endItem) {
+      if (!isSamePage) router.push(navItems[clickedIndex].href);
+      return;
+    }
 
-      const startWidth = Math.max(Math.round(startRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
-      const startLeft = startRect.left - navRect.left + (startRect.width - startWidth) / 2;
-      const endWidth = Math.max(Math.round(endRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
-      const endLeft = endRect.left - navRect.left + (endRect.width - endWidth) / 2;
+    setAnimationState("rising");
+    const navRect = navEl.getBoundingClientRect();
+    const startRect = startItem.getBoundingClientRect();
+    const endRect = endItem.getBoundingClientRect();
 
-      setGliderStyle(prev => ({
-        ...prev,
-        width: `${startWidth}px`,
-        transform: `translateX(${startLeft}px) translateY(-50%)`,
-        backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
-        boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
-        transition: "transform 140ms ease-out, background-color 140ms ease-out, box-shadow 140ms ease-out, border 140ms ease-out, height 140ms ease-out, backdrop-filter 140ms ease-out",
-        border: '1px solid hsla(0, 0%, 100%, 0.6)',
-        height: 'calc(100% + 16px)',
-        backdropFilter: 'blur(16px)',
-      }));
+    const startWidth = Math.max(Math.round(startRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
+    const startLeft = startRect.left - navRect.left + (startRect.width - startWidth) / 2;
+    const endWidth = Math.max(Math.round(endRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
+    const endLeft = endRect.left - navRect.left + (endRect.width - endWidth) / 2;
 
-      // If it's a same-page click, skip the sliding part.
-      if (isSamePage) {
-        const settleTimeout = setTimeout(() => {
-            setAnimationState("descending");
-            setGliderStyle(prev => ({
-                ...prev,
-                transform: `translateX(${endLeft}px) translateY(-50%)`,
-                backgroundColor: "hsl(var(--primary))",
-                boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
-                transition: "transform 160ms ease-in, background-color 160ms ease-in, box-shadow 160ms ease-in, border 160ms ease-in, height 160ms ease-in, backdrop-filter 160ms ease-in",
-                border: '1px solid transparent',
-                height: 'calc(100% - 12px)',
-                backdropFilter: 'none',
-            }));
-             const idleTimeout = setTimeout(() => {
-                setAnimationState("idle");
-            }, 170);
-            return () => clearTimeout(idleTimeout);
-        }, 150);
-        return () => clearTimeout(settleTimeout);
-      }
+    setGliderStyle(prev => ({
+      ...prev,
+      width: `${startWidth}px`,
+      transform: `translateX(${startLeft}px) translateY(-50%)`,
+      backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
+      boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
+      transition: "transform 140ms ease-out, background-color 140ms ease-out, box-shadow 140ms ease-out, border 140ms ease-out, height 140ms ease-out, backdrop-filter 140ms ease-out",
+      border: '1px solid hsla(0, 0%, 100%, 0.6)',
+      height: 'calc(100% + 16px)',
+      backdropFilter: 'blur(16px)',
+    }));
 
-
-      const slideTimeout = setTimeout(() => {
-        setAnimationState("sliding");
-        setGliderStyle(prev => ({
-          ...prev,
-          width: `${endWidth}px`,
-          transform: `translateX(${endLeft}px) translateY(-50%)`,
-          transition: "transform 500ms cubic-bezier(0.22, 0.9, 0.35, 1), width 500ms cubic-bezier(0.22, 0.9, 0.35, 1), border 320ms ease-out",
-        }));
-        animationFrameRef.current = requestAnimationFrame(animateItemTransforms);
-      }, 150);
-
+    // If it's a same-page click, skip the sliding part.
+    if (isSamePage) {
       const settleTimeout = setTimeout(() => {
         setAnimationState("descending");
-        if (!isSamePage) router.push(navItems[clickedIndex].href);
         setGliderStyle(prev => ({
           ...prev,
           transform: `translateX(${endLeft}px) translateY(-50%)`,
@@ -230,21 +197,54 @@ export default function BottomNav() {
           height: 'calc(100% - 12px)',
           backdropFilter: 'none',
         }));
-      }, 650);
+        const idleTimeout = setTimeout(() => {
+          setAnimationState("idle");
+        }, 170);
+        return () => clearTimeout(idleTimeout);
+      }, 150);
+      return () => clearTimeout(settleTimeout);
+    }
 
-      const idleTimeout = setTimeout(() => {
-        setAnimationState("idle");
-        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-        setItemTransforms({});
-      }, 820);
-      
-      return () => {
-          clearTimeout(slideTimeout);
-          clearTimeout(settleTimeout);
-          clearTimeout(idleTimeout);
-      }
+
+    const slideTimeout = setTimeout(() => {
+      setAnimationState("sliding");
+      setGliderStyle(prev => ({
+        ...prev,
+        width: `${endWidth}px`,
+        transform: `translateX(${endLeft}px) translateY(-50%)`,
+        transition: "transform 500ms cubic-bezier(0.22, 0.9, 0.35, 1), width 500ms cubic-bezier(0.22, 0.9, 0.35, 1), border 320ms ease-out",
+      }));
+      animationFrameRef.current = requestAnimationFrame(animateItemTransforms);
+    }, 150);
+
+    const settleTimeout = setTimeout(() => {
+      setAnimationState("descending");
+      if (!isSamePage) router.push(navItems[clickedIndex].href);
+      setGliderStyle(prev => ({
+        ...prev,
+        transform: `translateX(${endLeft}px) translateY(-50%)`,
+        backgroundColor: "hsl(var(--primary))",
+        boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
+        transition: "transform 160ms ease-in, background-color 160ms ease-in, box-shadow 160ms ease-in, border 160ms ease-in, height 160ms ease-in, backdrop-filter 160ms ease-in",
+        border: '1px solid transparent',
+        height: 'calc(100% - 12px)',
+        backdropFilter: 'none',
+      }));
+    }, 650);
+
+    const idleTimeout = setTimeout(() => {
+      setAnimationState("idle");
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      setItemTransforms({});
+    }, 820);
+
+    return () => {
+      clearTimeout(slideTimeout);
+      clearTimeout(settleTimeout);
+      clearTimeout(idleTimeout);
+    }
   }, [activeIndex, isClearMode, router, WIDTH_FACTOR, MIN_GLIDER_WIDTH, animateItemTransforms]);
-  
+
 
   useEffect(() => {
     if (externalActiveIndex !== null) {
@@ -259,7 +259,7 @@ export default function BottomNav() {
 
 
   useEffect(() => {
-    if(activeIndex !== -1) {
+    if (activeIndex !== -1 && animationStateRef.current === 'idle') {
       setGliderTo(activeIndex, { immediate: !hasMounted });
     }
     const handleResize = () => setGliderTo(activeIndex, { immediate: true });
@@ -280,7 +280,7 @@ export default function BottomNav() {
 
       const navRect = navEl.getBoundingClientRect();
       const itemRect = targetItem.getBoundingClientRect();
-      
+
       const gliderWidth = Math.max(Math.round(itemRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
       const startLeft = itemRect.left - navRect.left + (itemRect.width - gliderWidth) / 2;
 
@@ -314,7 +314,7 @@ export default function BottomNav() {
 
   const handleMouseMove = (e: globalThis.MouseEvent) => {
     if (animationStateRef.current !== "dragging" || !dragStartInfo.current) return;
-    
+
     const dx = e.clientX - dragStartInfo.current.x;
     const newLeft = dragStartInfo.current.left + dx;
 
@@ -330,7 +330,7 @@ export default function BottomNav() {
     if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
 
     if (animationStateRef.current !== "dragging" || !dragStartInfo.current) return;
-    
+
     const navEl = navRef.current;
     if (!navEl) return;
     const navRect = navEl.getBoundingClientRect();
@@ -353,35 +353,35 @@ export default function BottomNav() {
 
     const endItem = itemRefs.current[closestIndex];
     if (endItem) {
-        const endRect = endItem.getBoundingClientRect();
-        const endWidth = Math.max(Math.round(endRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
-        const endLeft = endRect.left - navRect.left + (endRect.width - endWidth) / 2;
-        
-        setAnimationState("descending");
-        setItemTransforms({}); // Reset transforms on drop
+      const endRect = endItem.getBoundingClientRect();
+      const endWidth = Math.max(Math.round(endRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
+      const endLeft = endRect.left - navRect.left + (endRect.width - endWidth) / 2;
 
-        setGliderStyle(prev => ({
-            ...prev,
-            width: `${endWidth}px`,
-            transform: `translateX(${endLeft}px) translateY(-50%)`,
-            backgroundColor: "hsl(var(--primary))",
-            boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
-            transition: "transform 350ms cubic-bezier(0.22, 1, 0.36, 1), background-color 200ms ease-in, box-shadow 200ms ease-in, border 200ms ease-in, height 200ms ease-in, width 350ms cubic-bezier(0.22, 1, 0.36, 1), backdrop-filter 200ms ease-in",
-            border: '1px solid transparent',
-            height: 'calc(100% - 12px)',
-            backdropFilter: 'none',
-        }));
-        
-        const navigationTimeout = setTimeout(() => {
-            if(closestIndex !== activeIndex) {
-                router.push(navItems[closestIndex].href);
-            }
-             setAnimationState("idle");
-        }, 350)
+      setAnimationState("descending");
+      setItemTransforms({}); // Reset transforms on drop
 
-        return () => clearTimeout(navigationTimeout);
+      setGliderStyle(prev => ({
+        ...prev,
+        width: `${endWidth}px`,
+        transform: `translateX(${endLeft}px) translateY(-50%)`,
+        backgroundColor: "hsl(var(--primary))",
+        boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
+        transition: "transform 350ms cubic-bezier(0.22, 1, 0.36, 1), background-color 200ms ease-in, box-shadow 200ms ease-in, border 200ms ease-in, height 200ms ease-in, width 350ms cubic-bezier(0.22, 1, 0.36, 1), backdrop-filter 200ms ease-in",
+        border: '1px solid transparent',
+        height: 'calc(100% - 12px)',
+        backdropFilter: 'none',
+      }));
+
+      const navigationTimeout = setTimeout(() => {
+        if (closestIndex !== activeIndex) {
+          router.push(navItems[closestIndex].href);
+        }
+        setAnimationState("idle");
+      }, 350)
+
+      return () => clearTimeout(navigationTimeout);
     }
-    
+
     dragStartInfo.current = null;
     setAnimationState("idle");
   };
@@ -392,14 +392,14 @@ export default function BottomNav() {
       <nav
         ref={navRef}
         className={cn(
-            "relative flex h-16 items-center justify-around rounded-full p-1 px-2 shadow-2xl shadow-black/20 ring-1 ring-white/60",
-            isClearMode 
-                ? isLightClear 
-                    ? "bg-card/60"
-                    : "bg-white/10"
-                : "bg-card",
-            // COPY-THIS: To apply the glow effect
-            showGlow && "login-glow"
+          "relative flex h-16 items-center justify-around rounded-full p-1 px-2 shadow-2xl shadow-black/20 ring-1 ring-white/60",
+          isClearMode
+            ? isLightClear
+              ? "bg-card/60"
+              : "bg-white/10"
+            : "bg-card",
+          // COPY-THIS: To apply the glow effect
+          showGlow && "login-glow"
         )}
         // COPY-THIS: For the glass look (backdrop filter)
         style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
@@ -428,14 +428,14 @@ export default function BottomNav() {
               <div
                 className={cn(
                   "flex flex-col items-center transition-all duration-300",
-                   isActive 
-                    ? "text-primary-foreground" 
+                  isActive
+                    ? "text-primary-foreground"
                     : isLightClear ? "text-foreground" : (isClearMode ? "text-slate-100" : "text-muted-foreground")
                 )}
-                 style={{ 
-                    transform: itemTransforms[index] || 'translateY(0px)',
-                    transition: 'transform 300ms cubic-bezier(0.22, 1, 0.36, 1)',
-                 }}
+                style={{
+                  transform: itemTransforms[index] || 'translateY(0px)',
+                  transition: 'transform 300ms cubic-bezier(0.22, 1, 0.36, 1)',
+                }}
               >
                 <item.icon className="h-6 w-6" />
                 <span className="text-xs font-medium">{item.label}</span>
@@ -448,4 +448,3 @@ export default function BottomNav() {
   );
 }
 
-    
