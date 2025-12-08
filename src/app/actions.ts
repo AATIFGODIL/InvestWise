@@ -31,9 +31,9 @@ type ActionResult = {
  * A standardized result type for the stock prediction action.
  */
 type StockPredictionResult = {
-    success: boolean;
-    prediction?: StockPredictionOutput;
-    error?: string;
+  success: boolean;
+  prediction?: StockPredictionOutput;
+  error?: string;
 }
 
 /**
@@ -66,23 +66,23 @@ export async function handleInvestmentQuery(query: string, fileDataUri?: string)
  * @returns {Promise<StockPredictionResult>} An object with the prediction data or an error.
  */
 export async function handleStockPrediction(symbol: string): Promise<StockPredictionResult> {
-    if (!symbol) {
-        return { success: false, error: "Stock symbol cannot be empty." };
-    }
+  if (!symbol) {
+    return { success: false, error: "Stock symbol cannot be empty." };
+  }
 
-    try {
-        const result = await stockPrediction({ symbol });
-        if (!result) {
-             return { success: false, error: "You have reached the daily limit for predictions. Please try again tomorrow." };
-        }
-        return { success: true, prediction: result };
-    } catch (error: any) {
-        console.error("Error calling stock prediction flow:", error);
-        return {
-            success: false,
-            error: error.message || "An unexpected error occurred while generating the prediction.",
-        };
+  try {
+    const result = await stockPrediction({ symbol });
+    if (!result) {
+      return { success: false, error: "You have reached the daily limit for predictions. Please try again tomorrow." };
     }
+    return { success: true, prediction: result };
+  } catch (error: any) {
+    console.error("Error calling stock prediction flow:", error);
+    return {
+      success: false,
+      error: error.message || "An unexpected error occurred while generating the prediction.",
+    };
+  }
 }
 
 /**
@@ -90,7 +90,7 @@ export async function handleStockPrediction(symbol: string): Promise<StockPredic
  * @param {CreateAvatarInput} input - The user's prompt and/or photo.
  * @returns {Promise<{success: boolean, avatar?: CreateAvatarOutput, error?: string}>} The generated avatar or an error.
  */
-export async function handleAvatarCreation(input: CreateAvatarInput): Promise<{success: boolean, avatar?: CreateAvatarOutput, error?: string}> {
+export async function handleAvatarCreation(input: CreateAvatarInput): Promise<{ success: boolean, avatar?: CreateAvatarOutput, error?: string }> {
   if (!input.prompt && !input.photoDataUri) {
     return { success: false, error: "Please provide a prompt or a photo." };
   }
@@ -116,12 +116,12 @@ export async function handleAvatarCreation(input: CreateAvatarInput): Promise<{s
  * @throws {Error} If the token generation fails.
  */
 export async function getClientToken(): Promise<string> {
-    const gateway = getBraintreeGateway();
-    const response = await gateway.clientToken.generate({});
-    if (!response.success) {
-        throw new Error("Failed to generate Braintree client token.");
-    }
-    return response.clientToken;
+  const gateway = getBraintreeGateway();
+  const response = await gateway.clientToken.generate({});
+  if (!response.success) {
+    throw new Error("Failed to generate Braintree client token.");
+  }
+  return response.clientToken;
 }
 
 interface VaultPaymentMethodArgs {
@@ -134,7 +134,7 @@ interface VaultPaymentMethodArgs {
  * @param {VaultPaymentMethodArgs} args - The payment nonce and user ID.
  * @returns {Promise<{success: boolean, error?: string}>} An object indicating success or failure.
  */
-export async function vaultPaymentMethod({ nonce, userId }: VaultPaymentMethodArgs): Promise<{success: boolean, error?: string}> {
+export async function vaultPaymentMethod({ nonce, userId }: VaultPaymentMethodArgs): Promise<{ success: boolean, error?: string }> {
   const gateway = getBraintreeGateway();
   try {
     const result = await gateway.paymentMethod.create({
@@ -150,7 +150,7 @@ export async function vaultPaymentMethod({ nonce, userId }: VaultPaymentMethodAr
       console.error("Braintree error:", result.message);
       return { success: false, error: result.message };
     }
-    
+
     // The token for the vaulted payment method
     const token = result.paymentMethod.token;
 
@@ -163,4 +163,14 @@ export async function vaultPaymentMethod({ nonce, userId }: VaultPaymentMethodAr
     console.error("Error vaulting payment method:", error);
     return { success: false, error: error.message || 'An unknown error occurred.' };
   }
+}
+
+import { getTopFinancialNews, getMarketNews } from "@/lib/gnews";
+
+export async function fetchTopFinancialNewsAction(limit?: number) {
+  return await getTopFinancialNews(limit);
+}
+
+export async function fetchMarketNewsAction(limit?: number) {
+  return await getMarketNews(limit);
 }

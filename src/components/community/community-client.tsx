@@ -1,7 +1,7 @@
-
 "use client";
 
 import Leaderboard from "@/components/community/leaderboard";
+import MarketNews from "./market-news";
 import Quests from "@/components/community/quests";
 import AskMentor from "@/components/community/ask-mentor";
 import PrivacySettings from "@/components/community/privacy-settings";
@@ -12,7 +12,6 @@ import Chatbot from "@/components/chatbot/chatbot";
 import { usePrivacyStore } from "@/store/privacy-store";
 import { useThemeStore } from "@/store/theme-store";
 import { cn } from "@/lib/utils";
-import TradingViewNewsWidget from "../shared/trading-view-news-widget";
 import { motion } from "framer-motion";
 import { Card, CardHeader, CardTitle } from "../ui/card";
 import { Newspaper } from "lucide-react";
@@ -26,20 +25,20 @@ const YouTubePlayer = dynamic(() => import('../shared/youtube-player'), {
 
 
 const videos = [
-    {
-        title: "Following the Experts: Bear Bull Traders",
-        description: "Learn from Bear Bull Traders, one of the leading voices in financial education. Note: This is a link to their channel.",
-        youtubeUrl: "https://www.youtube.com/channel/UCfO2yCpx6_XU-xovhpJuaYw",
-        isChannel: true,
-        imageUrl: "/bull.jpg"
-    },
-    {
-        title: "Trading Insights with Adam Khoo",
-        description: "Explore trading strategies and market analysis from Adam Khoo, a professional investor and trader. Note: This is a link to his channel.",
-        youtubeUrl: "https://www.youtube.com/@AdamKhoo",
-        isChannel: true,
-        imageUrl: "/adam-khoo.jpg"
-    }
+  {
+    title: "Following the Experts: Bear Bull Traders",
+    description: "Learn from Bear Bull Traders, one of the leading voices in financial education. Note: This is a link to their channel.",
+    youtubeUrl: "https://www.youtube.com/channel/UCfO2yCpx6_XU-xovhpJuaYw",
+    isChannel: true,
+    imageUrl: "/bull.jpg"
+  },
+  {
+    title: "Trading Insights with Adam Khoo",
+    description: "Explore trading strategies and market analysis from Adam Khoo, a professional investor and trader. Note: This is a link to his channel.",
+    youtubeUrl: "https://www.youtube.com/@AdamKhoo",
+    isChannel: true,
+    imageUrl: "/adam-khoo.jpg"
+  }
 ]
 
 const containerVariants = {
@@ -73,71 +72,69 @@ export default function CommunityClient() {
 
   return (
     <main>
-      <motion.div 
+      <motion.div
         className="p-4 space-y-6 pb-24"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
-      <motion.h1 variants={itemVariants} className="text-2xl font-bold">Community</motion.h1>
-      <motion.div variants={itemVariants}>
-        <Tabs defaultValue={defaultTab} className="w-full">
+        <motion.h1 variants={itemVariants} className="text-2xl font-bold">Community</motion.h1>
+        <motion.div variants={itemVariants}>
+          <Tabs defaultValue={defaultTab} className="w-full">
             <TabsList className={cn(
-                "grid w-full grid-cols-2",
-                 isClearMode 
-                  ? isLightClear
-                      ? "bg-card/60 ring-1 ring-white/10"
-                      : "bg-white/10 ring-1 ring-white/60"
-                  : ""
+              "grid w-full grid-cols-2",
+              isClearMode
+                ? isLightClear
+                  ? "bg-card/60 ring-1 ring-white/10"
+                  : "bg-white/10 ring-1 ring-white/60"
+                : ""
             )}>
-                <TabsTrigger value="feed" className={cn(
-                    isClearMode
-                      ? "data-[state=active]:bg-primary/80 data-[state=active]:text-primary-foreground"
-                      : ""
-                )}>Feed</TabsTrigger>
-                <TabsTrigger value="trends" className={cn(
-                    isClearMode
-                      ? "data-[state=active]:bg-primary/80 data-[state=active]:text-primary-foreground"
-                      : ""
-                )}>Trends</TabsTrigger>
+              <TabsTrigger value="feed" className={cn(
+                isClearMode
+                  ? "data-[state=active]:bg-primary/80 data-[state=active]:text-primary-foreground"
+                  : ""
+              )}>Feed</TabsTrigger>
+              <TabsTrigger value="trends" className={cn(
+                isClearMode
+                  ? "data-[state=active]:bg-primary/80 data-[state=active]:text-primary-foreground"
+                  : ""
+              )}>Trends</TabsTrigger>
             </TabsList>
             <TabsContent value="feed" className="mt-6 space-y-6">
-                <Leaderboard />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <PrivacySettings />
-                    <AskMentor />
-                </div>
-                {showQuests && <Quests />}
+              <Leaderboard />
+              <div className="lg:col-span-1 h-[600px]">
+                <MarketNews />
+              </div>
+              {showQuests && <Quests />}
             </TabsContent>
-                <TabsContent value="trends" className="mt-6">
-                <CommunityTrends showViewAllButton={false} />
+            <TabsContent value="trends" className="mt-6">
+              <CommunityTrends showViewAllButton={false} />
             </TabsContent>
-        </Tabs>
-      </motion.div>
-      
-      <motion.div variants={itemVariants} className="space-y-4 pt-4">
+          </Tabs>
+        </motion.div>
+
+        <motion.div variants={itemVariants} className="space-y-4 pt-4">
           <h2 className="text-xl font-bold">Learn from the Experts</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {videos.map((video) => (
-                  <YouTubePlayer key={video.title} videoTitle={video.title} {...video} />
-              ))}
+            {videos.map((video) => (
+              <YouTubePlayer key={video.title} videoTitle={video.title} {...video} />
+            ))}
           </div>
-      </motion.div>
-      <motion.div variants={itemVariants}>
-         <Card>
+        </motion.div>
+        <motion.div variants={itemVariants}>
+          <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-xl">
-                    <Newspaper className="h-5 w-5 text-primary" />
-                    Market News
-                </CardTitle>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Newspaper className="h-5 w-5 text-primary" />
+                Market News
+              </CardTitle>
             </CardHeader>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4 px-2 sm:px-6 pb-6">
-                <TradingViewNewsWidget displayMode="regular" />
-                <TradingViewNewsWidget displayMode="regular" />
+              <MarketNews />
             </div>
-        </Card>
-      </motion.div>
-      <Chatbot />
+          </Card>
+        </motion.div>
+        <Chatbot />
       </motion.div>
     </main>
   );
