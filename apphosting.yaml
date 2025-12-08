@@ -12,6 +12,8 @@ runConfig:
 env:
   - variable: NEXT_PUBLIC_FIREBASE_CONFIG
     value: '{"projectId":"investwise-f9rch","appId":"1:509703968960:web:4920eb3cbfa5d86094f525","apiKey":"AIzaSyAAdBMaAXBV2PSjJr3jzw9obDJcBB3fbhc","authDomain":"investwise-f9rch.firebaseapp.com","measurementId":"","messagingSenderId":"509703968960"}'
+  - variable: NEXT_PUBLIC_FINNHUB_API_KEY
+    value: d2icc8hr01qgfkrlm2ggd2icc8hr01qgfkrlm2h0
 secretEnvironmentVariables:
   - key: FINNHUB_API_KEY
     secret: FINNHUB_API_KEY
