@@ -19,9 +19,11 @@ function initializeBraintreeGateway(): BraintreeGateway {
     throw new Error("Braintree credentials are not set in environment variables. Cannot initialize Braintree Gateway.");
   }
   
-  const environment = process.env.NODE_ENV === "production" 
-    ? braintree.Environment.Production 
-    : braintree.Environment.Sandbox;
+  const environment = process.env.BRAINTREE_ENVIRONMENT === "Sandbox"
+    ? braintree.Environment.Sandbox
+    : (process.env.NODE_ENV === "production" 
+        ? braintree.Environment.Production 
+        : braintree.Environment.Sandbox);
 
   // Initialize the gateway
   gateway = new braintree.BraintreeGateway({
