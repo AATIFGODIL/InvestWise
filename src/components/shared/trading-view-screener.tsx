@@ -15,27 +15,28 @@ function TradingViewScreener() {
   }, []);
 
   useEffect(() => {
-    // Ensure the component is mounted and the widget hasn't been created yet
-    if (!isMounted || !container.current || isWidgetCreated.current) return;
+    // Ensure the component is mounted
+    if (!isMounted || !container.current) return;
+
+    // Clear previous widget
+    container.current.innerHTML = '';
 
     const script = document.createElement("script");
     script.src = "https://s3.tradingview.com/external-embedding/embed-widget-screener.js";
     script.type = "text/javascript";
     script.async = true;
     script.innerHTML = JSON.stringify({
-        "width": "100%",
-        "height": "100%",
-        "defaultColumn": "overview",
-        "defaultScreen": "most_capitalized",
-        "market": "us",
-        "showToolbar": true,
-        "locale": "en",
-        "colorTheme": theme
-      });
-    
+      "width": "100%",
+      "height": "100%",
+      "defaultColumn": "overview",
+      "defaultScreen": "most_capitalized",
+      "market": "us",
+      "showToolbar": true,
+      "locale": "en",
+      "colorTheme": theme
+    });
+
     container.current.appendChild(script);
-    isWidgetCreated.current = true;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMounted, theme]);
 
   return (
