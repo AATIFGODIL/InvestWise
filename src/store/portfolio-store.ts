@@ -474,15 +474,19 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
             holdings: holdings,
             portfolioSummary: initialSummary,
             registrationDate: registrationDate,
-            isLoading: false,
+            // Keep isLoading true until chart is ready
+            isLoading: true,
         });
 
-        // Only fetch 1W initially
+        // "Logic to analyze dates": Reconstruct history uses precise transaction timestamps
+        // to determine exact holdings for each day.
         await fetchChartData('1W');
 
         if (holdings.length > 0) {
             updateLivePrices();
         }
+
+        set({ isLoading: false });
     },
 
     resetPortfolio: () => {

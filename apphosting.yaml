@@ -29,3 +29,6 @@ secretEnvironmentVariables:
     secret: BRAINTREE_PRIVATE_KEY
   - key: GNEWS_API_KEY
     secret: GNEWS_API_KEY
+  - key: GOOGLE_API_KEY
+    secret: GOOGLE_API_KEY
+
