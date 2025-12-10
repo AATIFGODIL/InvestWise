@@ -18,6 +18,10 @@ env:
     value: Sandbox
   - variable: PREDICTION_API_URL
     value: https://portfolio-forecast-api-509703968960.us-central1.run.app/forecast/symbol
+  - variable: GOOGLE_API_KEY
+    value: AIzaSyCk4-gGrZYCLg9j0f6Vz-FLCiYExxkjINk
+  - variable: GEMINI_API_KEY
+    value: AIzaSyCk4-gGrZYCLg9j0f6Vz-FLCiYExxkjINk
 secretEnvironmentVariables:
   - key: FINNHUB_API_KEY
     secret: FINNHUB_API_KEY
@@ -29,8 +33,4 @@ secretEnvironmentVariables:
     secret: BRAINTREE_PRIVATE_KEY
   - key: GNEWS_API_KEY
     secret: GNEWS_API_KEY
-  - key: GOOGLE_API_KEY
-    secret: GOOGLE_API_KEY
-  - key: GEMINI_API_KEY
-    secret: GOOGLE_API_KEY
 
