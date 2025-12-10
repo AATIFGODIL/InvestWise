@@ -175,3 +175,48 @@ export async function fetchTopFinancialNewsAction(limit?: number) {
 export async function fetchMarketNewsAction(limit?: number) {
   return await getMarketNews(limit);
 }
+
+/**
+ * Fetches historical stock data from Yahoo Finance as a fallback for Finnhub.
+ * @param {string} symbol - The stock symbol.
+ * @param {string} range - The time range (1d, 5d, 1mo, 6mo, 1y, 5y).
+ * @param {string} interval - The interval (1m, 5m, 15m, 1d, 1wk, 1mo).
+ */
+export async function fetchStockHistory(symbol: string, range: string = '1mo', interval: string = '1d'): Promise<{ t: number[], c: number[] } | null> {
+  try {
+    // Yahoo Finance Chart API
+    // Note: This is an unofficial endpoint but widely used.
+    const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=${range}&interval=${interval}`, {
+      next: { revalidate: 3600 } // Cache for 1 hour
+    });
+
+    if (!response.ok) {
+      console.error(`Yahoo Finance fetch failed for ${symbol}: ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+    const result = data.chart.result?.[0];
+
+    if (!result || !result.timestamp || !result.indicators.quote?.[0]?.close) {
+      return null;
+    }
+
+    const timestamps = result.timestamp;
+    const closes = result.indicators.quote[0].close;
+
+    // Filter out nulls (Yahoo sometimes returns nulls for market closes/opens in the middle of data)
+    const validData = timestamps.reduce((acc: any, t: number, i: number) => {
+      if (closes[i] !== null) {
+        acc.t.push(t);
+        acc.c.push(closes[i]);
+      }
+      return acc;
+    }, { t: [], c: [] });
+
+    return validData;
+  } catch (error) {
+    console.error(`Error in fetchStockHistory for ${symbol}:`, error);
+    return null;
+  }
+}

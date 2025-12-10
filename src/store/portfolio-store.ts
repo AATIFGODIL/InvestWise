@@ -2,6 +2,7 @@
 import { create } from 'zustand';
 import { doc, updateDoc, getFirestore, arrayUnion } from "firebase/firestore";
 import { auth } from '@/lib/firebase/config';
+import { fetchStockHistory } from '@/app/actions';
 import { useTransactionStore, type Transaction } from './transaction-store';
 
 export interface Holding {
@@ -162,6 +163,38 @@ const reconstructPortfolioHistory = async (
         priceAnchors[symbol] = anchors.sort((a, b) => a.time - b.time);
     });
 
+    // 2. Fetch history for all symbols
+    const priceHistory: Record<string, { [timestamp: number]: number }> = {};
+
+    // Map our targetPoints/range to Yahoo range needed
+    // Let's infer from startDate relative to today.
+    const diffTime = Math.abs(today.getTime() - startDate.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    let yahooRange = '1mo';
+    if (diffDays <= 7) yahooRange = '5d';
+    else if (diffDays <= 31) yahooRange = '1mo';
+    else if (diffDays <= 180) yahooRange = '6mo';
+    else yahooRange = '1y';
+
+    for (const symbol of symbols) {
+        try {
+            // Try fetching real history from Yahoo via Server Action
+            const data = await fetchStockHistory(symbol, yahooRange, '1d');
+
+            if (data && data.t && data.t.length > 0) {
+                priceHistory[symbol] = {};
+                data.t.forEach((timestamp, index) => {
+                    const date = new Date(timestamp * 1000);
+                    const dateKey = new Date(date);
+                    dateKey.setHours(0, 0, 0, 0);
+                    priceHistory[symbol][dateKey.getTime()] = data.c[index];
+                });
+            }
+        } catch (e) {
+            console.error(`Failed to fetch history for ${symbol}`, e);
+        }
+    }
+
     // Helper: Interpolate price at time t
     const getPriceAtTime = (symbol: string, t: number): number => {
         const anchors = priceAnchors[symbol];
@@ -229,7 +262,18 @@ const reconstructPortfolioHistory = async (
         let dayValue = 0;
         for (const [symbol, qty] of Object.entries(currentPortfolio)) {
             if (qty > 0) {
-                const price = getPriceAtTime(symbol, dayTime);
+                let price = 0;
+                const dailyStart = new Date(dayTime).setHours(0, 0, 0, 0);
+
+                // 1. Try Real History
+                if (priceHistory[symbol] && priceHistory[symbol][dailyStart]) {
+                    price = priceHistory[symbol][dailyStart];
+                }
+                // 2. Fallback to Interpolation
+                else {
+                    price = getPriceAtTime(symbol, dayTime);
+                }
+
                 dayValue += qty * price;
             }
         }
