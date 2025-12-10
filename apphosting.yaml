@@ -31,4 +31,6 @@ secretEnvironmentVariables:
     secret: GNEWS_API_KEY
   - key: GOOGLE_API_KEY
     secret: GOOGLE_API_KEY
+  - key: GEMINI_API_KEY
+    secret: GOOGLE_API_KEY
 
