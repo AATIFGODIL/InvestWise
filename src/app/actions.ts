@@ -79,9 +79,10 @@ export async function handleStockPrediction(symbol: string): Promise<StockPredic
     return { success: true, prediction: result };
   } catch (error: any) {
     console.error("Error calling stock prediction flow:", error);
+    const debugInfo = `[Debug: GOOGLE=${process.env.GOOGLE_API_KEY ? 'Y' : 'N'}, GEMINI=${process.env.GEMINI_API_KEY ? 'Y' : 'N'}]`;
     return {
       success: false,
-      error: error.message || "An unexpected error occurred while generating the prediction.",
+      error: (error.message || "An unexpected error occurred while generating the prediction.") + " " + debugInfo,
     };
   }
 }
