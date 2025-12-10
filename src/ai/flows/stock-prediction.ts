@@ -29,11 +29,11 @@ export async function stockPrediction(input: StockPredictionInput): Promise<Stoc
 // The prompt specifies the exact structure of the output (prediction and confidence)
 // to ensure consistent and parseable results.
 const interpretStockPredictionPrompt = ai.definePrompt({
-    name: 'interpretStockPredictionPrompt',
-    input: { schema: StockPredictionInputSchema },
-    output: { schema: StockPredictionOutputSchema },
-    tools: [getPredictionFromApi], // Make the tool available to the LLM
-    prompt: `You are a financial analyst AI. Your task is to provide a clear, concise, and easy-to-understand stock prediction for a beginner investor.
+  name: 'interpretStockPredictionPrompt',
+  input: { schema: StockPredictionInputSchema },
+  output: { schema: StockPredictionOutputSchema },
+  tools: [getPredictionFromApi], // Make the tool available to the LLM
+  prompt: `You are a financial analyst AI. Your task is to provide a clear, concise, and easy-to-understand stock prediction for a beginner investor.
     
     1. First, use the getPredictionFromApi tool to fetch the raw forecast data for the given stock symbol: {{{symbol}}}.
     2. Then, analyze the raw forecast data, which consists of an array of 5 predicted prices for the next 5 months.
@@ -56,12 +56,12 @@ const stockPredictionFlow = ai.defineFlow(
   },
   async (input) => {
     try {
-        const { output } = await interpretStockPredictionPrompt(input);
-        return output || null;
+      const { output } = await interpretStockPredictionPrompt(input);
+      return output || null;
     } catch (error) {
-        // Log errors for debugging and return null to the client for graceful handling.
-        console.error("An error occurred during the stock prediction flow:", error);
-        return null;
+      // Log errors for debugging and throw to the client for proper error handling.
+      console.error("An error occurred during the stock prediction flow:", error);
+      throw error;
     }
   }
 );

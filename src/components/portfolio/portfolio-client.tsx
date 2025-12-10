@@ -7,6 +7,7 @@ import PortfolioValue from '@/components/portfolio/portfolio-value';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import AiPrediction from '../ai/ai-prediction';
+import AutoInvest from '@/components/dashboard/auto-invest';
 import { useUserStore } from '@/store/user-store';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
@@ -125,7 +126,8 @@ export default function PortfolioClient() {
         <motion.div variants={itemVariants}>
           <Watchlist />
         </motion.div>
-        <motion.div variants={itemVariants}>
+        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <AutoInvest />
           <AiPrediction />
         </motion.div>
         <Chatbot />

@@ -321,11 +321,11 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
                     break;
                 case '6M':
                     startDate.setMonth(now.getMonth() - 6);
-                    targetPoints = 12;
+                    targetPoints = 21;
                     break;
                 case '1Y':
                     startDate.setFullYear(now.getFullYear() - 1);
-                    targetPoints = 15;
+                    targetPoints = 24;
                     break;
             }
 
