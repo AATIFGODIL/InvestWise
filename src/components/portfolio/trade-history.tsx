@@ -54,7 +54,7 @@ export default function TradeHistory() {
         <div className="max-h-[60vh] overflow-y-auto">
           {transactions.length === 0 ? (
             <div className="text-center p-8 text-muted-foreground">
-                <p>You haven't made any trades yet.</p>
+              <p>You haven't made any trades yet.</p>
             </div>
           ) : (
             <Table>
@@ -72,8 +72,8 @@ export default function TradeHistory() {
                 {transactions.map((tx, index) => (
                   <TableRow key={`${tx.timestamp}-${index}`}>
                     <TableCell>
-                        <div className="text-sm font-medium">{new Date(tx.timestamp).toLocaleDateString()}</div>
-                        <div className="text-xs text-muted-foreground">{new Date(tx.timestamp).toLocaleTimeString()}</div>
+                      <div className="text-sm font-medium">{new Date(tx.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                      <div className="text-xs text-muted-foreground">{new Date(tx.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </TableCell>
                     <TableCell className="font-bold">{tx.symbol}</TableCell>
                     <TableCell>

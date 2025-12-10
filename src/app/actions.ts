@@ -73,7 +73,8 @@ export async function handleStockPrediction(symbol: string): Promise<StockPredic
   try {
     const result = await stockPrediction({ symbol });
     if (!result) {
-      return { success: false, error: "You have reached the daily limit for predictions. Please try again tomorrow." };
+      // Result is null if the flow failed/threw an exception
+      return { success: false, error: "Failed to generate prediction. Please check the stock symbol or try again later." };
     }
     return { success: true, prediction: result };
   } catch (error: any) {

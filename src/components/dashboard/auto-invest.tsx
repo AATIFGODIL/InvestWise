@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PlusCircle, Repeat, DollarSign, Trash2 } from "lucide-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogClose,
 } from "@/components/ui/dialog";
 import {
     AlertDialog,
@@ -30,11 +30,11 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useAutoInvestStore, type AutoInvestment } from "@/store/auto-invest-store";
@@ -46,7 +46,7 @@ export default function AutoInvest() {
     const [isManageOpen, setIsManageOpen] = useState(false);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [selectedInvestment, setSelectedInvestment] = useState<AutoInvestment | null>(null);
-    
+
     // State for the creation form
     const [newSymbol, setNewSymbol] = useState("");
     const [newAmount, setNewAmount] = useState<number | string>("");
@@ -66,11 +66,11 @@ export default function AutoInvest() {
         });
         setIsManageOpen(false);
     };
-    
+
     const handleRemoveInvestment = () => {
         if (!selectedInvestment) return;
         removeAutoInvestment(selectedInvestment.id);
-         toast({
+        toast({
             variant: "destructive",
             title: "Investment Removed",
             description: `${selectedInvestment.symbol} has been removed from your auto-investments.`,
@@ -80,7 +80,7 @@ export default function AutoInvest() {
 
     const handleCreateInvestment = () => {
         if (!newSymbol || !newAmount || !newFrequency) {
-             toast({
+            toast({
                 variant: "destructive",
                 title: "Missing Information",
                 description: "Please fill out all fields to create a new auto-investment.",
@@ -92,7 +92,7 @@ export default function AutoInvest() {
             amount: Number(newAmount),
             frequency: newFrequency as "Daily" | "Weekly" | "Bi-weekly" | "Monthly",
         });
-         toast({
+        toast({
             title: "Success!",
             description: `Auto-investment for ${newSymbol.toUpperCase()} has been created.`,
         });
@@ -125,12 +125,12 @@ export default function AutoInvest() {
                             </p>
                         </div>
                         <div className="text-right">
-                           <Badge variant="secondary">Next: {new Date(investment.nextDate).toLocaleDateString()}</Badge>
-                           <Button variant="link" size="sm" className="h-auto p-0 mt-1" onClick={() => handleManageClick(investment)}>Manage</Button>
+                            <Badge variant="secondary">Next: {new Date(investment.nextDate).toLocaleDateString()}</Badge>
+                            <Button variant="link" size="sm" className="h-auto p-0 mt-1" onClick={() => handleManageClick(investment)}>Manage</Button>
                         </div>
                     </div>
                 ))}
-                 <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                     <DialogTrigger asChild>
                         <Button className="w-full">
                             <PlusCircle className="mr-2 h-4 w-4" />
@@ -197,7 +197,7 @@ export default function AutoInvest() {
                 </Dialog>
             </CardContent>
 
-             {/* Manage Dialog */}
+            {/* Manage Dialog */}
             <Dialog open={isManageOpen} onOpenChange={setIsManageOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
@@ -227,7 +227,7 @@ export default function AutoInvest() {
                                 <Label htmlFor="manage-frequency" className="text-right">
                                     Frequency
                                 </Label>
-                                <Select 
+                                <Select
                                     value={selectedInvestment.frequency}
                                     onValueChange={(value) => setSelectedInvestment({ ...selectedInvestment, frequency: value as any })}
                                 >
@@ -245,7 +245,7 @@ export default function AutoInvest() {
                         </div>
                     )}
                     <DialogFooter className="justify-between sm:justify-between">
-                         <AlertDialog>
+                        <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <Button variant="destructive" className="sm:mr-auto">
                                     <Trash2 className="mr-2 h-4 w-4" />
@@ -266,7 +266,7 @@ export default function AutoInvest() {
                             </AlertDialogContent>
                         </AlertDialog>
                         <div className="flex gap-2">
-                           <DialogClose asChild>
+                            <DialogClose asChild>
                                 <Button type="button" variant="secondary">
                                     Cancel
                                 </Button>
