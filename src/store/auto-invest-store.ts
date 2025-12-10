@@ -4,7 +4,6 @@ import { doc, updateDoc, getFirestore } from "firebase/firestore";
 import { auth } from '@/lib/firebase/config';
 import { usePortfolioStore } from './portfolio-store';
 import { useNotificationStore } from './notification-store';
-import { usePendingTradeStore } from './pending-trade-store';
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -17,13 +16,14 @@ export interface AutoInvestment {
 }
 
 interface AutoInvestState {
-  autoInvestments: AutoInvestment[];
-  loadAutoInvestments: (investments: AutoInvestment[]) => void;
-  addAutoInvestment: (investment: Omit<AutoInvestment, 'id' | 'nextDate'>) => void;
-  updateAutoInvestment: (id: string, updatedInvestment: AutoInvestment) => void;
-  removeAutoInvestment: (id: string) => void;
-  checkForDueTrades: () => void;
-  resetAutoInvest: () => void;
+    autoInvestments: AutoInvestment[];
+    loadAutoInvestments: (investments: AutoInvestment[]) => void;
+    addAutoInvestment: (investment: Omit<AutoInvestment, 'id' | 'nextDate'>) => void;
+    updateAutoInvestment: (id: string, updatedInvestment: AutoInvestment) => void;
+    removeAutoInvestment: (id: string) => void;
+    checkForDueTrades: () => void;
+    advanceNextDate: (id: string) => void;
+    resetAutoInvest: () => void;
 }
 
 const updateAutoInvestInFirestore = (investments: AutoInvestment[]) => {
@@ -59,7 +59,7 @@ export const useAutoInvestStore = create<AutoInvestState>((set, get) => ({
     autoInvestments: [],
 
     loadAutoInvestments: (investments) => set({ autoInvestments: investments || [] }),
-    
+
     addAutoInvestment: async (investment) => {
         const { executeTrade } = usePortfolioStore.getState();
 
@@ -70,7 +70,7 @@ export const useAutoInvestStore = create<AutoInvestState>((set, get) => ({
         }
         const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${investment.symbol}&token=${API_KEY}`);
         const data = await res.json();
-        
+
         if (!data || typeof data.c === 'undefined' || data.c === 0) {
             console.error(`Could not fetch a valid price for ${investment.symbol}. Auto-invest not created.`);
             // In a real app, you'd show a toast to the user here.
@@ -78,7 +78,7 @@ export const useAutoInvestStore = create<AutoInvestState>((set, get) => ({
         }
         const currentPrice = data.c;
         const quantity = parseFloat((investment.amount / currentPrice).toFixed(6));
-        
+
         // 2. Execute the initial trade immediately
         executeTrade({
             symbol: investment.symbol,
@@ -99,7 +99,7 @@ export const useAutoInvestStore = create<AutoInvestState>((set, get) => ({
     },
 
     updateAutoInvestment: (id, updatedInvestment) => {
-        const updatedInvestments = get().autoInvestments.map(inv => 
+        const updatedInvestments = get().autoInvestments.map(inv =>
             inv.id === id ? updatedInvestment : inv
         );
         set({ autoInvestments: updatedInvestments });
@@ -111,60 +111,44 @@ export const useAutoInvestStore = create<AutoInvestState>((set, get) => ({
         set({ autoInvestments: updatedInvestments });
         updateAutoInvestInFirestore(updatedInvestments);
     },
-    
-    checkForDueTrades: async () => {
+
+    checkForDueTrades: () => {
         const today = new Date();
         const dueInvestments = get().autoInvestments.filter(inv => new Date(inv.nextDate) <= today);
 
         if (dueInvestments.length === 0) return;
-        
+
         const { addNotification, notifications } = useNotificationStore.getState();
-        const { setPendingTrade } = usePendingTradeStore.getState();
 
         for (const investment of dueInvestments) {
             const notificationId = `autotrade-${investment.id}`;
 
-            // Check if a notification for this trade already exists today
-            const alreadyNotified = notifications.some(n => 
-                n.id === notificationId &&
-                new Date(n.createdAt).toDateString() === today.toDateString()
-            );
+            // Check if an unread notification for this trade already exists
+            const alreadyNotified = notifications.some(n => n.id === notificationId && !n.read);
 
-            if (alreadyNotified) continue; // Skip if already notified today
+            if (alreadyNotified) continue;
 
-            // Fetch current price for the pending trade
-            const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${investment.symbol}&token=${API_KEY}`);
-            const data = await res.json();
-            if (!data || typeof data.c === 'undefined' || data.c === 0) continue;
-
-            const currentPrice = data.c;
-            const quantity = parseFloat((investment.amount / currentPrice).toFixed(6));
-
-            // Create a pending trade and a notification
-            setPendingTrade({
-                id: investment.id,
-                symbol: investment.symbol,
-                quantity: quantity,
-                price: currentPrice
-            });
-            
             addNotification({
                 id: notificationId,
-                title: 'Auto-Invest Approval Needed',
-                description: `Your scheduled investment for ${investment.symbol} is ready.`,
+                title: 'Auto-Invest Due',
+                description: `Your scheduled investment for ${investment.symbol} is ready. Click to review and execute.`,
                 href: '/explore',
                 type: 'default',
                 read: false,
                 createdAt: new Date().toISOString()
             });
-
-            // Update the nextDate for the investment
-            const updatedInvestment = {
-                ...investment,
-                nextDate: getNextDate(investment.frequency).toISOString()
-            };
-            get().updateAutoInvestment(investment.id, updatedInvestment);
         }
+    },
+
+    advanceNextDate: (id: string) => {
+        const investment = get().autoInvestments.find(inv => inv.id === id);
+        if (!investment) return;
+
+        const updatedInvestment = {
+            ...investment,
+            nextDate: getNextDate(investment.frequency).toISOString()
+        };
+        get().updateAutoInvestment(id, updatedInvestment);
     },
 
 

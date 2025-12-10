@@ -3,6 +3,7 @@
 
 import { usePendingTradeStore } from "@/store/pending-trade-store";
 import { usePortfolioStore } from "@/store/portfolio-store";
+import { useAutoInvestStore } from "@/store/auto-invest-store";
 import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
@@ -35,6 +36,7 @@ export default function AutoTradeApprovalDialog() {
         title: "Auto-Invest Executed!",
         description: `Successfully bought ${pendingTrade.quantity} shares of ${pendingTrade.symbol}.`,
       });
+      useAutoInvestStore.getState().advanceNextDate(pendingTrade.id);
     } else {
       toast({
         variant: "destructive",
@@ -70,8 +72,8 @@ export default function AutoTradeApprovalDialog() {
             <div className="flex justify-between"><strong>Quantity:</strong> <span>{pendingTrade.quantity}</span></div>
             <div className="flex justify-between"><strong>Estimated Price:</strong> <span>${pendingTrade.price.toFixed(2)}</span></div>
             <div className="flex justify-between pt-2 border-t mt-2">
-                <strong>Estimated Total:</strong> 
-                <strong className="text-primary">${(pendingTrade.quantity * pendingTrade.price).toFixed(2)}</strong>
+              <strong>Estimated Total:</strong>
+              <strong className="text-primary">${(pendingTrade.quantity * pendingTrade.price).toFixed(2)}</strong>
             </div>
           </div>
         )}

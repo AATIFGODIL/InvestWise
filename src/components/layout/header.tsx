@@ -26,6 +26,10 @@ import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import FavoriteItem from './favorite-item';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAutoInvestStore } from "@/store/auto-invest-store";
+import { useNotificationStore, type AppNotification } from "@/store/notification-store";
+import { usePendingTradeStore } from "@/store/pending-trade-store";
+import AutoTradeApprovalDialog from "@/components/trade/auto-trade-approval-dialog";
 
 
 const containerVariants = {
@@ -65,13 +69,79 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   const [showGlow, setShowGlow] = React.useState(false);
 
   const [isEditing, setEditing] = React.useState(false);
+  // Duplicate removed
   const longPressTimer = React.useRef<NodeJS.Timeout | null>(null);
-  
+
+  const { checkForDueTrades } = useAutoInvestStore();
+  const { notifications, removeNotification, unreadCount } = useNotificationStore();
+  const { setPendingTrade } = usePendingTradeStore();
+
+  useEffect(() => {
+    if (user) {
+      checkForDueTrades();
+    }
+  }, [user, checkForDueTrades]);
+
+  const handleNotificationClick = async (e: React.MouseEvent, notification: AppNotification) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent closing if needed, or allow close. Usually closing is better.
+
+    // Always close the menu/popover by letting event bubble? 
+    // Actually Radix closing depends on item click. ensuring we don't preventdefault if we want close. 
+    // But we are doing async work for autotrade.
+
+    if (notification.id.startsWith('autotrade-')) {
+      const investmentId = notification.id.replace('autotrade-', '');
+      const investment = useAutoInvestStore.getState().autoInvestments.find(i => i.id === investmentId);
+
+      if (investment) {
+        showLoading();
+        try {
+          const apiKey = process.env.NEXT_PUBLIC_FINNHUB_API_KEY;
+          if (!apiKey) throw new Error("API Key missing");
+
+          const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${investment.symbol}&token=${apiKey}`);
+          const data = await res.json();
+
+          if (data && typeof data.c !== 'undefined' && data.c !== 0) {
+            const currentPrice = data.c;
+            const quantity = parseFloat((investment.amount / currentPrice).toFixed(6));
+
+            setPendingTrade({
+              id: investment.id,
+              symbol: investment.symbol,
+              quantity: quantity,
+              price: currentPrice
+            });
+
+            // Mark as read or remove.
+            removeNotification(notification.id);
+          } else {
+            console.error("Failed to fetch price");
+          }
+        } catch (err) {
+          console.error(err);
+        } finally {
+          // hideLoading(); // showLoading mimics navigation loading, usually handled by nextjs
+          // We might want to manually turn it off or just let the dialog appear.
+          // showLoading from store usually needs manual reset if not navigating?
+          // Checking store implementation... 
+          // Let's assume the dialog opening is feedback enough?
+          // But showLoading overlays the screen? 
+          useLoadingStore.getState().hideLoading();
+        }
+      }
+    } else {
+      router.push(notification.href);
+      removeNotification(notification.id);
+    }
+  };
+
   useEffect(() => {
     // Check for the glow effect flag on component mount
     if (sessionStorage.getItem('showGlowEffect') === 'true') {
       setShowGlow(true);
-      
+
       // Remove the flag so it doesn't run again
       sessionStorage.removeItem('showGlowEffect');
 
@@ -114,7 +184,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
       { name: `${isClearMode ? 'Disable' : 'Enable'} Clear Mode`, keywords: "theme glass liquid transparent", onSelect: () => useThemeStore.getState().setClearMode(!isClearMode), icon: appIcons.sparkles },
       { name: "Set Up Auto-Invest", keywords: "recurring investment", onSelect: () => router.push('/dashboard'), icon: appIcons.repeat },
       { name: "View Trade History", keywords: "transactions log", onSelect: () => router.push('/portfolio'), icon: appIcons.history },
-      { name: "Ask InvestWise AI", keywords: "chatbot help question", onSelect: () => {}, icon: appIcons.brain },
+      { name: "Ask InvestWise AI", keywords: "chatbot help question", onSelect: () => { }, icon: appIcons.brain },
       { name: "Educational Content", keywords: "learn video articles", onSelect: () => router.push('/dashboard'), icon: appIcons.bookOpen },
       { name: "View My Certificate", keywords: "award achievement", onSelect: () => router.push('/certificate'), icon: appIcons.award },
       { name: "TradingView", keywords: "chart graph", onSelect: () => setIsTradingViewOpen(true), icon: appIcons.tradingview, logoUrl: "https://cdn.brandfetch.io/idJGnLFA9x/w/400/h/400/theme/dark/icon.png?c=1bxid64Mup7aczewSAYMX&t=1745979227466" },
@@ -123,22 +193,22 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
   }, [theme, isClearMode, onTriggerRain, router, signOut]);
 
   const handleItemClick = (fav: Favorite) => {
-      if (isEditing) {
-          toggleFavoriteSize(fav.id);
+    if (isEditing) {
+      toggleFavoriteSize(fav.id);
+    } else {
+      if (fav.type === 'stock') {
+        setInitialStock(fav.value);
+        setOpen(true);
       } else {
-          if (fav.type === 'stock') {
-              setInitialStock(fav.value);
-              setOpen(true);
-          } else {
-              const action = appActions.find(a => a.name === fav.value);
-              if(action) {
-                // Using runCommand for consistency in closing the menu
-                runCommand(action.onSelect);
-              }
-          }
+        const action = appActions.find(a => a.name === fav.value);
+        if (action) {
+          // Using runCommand for consistency in closing the menu
+          runCommand(action.onSelect);
+        }
       }
+    }
   };
-  
+
   const runCommand = React.useCallback(async (command: () => void | Promise<void>) => {
     setOpen(false); // Close command menu
     await command();
@@ -157,81 +227,81 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     const icons = favorites.filter(f => f.size === 'icon');
 
     if (isEditing) {
-        return { displayedFavorites: favorites };
+      return { displayedFavorites: favorites };
     }
-    
+
     // Special case: 6 or more pills and on desktop, show 6 pills and 1 icon
     if (!isMobile && pills.length >= 6) {
-        const visiblePills = pills.slice(0, 6);
-        const visibleIcons = icons.slice(0, 1);
-        return {
-            displayedFavorites: [...visiblePills, ...visibleIcons],
-        };
+      const visiblePills = pills.slice(0, 6);
+      const visibleIcons = icons.slice(0, 1);
+      return {
+        displayedFavorites: [...visiblePills, ...visibleIcons],
+      };
     }
-    
+
     const maxWeight = isMobile ? 6 : 14;
-    
+
     // General case: fill up to maxWeight
     let weight = 0;
     const visibleFavorites: Favorite[] = [];
     for (const fav of favorites) {
-        const itemWeight = fav.size === 'pill' ? 2 : 1;
-        if (weight + itemWeight <= maxWeight) {
-            weight += itemWeight;
-            visibleFavorites.push(fav);
-        }
+      const itemWeight = fav.size === 'pill' ? 2 : 1;
+      if (weight + itemWeight <= maxWeight) {
+        weight += itemWeight;
+        visibleFavorites.push(fav);
+      }
     }
-    
-    return {
-        displayedFavorites: visibleFavorites,
-    };
-}, [favorites, isEditing, isMobile]);
 
-const { overflowMessage } = React.useMemo(() => {
+    return {
+      displayedFavorites: visibleFavorites,
+    };
+  }, [favorites, isEditing, isMobile]);
+
+  const { overflowMessage } = React.useMemo(() => {
     let calculatedPillsToDelete = 0;
     let calculatedIconsToDelete = 0;
     let message = '';
 
     if (isEditing) {
-        const pills = favorites.filter(f => f.size === 'pill');
-        const icons = favorites.filter(f => f.size === 'icon');
-        
-        if (!isMobile && pills.length >= 7) {
-            calculatedPillsToDelete = pills.length - 6;
-            calculatedIconsToDelete = Math.max(0, icons.length - 1);
-        } else {
-            const currentWeight = pills.length * 2 + icons.length;
-            const maxWeight = isMobile ? 6 : 14;
-            if (currentWeight > maxWeight) {
-                let excess = currentWeight - maxWeight;
-                const removableIcons = Math.min(excess, icons.length);
-                calculatedIconsToDelete = removableIcons;
-                excess -= removableIcons;
-                if (excess > 0) {
-                    calculatedPillsToDelete = Math.ceil(excess / 2);
-                }
-            }
+      const pills = favorites.filter(f => f.size === 'pill');
+      const icons = favorites.filter(f => f.size === 'icon');
+
+      if (!isMobile && pills.length >= 7) {
+        calculatedPillsToDelete = pills.length - 6;
+        calculatedIconsToDelete = Math.max(0, icons.length - 1);
+      } else {
+        const currentWeight = pills.length * 2 + icons.length;
+        const maxWeight = isMobile ? 6 : 14;
+        if (currentWeight > maxWeight) {
+          let excess = currentWeight - maxWeight;
+          const removableIcons = Math.min(excess, icons.length);
+          calculatedIconsToDelete = removableIcons;
+          excess -= removableIcons;
+          if (excess > 0) {
+            calculatedPillsToDelete = Math.ceil(excess / 2);
+          }
         }
-        
-        if (calculatedPillsToDelete === 1 && calculatedIconsToDelete === 0 && !isMobile) {
-            message = "To fit, modify 1 pill";
-        } else if (calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0) {
-            message = `To fit, remove ${calculatedPillsToDelete} pill(s) & ${calculatedIconsToDelete} icon(s)`;
-        } else if (calculatedPillsToDelete > 0) {
-            message = `To fit, remove ${calculatedPillsToDelete} pill(s)`;
-        } else if (calculatedIconsToDelete > 0) {
-            message = `To fit, remove ${calculatedIconsToDelete} icon(s)`;
-        }
+      }
+
+      if (calculatedPillsToDelete === 1 && calculatedIconsToDelete === 0 && !isMobile) {
+        message = "To fit, modify 1 pill";
+      } else if (calculatedPillsToDelete > 0 && calculatedIconsToDelete > 0) {
+        message = `To fit, remove ${calculatedPillsToDelete} pill(s) & ${calculatedIconsToDelete} icon(s)`;
+      } else if (calculatedPillsToDelete > 0) {
+        message = `To fit, remove ${calculatedPillsToDelete} pill(s)`;
+      } else if (calculatedIconsToDelete > 0) {
+        message = `To fit, remove ${calculatedIconsToDelete} icon(s)`;
+      }
     }
-    
+
     return { overflowMessage: message };
-}, [isEditing, favorites, isMobile]);
+  }, [isEditing, favorites, isMobile]);
 
 
 
   const handleReorder = (newOrder: Favorite[]) => {
-      if (!isEditing) return;
-      setFavorites(newOrder);
+    if (!isEditing) return;
+    setFavorites(newOrder);
   }
 
 
@@ -241,14 +311,14 @@ const { overflowMessage } = React.useMemo(() => {
         <div className={cn(
           "relative"
         )}>
-          <nav 
+          <nav
             className={cn(
               "relative flex h-16 w-full items-center justify-between rounded-full p-1 px-2 shadow-lg",
-              isClearMode 
-                  ? isLightClear
-                      ? "bg-card/60 ring-1 ring-white/10"
-                      : "bg-white/10 ring-1 ring-white/60"
-                  : "bg-card ring-1 ring-white/60",
+              isClearMode
+                ? isLightClear
+                  ? "bg-card/60 ring-1 ring-white/10"
+                  : "bg-white/10 ring-1 ring-white/60"
+                : "bg-card ring-1 ring-white/60",
               // COPY-THIS: To apply the glow effect
               showGlow && "login-glow"
             )}
@@ -257,8 +327,8 @@ const { overflowMessage } = React.useMemo(() => {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
-            <Link 
-              href="/dashboard" 
+            <Link
+              href="/dashboard"
               className="flex h-full shrink-0 items-center rounded-full bg-primary px-3 sm:px-4 shadow-md"
               onClick={(e) => handleNavigate(e, '/dashboard')}
             >
@@ -266,170 +336,184 @@ const { overflowMessage } = React.useMemo(() => {
                 InvestWise
               </h1>
             </Link>
-            
-              <div className="flex-1 flex justify-center items-center h-full sm:mx-2 overflow-x-auto hide-scrollbar">
-                <div className="relative z-10">
-                    <motion.button
-                        onPointerDown={handlePointerDown}
-                        onPointerUp={handlePointerUp}
-                        onPointerLeave={handlePointerUp}
-                        className={cn(
-                            "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-colors min-w-[75px] sm:min-w-[170px]",
-                            isClearMode
-                                ? isLightClear
-                                    ? "bg-card/60 text-foreground ring-1 ring-white/20"
-                                    : "bg-white/10 text-slate-100 ring-1 ring-white/60"
-                                : "bg-background text-foreground ring-1 ring-border",
-                            isEditing && "shimmer-bg"
-                        )}
-                        onClick={() => !isEditing && setOpen(true)}
-                        style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
-                        >
-                        <Search className="h-5 w-5" />
-                        <AnimatePresence mode="wait">
-                            <motion.span
-                                key={isEditing ? 'editing' : 'search'}
-                                initial={{ y: 10, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                exit={{ y: -10, opacity: 0 }}
-                                transition={{ duration: 0.2 }}
-                                className="hidden text-sm md:inline"
-                            >
-                                {isEditing ? 'Editing Mode' : 'Spotlight Search'}
-                            </motion.span>
-                        </AnimatePresence>
-                    </motion.button>
-                </div>
 
-                <AnimatePresence>
-                    {((isHovered && !isMobile) || isMobile || isEditing) && favorites.length > 0 && (
-                      <motion.div
-                        className="flex items-center"
-                        variants={containerVariants}
-                        initial="hidden"
-                        animate="visible"
-                        exit="hidden"
-                      >
-                        <Reorder.Group
-                            as="div"
-                            axis="x"
-                            values={favorites}
-                            onReorder={handleReorder}
-                            className="flex items-center gap-3 pl-3"
-                          >
-                           {favorites.map(fav => (
-                                <motion.div
-                                  key={fav.id}
-                                  layout
-                                  initial={{ opacity: 0, scale: 0.5 }}
-                                  animate={{ opacity: 1, scale: 1 }}
-                                  exit={{ opacity: 0, scale: 0.5 }}
-                                  transition={{ duration: 0.2 }}
-                                  className={cn(
-                                    (isEditing || displayedFavorites.some(df => df.id === fav.id)) ? 'flex' : 'hidden'
-                                  )}
-                                >
-                                  <FavoriteItem
-                                    favorite={fav}
-                                    onSelect={handleItemClick}
-                                    onRemove={removeFavorite}
-                                    variants={itemVariants}
-                                    isEditing={isEditing}
-                                    isPill={fav.size === 'pill'}
-                                  />
-                                </motion.div>
-                              ))}
-                          </Reorder.Group>
-                      </motion.div>
-                    )}
-                </AnimatePresence>
+            <div className="flex-1 flex justify-center items-center h-full sm:mx-2 overflow-x-auto hide-scrollbar">
+              <div className="relative z-10">
+                <motion.button
+                  onPointerDown={handlePointerDown}
+                  onPointerUp={handlePointerUp}
+                  onPointerLeave={handlePointerUp}
+                  className={cn(
+                    "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-colors min-w-[75px] sm:min-w-[170px]",
+                    isClearMode
+                      ? isLightClear
+                        ? "bg-card/60 text-foreground ring-1 ring-white/20"
+                        : "bg-white/10 text-slate-100 ring-1 ring-white/60"
+                      : "bg-background text-foreground ring-1 ring-border",
+                    isEditing && "shimmer-bg"
+                  )}
+                  onClick={() => !isEditing && setOpen(true)}
+                  style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
+                >
+                  <Search className="h-5 w-5" />
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={isEditing ? 'editing' : 'search'}
+                      initial={{ y: 10, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: -10, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="hidden text-sm md:inline"
+                    >
+                      {isEditing ? 'Editing Mode' : 'Spotlight Search'}
+                    </motion.span>
+                  </AnimatePresence>
+                </motion.button>
               </div>
-            
-            <div className="flex shrink-0 items-center gap-0 sm:gap-1">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="group h-12 w-12 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-primary/10">
-                        <Bell className={cn("h-5 w-5 transition-all bell-icon-glow", isClearMode && !isLightClear && "text-white")} />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-80" align="end" sideOffset={16}>
-                    <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem disabled className="p-3">You have no new notifications.</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
 
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className={cn("relative h-12 w-12 rounded-full", isClearMode ? "hover:bg-white/10" : "hover:bg-primary/10")}>
-                      <Avatar className="h-12 w-12 border-2 border-primary/50">
-                        <AvatarImage src={photoURL || ''} alt={username} />
-                        <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-56 mt-4" align="end" forceMount>
-                    <DropdownMenuLabel className="font-normal">
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{username}</p>
-                        <p className="text-xs leading-none text-muted-foreground">
-                          {user?.email}
-                        </p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuGroup>
-                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          <Link href="/profile" className="w-full flex items-center">
-                              <UserIcon className="mr-2 h-4 w-4" />
-                              <span>Profile</span>
-                          </Link>
+              <AnimatePresence>
+                {((isHovered && !isMobile) || isMobile || isEditing) && favorites.length > 0 && (
+                  <motion.div
+                    className="flex items-center"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                  >
+                    <Reorder.Group
+                      as="div"
+                      axis="x"
+                      values={favorites}
+                      onReorder={handleReorder}
+                      className="flex items-center gap-3 pl-3"
+                    >
+                      {favorites.map(fav => (
+                        <motion.div
+                          key={fav.id}
+                          layout
+                          initial={{ opacity: 0, scale: 0.5 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          transition={{ duration: 0.2 }}
+                          className={cn(
+                            (isEditing || displayedFavorites.some(df => df.id === fav.id)) ? 'flex' : 'hidden'
+                          )}
+                        >
+                          <FavoriteItem
+                            favorite={fav}
+                            onSelect={handleItemClick}
+                            onRemove={removeFavorite}
+                            variants={itemVariants}
+                            isEditing={isEditing}
+                            isPill={fav.size === 'pill'}
+                          />
+                        </motion.div>
+                      ))}
+                    </Reorder.Group>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-0 sm:gap-1">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="group h-12 w-12 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-primary/10">
+                    <Bell className={cn("h-5 w-5 transition-all bell-icon-glow", isClearMode && !isLightClear && "text-white")} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-80" align="end" sideOffset={16}>
+                  <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {notifications.length === 0 ? (
+                    <DropdownMenuItem disabled className="p-3">You have no new notifications.</DropdownMenuItem>
+                  ) : (
+                    notifications.map(notification => (
+                      <DropdownMenuItem
+                        key={notification.id}
+                        className="p-3 cursor-pointer flex flex-col items-start gap-1"
+                        onClick={(e) => handleNotificationClick(e, notification)}
+                      >
+                        <div className="font-semibold text-sm">{notification.title}</div>
+                        <div className="text-xs text-muted-foreground">{notification.description}</div>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          <Link href="/settings" className="w-full flex items-center">
-                              <Settings className="mr-2 h-4 w-4" />
-                              <span>Settings</span>
-                          </Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={signOut}>
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Log out</span>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className={cn("relative h-12 w-12 rounded-full", isClearMode ? "hover:bg-white/10" : "hover:bg-primary/10")}>
+                    <Avatar className="h-12 w-12 border-2 border-primary/50">
+                      <AvatarImage src={photoURL || ''} alt={username} />
+                      <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56 mt-4" align="end" forceMount>
+                  <DropdownMenuLabel className="font-normal">
+                    <div className="flex flex-col space-y-1">
+                      <p className="text-sm font-medium leading-none">{username}</p>
+                      <p className="text-xs leading-none text-muted-foreground">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <Link href="/profile" className="w-full flex items-center">
+                        <UserIcon className="mr-2 h-4 w-4" />
+                        <span>Profile</span>
+                      </Link>
                     </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <Link href="/settings" className="w-full flex items-center">
+                        <Settings className="mr-2 h-4 w-4" />
+                        <span>Settings</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </nav>
-           {overflowMessage && (
-                <div
-                    className={cn(
-                        "mt-2 text-center text-xs font-semibold overflow-hidden p-2 rounded-full relative shimmer-bg max-w-xs mx-auto px-4",
-                        isClearMode
-                            ? isLightClear
-                                ? "bg-card/60 ring-1 ring-white/20 text-foreground"
-                                : "bg-white/10 ring-1 ring-white/60 text-white"
-                            : "bg-background ring-1 ring-border text-foreground"
-                    )}
-                    style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
-                >
-                    <span>{overflowMessage}</span>
-                </div>
-            )}
+          {overflowMessage && (
+            <div
+              className={cn(
+                "mt-2 text-center text-xs font-semibold overflow-hidden p-2 rounded-full relative shimmer-bg max-w-xs mx-auto px-4",
+                isClearMode
+                  ? isLightClear
+                    ? "bg-card/60 ring-1 ring-white/20 text-foreground"
+                    : "bg-white/10 ring-1 ring-white/60 text-white"
+                  : "bg-background ring-1 ring-border text-foreground"
+              )}
+              style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
+            >
+              <span>{overflowMessage}</span>
+            </div>
+          )}
         </div>
       </header>
-      <CommandMenu 
-        open={open} 
+      <CommandMenu
+        open={open}
         onOpenChange={(isOpen) => {
-            setOpen(isOpen);
-            if (!isOpen) setInitialStock(undefined);
-        }} 
+          setOpen(isOpen);
+          if (!isOpen) setInitialStock(undefined);
+        }}
         onTriggerRain={onTriggerRain}
         initialStockSymbol={initialStock}
         isEditingFavorites={isEditing}
         isTradingViewOpen={isTradingViewOpen}
         onTradingViewOpenChange={setIsTradingViewOpen}
       />
+      <AutoTradeApprovalDialog />
     </>
   );
 }

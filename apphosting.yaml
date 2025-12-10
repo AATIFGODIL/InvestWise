@@ -16,6 +16,8 @@ env:
     value: d2icc8hr01qgfkrlm2ggd2icc8hr01qgfkrlm2h0
   - variable: BRAINTREE_ENVIRONMENT
     value: Sandbox
+  - variable: PREDICTION_API_URL
+    value: https://portfolio-forecast-api-509703968960.us-central1.run.app/forecast/symbol
 secretEnvironmentVariables:
   - key: FINNHUB_API_KEY
     secret: FINNHUB_API_KEY
