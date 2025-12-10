@@ -116,103 +116,156 @@ const fetchHistoricalPrices = async (symbol: string, from: number, to: number): 
 const reconstructPortfolioHistory = async (
     transactions: Transaction[],
     startDate: Date,
-    targetPoints: number
+    targetPoints: number,
+    currentPrices: Record<string, number>
 ): Promise<ChartDataPoint[]> => {
     if (transactions.length === 0) return [];
 
-    // 1. Identify universe of symbols
-    const symbols = Array.from(new Set(transactions.map(t => t.symbol)));
-
-    // Time range
-    const startTime = Math.floor(startDate.getTime() / 1000);
-    const endTime = Math.floor(Date.now() / 1000);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const nowTs = Date.now();
 
-    // 2. Fetch history for all symbols for the requested range
-    const priceHistory: Record<string, { [timestamp: number]: number }> = {};
+    // 1. Build Price Anchors for each symbol
+    // Anchors = Transactions + Current Price
+    const priceAnchors: Record<string, { time: number, price: number }[]> = {};
+    const symbols = Array.from(new Set(transactions.map(t => t.symbol)));
 
-    await Promise.all(symbols.map(async (symbol) => {
-        // We might need a bit of buffer before startDate for initial price if no trade happened exactly on startDate
-        // But for simplicity, let's fetch from startDate. 
-        // Actually, to get accurate value at startDate, we need the price at startDate.
-        const data = await fetchHistoricalPrices(symbol, startTime, endTime);
-        if (data) {
-            priceHistory[symbol] = {};
-            data.t.forEach((timestamp, index) => {
-                const date = new Date(timestamp * 1000);
-                date.setHours(0, 0, 0, 0);
-                priceHistory[symbol][date.getTime()] = data.c[index];
+    symbols.forEach(symbol => {
+        const symbolTx = transactions.filter(t => t.symbol === symbol).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+        const anchors: { time: number, price: number }[] = [];
+
+        // Add transaction points
+        symbolTx.forEach(tx => {
+            anchors.push({
+                time: new Date(tx.timestamp).getTime(),
+                price: tx.price
+            });
+        });
+
+        // Add today's current price as the final anchor
+        if (currentPrices[symbol]) {
+            anchors.push({
+                time: nowTs,
+                price: currentPrices[symbol]
+            });
+        } else if (anchors.length > 0) {
+            // Fallback: if no current price, assume flat from last transaction
+            anchors.push({
+                time: nowTs,
+                price: anchors[anchors.length - 1].price
             });
         }
-    }));
 
-    // 3. Replay history day by day from startDate to today
+        // Deduplicate timestamps (keep latest price for same timestamp)
+        // Sort just in case
+        priceAnchors[symbol] = anchors.sort((a, b) => a.time - b.time);
+    });
+
+    // Helper: Interpolate price at time t
+    const getPriceAtTime = (symbol: string, t: number): number => {
+        const anchors = priceAnchors[symbol];
+        if (!anchors || anchors.length === 0) return 0;
+
+        // If t is before first anchor, use first anchor price
+        if (t <= anchors[0].time) return anchors[0].price;
+        // If t is after last anchor, use last anchor price
+        if (t >= anchors[anchors.length - 1].time) return anchors[anchors.length - 1].price;
+
+        // Find anchors surrounding t
+        for (let i = 0; i < anchors.length - 1; i++) {
+            const p1 = anchors[i];
+            const p2 = anchors[i + 1];
+            if (t >= p1.time && t <= p2.time) {
+                // Linear interpolation
+                const range = p2.time - p1.time;
+                if (range === 0) return p2.price;
+                const progress = (t - p1.time) / range;
+                return p1.price + (p2.price - p1.price) * progress;
+            }
+        }
+        return anchors[anchors.length - 1].price;
+    };
+
+    // 2. Replay history day by day from startDate to today
     const dailyValues: { date: Date, value: number }[] = [];
 
-    // We need to know the portfolio state (quantities) at startDate.
-    // So we must replay ALL transactions from the beginning up to startDate.
-
+    // Portfolio state tracking
     const currentPortfolio: Record<string, number> = {};
-    const lastKnownPrices: Record<string, number> = {};
     const sortedTransactions = [...transactions].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-
-    // Fast-forward portfolio state to startDate
     let txIndex = 0;
 
-    // Pre-calculate portfolio at start date
-    while (txIndex < sortedTransactions.length) {
-        const tx = sortedTransactions[txIndex];
-        const txDate = new Date(tx.timestamp);
-        if (txDate.getTime() < startDate.getTime()) {
-            const qtyChange = tx.action === 'buy' ? tx.quantity : -tx.quantity;
-            currentPortfolio[tx.symbol] = (currentPortfolio[tx.symbol] || 0) + qtyChange;
-            lastKnownPrices[tx.symbol] = tx.price; // Best guess if no history
-            txIndex++;
-        } else {
-            break;
-        }
-    }
+    // Fast-forward portfolio state to startDate
+    // Warning: logic duplicated from previous version, optimized?
+    // Ideally we assume portfolio at startDate starts from 0 calculation or replay all.
+    // Let's replay logic exactly as before for quantity.
 
-    // Now iterate day by day from startDate
+    // Better: Replay ALL transactions to determine Qty curve, and simply sample at daily intervals.
+
+    // Iterate daily from startDate
     for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
-        const dayStart = d.getTime();
+        // Use Noon or End of Day? Or Midnight?
+        // Interpolation works for any time.
+        // Transactions usually have timestamps.
+        // Consistent: Midnight of that day.
+        const dayTime = d.getTime();
 
-        // Apply transactions for this day
+        // Catch up transactions for this day
         while (txIndex < sortedTransactions.length) {
             const tx = sortedTransactions[txIndex];
-            const txDate = new Date(tx.timestamp);
-            txDate.setHours(0, 0, 0, 0);
-
-            if (txDate.getTime() <= dayStart) {
+            const txTime = new Date(tx.timestamp).getTime();
+            // If tx happened ON this day (before next day), include it?
+            // Simple check: if txTime <= dayTime.
+            if (txTime <= dayTime) {
                 const qtyChange = tx.action === 'buy' ? tx.quantity : -tx.quantity;
                 currentPortfolio[tx.symbol] = (currentPortfolio[tx.symbol] || 0) + qtyChange;
-                lastKnownPrices[tx.symbol] = tx.price;
                 txIndex++;
             } else {
                 break;
             }
         }
 
-        // Calculate value
+        // Calculate Value
         let dayValue = 0;
         for (const [symbol, qty] of Object.entries(currentPortfolio)) {
             if (qty > 0) {
-                let price = 0;
-                if (priceHistory[symbol] && priceHistory[symbol][dayStart]) {
-                    price = priceHistory[symbol][dayStart];
-                    lastKnownPrices[symbol] = price;
-                } else {
-                    price = lastKnownPrices[symbol] || 0;
-                }
+                const price = getPriceAtTime(symbol, dayTime);
                 dayValue += qty * price;
             }
         }
 
         dailyValues.push({
-            date: new Date(d),
+            date: new Date(dayTime),
             value: Number(dayValue.toFixed(2))
         });
+    }
+
+    // Add "Now" point if not covered (usually loop covers today 00:00, but we want live value at end)
+    const lastVal = dailyValues[dailyValues.length - 1];
+    if (lastVal) {
+        // Update the last point to be NOW instead of midnight?
+        // Or append a point?
+        // Let's Just Update the last point to NOW's value/time if it's "Today"
+        if (lastVal.date.toDateString() === today.toDateString()) {
+            // Catch up remaining transactions for today
+            while (txIndex < sortedTransactions.length) {
+                const tx = sortedTransactions[txIndex];
+                const qtyChange = tx.action === 'buy' ? tx.quantity : -tx.quantity;
+                currentPortfolio[tx.symbol] = (currentPortfolio[tx.symbol] || 0) + qtyChange;
+                txIndex++;
+            }
+
+            let nowValue = 0;
+            for (const [symbol, qty] of Object.entries(currentPortfolio)) {
+                if (qty > 0) {
+                    // Use the explicit current price anchor (which is at nowTs)
+                    const price = getPriceAtTime(symbol, nowTs);
+                    nowValue += qty * price;
+                }
+            }
+            lastVal.value = Number(nowValue.toFixed(2));
+            // lastVal.date is still midnight date object, but value is fresh.
+        }
     }
 
     // 4. Downsampling
@@ -284,7 +337,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
                 portfolioSummary: newSummary,
             }));
             // We don't verify chart history here anymore, explicit fetch needed
-            // OR we can update the active range. 
+            // OR we can update the active range.
             // Let's stick to explicit fetch.
         } catch (error) {
             console.error("Error updating live prices:", error);
@@ -292,7 +345,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
     },
 
     fetchChartData: async (range: '1W' | '1M' | '6M' | '1Y') => {
-        const { chartRangeStatus, chartData } = get();
+        const { chartRangeStatus, chartData, holdings } = get();
 
         // If already loaded or loading, do nothing (unless forced refresh needed?)
         // For now, simple caching.
@@ -305,6 +358,18 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
         }));
 
         try {
+            // Ensure we have current prices for interpolation!
+            // If holdings are stale or empty prices, try updateLivePrices first?
+            // But updateLivePrices is async and sets state.
+            // Let's just use what we have, or trigger a price update if we suspect they are empty?
+            // User likely calls loadInitialData -> updateLivePrices.
+
+            // Collect current prices from holdings state
+            const currentPrices: Record<string, number> = {};
+            holdings.forEach(h => {
+                if (h.currentPrice) currentPrices[h.symbol] = h.currentPrice;
+            });
+
             const transactions = useTransactionStore.getState().transactions;
             const now = new Date();
             let startDate = new Date();
@@ -329,13 +394,13 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
                     break;
             }
 
-            // Ensure we don't go before registration/first transaction if desired, 
+            // Ensure we don't go before registration/first transaction if desired,
             // but reconstructPortfolioHistory handles empty periods correctly (flat 0 or initial buy).
             // Actually, we should check if first transaction is *after* startDate.
-            // If so, maybe clamp startDate? Or just let it be 0 until then. 
+            // If so, maybe clamp startDate? Or just let it be 0 until then.
             // Let it be 0.
 
-            const data = await reconstructPortfolioHistory(transactions, startDate, targetPoints);
+            const data = await reconstructPortfolioHistory(transactions, startDate, targetPoints, currentPrices);
 
             set(state => ({
                 chartData: { ...state.chartData, [range]: data },
