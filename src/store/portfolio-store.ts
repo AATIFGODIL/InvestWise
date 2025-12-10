@@ -44,12 +44,14 @@ interface PortfolioState {
     portfolioSummary: PortfolioSummary;
     chartData: ChartData;
     marketHolidays: Set<string>;
+    chartRangeStatus: Record<'1W' | '1M' | '6M' | '1Y', 'idle' | 'loading' | 'success' | 'error'>;
     isLoading: boolean;
-    registrationDate: Date | null; // Add this
+    registrationDate: Date | null;
     setLoading: (isLoading: boolean) => void;
     fetchMarketHolidays: () => Promise<void>;
     updateLivePrices: () => Promise<void>;
     updateChartHistory: () => Promise<void>;
+    fetchChartData: (range: '1W' | '1M' | '6M' | '1Y') => Promise<void>;
     executeTrade: (trade: { symbol: string, qty: number, price: number, description: string }) => { success: boolean, error?: string };
     loadInitialData: (holdings: Holding[], summary: PortfolioSummary | null, registrationDate: Date) => void;
     resetPortfolio: () => void;
@@ -111,27 +113,33 @@ const fetchHistoricalPrices = async (symbol: string, from: number, to: number): 
     }
 };
 
-const reconstructPortfolioHistory = async (transactions: Transaction[], registrationDate: Date): Promise<ChartData> => {
-    if (transactions.length === 0) return defaultChartData;
+const reconstructPortfolioHistory = async (
+    transactions: Transaction[],
+    startDate: Date,
+    targetPoints: number
+): Promise<ChartDataPoint[]> => {
+    if (transactions.length === 0) return [];
 
-    // 1. Identify universe of symbols and time range
+    // 1. Identify universe of symbols
     const symbols = Array.from(new Set(transactions.map(t => t.symbol)));
-    // Start from the very first transaction or registration date, whichever is earlier, but practically first transaction matters most for value.
-    // Actually, graph should probably start from first transaction.
-    const firstTransactionTime = Math.min(...transactions.map(t => new Date(t.timestamp).getTime()));
-    // Go back a bit to ensure we cover the start day
-    const startTime = Math.floor(firstTransactionTime / 1000) - 86400;
-    const endTime = Math.floor(Date.now() / 1000);
 
-    // 2. Fetch history for all symbols
+    // Time range
+    const startTime = Math.floor(startDate.getTime() / 1000);
+    const endTime = Math.floor(Date.now() / 1000);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 2. Fetch history for all symbols for the requested range
     const priceHistory: Record<string, { [timestamp: number]: number }> = {};
 
     await Promise.all(symbols.map(async (symbol) => {
+        // We might need a bit of buffer before startDate for initial price if no trade happened exactly on startDate
+        // But for simplicity, let's fetch from startDate. 
+        // Actually, to get accurate value at startDate, we need the price at startDate.
         const data = await fetchHistoricalPrices(symbol, startTime, endTime);
         if (data) {
             priceHistory[symbol] = {};
             data.t.forEach((timestamp, index) => {
-                // Normalize timestamp to midnight for easier matching
                 const date = new Date(timestamp * 1000);
                 date.setHours(0, 0, 0, 0);
                 priceHistory[symbol][date.getTime()] = data.c[index];
@@ -139,68 +147,64 @@ const reconstructPortfolioHistory = async (transactions: Transaction[], registra
         }
     }));
 
-    // 3. Replay history day by day
+    // 3. Replay history day by day from startDate to today
     const dailyValues: { date: Date, value: number }[] = [];
-    // Start loop from first transaction day
-    const startDate = new Date(firstTransactionTime);
-    startDate.setHours(0, 0, 0, 0);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
-    // Helper to get holdings at a specific point in time
-    // Optimization: Calculate daily deltas? Or just replay everything? 
-    // Given the number of days might be small (months), replaying transactions up to that day is fine or maintaining running state.
-    // Running state is better.
+    // We need to know the portfolio state (quantities) at startDate.
+    // So we must replay ALL transactions from the beginning up to startDate.
 
-    const currentPortfolio: Record<string, number> = {}; // Symbol -> Qty
-    const lastKnownPrices: Record<string, number> = {}; // Symbol -> Last known price
-
-    // Sort transactions by time
+    const currentPortfolio: Record<string, number> = {};
+    const lastKnownPrices: Record<string, number> = {};
     const sortedTransactions = [...transactions].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+    // Fast-forward portfolio state to startDate
     let txIndex = 0;
 
+    // Pre-calculate portfolio at start date
+    while (txIndex < sortedTransactions.length) {
+        const tx = sortedTransactions[txIndex];
+        const txDate = new Date(tx.timestamp);
+        if (txDate.getTime() < startDate.getTime()) {
+            const qtyChange = tx.action === 'buy' ? tx.quantity : -tx.quantity;
+            currentPortfolio[tx.symbol] = (currentPortfolio[tx.symbol] || 0) + qtyChange;
+            lastKnownPrices[tx.symbol] = tx.price; // Best guess if no history
+            txIndex++;
+        } else {
+            break;
+        }
+    }
+
+    // Now iterate day by day from startDate
     for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
         const dayStart = d.getTime();
-        // const dayEnd = dayStart + 86400000; // Not strictly needed if we process transactions before dayStart
 
-        // Apply transactions that happened BEFORE or ON this day
+        // Apply transactions for this day
         while (txIndex < sortedTransactions.length) {
             const tx = sortedTransactions[txIndex];
             const txDate = new Date(tx.timestamp);
-            txDate.setHours(0, 0, 0, 0); // Normalize transaction date to midnight
+            txDate.setHours(0, 0, 0, 0);
 
             if (txDate.getTime() <= dayStart) {
                 const qtyChange = tx.action === 'buy' ? tx.quantity : -tx.quantity;
                 currentPortfolio[tx.symbol] = (currentPortfolio[tx.symbol] || 0) + qtyChange;
-                // Update last known price for this symbol with transaction price
                 lastKnownPrices[tx.symbol] = tx.price;
                 txIndex++;
             } else {
-                break; // Transactions for future days
+                break;
             }
         }
 
-        // Calculate value for this day
+        // Calculate value
         let dayValue = 0;
-        // let hasPriceData = false; // Not strictly needed for the current logic
-
         for (const [symbol, qty] of Object.entries(currentPortfolio)) {
             if (qty > 0) {
                 let price = 0;
-                if (priceHistory[symbol]) {
-                    // Try to get price for the exact day
-                    if (priceHistory[symbol][dayStart]) {
-                        price = priceHistory[symbol][dayStart];
-                        lastKnownPrices[symbol] = price; // Update last known price
-                    } else {
-                        // If no price for exact day (e.g., weekend/holiday), use last known price
-                        price = lastKnownPrices[symbol] || 0;
-                    }
+                if (priceHistory[symbol] && priceHistory[symbol][dayStart]) {
+                    price = priceHistory[symbol][dayStart];
+                    lastKnownPrices[symbol] = price;
                 } else {
-                    // If no historical data for symbol, use last known price (e.g., from transaction)
                     price = lastKnownPrices[symbol] || 0;
                 }
-
                 dayValue += qty * price;
             }
         }
@@ -211,24 +215,27 @@ const reconstructPortfolioHistory = async (transactions: Transaction[], registra
         });
     }
 
-    // 4. Slice for ranges
-    const formatData = (days: number) => {
-        const cutoff = new Date();
-        cutoff.setDate(cutoff.getDate() - days);
-        return dailyValues
-            .filter(v => v.date >= cutoff)
-            .map(v => ({
-                date: v.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                value: v.value
-            }));
-    };
+    // 4. Downsampling
+    if (dailyValues.length <= targetPoints) {
+        return dailyValues.map(v => ({
+            date: v.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            value: v.value
+        }));
+    }
 
-    return {
-        '1W': formatData(7),
-        '1M': formatData(30),
-        '6M': formatData(180),
-        '1Y': formatData(365),
-    };
+    const sampledData: ChartDataPoint[] = [];
+    const step = (dailyValues.length - 1) / (targetPoints - 1);
+
+    for (let i = 0; i < targetPoints; i++) {
+        const index = Math.round(i * step);
+        const v = dailyValues[Math.min(index, dailyValues.length - 1)];
+        sampledData.push({
+            date: v.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            value: v.value
+        });
+    }
+
+    return sampledData;
 };
 
 export const usePortfolioStore = create<PortfolioState>((set, get) => ({
@@ -236,13 +243,13 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
     portfolioSummary: { ...defaultSummary },
     marketHolidays: new Set(),
     chartData: { ...defaultChartData },
+    chartRangeStatus: { '1W': 'idle', '1M': 'idle', '6M': 'idle', '1Y': 'idle' },
     isLoading: true,
     registrationDate: null,
 
     setLoading: (isLoading) => set({ isLoading }),
 
     fetchMarketHolidays: async () => {
-        // Only fetch if not already fetched
         if (get().marketHolidays.size === 0) {
             const holidays = await fetchHolidaysFromFinnhub();
             set({ marketHolidays: holidays });
@@ -251,26 +258,20 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
 
     updateLivePrices: async () => {
         const holdings = get().holdings;
-        if (holdings.length === 0 || !API_KEY) {
-            // No need to fetch if there are no holdings or no API key
-            return;
-        }
+        if (holdings.length === 0 || !API_KEY) return;
 
         try {
             const updatedHoldings = await Promise.all(
                 holdings.map(async (holding) => {
                     const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${holding.symbol}&token=${API_KEY}`);
-                    if (!res.ok) {
-                        console.error(`Failed to fetch quote for ${holding.symbol}`);
-                        return holding; // Return original holding on error
-                    }
+                    if (!res.ok) return holding;
                     const data = await res.json();
                     if (data && typeof data.c !== 'undefined') {
                         return {
                             ...holding,
-                            currentPrice: data.c, // current price
-                            todaysChange: data.d, // change
-                            todaysChangePercent: data.dp, // percent change
+                            currentPrice: data.c,
+                            todaysChange: data.d,
+                            todaysChangePercent: data.dp,
                         };
                     }
                     return holding;
@@ -278,45 +279,98 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
             );
 
             const newSummary = calculatePortfolioSummary(updatedHoldings);
-
             set(state => ({
                 holdings: updatedHoldings,
                 portfolioSummary: newSummary,
             }));
-
-            // Trigger history update separately as it is heavy
-            usePortfolioStore.getState().updateChartHistory();
-
+            // We don't verify chart history here anymore, explicit fetch needed
+            // OR we can update the active range. 
+            // Let's stick to explicit fetch.
         } catch (error) {
             console.error("Error updating live prices:", error);
         }
     },
 
+    fetchChartData: async (range: '1W' | '1M' | '6M' | '1Y') => {
+        const { chartRangeStatus, chartData } = get();
+
+        // If already loaded or loading, do nothing (unless forced refresh needed?)
+        // For now, simple caching.
+        if (chartRangeStatus[range] === 'success' || chartRangeStatus[range] === 'loading') {
+            return;
+        }
+
+        set(state => ({
+            chartRangeStatus: { ...state.chartRangeStatus, [range]: 'loading' }
+        }));
+
+        try {
+            const transactions = useTransactionStore.getState().transactions;
+            const now = new Date();
+            let startDate = new Date();
+            let targetPoints = 7;
+
+            switch (range) {
+                case '1W':
+                    startDate.setDate(now.getDate() - 7);
+                    targetPoints = 7;
+                    break;
+                case '1M':
+                    startDate.setMonth(now.getMonth() - 1);
+                    targetPoints = 10;
+                    break;
+                case '6M':
+                    startDate.setMonth(now.getMonth() - 6);
+                    targetPoints = 12;
+                    break;
+                case '1Y':
+                    startDate.setFullYear(now.getFullYear() - 1);
+                    targetPoints = 15;
+                    break;
+            }
+
+            // Ensure we don't go before registration/first transaction if desired, 
+            // but reconstructPortfolioHistory handles empty periods correctly (flat 0 or initial buy).
+            // Actually, we should check if first transaction is *after* startDate.
+            // If so, maybe clamp startDate? Or just let it be 0 until then. 
+            // Let it be 0.
+
+            const data = await reconstructPortfolioHistory(transactions, startDate, targetPoints);
+
+            set(state => ({
+                chartData: { ...state.chartData, [range]: data },
+                chartRangeStatus: { ...state.chartRangeStatus, [range]: 'success' }
+            }));
+
+        } catch (error) {
+            console.error(`Failed to fetch chart data for ${range}:`, error);
+            set(state => ({
+                chartRangeStatus: { ...state.chartRangeStatus, [range]: 'error' }
+            }));
+        }
+    },
+
     updateChartHistory: async () => {
-        const transactions = useTransactionStore.getState().transactions;
-        const { registrationDate } = get();
-        // Only run if we have a registration date (or just default)
-        const chartData = await reconstructPortfolioHistory(transactions, registrationDate || new Date());
-        set({ chartData });
+        // Deprecated / Legacy support or specific refresh
+        // Now just refetches 1W to ensure immediate view is up to date
+        await get().fetchChartData('1W');
     },
 
 
     loadInitialData: async (holdings, summary, registrationDate) => {
-        const { updateLivePrices, updateChartHistory } = get();
-        // Use stored summary if available, otherwise calculate from stored holdings
+        const { updateLivePrices, fetchChartData } = get();
         const initialSummary = summary || calculatePortfolioSummary(holdings);
 
         set({
             holdings: holdings,
             portfolioSummary: initialSummary,
-            registrationDate: registrationDate, // Store the date
-            isLoading: false, // Set loading to false after initial data is set
+            registrationDate: registrationDate,
+            isLoading: false,
         });
 
-        // Trigger history reconstruction
-        await updateChartHistory();
+        // Only fetch 1W initially
+        await fetchChartData('1W');
 
-        // Then, trigger the live price update
         if (holdings.length > 0) {
             updateLivePrices();
         }
@@ -327,8 +381,9 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
             holdings: [],
             portfolioSummary: { ...defaultSummary },
             chartData: { ...defaultChartData },
+            chartRangeStatus: { '1W': 'idle', '1M': 'idle', '6M': 'idle', '1Y': 'idle' },
             registrationDate: null,
-            isLoading: true, // Set to true on reset, will be false after new user data is loaded
+            isLoading: true,
         });
     },
 
