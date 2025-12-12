@@ -176,12 +176,14 @@ export default function DashboardClient() {
                         </div>
                     </Card>
                 </motion.div>
-                <motion.div variants={itemVariants} className="space-y-4 pt-4">
-                    <h2 className="text-xl font-bold">Educational Content</h2>
-                    <EducationalContent content={educationalContent} />
-                </motion.div>
-                <motion.div variants={itemVariants} id="bundles-tutorial">
-                    <InvestmentBundles {...bundleProps} />
+                <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                    <div className="space-y-4">
+                        <h2 className="text-xl font-bold">Educational Content</h2>
+                        <EducationalContent content={educationalContent} className="grid-cols-1 md:grid-cols-1" />
+                    </div>
+                    <div id="bundles-tutorial">
+                        <InvestmentBundles {...bundleProps} />
+                    </div>
                 </motion.div>
                 <Chatbot />
             </motion.div>
