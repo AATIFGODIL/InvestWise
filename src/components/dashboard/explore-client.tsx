@@ -20,17 +20,17 @@ import OnboardingTutorial from "@/components/dashboard/onboarding-tutorial";
 
 // These components are loaded dynamically to improve initial page load performance.
 // They will only be loaded when they are needed, reducing the client-side JavaScript bundle size.
-const PortfolioValue = dynamic(() => import("@/components/portfolio/portfolio-value"), { 
-    ssr: false,
-    loading: () => <Skeleton className="h-[550px] w-full" />,
+const PortfolioValue = dynamic(() => import("@/components/portfolio/portfolio-value"), {
+  ssr: false,
+  loading: () => <Skeleton className="h-[550px] w-full" />,
 });
 const GoalProgress = dynamic(() => import("@/components/dashboard/goal-progress"), {
-    ssr: false,
-    loading: () => <Skeleton className="h-full w-full min-h-[200px]" />,
+  ssr: false,
+  loading: () => <Skeleton className="h-full w-full min-h-[200px]" />,
 });
 const InvestmentBundles = dynamic(() => import("@/components/dashboard/investment-bundles"), {
-    ssr: false,
-    loading: () => <Skeleton className="h-[400px] w-full" />,
+  ssr: false,
+  loading: () => <Skeleton className="h-[400px] w-full" />,
 });
 
 import { Skeleton } from "../ui/skeleton";
@@ -80,7 +80,7 @@ export default function ExploreClient() {
 
   const handleTutorialComplete = () => {
     if (typeof window !== 'undefined') {
-        localStorage.setItem('hasCompletedOnboardingTutorial', 'true');
+      localStorage.setItem('hasCompletedOnboardingTutorial', 'true');
     }
     setShowTutorial(false);
   }
@@ -88,28 +88,28 @@ export default function ExploreClient() {
   // This function determines which set of investment bundles to show the user
   // based on their self-identified experience level from the onboarding quiz.
   const getBundlesForProfile = (profile: string | null) => {
-    switch(profile) {
-        case "Student":
-        case "Beginner":
-            return {
-                title: "Recommended Bundles",
-                description: "Start with these popular, diversified bundles.",
-                bundles: recommendedBundles,
-            };
-        case "Amateur":
-        case "New Investor":
-        case "Experienced Investor":
-             return {
-                title: "Explore Specialized Bundles",
-                description: "Discover themed collections for more focused strategies.",
-                bundles: specializedBundles,
-            };
-        default:
-             return {
-                title: "Investment Bundles",
-                description: "Collections of assets to help you diversify your portfolio.",
-                bundles: [...recommendedBundles, ...specializedBundles],
-            };
+    switch (profile) {
+      case "Student":
+      case "Beginner":
+        return {
+          title: "Recommended Bundles",
+          description: "Start with these popular, diversified bundles.",
+          bundles: recommendedBundles,
+        };
+      case "Amateur":
+      case "New Investor":
+      case "Experienced Investor":
+        return {
+          title: "Explore Specialized Bundles",
+          description: "Discover themed collections for more focused strategies.",
+          bundles: specializedBundles,
+        };
+      default:
+        return {
+          title: "Investment Bundles",
+          description: "Collections of assets to help you diversify your portfolio.",
+          bundles: [...recommendedBundles, ...specializedBundles],
+        };
     }
   }
 
@@ -120,61 +120,63 @@ export default function ExploreClient() {
 
   return (
     <main>
-        {showTutorial && <OnboardingTutorial onComplete={handleTutorialComplete} />}
-        <motion.div 
-            className="p-4 space-y-6 pb-40"
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-        >
-            <motion.div variants={itemVariants} className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Explore</h1>
-                <div className="flex items-center gap-2 text-sm text-primary">
-                    <Clock className="h-4 w-4" />
-                    <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
-                </div>
-            </motion.div>
-            
-            <motion.div variants={itemVariants}>
-                <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
-            </motion.div>
-            <motion.div variants={itemVariants} id="portfolio-card-tutorial">
-                <PortfolioValue showTitle={true} />
-            </motion.div>
-            <div id="holdings-watchlist-tutorial">
-                <motion.div variants={itemVariants}>
-                    <Watchlist />
-                </motion.div>
-                <motion.div variants={itemVariants} className="mt-6" id="holdings-summary-tutorial">
-                    <HoldingsSummary />
-                </motion.div>
-            </div>
-            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div id="auto-invest-tutorial">
-                    <AutoInvest />
-                </div>
-                 <div id="ai-prediction-tutorial">
-                    <AiPrediction />
-                 </div>
-            </motion.div>
-            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <GoalProgress />
-                 <div id="community-leaderboard-tutorial">
-                    <CommunityLeaderboard />
-                 </div>
-            </motion.div>
-            <motion.div variants={itemVariants}>
-                <MarketNews limit={3} />
-            </motion.div>
-            <motion.div variants={itemVariants} className="space-y-4 pt-4">
-                <h2 className="text-xl font-bold">Educational Content</h2>
-                <EducationalContent content={educationalContent} />
-            </motion.div>
-            <motion.div variants={itemVariants} id="bundles-tutorial">
-                <InvestmentBundles {...bundleProps} />
-            </motion.div>
-            <Chatbot />
+      {showTutorial && <OnboardingTutorial onComplete={handleTutorialComplete} />}
+      <motion.div
+        className="p-4 space-y-6 pb-40"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={itemVariants} className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Explore</h1>
+          <div className="flex items-center gap-2 text-sm text-primary">
+            <Clock className="h-4 w-4" />
+            <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+          </div>
         </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <CongratulationsBanner show={showCongrats} userProfile={userProfile || ""} />
+        </motion.div>
+        <motion.div variants={itemVariants} id="portfolio-card-tutorial">
+          <PortfolioValue showTitle={true} />
+        </motion.div>
+        <div id="holdings-watchlist-tutorial">
+          <motion.div variants={itemVariants}>
+            <Watchlist />
+          </motion.div>
+          <motion.div variants={itemVariants} className="mt-6" id="holdings-summary-tutorial">
+            <HoldingsSummary />
+          </motion.div>
+        </div>
+        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div id="auto-invest-tutorial">
+            <AutoInvest />
+          </div>
+          <div id="ai-prediction-tutorial">
+            <AiPrediction />
+          </div>
+        </motion.div>
+        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <GoalProgress />
+          <div id="community-leaderboard-tutorial">
+            <CommunityLeaderboard />
+          </div>
+        </motion.div>
+        <motion.div variants={itemVariants}>
+          <MarketNews limit={3} />
+        </motion.div>
+        <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold">Educational Content</h2>
+            <EducationalContent content={educationalContent} className="grid-cols-1 md:grid-cols-1" />
+          </div>
+          <div id="bundles-tutorial">
+            <InvestmentBundles {...bundleProps} />
+          </div>
+        </motion.div>
+        <Chatbot />
+      </motion.div>
     </main>
   );
 }

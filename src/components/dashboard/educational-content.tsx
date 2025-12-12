@@ -19,34 +19,35 @@ interface EducationalContentItem {
 
 interface EducationalContentProps {
   content: EducationalContentItem[];
+  className?: string;
 }
 
-const EducationalContent: React.FC<EducationalContentProps> = ({ content }) => {
-    const { isClearMode, theme } = useThemeStore();
-    const isLightClear = isClearMode && theme === 'light';
+const EducationalContent: React.FC<EducationalContentProps> = ({ content, className }) => {
+  const { isClearMode, theme } = useThemeStore();
+  const isLightClear = isClearMode && theme === 'light';
 
   return (
-    <div className="grid gap-6 md:grid-cols-2">
+    <div className={cn("grid gap-6 md:grid-cols-2", className)}>
       {content.map((item, index) => (
-        <Card 
-            key={index} 
-            className="flex flex-col justify-between overflow-hidden"
+        <Card
+          key={index}
+          className="flex flex-col justify-between overflow-hidden"
         >
           {item.type === 'video' && item.youtubeUrl ? (
-             <YouTubePlayer videoTitle={item.title} youtubeUrl={item.youtubeUrl} />
+            <YouTubePlayer videoTitle={item.title} youtubeUrl={item.youtubeUrl} />
           ) : (
             item.filePath && (
               <>
                 <CardHeader className="p-0">
                   <div className="relative h-48 w-full">
                     <Image
-                        src={item.filePath}
-                        alt={item.title}
-                        fill
-                        className="object-cover"
-                        style={{ 
-                          objectPosition: item.title.includes("Market Structures") ? 'top' : 'center 10%' 
-                        }}
+                      src={item.filePath}
+                      alt={item.title}
+                      fill
+                      className="object-cover"
+                      style={{
+                        objectPosition: item.title.includes("Market Structures") ? 'top' : 'center 10%'
+                      }}
                     />
                   </div>
                 </CardHeader>
@@ -60,12 +61,12 @@ const EducationalContent: React.FC<EducationalContentProps> = ({ content }) => {
           {item.type !== 'video' && item.filePath && (
             <CardFooter className='p-4 pt-0 mt-auto'>
               <Button asChild className={cn(
-                  "w-full ring-1 ring-white/60",
-                  isClearMode
-                      ? isLightClear
-                          ? "bg-card/60 text-foreground"
-                          : "bg-white/10 text-white"
-                      : ""
+                "w-full ring-1 ring-white/60",
+                isClearMode
+                  ? isLightClear
+                    ? "bg-card/60 text-foreground"
+                    : "bg-white/10 text-white"
+                  : ""
               )}>
                 <Link href={item.filePath} target="_blank" rel="noopener noreferrer">
                   Read Document
