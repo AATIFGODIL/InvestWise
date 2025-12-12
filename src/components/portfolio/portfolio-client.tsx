@@ -95,7 +95,7 @@ export default function PortfolioClient() {
   return (
     <main>
       <motion.div
-        className="p-4 space-y-6 pb-24"
+        className="p-4 space-y-6 pb-40"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
