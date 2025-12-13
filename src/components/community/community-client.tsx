@@ -102,9 +102,7 @@ export default function CommunityClient() {
             </TabsList>
             <TabsContent value="feed" className="mt-6 space-y-6">
               <Leaderboard />
-              <div className="lg:col-span-1 h-[600px]">
-                <TopNews limit={8} />
-              </div>
+
               {showQuests && <Quests />}
             </TabsContent>
             <TabsContent value="trends" className="mt-6">
