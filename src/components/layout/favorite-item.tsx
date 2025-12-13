@@ -13,12 +13,12 @@ import { useIsMobile } from '@/hooks/use-mobile';
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
 interface FavoriteItemProps {
-  favorite: Favorite;
-  onSelect: (fav: Favorite) => void;
-  onRemove: (id: string) => void;
-  variants: any;
-  isEditing: boolean;
-  isPill: boolean;
+    favorite: Favorite;
+    onSelect: (fav: Favorite) => void;
+    onRemove: (id: string) => void;
+    variants: any;
+    isEditing: boolean;
+    isPill: boolean;
 }
 
 export default function FavoriteItem({ favorite, onSelect, onRemove, variants, isEditing, isPill }: FavoriteItemProps) {
@@ -49,20 +49,20 @@ export default function FavoriteItem({ favorite, onSelect, onRemove, variants, i
         "rounded-full transition-colors duration-300 ease-in-out focus-visible:ring-0 flex items-center justify-center relative",
         isEditing ? "cursor-grab active:cursor-grabbing shimmer-bg" : "cursor-pointer",
         isClearMode
-          ? isLightClear
-            ? "bg-card/60 text-foreground ring-1 ring-white/20"
-            : "bg-white/10 text-slate-100 ring-1 ring-white/60"
-          : "bg-background text-foreground ring-1 ring-border"
+            ? isLightClear
+                ? "bg-card/60 text-foreground ring-1 ring-white/20"
+                : "bg-white/10 text-slate-100 ring-1 ring-white/60"
+            : "bg-background text-foreground ring-1 ring-border"
     );
 
     const handleRemoveClick = (e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent the main onClick from firing
         onRemove(favorite.id);
     };
-    
+
     const tradingViewLogoUrl = theme === 'dark'
-      ? 'https://cdn.brandfetch.io/idJGnLFA9x/theme/light/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1745979241933'
-      : 'https://cdn.brandfetch.io/idJGnLFA9x/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1745979241741';
+        ? 'https://cdn.brandfetch.io/idJGnLFA9x/theme/light/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1745979241933'
+        : 'https://cdn.brandfetch.io/idJGnLFA9x/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1745979241741';
 
     const height = isMobile ? '2.5rem' : '3rem'; // 40px vs 48px
     const width = isPill ? (isMobile ? '120px' : '140px') : height;
@@ -75,11 +75,10 @@ export default function FavoriteItem({ favorite, onSelect, onRemove, variants, i
             whileDrag={{ scale: 1.1, zIndex: 50 }} // Lift and scale item while dragging
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
             className={cn("z-10 flex-shrink-0", containerClasses)}
-            style={{ backdropFilter: "blur(2px)" }}
+            style={{ backdropFilter: "blur(2px)", height, width }}
             onClick={() => onSelect(favorite)}
-            animate={{ height, width }}
         >
-             <AnimatePresence>
+            <AnimatePresence>
                 {isEditing && (
                     <motion.button
                         initial={{ opacity: 0, scale: 0.5 }}
@@ -120,20 +119,20 @@ export default function FavoriteItem({ favorite, onSelect, onRemove, variants, i
                                 </div>
                             </>
                         ) : favorite.value === 'TradingView' ? (
-                             <div className="flex items-center justify-center w-full h-full">
+                            <div className="flex items-center justify-center w-full h-full">
                                 <img src={tradingViewLogoUrl} alt="TradingView Logo" className="h-4 sm:h-5" />
                             </div>
                         ) : (
-                             <div className="flex items-center justify-center gap-1 sm:gap-2 w-full text-center">
+                            <div className="flex items-center justify-center gap-1 sm:gap-2 w-full text-center">
                                 {Icon && <Icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />}
-                                 <span className="font-semibold text-xs whitespace-normal leading-tight text-center">{favorite.name}</span>
+                                <span className="font-semibold text-xs whitespace-normal leading-tight text-center">{favorite.name}</span>
                             </div>
                         )}
                     </motion.div>
                 ) : (
                     <motion.div key="icon" exit={{ opacity: 0 }}>
                         {favorite.type === 'stock' ? (
-                             <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
+                            <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
                                 <AvatarImage src={favorite.logoUrl} alt={favorite.name} />
                                 <AvatarFallback className="text-xs sm:text-sm">{favorite.iconName}</AvatarFallback>
                             </Avatar>
