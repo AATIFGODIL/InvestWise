@@ -25,6 +25,21 @@ interface Message {
   content: string;
 }
 
+const FormattedMessage = ({ content }: { content: string }) => {
+  if (!content) return null;
+  const parts = content.split(/(\*\*.*?\*\*)/g);
+  return (
+    <p className="text-sm whitespace-pre-wrap">
+      {parts.map((part, index) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={index}>{part.slice(2, -2)}</strong>;
+        }
+        return part;
+      })}
+    </p>
+  );
+};
+
 export default function Chatbot() {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -88,7 +103,7 @@ export default function Chatbot() {
     const userMessage: Message = { role: "user", content: input };
     setMessages((prev) => [...prev, userMessage, { role: "loading", content: "..." }]);
     setInput("");
-    
+
     let fileDataUri: string | undefined = undefined;
     if (file) {
       fileDataUri = await fileToDataUri(file);
@@ -122,14 +137,14 @@ export default function Chatbot() {
         <Button
           variant="outline"
           className={cn(
-              "w-full justify-between items-center p-3 h-auto rounded-full shadow-2xl shadow-black/20 ring-1 ring-white/60 hover:bg-primary/10",
-               isClearMode 
-                ? isLightClear
-                    ? "bg-card/60 text-foreground" // Light Clear
-                    : "bg-white/10 text-white" // Dark Clear
-                : "bg-card text-card-foreground", // Solid
-              // COPY-THIS: To apply the glow effect
-              showGlow && "login-glow"
+            "w-full justify-between items-center p-3 h-auto rounded-full shadow-2xl shadow-black/20 ring-1 ring-white/60 hover:bg-primary/10",
+            isClearMode
+              ? isLightClear
+                ? "bg-card/60 text-foreground" // Light Clear
+                : "bg-white/10 text-white" // Dark Clear
+              : "bg-card text-card-foreground", // Solid
+            // COPY-THIS: To apply the glow effect
+            showGlow && "login-glow"
           )}
           // COPY-THIS: For the glass look (backdrop filter)
           style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
@@ -179,7 +194,11 @@ export default function Chatbot() {
                       message.role === "loading" && "animate-pulse"
                     )}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    {message.role === "user" ? (
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    ) : (
+                      <FormattedMessage content={message.content} />
+                    )}
                   </div>
                   {message.role === "user" && (
                     <Avatar className="h-8 w-8">
@@ -199,15 +218,15 @@ export default function Chatbot() {
               </div>
             )}
             <form onSubmit={handleSubmit} className="flex items-center gap-2">
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                className="hidden" 
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
               />
               <Button type="button" variant="ghost" size="icon" onClick={handleFileAttach}>
-                  <Paperclip className="h-5 w-5 text-muted-foreground" />
-                  <span className="sr-only">Attach file</span>
+                <Paperclip className="h-5 w-5 text-muted-foreground" />
+                <span className="sr-only">Attach file</span>
               </Button>
               <Input
                 value={input}
