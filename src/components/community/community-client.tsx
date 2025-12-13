@@ -115,7 +115,7 @@ export default function CommunityClient() {
 
         <motion.div variants={itemVariants} className="space-y-4 pt-4">
           <h2 className="text-xl font-bold">Learn from the Experts</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {videos.map((video) => (
               <YouTubePlayer key={video.title} videoTitle={video.title} {...video} />
             ))}

@@ -476,7 +476,7 @@ export default function TradeClient() {
                         <CardHeader>
                             <CardTitle>Stock Screener</CardTitle>
                         </CardHeader>
-                        <CardContent className="flex-1 min-h-[500px] p-0 overflow-hidden rounded-b-lg">
+                        <CardContent className="flex-1 min-h-[400px] p-0 overflow-hidden rounded-b-lg">
                             <TradingViewScreener />
                         </CardContent>
                     </Card>
@@ -484,7 +484,7 @@ export default function TradeClient() {
 
                 <motion.div variants={itemVariants} className="space-y-4 pt-4">
                     <h2 className="text-xl font-bold">Learn About Trading</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {videos.map((video) => (
                             <YouTubePlayer key={video.title} videoTitle={video.title} description={video.description} youtubeUrl={video.youtubeUrl} />
                         ))}
