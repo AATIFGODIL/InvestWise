@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -35,6 +35,21 @@ function PortfolioValue({ showTitle: showTitleProp = false }: PortfolioValueProp
   const pathname = usePathname();
   const [timeRange, setTimeRange] = useState<TimeRange>('1W');
   const { portfolioSummary, chartData, isLoading, fetchChartData, chartRangeStatus } = usePortfolioStore();
+  const [showGlow, setShowGlow] = useState(false);
+
+  useEffect(() => {
+    // Check for the glow effect flag on component mount
+    if (sessionStorage.getItem('showGlowEffect') === 'true') {
+      setShowGlow(true);
+
+      // Turn off the glow after a few seconds
+      const timer = setTimeout(() => {
+        setShowGlow(false);
+      }, 4000); // 4 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const showTitle = showTitleProp || pathname === '/explore';
 
@@ -95,7 +110,9 @@ function PortfolioValue({ showTitle: showTitleProp = false }: PortfolioValueProp
 
 
   return (
-    <Card>
+    <Card className={cn(
+      showGlow && "login-glow"
+    )}>
       <CardHeader>
         {showTitle && (
           <CardTitle className="flex items-center gap-2 text-xl mb-4">

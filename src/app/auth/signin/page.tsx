@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import {
@@ -48,7 +48,7 @@ const FinanceBackground = () => (
           <path d="M 20 120 V 90 M 30 120 V 80 M 40 120 V 100" stroke="hsl(var(--primary) / 0.12)" strokeWidth="2" fill="none" className="shimmering-icon" style={{ animationDelay: '0.5s' }} />
           <path d="M 70 20 A 15 15 0 0 1 85 35 L 70 35 Z" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="hsl(var(--primary) / 0.05)" className="shimmering-icon" style={{ animationDelay: '1s' }} />
           <circle cx="70" cy="35" r="15" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" className="shimmering-icon" style={{ animationDelay: '1.5s' }} />
-          <path d="M 110 80 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 120 100 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 110 98 L 122 82" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" className="shimmering-icon" style={{ animationDelay: '2s' }}/>
+          <path d="M 110 80 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 120 100 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 110 98 L 122 82" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" className="shimmering-icon" style={{ animationDelay: '2s' }} />
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill="hsl(var(--background))" />
@@ -65,6 +65,18 @@ export default function SignInPage() {
   const { toast } = useToast();
   const { isClearMode, theme } = useThemeStore();
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
+  const [showGlow, setShowGlow] = useState(false);
+
+  useEffect(() => {
+    // Check for the glow effect flag on component mount (e.g. user just navigated here)
+    // Or simpler: Just always show it for a moment on mount for "wow" factor?
+    // User said "same effect and feature on sign in".
+    // Usually "feature" implies the "Welcome Back" flow triggers it.
+    // If we want it on Sign In page load:
+    setShowGlow(true);
+    const timer = setTimeout(() => setShowGlow(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -101,7 +113,7 @@ export default function SignInPage() {
       setIsGoogleLoading(false);
     }
   };
-  
+
   const handlePasswordReset = async () => {
     if (!email) {
       setError("Please enter your email address to reset your password.");
@@ -139,120 +151,121 @@ export default function SignInPage() {
       >
         <Card
           className={cn(
-              "w-full relative",
-              isClearMode 
-                  ? isLightClear
-                      ? "bg-card/60 ring-1 ring-white/10"
-                      : "bg-white/10 ring-1 ring-white/60"
-                  : ""
+            "w-full relative",
+            isClearMode
+              ? isLightClear
+                ? "bg-card/60 ring-1 ring-white/10"
+                : "bg-white/10 ring-1 ring-white/60"
+              : "",
+            showGlow && "login-glow"
           )}
           // COPY-THIS: For the glass look (backdrop filter)
           style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
         >
-            {isAnimationComplete && <AnimatedBorder />}
-            <div className="flex justify-center items-center pt-8 gap-2">
-                <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
+          {isAnimationComplete && <AnimatedBorder />}
+          <div className="flex justify-center items-center pt-8 gap-2">
+            <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
+          </div>
+          <CardHeader>
+            <CardTitle className="text-2xl">Welcome Back!</CardTitle>
+            <CardDescription>
+              Sign in to continue your investment journey.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Sign-In Failed</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <div className="grid gap-2">
+              <Button variant="outline" onClick={handleGoogleSignIn} className="w-full" disabled={isEmailLoading || isGoogleLoading}>
+                {isGoogleLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    <GoogleIcon /> Continue with Google
+                  </>
+                )}
+              </Button>
             </div>
-            <CardHeader>
-              <CardTitle className="text-2xl">Welcome Back!</CardTitle>
-              <CardDescription>
-                Sign in to continue your investment journey.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4">
-              {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Sign-In Failed</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className={cn("px-2 text-muted-foreground", isClearMode && !isLightClear ? "bg-card" : "bg-background")}>Or continue with</span>
+              </div>
+            </div>
+            <form onSubmit={handleEmailSignIn} className="grid gap-4">
               <div className="grid gap-2">
-                <Button variant="outline" onClick={handleGoogleSignIn} className="w-full" disabled={isEmailLoading || isGoogleLoading}>
-                    {isGoogleLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      <>
-                        <GoogleIcon /> Continue with Google
-                      </>
-                    )}
-                </Button>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={isEmailLoading || isGoogleLoading}
+                />
               </div>
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t" />
+              <div className="grid gap-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <button
+                    type="button"
+                    onClick={handlePasswordReset}
+                    className="text-sm underline"
+                  >
+                    Forgot password?
+                  </button>
                 </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                    <span className={cn("px-2 text-muted-foreground", isClearMode && !isLightClear ? "bg-card" : "bg-background")}>Or continue with</span>
-                </div>
-              </div>
-              <form onSubmit={handleEmailSignIn} className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    placeholder="name@example.com" 
-                    required 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pr-10"
                     disabled={isEmailLoading || isGoogleLoading}
                   />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
+                    onClick={() => setShowPassword(prev => !prev)}
+                    disabled={isEmailLoading || isGoogleLoading}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
                 </div>
-                <div className="grid gap-2">
-                   <div className="flex items-center justify-between">
-                      <Label htmlFor="password">Password</Label>
-                      <button
-                          type="button"
-                          onClick={handlePasswordReset}
-                          className="text-sm underline"
-                      >
-                          Forgot password?
-                      </button>
-                   </div>
-                  <div className="relative">
-                    <Input 
-                      id="password" 
-                      type={showPassword ? 'text' : 'password'}
-                      required 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="pr-10"
-                      disabled={isEmailLoading || isGoogleLoading}
-                    />
-                    <Button 
-                      type="button" 
-                      variant="ghost" 
-                      size="icon" 
-                      className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
-                      onClick={() => setShowPassword(prev => !prev)}
-                      disabled={isEmailLoading || isGoogleLoading}
-                    >
-                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                </div>
-                <Button type="submit" className="w-full" disabled={isEmailLoading || isGoogleLoading}>
-                  {isEmailLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Signing In...
-                    </>
-                  ) : (
-                    'Sign In with Email'
-                  )}
-                </Button>
-              </form>
-            </CardContent>
-            <CardFooter className="text-center text-sm">
-              Don&apos;t have an account?&nbsp;
-              <Link href="/auth/signup" className="underline" onClick={handleNavigateToSignUp}>
-                Sign Up
-              </Link>
-            </CardFooter>
+              </div>
+              <Button type="submit" className="w-full" disabled={isEmailLoading || isGoogleLoading}>
+                {isEmailLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing In...
+                  </>
+                ) : (
+                  'Sign In with Email'
+                )}
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className="text-center text-sm">
+            Don&apos;t have an account?&nbsp;
+            <Link href="/auth/signup" className="underline" onClick={handleNavigateToSignUp}>
+              Sign Up
+            </Link>
+          </CardFooter>
         </Card>
       </motion.div>
     </div>

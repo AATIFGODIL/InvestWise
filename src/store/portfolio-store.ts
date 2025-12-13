@@ -480,7 +480,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
 
         // "Logic to analyze dates": Reconstruct history uses precise transaction timestamps
         // to determine exact holdings for each day.
-        await fetchChartData('1W');
+        // await fetchChartData('1W'); // allow component to fetch this so we see local skeleton state
 
         if (holdings.length > 0) {
             updateLivePrices();

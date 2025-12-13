@@ -142,8 +142,11 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
     if (sessionStorage.getItem('showGlowEffect') === 'true') {
       setShowGlow(true);
 
-      // Remove the flag so it doesn't run again
-      sessionStorage.removeItem('showGlowEffect');
+      // Remove the flag so it doesn't run again, but with a slight delay
+      // so other components can pick it up
+      setTimeout(() => {
+        sessionStorage.removeItem('showGlowEffect');
+      }, 500);
 
       // Turn off the glow after a few seconds
       const timer = setTimeout(() => {
