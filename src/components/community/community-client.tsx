@@ -1,7 +1,7 @@
 "use client";
 
 import Leaderboard from "@/components/community/leaderboard";
-import MarketNews from "./market-news";
+import TopNews from "@/components/dashboard/top-news";
 import Quests from "@/components/community/quests";
 import AskMentor from "@/components/community/ask-mentor";
 import PrivacySettings from "@/components/community/privacy-settings";
@@ -103,7 +103,7 @@ export default function CommunityClient() {
             <TabsContent value="feed" className="mt-6 space-y-6">
               <Leaderboard />
               <div className="lg:col-span-1 h-[600px]">
-                <MarketNews />
+                <TopNews limit={8} />
               </div>
               {showQuests && <Quests />}
             </TabsContent>
@@ -122,17 +122,9 @@ export default function CommunityClient() {
           </div>
         </motion.div>
         <motion.div variants={itemVariants}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
-                <Newspaper className="h-5 w-5 text-primary" />
-                Market News
-              </CardTitle>
-            </CardHeader>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-4 px-2 sm:px-6 pb-6">
-              <MarketNews />
-            </div>
-          </Card>
+          <div className="pt-4 pb-6">
+            <TopNews limit={8} />
+          </div>
         </motion.div>
         <Chatbot />
       </motion.div>

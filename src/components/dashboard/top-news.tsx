@@ -7,16 +7,20 @@ import { Newspaper, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-export default function TopNews() {
+interface TopNewsProps {
+  limit?: number;
+}
+
+export default function TopNews({ limit = 5 }: TopNewsProps) {
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchTopFinancialNewsAction().then(data => {
+    fetchTopFinancialNewsAction(limit).then(data => {
       setNews(data);
       setLoading(false);
     });
-  }, []);
+  }, [limit]);
 
   return (
     <Card className="h-full flex flex-col">
