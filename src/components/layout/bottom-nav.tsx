@@ -38,7 +38,7 @@ export default function BottomNav() {
   const animationFrameRef = useRef<number | null>(null);
 
   const { isClearMode, theme } = useThemeStore();
-  const { activeIndex: externalActiveIndex, samePageIndex, clearActiveIndex } = useBottomNavStore();
+  const { activeIndex: externalActiveIndex, targetPath, samePageIndex, clearActiveIndex } = useBottomNavStore();
   const isLightClear = isClearMode && theme === "light";
   const isMobile = useIsMobile();
 
@@ -146,7 +146,7 @@ export default function BottomNav() {
     }
   }, []);
 
-  const animateTo = useCallback((clickedIndex: number, isSamePage: boolean = false) => {
+  const animateTo = useCallback((clickedIndex: number, isSamePage: boolean = false, overridePath?: string | null) => {
     if (animationStateRef.current !== "idle" || clickedIndex === -1) return;
 
     // Prevent animation if it's not a same-page action and the index is already active
@@ -157,7 +157,7 @@ export default function BottomNav() {
     const endItem = itemRefs.current[clickedIndex];
 
     if (!navEl || !startItem || !endItem) {
-      if (!isSamePage) router.push(navItems[clickedIndex].href);
+      if (!isSamePage) router.push(overridePath || navItems[clickedIndex].href);
       return;
     }
 
@@ -219,7 +219,7 @@ export default function BottomNav() {
 
     const settleTimeout = setTimeout(() => {
       setAnimationState("descending");
-      if (!isSamePage) router.push(navItems[clickedIndex].href);
+      if (!isSamePage) router.push(overridePath || navItems[clickedIndex].href);
       setGliderStyle(prev => ({
         ...prev,
         transform: `translateX(${endLeft}px) translateY(-50%)`,
@@ -248,7 +248,7 @@ export default function BottomNav() {
 
   useEffect(() => {
     if (externalActiveIndex !== null) {
-      animateTo(externalActiveIndex, false);
+      animateTo(externalActiveIndex, false, targetPath);
       clearActiveIndex();
     }
     if (samePageIndex !== null) {

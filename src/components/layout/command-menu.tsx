@@ -239,9 +239,9 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     await command();
   }, [onOpenChange]);
 
-  const triggerNavAnimation = useCallback((index: number) => {
+  const triggerNavAnimation = useCallback((index: number, path?: string) => {
     onOpenChange(false);
-    setActiveIndex(index);
+    setActiveIndex(index, path);
   }, [onOpenChange, setActiveIndex]);
 
   const fetchNewsForSymbol = useCallback(async (symbol: string) => {
@@ -321,9 +321,9 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     { name: "Trade", keywords: "buy sell chart", onSelect: () => triggerNavAnimation(2), icon: Repeat },
     { name: "Goals", keywords: "savings targets", onSelect: () => triggerNavAnimation(3), icon: BarChart },
     { name: "Community", keywords: "leaderboard social", onSelect: () => triggerNavAnimation(4), icon: Users },
-    { name: "View Leaderboard", keywords: "rankings top investors", onSelect: () => runCommand(() => router.push('/community?tab=feed')), icon: Users },
-    { name: "View Community Trends", keywords: "popular stocks", onSelect: () => runCommand(() => router.push('/community?tab=trends')), icon: TrendingUpIcon },
-    { name: "View Watchlist", keywords: "saved stocks favorites", onSelect: () => runCommand(() => router.push('/portfolio')), icon: Star },
+    { name: "View Leaderboard", keywords: "rankings top investors", onSelect: () => triggerNavAnimation(4, '/community?tab=feed'), icon: Users },
+    { name: "View Community Trends", keywords: "popular stocks", onSelect: () => triggerNavAnimation(4, '/community?tab=trends'), icon: TrendingUpIcon },
+    { name: "View Watchlist", keywords: "saved stocks favorites", onSelect: () => triggerNavAnimation(1), icon: Star },
     { name: "TradingView", keywords: "chart graph", onSelect: () => runCommand(() => onTradingViewOpenChange(true)), icon: TrendingUpIcon, logoUrl: "https://cdn.brandfetch.io/idJGnLFA9x/w/400/h/400/theme/dark/icon.png?c=1bxid64Mup7aczewSAYMX&t=1745979227466" },
     { name: "Sign Out", keywords: "log out exit", onSelect: () => runCommand(signOut), icon: LogOut },
     { name: "Profile", keywords: "account my info", onSelect: () => runCommand(() => router.push('/profile')), icon: User },
