@@ -57,7 +57,7 @@ import { useUserStore } from "@/store/user-store";
 import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 import { useDebounce } from "@/hooks/use-debounce";
 import TradingViewWidget from "../shared/trading-view-widget";
-
+import { useBottomNavStore } from "@/store/bottom-nav-store";
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
 
@@ -119,6 +119,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   const { openChatbot } = useChatbotStore();
   const { addGoal } = useGoalStore();
   const { favorites, addFavorite, removeFavorite } = useFavoritesStore();
+  const { setActiveIndex } = useBottomNavStore();
 
   const [view, setView] = useState<"search" | "stock-detail">("search");
   const [query, setQuery] = useState("");
@@ -238,6 +239,11 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     await command();
   }, [onOpenChange]);
 
+  const triggerNavAnimation = useCallback((index: number) => {
+    onOpenChange(false);
+    setActiveIndex(index);
+  }, [onOpenChange, setActiveIndex]);
+
   const fetchNewsForSymbol = useCallback(async (symbol: string) => {
     if (!API_KEY) return [];
     const to = new Date();
@@ -310,11 +316,11 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
 
   const appActions = useMemo(() => [
     { name: "Make it rain", keywords: "celebrate money win", onSelect: () => runCommand(onTriggerRain), icon: PartyPopper },
-    { name: "Dashboard", keywords: "home explore main", onSelect: () => runCommand(() => router.push('/dashboard')), icon: Home },
-    { name: "Portfolio", keywords: "holdings assets", onSelect: () => runCommand(() => router.push('/portfolio')), icon: Briefcase },
-    { name: "Trade", keywords: "buy sell chart", onSelect: () => runCommand(() => router.push('/trade')), icon: Repeat },
-    { name: "Goals", keywords: "savings targets", onSelect: () => runCommand(() => router.push('/goals')), icon: BarChart },
-    { name: "Community", keywords: "leaderboard social", onSelect: () => runCommand(() => router.push('/community')), icon: Users },
+    { name: "Dashboard", keywords: "home explore main", onSelect: () => triggerNavAnimation(0), icon: Home },
+    { name: "Portfolio", keywords: "holdings assets", onSelect: () => triggerNavAnimation(1), icon: Briefcase },
+    { name: "Trade", keywords: "buy sell chart", onSelect: () => triggerNavAnimation(2), icon: Repeat },
+    { name: "Goals", keywords: "savings targets", onSelect: () => triggerNavAnimation(3), icon: BarChart },
+    { name: "Community", keywords: "leaderboard social", onSelect: () => triggerNavAnimation(4), icon: Users },
     { name: "View Leaderboard", keywords: "rankings top investors", onSelect: () => runCommand(() => router.push('/community?tab=feed')), icon: Users },
     { name: "View Community Trends", keywords: "popular stocks", onSelect: () => runCommand(() => router.push('/community?tab=trends')), icon: TrendingUpIcon },
     { name: "View Watchlist", keywords: "saved stocks favorites", onSelect: () => runCommand(() => router.push('/portfolio')), icon: Star },
@@ -325,12 +331,12 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     { name: `Switch to ${theme === 'dark' ? 'Light' : 'Dark'} Mode`, keywords: "theme appearance", onSelect: () => runCommand(() => updateUserTheme({ theme: theme === 'dark' ? 'light' : 'dark' })), icon: theme === 'dark' ? Sun : Moon },
     { name: `${isClearMode ? 'Disable' : 'Enable'} Clear Mode`, keywords: "theme glass liquid transparent", onSelect: () => runCommand(() => updateUserTheme({ isClearMode: !isClearMode })), icon: Sparkles },
     { name: "Create New Goal", keywords: "new savings target", onSelect: () => runCommand(() => setIsGoalDialogOpen(true)), icon: Target },
-    { name: "Set Up Auto-Invest", keywords: "recurring investment", onSelect: () => runCommand(() => router.push('/dashboard')), icon: Repeat },
-    { name: "View Trade History", keywords: "transactions log", onSelect: () => runCommand(() => router.push('/portfolio')), icon: History },
+    { name: "Set Up Auto-Invest", keywords: "recurring investment", onSelect: () => triggerNavAnimation(0), icon: Repeat },
+    { name: "View Trade History", keywords: "transactions log", onSelect: () => triggerNavAnimation(1), icon: History },
     { name: "Ask InvestWise AI", keywords: "chatbot help question", onSelect: () => runCommand(openChatbot), icon: BrainCircuit },
-    { name: "Educational Content", keywords: "learn video articles", onSelect: () => runCommand(() => router.push('/dashboard')), icon: BookOpen },
+    { name: "Educational Content", keywords: "learn video articles", onSelect: () => triggerNavAnimation(0), icon: BookOpen },
     { name: "View My Certificate", keywords: "award achievement", onSelect: () => runCommand(() => router.push('/certificate')), icon: Award },
-  ], [router, runCommand, signOut, theme, isClearMode, updateUserTheme, openChatbot, onTriggerRain, onTradingViewOpenChange]);
+  ], [router, runCommand, signOut, theme, isClearMode, updateUserTheme, openChatbot, onTriggerRain, onTradingViewOpenChange, triggerNavAnimation]);
 
   useEffect(() => {
     if (!open) {
