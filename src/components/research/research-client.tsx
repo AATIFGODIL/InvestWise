@@ -346,16 +346,16 @@ export default function ResearchClient() {
                 </div>
 
                 {/* 4. Deep Dive Search Section */}
-                <div className={cn("pt-8 border-t space-y-6", isClearMode ? "border-white/10" : "border-border")}>
+                <div className={cn("pt-8 border-t space-y-6 pb-96", isClearMode ? "border-white/10" : "border-border")}>
                     <h3 className={cn("text-lg font-semibold", isClearMode ? "text-primary-foreground" : "text-foreground")}>Detailed Stock Analysis</h3>
                     {/* Search Bar */}
-                    <div className="relative max-w-2xl" ref={searchContainerRef}>
+                    <div className="relative w-full px-4" ref={searchContainerRef}>
                         <div className="relative flex items-center">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Search className="absolute left-8 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                             <Input
                                 placeholder="Search symbol (e.g. AAPL) for deep analysis..."
                                 className={cn(
-                                    "pl-12 h-14 rounded-full text-lg focus-visible:ring-primary/50 transition-all font-light",
+                                    "pl-16 h-14 rounded-full text-lg focus-visible:ring-primary/50 transition-all font-light",
                                     isClearMode ? "bg-white/5 border-white/10 text-white placeholder:text-white/50" : "bg-background border-input text-foreground"
                                 )}
                                 value={inputValue}
