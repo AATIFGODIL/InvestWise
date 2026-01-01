@@ -400,10 +400,18 @@ export default function ResearchClient() {
                                         </div>
 
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-12">
-                                            <div><p className="text-muted-foreground text-xs uppercase">High</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>${selectedStock.high.toFixed(2)}</p></div>
-                                            <div><p className="text-muted-foreground text-xs uppercase">Low</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>${selectedStock.low.toFixed(2)}</p></div>
-                                            <div><p className="text-muted-foreground text-xs uppercase">Open</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>${selectedStock.open.toFixed(2)}</p></div>
-                                            <div><p className="text-muted-foreground text-xs uppercase">Mkt Cap</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>{stockMetrics?.metric?.marketCapitalization ? `${(stockMetrics.metric.marketCapitalization / 1000).toFixed(2)}B` : '---'}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">Volume</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>---</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">High</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>${selectedStock.high.toFixed(2)}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">Low</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>${selectedStock.low.toFixed(2)}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">Open</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>${selectedStock.open.toFixed(2)}</p></div>
+
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">52W High</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>{stockMetrics?.metric["52WeekHigh"]?.toFixed(2) ?? '---'}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">52W Low</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>{stockMetrics?.metric["52WeekLow"]?.toFixed(2) ?? '---'}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">Mkt Cap</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>{stockMetrics?.metric?.marketCapitalization ? `${(stockMetrics.metric.marketCapitalization / 1000).toFixed(2)}B` : '---'}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">P/E Ratio</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>{stockMetrics?.metric?.peTTM?.toFixed(2) ?? '---'}</p></div>
+
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">Div Yield</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>{stockMetrics?.metric?.dividendYieldIndicatedAnnual ? `${stockMetrics.metric.dividendYieldIndicatedAnnual.toFixed(2)}%` : '---'}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">EPS (TTM)</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>${stockMetrics?.metric?.epsTTM?.toFixed(2) ?? '---'}</p></div>
                                         </div>
 
                                         <AnimatePresence>
