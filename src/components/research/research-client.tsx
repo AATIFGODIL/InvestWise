@@ -210,31 +210,61 @@ export default function ResearchClient() {
 
     return (
         <div className={cn("flex flex-col space-y-6 p-4 max-w-[1920px] mx-auto transition-all duration-500", isCustomZoom ? "h-[calc(100vh-2rem)]" : "h-full pb-32 md:pb-32")}>
-            {/* 1. Header Toolbar */}
-            <div className="flex justify-between items-center shrink-0">
-                <h1 className="text-2xl font-bold text-white tracking-tight ml-20">
-                    Pro Research Station
-                </h1>
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => setGridMode(1)} className={gridMode === 1 ? "bg-muted" : "text-muted-foreground"}>
-                        <Square className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setGridMode(2)} className={gridMode === 2 ? "bg-muted" : "text-muted-foreground"}>
-                        <LayoutGrid className="h-4 w-4 rotate-90" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setGridMode(4)} className={gridMode === 4 ? "bg-muted" : "text-muted-foreground"}>
-                        <Grid2X2 className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={toggleZoom} className="ml-2 border-white/20 text-white hover:bg-white/10">
-                        {isCustomZoom ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-                    </Button>
-                </div>
-            </div>
+            {/* 1. Header Toolbar - Hidden in Custom Zoom */}
+            <AnimatePresence>
+                {!isCustomZoom && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="flex justify-between items-center shrink-0 overflow-hidden"
+                    >
+                        <h1 className="text-2xl font-bold text-white tracking-tight ml-20">
+                            Pro Research Station
+                        </h1>
+                        <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="icon" onClick={() => setGridMode(1)} className={gridMode === 1 ? "bg-muted" : "text-muted-foreground"}>
+                                <Square className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => setGridMode(2)} className={gridMode === 2 ? "bg-muted" : "text-muted-foreground"}>
+                                <LayoutGrid className="h-4 w-4 rotate-90" />
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={() => setGridMode(4)} className={gridMode === 4 ? "bg-muted" : "text-muted-foreground"}>
+                                <Grid2X2 className="h-4 w-4" />
+                            </Button>
+                            <Button variant="outline" size="icon" onClick={toggleZoom} className="ml-2 border-white/20 text-white hover:bg-white/10">
+                                <Maximize2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Floating Exit Zoom Button */}
+            <AnimatePresence>
+                {isCustomZoom && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="fixed top-6 right-6 z-50"
+                    >
+                        <Button
+                            variant="secondary"
+                            size="icon"
+                            onClick={toggleZoom}
+                            className="bg-black/50 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 shadow-xl rounded-full h-10 w-10"
+                        >
+                            <Minimize2 className="h-5 w-5" />
+                        </Button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* 2. Main Grid */}
-            <div className={cn("grid gap-4 transition-all duration-500", getGridClass(), isCustomZoom ? "flex-1 min-h-0" : "min-h-[600px]")}>
+            <div className={cn("grid gap-4 transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]", getGridClass(), isCustomZoom ? "flex-1 h-[calc(100vh-2rem)]" : "min-h-[600px]")}>
                 {Array.from({ length: gridMode }).map((_, index) => (
-                    <Card key={index} className="overflow-hidden flex flex-col h-full border-muted/20 bg-card/40 backdrop-blur-sm">
+                    <Card key={index} className="overflow-hidden flex flex-col h-full border-muted/20 bg-card/40 backdrop-blur-sm shadow-2xl">
                         <CardContent className="p-0 flex-1 relative">
                             <div className="absolute top-2 left-2 z-10 w-24 opacity-0 hover:opacity-100 transition-opacity">
                                 <Input
