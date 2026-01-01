@@ -404,7 +404,7 @@ export default function ResearchClient() {
                                 ? "bg-white/10 ring-1 ring-white/60"
                                 : "bg-card ring-1 ring-border"
                         )} style={{ backdropFilter: "blur(16px)" }}>
-                            <Search className={cn("h-5 w-5 ml-2 cursor-pointer", isClearMode ? "text-slate-100" : "text-muted-foreground")} />
+                            <Search className={cn("h-5 w-5 ml-2 cursor-pointer", isClearMode ? "text-primary-foreground" : "text-muted-foreground")} />
                             <Input
                                 value={inputValue}
                                 onChange={(e) => {
@@ -415,7 +415,7 @@ export default function ResearchClient() {
                                 placeholder="Search symbol (e.g. AAPL) for deep analysis..."
                                 className={cn(
                                     "w-full h-full bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-lg placeholder:text-muted-foreground ml-2",
-                                    isClearMode ? "text-slate-100 placeholder:text-white/50" : "text-foreground"
+                                    isClearMode ? "text-primary-foreground placeholder:text-primary-foreground/50" : "text-foreground"
                                 )}
                             />
                             {isSearching && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />}
@@ -424,7 +424,7 @@ export default function ResearchClient() {
                         {showSuggestions && inputValue && (
                             <div
                                 className={cn(
-                                    "absolute top-full mt-2 w-full rounded-3xl shadow-lg z-50 overflow-hidden",
+                                    "absolute top-full mt-2 left-4 right-4 rounded-3xl shadow-lg z-50 overflow-hidden",
                                     isClearMode
                                         ? "bg-white/10 ring-1 ring-white/60"
                                         : "bg-background border"
@@ -443,12 +443,12 @@ export default function ResearchClient() {
                                                         <AvatarFallback>{stock.symbol.charAt(0)}</AvatarFallback>
                                                     </Avatar>
                                                     <div>
-                                                        <p className={cn("font-medium", isClearMode ? "text-white" : "text-foreground")}>{stock.name}</p>
+                                                        <p className={cn("font-medium", isClearMode ? "text-primary-foreground" : "text-foreground")}>{stock.name}</p>
                                                         <p className="text-xs text-muted-foreground">{stock.symbol}</p>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className={cn("font-mono font-medium", isClearMode ? "text-white" : "text-foreground")}>${stock.price.toFixed(2)}</p>
+                                                    <p className={cn("font-mono font-medium", isClearMode ? "text-primary-foreground" : "text-foreground")}>${stock.price.toFixed(2)}</p>
                                                     <p className={cn("text-xs", stock.change >= 0 ? "text-green-500" : "text-red-500")}>
                                                         {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
                                                     </p>
