@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -63,20 +64,22 @@ export default function SignInPage() {
   const router = useRouter();
   const { showLoading } = useLoadingStore();
   const { toast } = useToast();
-  const { isClearMode, theme } = useThemeStore();
+  const { isClearMode, theme, setTheme } = useThemeStore();
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
   const [showGlow, setShowGlow] = useState(false);
 
   useEffect(() => {
-    // Check for the glow effect flag on component mount (e.g. user just navigated here)
-    // Or simpler: Just always show it for a moment on mount for "wow" factor?
-    // User said "same effect and feature on sign in".
-    // Usually "feature" implies the "Welcome Back" flow triggers it.
-    // If we want it on Sign In page load:
     setShowGlow(true);
     const timer = setTimeout(() => setShowGlow(false), 2000);
     return () => clearTimeout(timer);
   }, []);
+
+  // Force dark mode on auth pages
+  useEffect(() => {
+    if (theme !== 'dark') {
+      setTheme('dark');
+    }
+  }, [theme, setTheme]);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -146,9 +149,36 @@ export default function SignInPage() {
         animate={{ opacity: 1, scale: 1, rotateY: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
         onAnimationComplete={() => setIsAnimationComplete(true)}
-        className="w-full max-w-sm relative z-10"
+        className="w-full max-w-xs relative z-10 flex flex-col items-center"
         style={{ perspective: "1000px" }}
       >
+        {/* Logo outside card with glow effect */}
+        <motion.div
+          initial={{ opacity: 0, filter: "blur(10px)" }}
+          animate={{
+            opacity: 1,
+            filter: "blur(0px)",
+          }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className={cn(
+            "mt-4 mb-4 relative rounded-full overflow-hidden",
+            showGlow && "animate-logo-glow"
+          )}
+          style={{
+            filter: showGlow ? "drop-shadow(0 0 20px hsl(var(--primary) / 0.6)) drop-shadow(0 0 40px hsl(var(--primary) / 0.4))" : "none",
+            transition: "filter 0.5s ease-out",
+            backgroundColor: "hsl(var(--background))"
+          }}
+        >
+          <Image
+            src="/Investwise.PNG"
+            alt="InvestWise Logo"
+            width={260}
+            height={70}
+            priority
+            className="object-contain"
+          />
+        </motion.div>
         <Card
           className={cn(
             "w-full relative",
@@ -163,9 +193,6 @@ export default function SignInPage() {
           style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
         >
           {isAnimationComplete && <AnimatedBorder />}
-          <div className="flex justify-center items-center pt-8 gap-2">
-            <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
-          </div>
           <CardHeader>
             <CardTitle className="text-2xl">Welcome Back!</CardTitle>
             <CardDescription>

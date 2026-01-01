@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/hooks/use-auth';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
@@ -48,7 +49,7 @@ const FinanceBackground = () => (
           <path d="M 20 120 V 90 M 30 120 V 80 M 40 120 V 100" stroke="hsl(var(--primary) / 0.12)" strokeWidth="2" fill="none" className="shimmering-icon" style={{ animationDelay: '0.5s' }} />
           <path d="M 70 20 A 15 15 0 0 1 85 35 L 70 35 Z" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="hsl(var(--primary) / 0.05)" className="shimmering-icon" style={{ animationDelay: '1s' }} />
           <circle cx="70" cy="35" r="15" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" className="shimmering-icon" style={{ animationDelay: '1.5s' }} />
-          <path d="M 110 80 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 120 100 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 110 98 L 122 82" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" className="shimmering-icon" style={{ animationDelay: '2s' }}/>
+          <path d="M 110 80 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 120 100 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 110 98 L 122 82" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" className="shimmering-icon" style={{ animationDelay: '2s' }} />
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill="hsl(var(--background))" />
@@ -62,9 +63,23 @@ export default function SignUpPage() {
   const router = useRouter();
   const { signUp, signInWithGoogle } = useAuth();
   const { showLoading } = useLoadingStore();
-  const { isClearMode, theme } = useThemeStore();
+  const { isClearMode, theme, setTheme } = useThemeStore();
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
-  
+  const [showGlow, setShowGlow] = useState(false);
+
+  useEffect(() => {
+    setShowGlow(true);
+    const timer = setTimeout(() => setShowGlow(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Force dark mode on auth pages
+  useEffect(() => {
+    if (theme !== 'dark') {
+      setTheme('dark');
+    }
+  }, [theme, setTheme]);
+
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -80,8 +95,8 @@ export default function SignUpPage() {
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-        setError("Passwords do not match!");
-        return;
+      setError("Passwords do not match!");
+      return;
     }
     setError(null);
     setIsEmailLoading(true);
@@ -122,30 +137,55 @@ export default function SignUpPage() {
   return (
     <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
       <FinanceBackground />
-       <motion.div
+      <motion.div
         initial={{ opacity: 0, scale: 0.8, rotateY: 180 }}
         animate={{ opacity: 1, scale: 1, rotateY: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
         onAnimationComplete={() => setIsAnimationComplete(true)}
-        className="w-full max-w-sm relative z-10"
+        className="w-full max-w-xs relative z-10 flex flex-col items-center"
         style={{ perspective: "1000px" }}
       >
+        {/* Logo outside card with glow effect */}
+        <motion.div
+          initial={{ opacity: 0, filter: "blur(10px)" }}
+          animate={{
+            opacity: 1,
+            filter: "blur(0px)",
+          }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className={cn(
+            "mt-4 mb-4 relative rounded-full overflow-hidden",
+            showGlow && "animate-logo-glow"
+          )}
+          style={{
+            filter: showGlow ? "drop-shadow(0 0 20px hsl(var(--primary) / 0.6)) drop-shadow(0 0 40px hsl(var(--primary) / 0.4))" : "none",
+            transition: "filter 0.5s ease-out",
+            backgroundColor: "hsl(var(--background))"
+          }}
+        >
+          <Image
+            src="/Investwise.PNG"
+            alt="InvestWise Logo"
+            width={260}
+            height={70}
+            priority
+            className="object-contain"
+          />
+        </motion.div>
         <Card
           className={cn(
-              "w-full relative",
-              isClearMode 
-                  ? isLightClear
-                      ? "bg-card/60 ring-1 ring-white/10"
-                      : "bg-white/10 ring-1 ring-white/60"
-                  : ""
+            "w-full relative",
+            isClearMode
+              ? isLightClear
+                ? "bg-card/60 ring-1 ring-white/10"
+                : "bg-white/10 ring-1 ring-white/60"
+              : "",
+            showGlow && "login-glow"
           )}
           // COPY-THIS: For the glass look (backdrop filter)
           style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
         >
           {isAnimationComplete && <AnimatedBorder />}
-          <div className="flex justify-center items-center pt-8 gap-2">
-              <h1 className="text-3xl font-bold text-primary">InvestWise</h1>
-          </div>
           <CardHeader>
             <CardTitle className="text-2xl">Create an Account</CardTitle>
             <CardDescription>
@@ -154,32 +194,32 @@ export default function SignUpPage() {
           </CardHeader>
           <CardContent className="grid gap-4">
             {error && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>Sign-Up Failed</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Sign-Up Failed</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
             )}
             <div className="grid gap-2">
               <Button variant="outline" onClick={handleGoogleSignIn} disabled={isEmailLoading || isGoogleLoading} className="w-full">
-                  {isGoogleLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Signing in...
-                      </>
-                    ) : (
-                      <>
-                        <GoogleIcon /> Continue with Google
-                      </>
-                    )}
+                {isGoogleLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  <>
+                    <GoogleIcon /> Continue with Google
+                  </>
+                )}
               </Button>
             </div>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
+                <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                  <span className={cn("px-2 text-muted-foreground", isClearMode && !isLightClear ? "bg-card" : "bg-background")}>Or continue with</span>
+                <span className={cn("px-2 text-muted-foreground", isClearMode && !isLightClear ? "bg-card" : "bg-background")}>Or continue with</span>
               </div>
             </div>
             <form onSubmit={handleEmailSignUp} className="grid gap-4">
@@ -197,11 +237,11 @@ export default function SignUpPage() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="name@example.com" 
-                  required 
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="name@example.com"
+                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={isEmailLoading || isGoogleLoading}
@@ -210,19 +250,19 @@ export default function SignUpPage() {
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
-                  <Input 
-                    id="password" 
-                    type={showPassword ? "text" : "password"} 
-                    required 
-                    value={password} 
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pr-10"
                     disabled={isEmailLoading || isGoogleLoading}
                   />
-                   <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
                     className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
                     onClick={() => setShowPassword(prev => !prev)}
                   >
@@ -233,19 +273,19 @@ export default function SignUpPage() {
               <div className="grid gap-2">
                 <Label htmlFor="confirm-password">Confirm Password</Label>
                 <div className="relative">
-                  <Input 
-                    id="confirm-password" 
+                  <Input
+                    id="confirm-password"
                     type={showConfirmPassword ? "text" : "password"}
-                    required 
-                    value={confirmPassword} 
-                    onChange={(e) => setConfirmPassword(e.target.value)} 
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     className="pr-10"
                     disabled={isEmailLoading || isGoogleLoading}
                   />
-                   <Button 
-                    type="button" 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
                     className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:bg-transparent"
                     onClick={() => setShowConfirmPassword(prev => !prev)}
                   >
@@ -254,11 +294,11 @@ export default function SignUpPage() {
                 </div>
               </div>
               <div className="text-xs text-muted-foreground">
-                  By creating an account, you agree to our{" "}
-                  <Link href="#" className="underline">
-                    Terms and Conditions
-                  </Link>
-                  .
+                By creating an account, you agree to our{" "}
+                <Link href="#" className="underline">
+                  Terms and Conditions
+                </Link>
+                .
               </div>
               <Button type="submit" className="w-full" disabled={isEmailLoading || isGoogleLoading}>
                 {isEmailLoading ? (
