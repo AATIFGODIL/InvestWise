@@ -120,11 +120,29 @@ const reconstructPortfolioHistory = async (
     targetPoints: number,
     currentPrices: Record<string, number>
 ): Promise<ChartDataPoint[]> => {
-    if (transactions.length === 0) return [];
+    // 1. Handle empty transactions case (Return flat 0 line instead of empty array)
+    if (transactions.length === 0) {
+        const zeroData: ChartDataPoint[] = [];
+        const today = new Date();
+        const start = new Date(startDate);
+        // Generate roughly targetPoints
+        const stepTime = (today.getTime() - start.getTime()) / (targetPoints - 1);
+
+        for (let i = 0; i < targetPoints; i++) {
+            const d = new Date(start.getTime() + i * stepTime);
+            zeroData.push({
+                date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                value: 0
+            });
+        }
+        return zeroData;
+    }
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const nowTs = Date.now();
+
+    // ... (rest of function)
 
     // 1. Build Price Anchors for each symbol
     // Anchors = Transactions + Current Price
@@ -400,6 +418,9 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
         set(state => ({
             chartRangeStatus: { ...state.chartRangeStatus, [range]: 'loading' }
         }));
+
+        // Artificial delay for loading effect experience
+        await new Promise(resolve => setTimeout(resolve, 800));
 
         try {
             // Ensure we have current prices for interpolation!
