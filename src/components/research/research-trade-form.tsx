@@ -105,7 +105,7 @@ export default function ResearchTradeForm({ selectedSymbol, selectedPrice, loadi
             exit={{ opacity: 0, y: 20 }}
             className="w-full"
         >
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
+            <Card className="border-0 bg-card/50 backdrop-blur-sm">
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle>Place Pro Order: {selectedSymbol}</CardTitle>
