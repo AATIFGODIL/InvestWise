@@ -10,9 +10,10 @@ import { NewsArticle } from '@/lib/gnews';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { CommandItem, CommandList } from '@/components/ui/command';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useMarketStore } from '@/store/market-store';
+import { useThemeStore } from '@/store/theme-store';
 import ResearchTradeForm from './research-trade-form';
 import { AnimatePresence, motion } from 'framer-motion';
 import { fetchTopFinancialNewsAction } from '@/app/actions';
@@ -79,6 +80,7 @@ export default function ResearchClient() {
     const [stockMetrics, setStockMetrics] = useState<MetricData | null>(null);
     const [loadingDetails, setLoadingDetails] = useState(false);
     const { isMarketOpen, fetchMarketStatus } = useMarketStore();
+    const { isClearMode } = useThemeStore();
 
     // Trade State
     const [showTradeForm, setShowTradeForm] = useState(false);
@@ -303,8 +305,8 @@ export default function ResearchClient() {
             >
                 <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                        <h3 className="text-lg font-semibold text-white">Latest Headlines</h3>
-                        <Button variant="ghost" size="sm" onClick={() => setNewsExpanded(!newsExpanded)} className="text-muted-foreground hover:text-white">
+                        <h3 className={cn("text-lg font-semibold", isClearMode ? "text-primary-foreground" : "text-foreground")}>Latest Headlines</h3>
+                        <Button variant="ghost" size="sm" onClick={() => setNewsExpanded(!newsExpanded)} className={cn("hover:text-primary", isClearMode ? "text-white/70" : "text-muted-foreground")}>
                             {newsExpanded ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />}
                             {newsExpanded ? "Show Less" : "Reveal 5"}
                         </Button>
@@ -314,18 +316,23 @@ export default function ResearchClient() {
                             <Skeleton className="h-24 w-full col-span-5" />
                         ) : (
                             (newsExpanded ? news.slice(0, 5) : news.slice(0, 1)).map((article, i) => (
-                                <a key={i} href={article.url} target="_blank" rel="noreferrer" className={cn("group relative block overflow-hidden rounded-lg border border-white/5 bg-white/5 hover:bg-white/10 transition-colors", !newsExpanded ? "md:col-span-5 flex items-center p-4 gap-4 h-24" : "aspect-[4/3]")}>
+                                <a key={i} href={article.url} target="_blank" rel="noreferrer"
+                                    className={cn(
+                                        "group relative block overflow-hidden rounded-lg transition-colors border",
+                                        !newsExpanded ? "md:col-span-5 flex items-center p-4 gap-4 h-24" : "aspect-[4/3]",
+                                        isClearMode ? "bg-white/10 border-white/10 hover:bg-white/20" : "bg-card border-border hover:bg-accent"
+                                    )}>
                                     {!newsExpanded ? (
                                         <>
                                             {article.image && <img src={article.image} alt="news" className="h-16 w-24 object-cover rounded" />}
                                             <div>
-                                                <h4 className="font-medium text-white group-hover:text-blue-400 transition-colors line-clamp-1">{article.title}</h4>
-                                                <p className="text-xs text-zinc-400 mt-1 line-clamp-1">{article.description}</p>
+                                                <h4 className={cn("font-medium group-hover:text-primary transition-colors line-clamp-1", isClearMode ? "text-white" : "text-foreground")}>{article.title}</h4>
+                                                <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{article.description}</p>
                                             </div>
                                         </>
                                     ) : (
                                         <>
-                                            {article.image && <img src={article.image} alt="news" className="absolute inset-0 h-full w-full object-cover opacity-40 group-hover:opacity-20 transition-opacity" />}
+                                            {article.image && <img src={article.image} alt="news" className="absolute inset-0 h-full w-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />}
                                             <div className="absolute inset-0 p-4 flex flex-col justify-end bg-gradient-to-t from-black/90 to-transparent">
                                                 <h4 className="text-sm font-medium text-white line-clamp-2 leading-tight">{article.title}</h4>
                                                 <span className="text-[10px] text-zinc-400 mt-1">{article.source.name}</span>
@@ -339,15 +346,18 @@ export default function ResearchClient() {
                 </div>
 
                 {/* 4. Deep Dive Search Section */}
-                <div className="pt-8 border-t border-white/10 space-y-6">
-                    <h3 className="text-lg font-semibold text-white">Detailed Stock Analysis</h3>
+                <div className={cn("pt-8 border-t space-y-6", isClearMode ? "border-white/10" : "border-border")}>
+                    <h3 className={cn("text-lg font-semibold", isClearMode ? "text-primary-foreground" : "text-foreground")}>Detailed Stock Analysis</h3>
                     {/* Search Bar */}
                     <div className="relative max-w-2xl" ref={searchContainerRef}>
                         <div className="relative flex items-center">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                             <Input
                                 placeholder="Search symbol (e.g. AAPL) for deep analysis..."
-                                className="pl-12 h-14 rounded-full bg-white/5 border-white/10 text-lg focus-visible:ring-purple-500/50 transition-all font-light"
+                                className={cn(
+                                    "pl-12 h-14 rounded-full text-lg focus-visible:ring-primary/50 transition-all font-light",
+                                    isClearMode ? "bg-white/5 border-white/10 text-white placeholder:text-white/50" : "bg-background border-input text-foreground"
+                                )}
                                 value={inputValue}
                                 onChange={(e) => {
                                     setInputValue(e.target.value.toUpperCase());
@@ -358,15 +368,20 @@ export default function ResearchClient() {
                             {isSearching && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />}
                         </div>
                         {showSuggestions && searchResults.length > 0 && (
-                            <div className="absolute top-full mt-2 w-full bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
+                            <div className={cn(
+                                "absolute top-full mt-2 w-full rounded-xl shadow-2xl z-50 overflow-hidden border",
+                                isClearMode ? "bg-black/80 border-white/10 backdrop-blur-md" : "bg-popover border-border"
+                            )}>
                                 <CommandList>
                                     {searchResults.map((s) => (
-                                        <CommandItem key={s.symbol} onSelect={() => handleSelectStock(s.symbol)} className="cursor-pointer hover:bg-white/5 p-3">
+                                        <CommandItem key={s.symbol} onSelect={() => handleSelectStock(s.symbol)} className={cn("cursor-pointer p-3", isClearMode ? "hover:bg-white/10" : "hover:bg-accent")}>
                                             <div className="flex gap-3 items-center">
-                                                <Avatar className="h-8 w-8 bg-zinc-800"><AvatarFallback>{s.symbol[0]}</AvatarFallback></Avatar>
+                                                <Avatar className="h-8 w-8 bg-background">
+                                                    <AvatarFallback>{s.symbol[0]}</AvatarFallback>
+                                                </Avatar>
                                                 <div>
-                                                    <p className="font-bold text-white">{s.symbol}</p>
-                                                    <p className="text-xs text-zinc-400">{s.description}</p>
+                                                    <p className={cn("font-bold", isClearMode ? "text-white" : "text-foreground")}>{s.symbol}</p>
+                                                    <p className="text-xs text-muted-foreground">{s.description}</p>
                                                 </div>
                                             </div>
                                         </CommandItem>
@@ -392,28 +407,29 @@ export default function ResearchClient() {
                                         {/* Header Info */}
                                         <div className="flex justify-between items-start">
                                             <div className="flex gap-4">
-                                                <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center p-1 shadow-lg overflow-hidden">
-                                                    <img src={selectedStock.logoUrl} alt={selectedStock.symbol} className="w-full h-full object-contain" />
-                                                </div>
+                                                <Avatar className="h-16 w-16">
+                                                    <AvatarImage src={selectedStock.logoUrl} alt={selectedStock.symbol} className="object-cover" />
+                                                    <AvatarFallback className="text-2xl font-bold bg-muted text-muted-foreground">{selectedStock.symbol[0]}</AvatarFallback>
+                                                </Avatar>
                                                 <div>
-                                                    <h2 className="text-4xl font-bold text-white">{selectedStock.symbol}</h2>
-                                                    <p className="text-lg text-zinc-400">{selectedStock.name}</p>
+                                                    <h2 className={cn("text-4xl font-bold", isClearMode ? "text-white" : "text-foreground")}>{selectedStock.symbol}</h2>
+                                                    <p className="text-lg text-muted-foreground">{selectedStock.name}</p>
                                                     <div className="flex items-center gap-2 mt-1">
-                                                        <span className="text-3xl font-mono text-white">${selectedStock.price.toFixed(2)}</span>
-                                                        <span className={cn("text-lg font-medium", selectedStock.change >= 0 ? "text-green-400" : "text-red-400")}>
+                                                        <span className={cn("text-3xl font-mono", isClearMode ? "text-white" : "text-foreground")}>${selectedStock.price.toFixed(2)}</span>
+                                                        <span className={cn("text-lg font-medium", selectedStock.change >= 0 ? "text-green-500" : "text-red-500")}>
                                                             {selectedStock.change > 0 ? "+" : ""}{selectedStock.change.toFixed(2)} ({selectedStock.changePercent.toFixed(2)}%)
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center gap-2 text-xs text-zinc-500 mt-1">
+                                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                                                         <span>Market is {isMarketOpen ? 'Open' : 'Closed'}</span>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="flex gap-2">
-                                                <Button onClick={handleTradeClick} size="lg" className="bg-white text-black hover:bg-zinc-200">
+                                                <Button onClick={handleTradeClick} size="lg" className={cn(isClearMode ? "bg-white text-black hover:bg-zinc-200" : "")}>
                                                     {showTradeForm ? "Cancel Trade" : `Trade ${selectedStock.symbol}`}
                                                 </Button>
-                                                <Button onClick={handleMoreInfo} size="lg" className="bg-primary hover:bg-primary/90 text-white">
+                                                <Button onClick={handleMoreInfo} size="lg" variant="default">
                                                     More Info
                                                 </Button>
                                             </div>
@@ -421,28 +437,28 @@ export default function ResearchClient() {
 
                                         {/* Metrics Grid */}
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-12">
-                                            <div><p className="text-zinc-500 text-xs uppercase tracking-wider">Volume (Current)</p><p className="text-white font-mono text-lg">---</p></div>
-                                            <div><p className="text-zinc-500 text-xs uppercase tracking-wider">High (Day)</p><p className="text-white font-mono text-lg">${selectedStock.high.toFixed(2)}</p></div>
-                                            <div><p className="text-zinc-500 text-xs uppercase tracking-wider">Low (Day)</p><p className="text-white font-mono text-lg">${selectedStock.low.toFixed(2)}</p></div>
-                                            <div><p className="text-zinc-500 text-xs uppercase tracking-wider">Open</p><p className="text-white font-mono text-lg">${selectedStock.open.toFixed(2)}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">Volume (Current)</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>---</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">High (Day)</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>${selectedStock.high.toFixed(2)}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">Low (Day)</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>${selectedStock.low.toFixed(2)}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">Open</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>${selectedStock.open.toFixed(2)}</p></div>
 
-                                            <div><p className="text-zinc-500 text-xs uppercase tracking-wider">52 Week High</p><p className="text-white font-mono text-lg">${stockMetrics?.metric["52WeekHigh"].toFixed(2)}</p></div>
-                                            <div><p className="text-zinc-500 text-xs uppercase tracking-wider">52 Week Low</p><p className="text-white font-mono text-lg">${stockMetrics?.metric["52WeekLow"].toFixed(2)}</p></div>
-                                            <div><p className="text-zinc-500 text-xs uppercase tracking-wider">Market Cap</p><p className="text-white font-mono text-lg">{stockMetrics?.metric.marketCapitalization ? `${(stockMetrics.metric.marketCapitalization / 1000).toFixed(2)}B` : '---'}</p></div>
-                                            <div><p className="text-zinc-500 text-xs uppercase tracking-wider">P/E Ratio</p><p className="text-white font-mono text-lg">{stockMetrics?.metric.peTTM.toFixed(2)}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">52 Week High</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>${stockMetrics?.metric["52WeekHigh"].toFixed(2)}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">52 Week Low</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>${stockMetrics?.metric["52WeekLow"].toFixed(2)}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">Market Cap</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>{stockMetrics?.metric.marketCapitalization ? `${(stockMetrics.metric.marketCapitalization / 1000).toFixed(2)}B` : '---'}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">P/E Ratio</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>{stockMetrics?.metric.peTTM.toFixed(2)}</p></div>
 
-                                            <div><p className="text-zinc-500 text-xs uppercase tracking-wider">Div Yield</p><p className="text-white font-mono text-lg">{stockMetrics?.metric.dividendYieldIndicatedAnnual ? `${stockMetrics.metric.dividendYieldIndicatedAnnual.toFixed(2)}%` : '---'}</p></div>
-                                            <div><p className="text-zinc-500 text-xs uppercase tracking-wider">EPS (TTM)</p><p className="text-white font-mono text-lg">${stockMetrics?.metric.epsTTM.toFixed(2)}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">Div Yield</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>{stockMetrics?.metric.dividendYieldIndicatedAnnual ? `${stockMetrics.metric.dividendYieldIndicatedAnnual.toFixed(2)}%` : '---'}</p></div>
+                                            <div><p className="text-muted-foreground text-xs uppercase tracking-wider">EPS (TTM)</p><p className={cn("font-mono text-lg", isClearMode ? "text-white" : "text-foreground")}>${stockMetrics?.metric.epsTTM.toFixed(2)}</p></div>
                                         </div>
 
-                                        {/* Trade Form Section - Moved here to be part of the Info Col */}
+                                        {/* Trade Form Section */}
                                         <AnimatePresence>
                                             {showTradeForm && (
                                                 <motion.div
                                                     initial={{ opacity: 0, height: 0 }}
                                                     animate={{ opacity: 1, height: "auto" }}
                                                     exit={{ opacity: 0, height: 0 }}
-                                                    className="pt-8 border-t border-white/10"
+                                                    className={cn("pt-8 border-t overflow-visible", isClearMode ? "border-white/10" : "border-border")}
                                                 >
                                                     <ResearchTradeForm
                                                         selectedSymbol={selectedStock.symbol}
@@ -456,10 +472,13 @@ export default function ResearchClient() {
                                         </AnimatePresence>
                                     </div>
 
-                                    {/* Right: Chart (with Resize on Trade) */}
+                                    {/* Right: Chart (Fixed Size) */}
                                     <div
                                         ref={chartContainerRef}
-                                        className={cn("lg:col-span-1 border border-white/10 bg-black/20 rounded-xl overflow-hidden transition-all duration-500 ease-in-out", showTradeForm ? "h-[600px] lg:h-[800px]" : "h-[400px]")}
+                                        className={cn(
+                                            "lg:col-span-1 border rounded-xl overflow-hidden transition-all duration-500 ease-in-out h-[400px]",
+                                            isClearMode ? "border-white/10 bg-black/20" : "border-border bg-card"
+                                        )}
                                     >
                                         <TradingViewWidget symbol={selectedStock.symbol} interval="D" />
                                     </div>
