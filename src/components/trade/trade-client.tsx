@@ -487,18 +487,17 @@ export default function TradeClient() {
                         <CardHeader>
                             <CardTitle>Learn About Trading</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
+                        <CardContent className="h-full space-y-4 flex flex-col">
+                            <div className="grid grid-cols-2 gap-4 flex-1">
                                 {videos.map((video) => (
-                                    <div key={video.title} className="flex flex-col space-y-2">
-                                        <div className="rounded-lg overflow-hidden border bg-muted/50 aspect-video">
-                                            <YouTubePlayer videoTitle={video.title} description={video.description} youtubeUrl={video.youtubeUrl} />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-semibold text-sm line-clamp-1">{video.title}</h3>
-                                            <p className="text-xs text-muted-foreground line-clamp-2">{video.description}</p>
-                                        </div>
-                                    </div>
+                                    <YouTubePlayer
+                                        key={video.title}
+                                        videoTitle={video.title}
+                                        description={video.description}
+                                        youtubeUrl={video.youtubeUrl}
+                                        variant="minimal"
+                                        aspectRatio="auto"
+                                    />
                                 ))}
                             </div>
                         </CardContent>
