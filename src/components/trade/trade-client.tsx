@@ -471,7 +471,7 @@ export default function TradeClient() {
                         <CardHeader>
                             <CardTitle>Stock Screener</CardTitle>
                         </CardHeader>
-                        <CardContent className="flex-1 min-h-[800px] p-0 overflow-hidden rounded-b-lg">
+                        <CardContent className="h-[calc(100vh-160px)] p-0 overflow-hidden rounded-b-lg">
                             <TradingViewScreener />
                         </CardContent>
                     </Card>
