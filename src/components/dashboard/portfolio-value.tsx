@@ -138,7 +138,7 @@ function PortfolioValue({ showTitle: showTitleProp = false }: PortfolioValueProp
       </CardHeader>
       <CardContent>
         <div className="h-[450px] w-full">
-          {chartRangeStatus && chartRangeStatus[timeRange] === 'loading' ? (
+          {chartRangeStatus && (chartRangeStatus[timeRange] === 'loading' || chartRangeStatus[timeRange] === 'idle') ? (
             <div className="h-full w-full flex items-center justify-center">
               <Skeleton className="h-full w-full skeleton-shimmer" />
             </div>
