@@ -139,6 +139,8 @@ export const ProModeToggle: React.FC<ProModeToggleProps> = ({ className, showLab
         setProMode(targetState);
         if (targetState) {
             router.push('/research');
+        } else {
+            router.push('/goals');
         }
     };
 
