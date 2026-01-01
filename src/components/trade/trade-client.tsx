@@ -466,6 +466,17 @@ export default function TradeClient() {
                     </div>
                 </motion.div>
 
+                <motion.div variants={itemVariants} className="pt-4">
+                    <Card className="flex flex-col h-full">
+                        <CardHeader>
+                            <CardTitle>Stock Screener</CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex-1 min-h-[800px] p-0 overflow-hidden rounded-b-lg">
+                            <TradingViewScreener />
+                        </CardContent>
+                    </Card>
+                </motion.div>
+
                 <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
                     <InvestmentBundles
                         title="Explore Specialized Bundles"
@@ -474,22 +485,27 @@ export default function TradeClient() {
                     />
                     <Card className="flex flex-col h-full">
                         <CardHeader>
-                            <CardTitle>Stock Screener</CardTitle>
+                            <CardTitle>Learn About Trading</CardTitle>
                         </CardHeader>
-                        <CardContent className="flex-1 min-h-[400px] p-0 overflow-hidden rounded-b-lg">
-                            <TradingViewScreener />
+                        <CardContent className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 h-full">
+                                {videos.map((video) => (
+                                    <div key={video.title} className="flex flex-col space-y-2">
+                                        <div className="rounded-lg overflow-hidden border bg-muted/50 aspect-video">
+                                            <YouTubePlayer videoTitle={video.title} description={video.description} youtubeUrl={video.youtubeUrl} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-semibold text-sm line-clamp-1">{video.title}</h3>
+                                            <p className="text-xs text-muted-foreground line-clamp-2">{video.description}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </CardContent>
                     </Card>
                 </motion.div>
 
-                <motion.div variants={itemVariants} className="space-y-4 pt-4">
-                    <h2 className="text-xl font-bold">Learn About Trading</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {videos.map((video) => (
-                            <YouTubePlayer key={video.title} videoTitle={video.title} description={video.description} youtubeUrl={video.youtubeUrl} />
-                        ))}
-                    </div>
-                </motion.div>
+
 
             </motion.div>
         </main>
