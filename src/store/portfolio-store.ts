@@ -411,7 +411,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
 
         // If already loaded or loading, do nothing (unless forced refresh needed?)
         // For now, simple caching.
-        if (chartRangeStatus[range] === 'success' || chartRangeStatus[range] === 'loading') {
+        if (chartRangeStatus[range] === 'success') {
             return;
         }
 
