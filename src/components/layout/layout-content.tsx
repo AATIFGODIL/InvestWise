@@ -18,13 +18,13 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
   const pathname = usePathname();
   const { user, hydrating } = useAuth();
   const [isRaining, setIsRaining] = React.useState(false);
-  
+
   useUserData(user);
 
   const isAuthOrOnboardingRoute = pathname.startsWith('/auth') || pathname.startsWith('/onboarding') || pathname === '/';
-  
+
   const isSpecialLayoutRoute = pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/certificate');
-  
+
   if (hydrating) {
     return (
       <div className="h-screen w-screen">
@@ -32,27 +32,27 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
       </div>
     );
   }
-  
+
   const handleTriggerRain = () => {
     setIsRaining(true);
     setTimeout(() => setIsRaining(false), 5000);
   };
-  
+
   if (user && !isAuthOrOnboardingRoute) {
-       return (
-        <div className="flex flex-col h-screen">
-          {!isSpecialLayoutRoute && <Header onTriggerRain={handleTriggerRain} />}
-          <MainContent isSpecialLayoutRoute={isSpecialLayoutRoute}>{children}</MainContent>
-          {!isSpecialLayoutRoute && <BottomNav />}
-          <MoneyRain isActive={isRaining} />
-        </div>
-      );
-  }
-  
-  return (
+    return (
       <div className="flex flex-col h-screen">
-          <MainContent disableScroll={true}>{children}</MainContent>
-          <MoneyRain isActive={isRaining} />
+        {!isSpecialLayoutRoute && <Header onTriggerRain={handleTriggerRain} />}
+        <MainContent isSpecialLayoutRoute={isSpecialLayoutRoute}>{children}</MainContent>
+        {!isSpecialLayoutRoute && <BottomNav />}
+        <MoneyRain isActive={isRaining} />
       </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-screen">
+      <MainContent disableScroll={true} isSpecialLayoutRoute={true}>{children}</MainContent>
+      <MoneyRain isActive={isRaining} />
+    </div>
   );
 }

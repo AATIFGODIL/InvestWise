@@ -23,7 +23,7 @@ import useLoadingStore from '@/store/loading-store';
 import { useToast } from '@/hooks/use-toast';
 import { useThemeStore } from '@/store/theme-store';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, useAnimation } from 'framer-motion';
 import AnimatedBorder from '@/components/auth/animated-border';
 
 // A simple SVG component for the Google icon.
@@ -66,13 +66,24 @@ export default function SignInPage() {
   const { toast } = useToast();
   const { isClearMode, theme, setTheme } = useThemeStore();
   const [isAnimationComplete, setIsAnimationComplete] = useState(false);
-  const [showGlow, setShowGlow] = useState(false);
+  const logoControls = useAnimation();
 
   useEffect(() => {
-    setShowGlow(true);
-    const timer = setTimeout(() => setShowGlow(false), 2000);
-    return () => clearTimeout(timer);
-  }, []);
+    const sequence = async () => {
+      // 1. Fade in AND Glow simultaneously
+      await logoControls.start({
+        opacity: 1,
+        filter: "blur(0px) drop-shadow(0 0 20px hsl(var(--primary) / 0.8)) drop-shadow(0 0 40px hsl(var(--primary) / 0.6))",
+        transition: { duration: 1.0, ease: "easeOut", delay: 0.2 }
+      });
+      // 2. Glow fade out bit by bit
+      await logoControls.start({
+        filter: "blur(0px) drop-shadow(0 0 0px transparent)",
+        transition: { duration: 2.0, ease: "easeOut" }
+      });
+    };
+    sequence();
+  }, [logoControls]);
 
   // Force dark mode on auth pages
   useEffect(() => {
@@ -142,7 +153,7 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen p-4 overflow-hidden">
+    <div className="relative flex items-center justify-center min-h-screen p-4">
       <FinanceBackground />
       <motion.div
         initial={{ opacity: 0, scale: 0.8, rotateY: 180 }}
@@ -154,21 +165,9 @@ export default function SignInPage() {
       >
         {/* Logo outside card with glow effect */}
         <motion.div
-          initial={{ opacity: 0, filter: "blur(10px)" }}
-          animate={{
-            opacity: 1,
-            filter: "blur(0px)",
-          }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className={cn(
-            "mt-4 mb-4 relative rounded-full overflow-hidden",
-            showGlow && "animate-logo-glow"
-          )}
-          style={{
-            filter: showGlow ? "drop-shadow(0 0 20px hsl(var(--primary) / 0.6)) drop-shadow(0 0 40px hsl(var(--primary) / 0.4))" : "none",
-            transition: "filter 0.5s ease-out",
-            backgroundColor: "hsl(var(--background))"
-          }}
+          initial={{ opacity: 0, filter: "blur(10px) drop-shadow(0 0 0px transparent)" }}
+          animate={logoControls}
+          className="mt-4 mb-4 relative"
         >
           <Image
             src="/Investwise.PNG"
@@ -176,7 +175,7 @@ export default function SignInPage() {
             width={260}
             height={70}
             priority
-            className="object-contain"
+            className="object-contain rounded-full"
           />
         </motion.div>
         <Card
@@ -186,8 +185,7 @@ export default function SignInPage() {
               ? isLightClear
                 ? "bg-card/60 ring-1 ring-white/10"
                 : "bg-white/10 ring-1 ring-white/60"
-              : "",
-            showGlow && "login-glow"
+              : ""
           )}
           // COPY-THIS: For the glass look (backdrop filter)
           style={{ backdropFilter: isClearMode ? "blur(16px)" : "none" }}
