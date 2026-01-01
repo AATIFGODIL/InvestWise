@@ -70,7 +70,7 @@ export default function ResearchClient() {
     // Stock Search State
     const [inputValue, setInputValue] = useState("");
     const debouncedInputValue = useDebounce(inputValue, 500);
-    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [searchResults, setSearchResults] = useState<StockData[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -86,6 +86,43 @@ export default function ResearchClient() {
     const [showTradeForm, setShowTradeForm] = useState(false);
     const chartContainerRef = useRef<HTMLDivElement | null>(null);
 
+    // Helper: Fetch Stock Details (Ported from TradeClient)
+    const fetchStockDetailsBySymbol = async (symbol: string) => {
+        const isApiKeyValid = API_KEY && !API_KEY.startsWith("AIzaSy") && API_KEY !== "your_finnhub_api_key_here";
+        const logoUrl = `https://img.logokit.com/ticker/${symbol}?token=pk_fr7a1b76952087586937fa`;
+
+        if (!isApiKeyValid) {
+            // Simulated data if API key invalid
+            return { symbol, name: symbol, price: Math.random() * 500, change: Math.random() * 10 - 5, changePercent: Math.random() * 5 - 2.5, logoUrl, high: 0, low: 0, open: 0, pc: 0 };
+        }
+
+        try {
+            const [quoteRes, profileRes] = await Promise.all([
+                fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${API_KEY}`),
+                fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${API_KEY}`)
+            ]);
+            if (!quoteRes.ok || !profileRes.ok) return null;
+            const quote = await quoteRes.json();
+            const profile = await profileRes.json();
+            // Note: ResearchClient's StockData interface has extra fields (high, low, open, pc)
+            // which are present in quote response (h, l, o, pc) but maybe not used in dropdown.
+            // We fill them to satisfy typescript, can refine later.
+            return {
+                symbol,
+                name: profile.name || symbol,
+                price: quote.c || 0,
+                change: quote.d || 0,
+                changePercent: quote.dp || 0,
+                logoUrl,
+                high: quote.h || 0,
+                low: quote.l || 0,
+                open: quote.o || 0,
+                pc: quote.pc || 0
+            };
+        } catch {
+            return null;
+        }
+    };
 
     // Fetch News
     useEffect(() => {
@@ -103,7 +140,7 @@ export default function ResearchClient() {
         fetchMarketStatus();
     }, [fetchMarketStatus]);
 
-    // Search Logic
+    // Search Logic (Updated to use fetchStockDetailsBySymbol)
     useEffect(() => {
         if (!debouncedInputValue) {
             setSearchResults([]);
@@ -114,11 +151,22 @@ export default function ResearchClient() {
             try {
                 const res = await fetch(`https://finnhub.io/api/v1/search?q=${debouncedInputValue}&token=${API_KEY}`);
                 const data = await res.json();
+
                 if (data.result) {
-                    setSearchResults(data.result.filter((s: any) => s.type === "Common Stock" && !s.symbol.includes('.')).slice(0, 5));
+                    const filtered = data.result
+                        .filter((s: any) => s.type === "Common Stock" && !s.symbol.includes('.'))
+                        .slice(0, 5);
+
+                    const promises = filtered.map((stock: any) => fetchStockDetailsBySymbol(stock.symbol));
+                    const results = (await Promise.all(promises)).filter(Boolean) as StockData[];
+                    setSearchResults(results);
                 }
-            } catch (e) { console.error(e); }
-            finally { setIsSearching(false); }
+            } catch (e) {
+                console.error(e);
+                setSearchResults([]);
+            } finally {
+                setIsSearching(false);
+            }
         }
         search();
     }, [debouncedInputValue]);
@@ -348,40 +396,62 @@ export default function ResearchClient() {
                 {/* 4. Deep Dive Search Section */}
                 <div className={cn("pt-8 border-t space-y-6 pb-96", isClearMode ? "border-white/10" : "border-border")}>
                     <h3 className={cn("text-lg font-semibold", isClearMode ? "text-primary-foreground" : "text-foreground")}>Detailed Stock Analysis</h3>
-                    {/* Search Bar */}
+                    {/* Search Bar - Ported from TradeClient */}
                     <div className="relative w-full px-4" ref={searchContainerRef}>
-                        <div className="relative flex items-center">
-                            <Search className="absolute left-8 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <div className={cn(
+                            "relative flex h-14 w-full items-center rounded-full px-4 text-primary-foreground shadow-lg transition-all",
+                            isClearMode
+                                ? "bg-white/10 ring-1 ring-white/60"
+                                : "bg-card ring-1 ring-border"
+                        )} style={{ backdropFilter: "blur(16px)" }}>
+                            <Search className={cn("h-5 w-5 ml-2 cursor-pointer", isClearMode ? "text-slate-100" : "text-muted-foreground")} />
                             <Input
-                                placeholder="Search symbol (e.g. AAPL) for deep analysis..."
-                                className={cn(
-                                    "pl-16 h-14 rounded-full text-lg focus-visible:ring-primary/50 transition-all font-light",
-                                    isClearMode ? "bg-white/5 border-white/10 text-white placeholder:text-white/50" : "bg-background border-input text-foreground"
-                                )}
                                 value={inputValue}
                                 onChange={(e) => {
-                                    setInputValue(e.target.value.toUpperCase());
-                                    setShowSuggestions(true);
+                                    setInputValue(e.target.value.toUpperCase())
+                                    setShowSuggestions(true)
                                 }}
                                 onFocus={() => setShowSuggestions(true)}
+                                placeholder="Search symbol (e.g. AAPL) for deep analysis..."
+                                className={cn(
+                                    "w-full h-full bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-lg placeholder:text-muted-foreground ml-2",
+                                    isClearMode ? "text-slate-100 placeholder:text-white/50" : "text-foreground"
+                                )}
                             />
                             {isSearching && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />}
                         </div>
-                        {showSuggestions && searchResults.length > 0 && (
-                            <div className={cn(
-                                "absolute top-full mt-2 w-full rounded-xl shadow-2xl z-50 overflow-hidden border",
-                                isClearMode ? "bg-black/80 border-white/10 backdrop-blur-md" : "bg-popover border-border"
-                            )}>
+
+                        {showSuggestions && inputValue && (
+                            <div
+                                className={cn(
+                                    "absolute top-full mt-2 w-full rounded-3xl shadow-lg z-50 overflow-hidden",
+                                    isClearMode
+                                        ? "bg-white/10 ring-1 ring-white/60"
+                                        : "bg-background border"
+                                )}
+                                style={{ backdropFilter: "blur(16px)" }}
+                            >
                                 <CommandList>
-                                    {searchResults.map((s) => (
-                                        <CommandItem key={s.symbol} onSelect={() => handleSelectStock(s.symbol)} className={cn("cursor-pointer p-3", isClearMode ? "hover:bg-white/10" : "hover:bg-accent")}>
-                                            <div className="flex gap-3 items-center">
-                                                <Avatar className="h-8 w-8 bg-background">
-                                                    <AvatarFallback>{s.symbol[0]}</AvatarFallback>
-                                                </Avatar>
-                                                <div>
-                                                    <p className={cn("font-bold", isClearMode ? "text-white" : "text-foreground")}>{s.symbol}</p>
-                                                    <p className="text-xs text-muted-foreground">{s.description}</p>
+                                    {isSearching && <div className="p-4 text-center text-sm text-muted-foreground">Loading...</div>}
+                                    {!isSearching && searchResults.length === 0 && <div className="p-4 text-center text-sm text-muted-foreground">No results found.</div>}
+                                    {searchResults.map(stock => (
+                                        <CommandItem key={stock.symbol} onSelect={() => handleSelectStock(stock.symbol)} className={cn("cursor-pointer p-3", isClearMode ? "hover:bg-white/10" : "hover:bg-accent")}>
+                                            <div className="flex justify-between items-center w-full">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-8 w-8 bg-muted">
+                                                        <AvatarImage src={stock.logoUrl} alt={stock.name} />
+                                                        <AvatarFallback>{stock.symbol.charAt(0)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div>
+                                                        <p className={cn("font-medium", isClearMode ? "text-white" : "text-foreground")}>{stock.name}</p>
+                                                        <p className="text-xs text-muted-foreground">{stock.symbol}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className={cn("font-mono font-medium", isClearMode ? "text-white" : "text-foreground")}>${stock.price.toFixed(2)}</p>
+                                                    <p className={cn("text-xs", stock.change >= 0 ? "text-green-500" : "text-red-500")}>
+                                                        {stock.change.toFixed(2)} ({stock.changePercent.toFixed(2)}%)
+                                                    </p>
                                                 </div>
                                             </div>
                                         </CommandItem>
