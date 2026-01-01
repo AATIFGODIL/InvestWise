@@ -379,8 +379,8 @@ export default function ResearchClient() {
                     <AnimatePresence>
                         {selectedStock && (
                             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">
-                                    <div className="lg:col-span-2 space-y-8">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-6">
+                                    <div className="space-y-8">
                                         <div className="flex justify-between items-start">
                                             <div className="flex gap-4">
                                                 <Avatar className="h-16 w-16"><AvatarImage src={selectedStock.logoUrl} /><AvatarFallback>{selectedStock.symbol[0]}</AvatarFallback></Avatar>
@@ -416,14 +416,14 @@ export default function ResearchClient() {
 
                                         <AnimatePresence>
                                             {showTradeForm && (
-                                                <motion.div ref={tradeFormRef} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className={cn("pt-8 border-t overflow-visible", isClearMode ? "border-white/10" : "border-border")}>
+                                                <motion.div ref={tradeFormRef} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className={cn("pt-8 overflow-visible")}>
                                                     <ResearchTradeForm selectedSymbol={selectedStock.symbol} selectedPrice={selectedStock.price} loadingPrice={loadingDetails} onClose={() => setShowTradeForm(false)} onTradeSuccess={() => { }} />
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>
                                     </div>
 
-                                    <div ref={chartContainerRef} className={cn("lg:col-span-1 border rounded-xl overflow-hidden transition-all duration-500 ease-in-out h-[400px]", isClearMode ? "border-white/10 bg-black/20" : "border-border bg-card")}>
+                                    <div ref={chartContainerRef} className={cn("border rounded-xl overflow-hidden transition-all duration-500 ease-in-out h-[400px]", isClearMode ? "border-white/10 bg-black/20" : "border-border bg-card")}>
                                         <TradingViewWidget symbol={selectedStock.symbol} interval="D" />
                                     </div>
                                 </div>
