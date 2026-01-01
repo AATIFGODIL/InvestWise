@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { useAuth } from "@/hooks/use-auth";
 import MainContent from "@/components/layout/main-content";
 import MoneyRain from '@/components/shared/money-rain';
@@ -83,18 +84,19 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
 
         {/* Pro Mode Triggers */}
         {isProMode && (
-          <>
-            <div
-              className="fixed top-0 left-0 w-16 h-16 z-[60] cursor-pointer hover:bg-white/5 transition-colors"
-              onClick={() => setTempNavVisible(!tempNavVisible)}
-              title="Toggle Navigation"
-            />
-            <div
-              className="fixed bottom-0 right-0 w-16 h-16 z-[60] cursor-pointer hover:bg-white/5 transition-colors"
-              onClick={() => setTempNavVisible(!tempNavVisible)}
-              title="Toggle Navigation"
-            />
-          </>
+          <div
+            className="fixed top-4 left-4 z-[60] cursor-pointer group"
+            onClick={() => setTempNavVisible(!tempNavVisible)}
+          >
+            <div className="relative h-10 w-10 overflow-hidden rounded-full transition-transform duration-300 group-hover:scale-110 shadow-lg shadow-purple-500/20">
+              <Image
+                src="/images/investwise-logo.png"
+                alt="Pro Mode Trigger"
+                fill
+                className="object-cover"
+              />
+            </div>
+          </div>
         )}
       </div>
     );
