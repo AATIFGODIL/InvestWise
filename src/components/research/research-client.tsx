@@ -1,21 +1,21 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect, useRef } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Maximize2, Minimize2, Grid2X2, Square, LayoutGrid, Plus, Search, Loader2, ArrowRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { Maximize2, Minimize2, Grid2X2, Square, LayoutGrid, Search, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NewsArticle } from '@/lib/gnews';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
 import { CommandItem, CommandList } from '@/components/ui/command';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useMarketStore } from '@/store/market-store';
 import ResearchTradeForm from './research-trade-form';
 import { AnimatePresence, motion } from 'framer-motion';
+import { fetchTopFinancialNewsAction } from '@/app/actions';
 
 const TradingViewWidget = dynamic(
     () => import('@/components/shared/trading-view-widget'),
@@ -42,7 +42,7 @@ interface StockData {
     high: number;
     low: number;
     open: number;
-    pc: number; // prev close
+    pc: number;
 }
 
 interface MetricData {
@@ -59,7 +59,7 @@ interface MetricData {
 export default function ResearchClient() {
     const [gridMode, setGridMode] = useState<1 | 2 | 4>(4);
     const [symbols, setSymbols] = useState(DEFAULT_SYMBOLS);
-    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isCustomZoom, setIsCustomZoom] = useState(false);
 
     // News State
     const [news, setNews] = useState<NewsArticle[]>([]);
@@ -82,22 +82,17 @@ export default function ResearchClient() {
 
     // Trade State
     const [showTradeForm, setShowTradeForm] = useState(false);
+    const chartContainerRef = useRef<HTMLDivElement | null>(null);
 
 
     // Fetch News
     useEffect(() => {
         async function getNews() {
             try {
-                // Using a server action would be better, but standard fetch for now to match pattern or use existing action if possible.
-                // Assuming fetchTopFinancialNewsAction exists or similar. using generic fetch for now.
-                // Reusing logic from market-news. 
-                // Mocking strictly for this refined implementation to ensure stability without checking actions file again.
-                // Ideally import { fetchMarketNewsAction } from "@/app/actions";
-                const res = await fetch(`https://gnews.io/api/v4/top-headlines?category=business&lang=en&max=5&apikey=${process.env.NEXT_PUBLIC_GNEWS_API_KEY}`);
-                const data = await res.json();
-                if (data.articles) setNews(data.articles);
+                const data = await fetchTopFinancialNewsAction(5);
+                setNews(data);
             } catch (e) {
-                console.error(e);
+                console.error("Failed to fetch news:", e);
             } finally {
                 setNewsLoading(false);
             }
@@ -126,14 +121,8 @@ export default function ResearchClient() {
         search();
     }, [debouncedInputValue]);
 
-    const toggleFullscreen = () => {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
-            setIsFullscreen(true);
-        } else {
-            document.exitFullscreen();
-            setIsFullscreen(false);
-        }
+    const toggleZoom = () => {
+        setIsCustomZoom(!isCustomZoom);
     };
 
     const updateSymbol = (index: number, newSymbol: string) => {
@@ -146,7 +135,7 @@ export default function ResearchClient() {
         setInputValue("");
         setShowSuggestions(false);
         setLoadingDetails(true);
-        setShowTradeForm(false); // Reset trade form
+        setShowTradeForm(false);
 
         try {
             const [quoteRes, profileRes, metricsRes] = await Promise.all([
@@ -174,7 +163,6 @@ export default function ResearchClient() {
                 pc: quote.pc
             });
             setStockMetrics(metrics);
-
         } catch (error) {
             console.error("Error details:", error);
         } finally {
@@ -184,10 +172,31 @@ export default function ResearchClient() {
 
     const handleMoreInfo = () => {
         if (!selectedStock) return;
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // 1. Reset Grid
         setGridMode(1);
+
+        // 2. Set Symbol
         updateSymbol(0, selectedStock.symbol);
+
+        // 3. Close Details (optional, or keep it open?) - Logic says we go to top default view
+        //    Let's keep the details open below just in case, but scroll up.
+
+        // 4. Scroll to Top
+        if (typeof window !== 'undefined') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     };
+
+    const handleTradeClick = () => {
+        setShowTradeForm(!showTradeForm);
+        // Smooth scroll to chart/trade form area
+        if (!showTradeForm) {
+            setTimeout(() => {
+                chartContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+    }
 
     const getGridClass = () => {
         switch (gridMode) {
@@ -199,9 +208,9 @@ export default function ResearchClient() {
     };
 
     return (
-        <div className="h-full flex flex-col space-y-6 p-4 pb-24 md:pb-4 max-w-[1920px] mx-auto">
+        <div className={cn("flex flex-col space-y-6 p-4 max-w-[1920px] mx-auto transition-all duration-500", isCustomZoom ? "h-[calc(100vh-2rem)]" : "h-full pb-24 md:pb-4")}>
             {/* 1. Header Toolbar */}
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center shrink-0">
                 <h1 className="text-2xl font-bold text-white tracking-tight">
                     Pro Research Station
                 </h1>
@@ -215,14 +224,14 @@ export default function ResearchClient() {
                     <Button variant="ghost" size="icon" onClick={() => setGridMode(4)} className={gridMode === 4 ? "bg-muted" : "text-muted-foreground"}>
                         <Grid2X2 className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="icon" onClick={toggleFullscreen} className="ml-2 border-white/20 text-white hover:bg-white/10">
-                        {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+                    <Button variant="outline" size="icon" onClick={toggleZoom} className="ml-2 border-white/20 text-white hover:bg-white/10">
+                        {isCustomZoom ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                     </Button>
                 </div>
             </div>
 
             {/* 2. Main Grid */}
-            <div className={`grid gap-4 ${getGridClass()} min-h-[600px] transition-all duration-300`}>
+            <div className={cn("grid gap-4 transition-all duration-500", getGridClass(), isCustomZoom ? "flex-1 min-h-0" : "min-h-[600px]")}>
                 {Array.from({ length: gridMode }).map((_, index) => (
                     <Card key={index} className="overflow-hidden flex flex-col h-full border-muted/20 bg-card/40 backdrop-blur-sm">
                         <CardContent className="p-0 flex-1 relative">
@@ -246,171 +255,184 @@ export default function ResearchClient() {
                 ))}
             </div>
 
-            {/* 3. News Section */}
-            <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold text-white">Latest Headlines</h3>
-                    <Button variant="ghost" size="sm" onClick={() => setNewsExpanded(!newsExpanded)} className="text-muted-foreground hover:text-white">
-                        {newsExpanded ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />}
-                        {newsExpanded ? "Show Less" : "Reveal 5"}
-                    </Button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    {newsLoading ? (
-                        <Skeleton className="h-32 w-full col-span-5" />
-                    ) : (
-                        (newsExpanded ? news.slice(0, 5) : news.slice(0, 1)).map((article, i) => (
-                            <a key={i} href={article.url} target="_blank" rel="noreferrer" className={cn("group relative block overflow-hidden rounded-lg border border-white/5 bg-white/5 hover:bg-white/10 transition-colors", !newsExpanded ? "md:col-span-5 flex items-center p-4 gap-4 h-24" : "aspect-[4/3]")}>
-                                {/* Different Layout based on expanded state */}
-                                {!newsExpanded ? (
-                                    <>
-                                        {article.image && <img src={article.image} alt="news" className="h-16 w-24 object-cover rounded" />}
-                                        <div>
-                                            <h4 className="font-medium text-white group-hover:text-blue-400 transition-colors line-clamp-1">{article.title}</h4>
-                                            <p className="text-xs text-zinc-400 mt-1 line-clamp-1">{article.description}</p>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        {article.image && <img src={article.image} alt="news" className="absolute inset-0 h-full w-full object-cover opacity-40 group-hover:opacity-20 transition-opacity" />}
-                                        <div className="absolute inset-0 p-4 flex flex-col justify-end bg-gradient-to-t from-black/90 to-transparent">
-                                            <h4 className="text-sm font-medium text-white line-clamp-2 leading-tight">{article.title}</h4>
-                                            <span className="text-[10px] text-zinc-400 mt-1">{article.source.name}</span>
-                                        </div>
-                                    </>
-                                )}
-                            </a>
-                        ))
-                    )}
-                </div>
-            </div>
-
-            {/* 4. Deep Dive Search Section */}
-            <div className="pt-8 border-t border-white/10 space-y-6">
-                <h3 className="text-lg font-semibold text-white">Detailed Stock Analysis</h3>
-                {/* Search Bar */}
-                <div className="relative max-w-2xl" ref={searchContainerRef}>
-                    <div className="relative flex items-center">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input
-                            placeholder="Search symbol (e.g. AAPL) for deep analysis..."
-                            className="pl-12 h-14 rounded-full bg-white/5 border-white/10 text-lg focus-visible:ring-purple-500/50 transition-all font-light"
-                            value={inputValue}
-                            onChange={(e) => {
-                                setInputValue(e.target.value.toUpperCase());
-                                setShowSuggestions(true);
-                            }}
-                            onFocus={() => setShowSuggestions(true)}
-                        />
-                        {isSearching && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />}
-                    </div>
-                    {showSuggestions && searchResults.length > 0 && (
-                        <div className="absolute top-full mt-2 w-full bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
-                            <CommandList>
-                                {searchResults.map((s) => (
-                                    <CommandItem key={s.symbol} onSelect={() => handleSelectStock(s.symbol)} className="cursor-pointer hover:bg-white/5 p-3">
-                                        <div className="flex gap-3 items-center">
-                                            <Avatar className="h-8 w-8 bg-zinc-800"><AvatarFallback>{s.symbol[0]}</AvatarFallback></Avatar>
-                                            <div>
-                                                <p className="font-bold text-white">{s.symbol}</p>
-                                                <p className="text-xs text-zinc-400">{s.description}</p>
-                                            </div>
-                                        </div>
-                                    </CommandItem>
-                                ))}
-                            </CommandList>
+            {/* Content hidden in Zoom Mode */}
+            {!isCustomZoom && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="space-y-6"
+                >
+                    {/* 3. News Section */}
+                    <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                            <h3 className="text-lg font-semibold text-white">Latest Headlines</h3>
+                            <Button variant="ghost" size="sm" onClick={() => setNewsExpanded(!newsExpanded)} className="text-muted-foreground hover:text-white">
+                                {newsExpanded ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />}
+                                {newsExpanded ? "Show Less" : "Reveal 5"}
+                            </Button>
                         </div>
-                    )}
-                </div>
-
-                {/* Results Area */}
-                <AnimatePresence>
-                    {selectedStock && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden"
-                        >
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">
-                                {/* Left: Chart */}
-                                <div className="lg:col-span-1 h-[400px] rounded-xl overflow-hidden border border-white/10 bg-black/20">
-                                    <TradingViewWidget symbol={selectedStock.symbol} interval="D" />
-                                </div>
-
-                                {/* Right: Info */}
-                                <div className="lg:col-span-2 space-y-8">
-                                    {/* Header Info */}
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex gap-4">
-                                            <div className="h-16 w-16 bg-white rounded-xl flex items-center justify-center p-2 shadow-lg">
-                                                <img src={selectedStock.logoUrl} alt={selectedStock.symbol} className="max-w-full max-h-full object-contain" />
-                                            </div>
-                                            <div>
-                                                <h2 className="text-4xl font-bold text-white">{selectedStock.symbol}</h2>
-                                                <p className="text-lg text-zinc-400">{selectedStock.name}</p>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-3xl font-mono text-white">${selectedStock.price.toFixed(2)}</span>
-                                                    <span className={cn("text-lg font-medium", selectedStock.change >= 0 ? "text-green-400" : "text-red-400")}>
-                                                        {selectedStock.change > 0 ? "+" : ""}{selectedStock.change.toFixed(2)} ({selectedStock.changePercent.toFixed(2)}%)
-                                                    </span>
+                        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            {newsLoading ? (
+                                <Skeleton className="h-24 w-full col-span-5" />
+                            ) : (
+                                (newsExpanded ? news.slice(0, 5) : news.slice(0, 1)).map((article, i) => (
+                                    <a key={i} href={article.url} target="_blank" rel="noreferrer" className={cn("group relative block overflow-hidden rounded-lg border border-white/5 bg-white/5 hover:bg-white/10 transition-colors", !newsExpanded ? "md:col-span-5 flex items-center p-4 gap-4 h-24" : "aspect-[4/3]")}>
+                                        {!newsExpanded ? (
+                                            <>
+                                                {article.image && <img src={article.image} alt="news" className="h-16 w-24 object-cover rounded" />}
+                                                <div>
+                                                    <h4 className="font-medium text-white group-hover:text-blue-400 transition-colors line-clamp-1">{article.title}</h4>
+                                                    <p className="text-xs text-zinc-400 mt-1 line-clamp-1">{article.description}</p>
                                                 </div>
-                                                <div className="flex items-center gap-2 text-xs text-zinc-500 mt-1">
-                                                    <span>Market is {isMarketOpen ? 'Open' : 'Closed'}</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                {article.image && <img src={article.image} alt="news" className="absolute inset-0 h-full w-full object-cover opacity-40 group-hover:opacity-20 transition-opacity" />}
+                                                <div className="absolute inset-0 p-4 flex flex-col justify-end bg-gradient-to-t from-black/90 to-transparent">
+                                                    <h4 className="text-sm font-medium text-white line-clamp-2 leading-tight">{article.title}</h4>
+                                                    <span className="text-[10px] text-zinc-400 mt-1">{article.source.name}</span>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <Button onClick={() => setShowTradeForm(!showTradeForm)} size="lg" className="bg-white text-black hover:bg-zinc-200">
-                                                {showTradeForm ? "Cancel Trade" : `Trade ${selectedStock.symbol}`}
-                                            </Button>
-                                            <Button onClick={handleMoreInfo} size="lg" className="bg-blue-600 text-white hover:bg-blue-700">
-                                                More Info
-                                            </Button>
-                                        </div>
-                                    </div>
+                                            </>
+                                        )}
+                                    </a>
+                                ))
+                            )}
+                        </div>
+                    </div>
 
-                                    {/* Metrics Grid */}
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-12">
-                                        <div><p className="text-zinc-500 text-xs uppercase tracking-wider">Volume (Current)</p><p className="text-white font-mono text-lg">---</p></div> {/* Not available in basic quote */}
-                                        <div><p className="text-zinc-500 text-xs uppercase tracking-wider">High (Day)</p><p className="text-white font-mono text-lg">${selectedStock.high.toFixed(2)}</p></div>
-                                        <div><p className="text-zinc-500 text-xs uppercase tracking-wider">Low (Day)</p><p className="text-white font-mono text-lg">${selectedStock.low.toFixed(2)}</p></div>
-                                        <div><p className="text-zinc-500 text-xs uppercase tracking-wider">Open</p><p className="text-white font-mono text-lg">${selectedStock.open.toFixed(2)}</p></div>
-
-                                        <div><p className="text-zinc-500 text-xs uppercase tracking-wider">52 Week High</p><p className="text-white font-mono text-lg">${stockMetrics?.metric["52WeekHigh"].toFixed(2)}</p></div>
-                                        <div><p className="text-zinc-500 text-xs uppercase tracking-wider">52 Week Low</p><p className="text-white font-mono text-lg">${stockMetrics?.metric["52WeekLow"].toFixed(2)}</p></div>
-                                        <div><p className="text-zinc-500 text-xs uppercase tracking-wider">Market Cap</p><p className="text-white font-mono text-lg">{stockMetrics?.metric.marketCapitalization ? `${(stockMetrics.metric.marketCapitalization / 1000).toFixed(2)}B` : '---'}</p></div>
-                                        <div><p className="text-zinc-500 text-xs uppercase tracking-wider">P/E Ratio</p><p className="text-white font-mono text-lg">{stockMetrics?.metric.peTTM.toFixed(2)}</p></div>
-
-                                        <div><p className="text-zinc-500 text-xs uppercase tracking-wider">Div Yield</p><p className="text-white font-mono text-lg">{stockMetrics?.metric.dividendYieldIndicatedAnnual ? `${stockMetrics.metric.dividendYieldIndicatedAnnual.toFixed(2)}%` : '---'}</p></div>
-                                        <div><p className="text-zinc-500 text-xs uppercase tracking-wider">EPS (TTM)</p><p className="text-white font-mono text-lg">${stockMetrics?.metric.epsTTM.toFixed(2)}</p></div>
-                                    </div>
-                                </div>
+                    {/* 4. Deep Dive Search Section */}
+                    <div className="pt-8 border-t border-white/10 space-y-6">
+                        <h3 className="text-lg font-semibold text-white">Detailed Stock Analysis</h3>
+                        {/* Search Bar */}
+                        <div className="relative max-w-2xl" ref={searchContainerRef}>
+                            <div className="relative flex items-center">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                                <Input
+                                    placeholder="Search symbol (e.g. AAPL) for deep analysis..."
+                                    className="pl-12 h-14 rounded-full bg-white/5 border-white/10 text-lg focus-visible:ring-purple-500/50 transition-all font-light"
+                                    value={inputValue}
+                                    onChange={(e) => {
+                                        setInputValue(e.target.value.toUpperCase());
+                                        setShowSuggestions(true);
+                                    }}
+                                    onFocus={() => setShowSuggestions(true)}
+                                />
+                                {isSearching && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 animate-spin text-muted-foreground" />}
                             </div>
+                            {showSuggestions && searchResults.length > 0 && (
+                                <div className="absolute top-full mt-2 w-full bg-zinc-900 border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
+                                    <CommandList>
+                                        {searchResults.map((s) => (
+                                            <CommandItem key={s.symbol} onSelect={() => handleSelectStock(s.symbol)} className="cursor-pointer hover:bg-white/5 p-3">
+                                                <div className="flex gap-3 items-center">
+                                                    <Avatar className="h-8 w-8 bg-zinc-800"><AvatarFallback>{s.symbol[0]}</AvatarFallback></Avatar>
+                                                    <div>
+                                                        <p className="font-bold text-white">{s.symbol}</p>
+                                                        <p className="text-xs text-zinc-400">{s.description}</p>
+                                                    </div>
+                                                </div>
+                                            </CommandItem>
+                                        ))}
+                                    </CommandList>
+                                </div>
+                            )}
+                        </div>
 
-                            {/* Trade Form Section */}
-                            <AnimatePresence>
-                                {showTradeForm && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 20 }}
-                                        className="mt-8 pt-8 border-t border-white/10"
-                                    >
-                                        <ResearchTradeForm
-                                            selectedSymbol={selectedStock.symbol}
-                                            selectedPrice={selectedStock.price}
-                                            loadingPrice={loadingDetails}
-                                            onClose={() => setShowTradeForm(false)}
-                                            onTradeSuccess={() => {/* Maybe refresh data? */ }}
-                                        />
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </div>
+                        {/* Analysis Results - Layout Swapped (Info Left, Chart Right) */}
+                        <AnimatePresence>
+                            {selectedStock && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-6">
+
+                                        {/* Left: Info & Metrics */}
+                                        <div className="lg:col-span-2 space-y-8">
+                                            {/* Header Info */}
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex gap-4">
+                                                    <div className="h-16 w-16 bg-white rounded-xl flex items-center justify-center p-2 shadow-lg">
+                                                        <img src={selectedStock.logoUrl} alt={selectedStock.symbol} className="max-w-full max-h-full object-contain" />
+                                                    </div>
+                                                    <div>
+                                                        <h2 className="text-4xl font-bold text-white">{selectedStock.symbol}</h2>
+                                                        <p className="text-lg text-zinc-400">{selectedStock.name}</p>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className="text-3xl font-mono text-white">${selectedStock.price.toFixed(2)}</span>
+                                                            <span className={cn("text-lg font-medium", selectedStock.change >= 0 ? "text-green-400" : "text-red-400")}>
+                                                                {selectedStock.change > 0 ? "+" : ""}{selectedStock.change.toFixed(2)} ({selectedStock.changePercent.toFixed(2)}%)
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-xs text-zinc-500 mt-1">
+                                                            <span>Market is {isMarketOpen ? 'Open' : 'Closed'}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    <Button onClick={handleTradeClick} size="lg" className="bg-white text-black hover:bg-zinc-200">
+                                                        {showTradeForm ? "Cancel Trade" : `Trade ${selectedStock.symbol}`}
+                                                    </Button>
+                                                    <Button onClick={handleMoreInfo} size="lg" className="bg-primary hover:bg-primary/90 text-white">
+                                                        More Info
+                                                    </Button>
+                                                </div>
+                                            </div>
+
+                                            {/* Metrics Grid */}
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-y-6 gap-x-12">
+                                                <div><p className="text-zinc-500 text-xs uppercase tracking-wider">Volume (Current)</p><p className="text-white font-mono text-lg">---</p></div>
+                                                <div><p className="text-zinc-500 text-xs uppercase tracking-wider">High (Day)</p><p className="text-white font-mono text-lg">${selectedStock.high.toFixed(2)}</p></div>
+                                                <div><p className="text-zinc-500 text-xs uppercase tracking-wider">Low (Day)</p><p className="text-white font-mono text-lg">${selectedStock.low.toFixed(2)}</p></div>
+                                                <div><p className="text-zinc-500 text-xs uppercase tracking-wider">Open</p><p className="text-white font-mono text-lg">${selectedStock.open.toFixed(2)}</p></div>
+
+                                                <div><p className="text-zinc-500 text-xs uppercase tracking-wider">52 Week High</p><p className="text-white font-mono text-lg">${stockMetrics?.metric["52WeekHigh"].toFixed(2)}</p></div>
+                                                <div><p className="text-zinc-500 text-xs uppercase tracking-wider">52 Week Low</p><p className="text-white font-mono text-lg">${stockMetrics?.metric["52WeekLow"].toFixed(2)}</p></div>
+                                                <div><p className="text-zinc-500 text-xs uppercase tracking-wider">Market Cap</p><p className="text-white font-mono text-lg">{stockMetrics?.metric.marketCapitalization ? `${(stockMetrics.metric.marketCapitalization / 1000).toFixed(2)}B` : '---'}</p></div>
+                                                <div><p className="text-zinc-500 text-xs uppercase tracking-wider">P/E Ratio</p><p className="text-white font-mono text-lg">{stockMetrics?.metric.peTTM.toFixed(2)}</p></div>
+
+                                                <div><p className="text-zinc-500 text-xs uppercase tracking-wider">Div Yield</p><p className="text-white font-mono text-lg">{stockMetrics?.metric.dividendYieldIndicatedAnnual ? `${stockMetrics.metric.dividendYieldIndicatedAnnual.toFixed(2)}%` : '---'}</p></div>
+                                                <div><p className="text-zinc-500 text-xs uppercase tracking-wider">EPS (TTM)</p><p className="text-white font-mono text-lg">${stockMetrics?.metric.epsTTM.toFixed(2)}</p></div>
+                                            </div>
+
+                                            {/* Trade Form Section - Moved here to be part of the Info Col */}
+                                            <AnimatePresence>
+                                                {showTradeForm && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, height: 0 }}
+                                                        animate={{ opacity: 1, height: "auto" }}
+                                                        exit={{ opacity: 0, height: 0 }}
+                                                        className="pt-8 border-t border-white/10"
+                                                    >
+                                                        <ResearchTradeForm
+                                                            selectedSymbol={selectedStock.symbol}
+                                                            selectedPrice={selectedStock.price}
+                                                            loadingPrice={loadingDetails}
+                                                            onClose={() => setShowTradeForm(false)}
+                                                            onTradeSuccess={() => {/* Refresh? */ }}
+                                                        />
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+
+                                        {/* Right: Chart (with Resize on Trade) */}
+                                        <div
+                                            ref={chartContainerRef}
+                                            className={cn("lg:col-span-1 border border-white/10 bg-black/20 rounded-xl overflow-hidden transition-all duration-500 ease-in-out", showTradeForm ? "h-[600px] lg:h-[800px]" : "h-[400px]")}
+                                        >
+                                            <TradingViewWidget symbol={selectedStock.symbol} interval="D" />
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </motion.div>
+            )}
         </div>
     );
 }

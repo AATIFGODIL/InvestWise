@@ -30,6 +30,7 @@ import { useAutoInvestStore } from "@/store/auto-invest-store";
 import { useNotificationStore, type AppNotification } from "@/store/notification-store";
 import { usePendingTradeStore } from "@/store/pending-trade-store";
 import AutoTradeApprovalDialog from "@/components/trade/auto-trade-approval-dialog";
+import { useProModeStore } from "@/store/pro-mode-store";
 
 
 const containerVariants = {
@@ -333,7 +334,14 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             <Link
               href="/dashboard"
               className="flex h-full shrink-0 items-center rounded-full bg-primary px-3 sm:px-4 shadow-md"
-              onClick={(e) => handleNavigate(e, '/dashboard')}
+              onClick={(e) => {
+                if (useProModeStore.getState().isProMode) {
+                  e.preventDefault();
+                  useProModeStore.getState().setIsNavVisible(false);
+                } else {
+                  handleNavigate(e, '/dashboard');
+                }
+              }}
             >
               <h1 className="text-md sm:text-lg font-bold text-primary-foreground">
                 InvestWise

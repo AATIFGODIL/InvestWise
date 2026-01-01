@@ -21,8 +21,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
   const pathname = usePathname();
   const { user, hydrating } = useAuth();
   const [isRaining, setIsRaining] = React.useState(false);
-  const { isProMode } = useProModeStore();
-  const [tempNavVisible, setTempNavVisible] = React.useState(false);
+  const { isProMode, isNavVisible, setIsNavVisible } = useProModeStore();
 
   useUserData(user);
 
@@ -47,7 +46,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
     return (
       <div className="flex flex-col h-screen relative">
         <AnimatePresence>
-          {(!isSpecialLayoutRoute && (!isProMode || tempNavVisible)) && (
+          {(!isSpecialLayoutRoute && (!isProMode || isNavVisible)) && (
             <motion.div
               key="header"
               initial={{ x: -100, opacity: 0, filter: "blur(10px)" }}
@@ -66,7 +65,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
         </MainContent>
 
         <AnimatePresence>
-          {(!isSpecialLayoutRoute && (!isProMode || tempNavVisible)) && (
+          {(!isSpecialLayoutRoute && (!isProMode || isNavVisible)) && (
             <motion.div
               key="bottom-nav"
               initial={{ x: -100, opacity: 0, filter: "blur(10px)" }}
@@ -83,21 +82,27 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
         <MoneyRain isActive={isRaining} />
 
         {/* Pro Mode Triggers */}
-        {isProMode && (
-          <div
-            className="fixed top-4 left-4 z-[60] cursor-pointer group"
-            onClick={() => setTempNavVisible(!tempNavVisible)}
-          >
-            <div className="relative h-10 w-10 overflow-hidden rounded-full transition-transform duration-300 group-hover:scale-110 shadow-lg shadow-purple-500/20">
-              <Image
-                src="/images/investwise-logo.png"
-                alt="Pro Mode Trigger"
-                fill
-                className="object-cover"
-              />
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {(isProMode && !isNavVisible) && (
+            <motion.div
+              key="pro-trigger"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="fixed top-4 left-4 z-[60] cursor-pointer group"
+              onClick={() => setIsNavVisible(true)}
+            >
+              <div className="relative h-10 w-10 overflow-hidden rounded-full transition-transform duration-300 group-hover:scale-110 shadow-lg shadow-purple-500/20">
+                <Image
+                  src="/icon"
+                  alt="Pro Mode Trigger"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     );
   }
