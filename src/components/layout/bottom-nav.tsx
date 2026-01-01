@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Home, BarChart, Users, Repeat, Target } from "lucide-react";
+import { Home, BarChart, Users, Repeat, Target, LineChart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -12,19 +12,12 @@ import {
   type CSSProperties,
   type MouseEvent,
   useCallback,
+  useMemo,
 } from "react";
 import { useThemeStore } from "@/store/theme-store";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useBottomNavStore } from "@/store/bottom-nav-store";
-
-
-const navItems = [
-  { href: "/dashboard", label: "Explore", icon: Home },
-  { href: "/portfolio", label: "Portfolio", icon: BarChart },
-  { href: "/trade", label: "Trade", icon: Repeat },
-  { href: "/goals", label: "Goals", icon: Target },
-  { href: "/community", label: "Community", icon: Users },
-];
+import { useProModeStore } from "@/store/pro-mode-store";
 
 type AnimationState = "idle" | "rising" | "sliding" | "descending" | "dragging";
 
@@ -39,8 +32,22 @@ export default function BottomNav() {
 
   const { isClearMode, theme } = useThemeStore();
   const { activeIndex: externalActiveIndex, targetPath, samePageIndex, clearActiveIndex } = useBottomNavStore();
+  const { isProMode } = useProModeStore();
   const isLightClear = isClearMode && theme === "light";
   const isMobile = useIsMobile();
+
+  const navItems = useMemo(() => {
+    const items = [
+      { href: "/dashboard", label: "Explore", icon: Home },
+      { href: "/portfolio", label: "Portfolio", icon: BarChart },
+      { href: "/trade", label: "Trade", icon: Repeat },
+      isProMode
+        ? { href: "/research", label: "Research", icon: LineChart }
+        : { href: "/goals", label: "Goals", icon: Target },
+      { href: "/community", label: "Community", icon: Users },
+    ];
+    return items;
+  }, [isProMode]);
 
   const [gliderStyle, setGliderStyle] = useState<CSSProperties>({
     opacity: 0,

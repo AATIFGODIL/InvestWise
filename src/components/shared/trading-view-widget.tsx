@@ -7,11 +7,20 @@ import { useThemeStore } from '@/store/theme-store';
 interface TradingViewWidgetProps {
   symbol: string;
   onSymbolChange?: (newSymbol: string) => void;
+  interval?: string;
+  studies?: string[];
+  containerIdSuffix?: string;
 }
 
-const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol }) => {
+const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({
+  symbol,
+  interval = "D",
+  studies = [],
+  containerIdSuffix = ""
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useThemeStore();
+  const containerId = `tradingview_chart_${symbol.replace(/[^a-zA-Z0-9]/g, '')}${containerIdSuffix}`;
 
   useEffect(() => {
     // Ensure the container exists and the symbol is valid
@@ -26,14 +35,14 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol }) => {
     script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
     script.async = true;
     script.type = 'text/javascript';
-    
+
     // Configure the widget with the current symbol prop
     script.innerHTML = JSON.stringify({
       "autosize": true,
       "symbol": symbol,
-      "interval": "D",
+      "interval": interval,
       "timezone": "exchange",
-      "theme": theme, 
+      "theme": theme,
       "style": "1",
       "locale": "en",
       "enable_publishing": false,
@@ -43,10 +52,11 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol }) => {
       "details": true,
       "hotlist": false,
       "calendar": false,
+      "studies": studies,
       "show_popup_button": true,
       "popup_width": "1000",
       "popup_height": "600",
-      "container_id": `tradingview_chart_${symbol.replace(/[^a-zA-Z0-9]/g, '')}` 
+      "container_id": containerId
     });
 
     containerRef.current.appendChild(script);
@@ -57,12 +67,12 @@ const TradingViewWidget: React.FC<TradingViewWidgetProps> = ({ symbol }) => {
         containerRef.current.innerHTML = ''; // Clean up the widget when symbol changes or component unmounts
       }
     };
-  }, [symbol, theme]); // Re-run this effect whenever the 'symbol' or 'theme' prop changes
+  }, [symbol, theme, interval, studies, containerId]); // Re-run this effect whenever the props change
 
   return (
-    <div 
-      ref={containerRef} 
-      className="tradingview-widget-container" 
+    <div
+      ref={containerRef}
+      className="tradingview-widget-container"
       style={{ height: '100%', width: '100%' }}
     >
       {/* TradingView script will append content here */}

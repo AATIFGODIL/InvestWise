@@ -20,6 +20,7 @@ import OnboardingTutorial from "@/components/dashboard/onboarding-tutorial";
 import { Skeleton } from "../ui/skeleton";
 import { Card, CardHeader, CardTitle } from "../ui/card";
 import { Newspaper } from "lucide-react";
+import { ProModeToggle } from "@/components/shared/pro-mode-toggle";
 
 // These components are loaded dynamically to improve initial page load performance.
 // They will only be loaded when they are needed, reducing the client-side JavaScript bundle size.
@@ -127,9 +128,12 @@ export default function DashboardClient() {
             >
                 <motion.div variants={itemVariants} className="flex justify-between items-center">
                     <h1 className="text-2xl font-bold">Explore</h1>
-                    <div className="flex items-center gap-2 text-sm text-primary">
-                        <Clock className="h-4 w-4" />
-                        <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+                    <div className="flex flex-col items-end gap-1">
+                        <div className="flex items-center gap-2 text-sm text-primary">
+                            <Clock className="h-4 w-4" />
+                            <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+                        </div>
+                        <ProModeToggle className="scale-90 origin-right" showLabel={true} />
                     </div>
                 </motion.div>
 

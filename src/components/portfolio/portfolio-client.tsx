@@ -16,6 +16,31 @@ import Watchlist from '../dashboard/watchlist';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { useTransactionStore } from '@/store/transaction-store';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import CreateGoal from "@/components/goals/create-goal";
+import GoalList from "@/components/goals/goal-list";
+import { useGoalStore } from "@/store/goal-store";
+import dynamic from 'next/dynamic';
+import { Skeleton } from "../ui/skeleton";
+import { ProModeToggle } from '@/components/shared/pro-mode-toggle';
+
+const YouTubePlayer = dynamic(() => import('../shared/youtube-player'), {
+  ssr: false,
+  loading: () => <Skeleton className="h-full w-full aspect-video" />,
+});
+
+const videos = [
+  {
+    title: "Setting SMART Financial Goals",
+    description: "Learn how to set Specific, Measurable, Achievable, Relevant, and Time-bound goals for your financial future.",
+    youtubeUrl: "https://www.youtube.com/watch?v=UwTxtkGplUs",
+  },
+  {
+    title: "The Psychology of Trading",
+    description: "Understand the emotional and psychological aspects of trading to maintain discipline and make better decisions.",
+    youtubeUrl: "https://www.youtube.com/watch?v=sauPy2JHzI0",
+  }
+]
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -46,6 +71,7 @@ export default function PortfolioClient() {
   const { paymentMethodToken } = useUserStore();
   const { isMarketOpen } = useMarketStore();
   const { addTransaction } = useTransactionStore();
+  const { goals, addGoal } = useGoalStore();
 
   const handleAddFunds = async () => {
     if (!paymentMethodToken) {
@@ -100,36 +126,66 @@ export default function PortfolioClient() {
         initial="hidden"
         animate="visible"
       >
-        <motion.div
-          variants={itemVariants}
-          className="flex justify-between items-center"
-        >
+        <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Portfolio</h1>
           <Button onClick={handleAddFunds} className={cn('ring-1 ring-white/60')}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Add $100 (Demo)
           </Button>
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <PortfolioValue />
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Holdings</h2>
-            <div className="flex items-center gap-2 text-sm text-primary">
-              <Clock className="h-4 w-4" />
-              <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
-            </div>
-          </div>
-          <HoldingsTable />
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <Watchlist />
-        </motion.div>
-        <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <AutoInvest />
-          <AiPrediction />
-        </motion.div>
+        </div>
+
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="goals">Goals</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-6 mt-6">
+            <motion.div variants={itemVariants}>
+              <PortfolioValue />
+            </motion.div>
+            <motion.div variants={itemVariants}>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">Holdings</h2>
+                <div className="flex flex-col items-end gap-1">
+                  <div className="flex items-center gap-2 text-sm text-primary">
+                    <Clock className="h-4 w-4" />
+                    <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
+                  </div>
+                  <ProModeToggle className="scale-90 origin-right" showLabel={true} />
+                </div>
+              </div>
+              <HoldingsTable />
+            </motion.div>
+            <motion.div variants={itemVariants}>
+              <Watchlist />
+            </motion.div>
+            <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <AutoInvest />
+              <AiPrediction />
+            </motion.div>
+          </TabsContent>
+
+          <TabsContent value="goals" className="space-y-6 mt-6">
+            <motion.div variants={itemVariants}>
+              <CreateGoal onAddGoal={addGoal} />
+            </motion.div>
+
+            <motion.div variants={itemVariants}>
+              <GoalList goals={goals} />
+            </motion.div>
+
+            <motion.div variants={itemVariants} className="space-y-4 pt-4">
+              <h2 className="text-xl font-bold">Learn About Goals</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                {videos.map((video) => (
+                  <YouTubePlayer key={video.title} videoTitle={video.title} description={video.description} youtubeUrl={video.youtubeUrl} />
+                ))}
+              </div>
+            </motion.div>
+          </TabsContent>
+        </Tabs>
+
         <Chatbot />
       </motion.div>
     </main>

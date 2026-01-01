@@ -20,6 +20,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { useThemeStore } from "@/store/theme-store";
 import { motion } from "framer-motion";
 import { Skeleton } from "../ui/skeleton";
+import { ProModeToggle } from "@/components/shared/pro-mode-toggle";
 
 const TradingViewWidget = dynamic(() => import("@/components/shared/trading-view-widget"), {
     ssr: false,
@@ -355,7 +356,10 @@ export default function TradeClient() {
                 initial="hidden"
                 animate="visible"
             >
-                <motion.h1 variants={itemVariants} className="text-2xl font-bold">Trade</motion.h1>
+                <motion.div variants={itemVariants} className="flex items-center gap-4">
+                    <ProModeToggle />
+                    <h1 className="text-2xl font-bold">Trade</h1>
+                </motion.div>
 
                 <motion.div variants={itemVariants}>
                     <Card>
