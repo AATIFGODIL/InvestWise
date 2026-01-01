@@ -182,9 +182,10 @@ export default function ResearchClient() {
         // 3. Close Details (optional, or keep it open?) - Logic says we go to top default view
         //    Let's keep the details open below just in case, but scroll up.
 
-        // 4. Scroll to Top
-        if (typeof window !== 'undefined') {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        // 4. Scroll to Top (Targeting the MainContent container)
+        const mainContent = document.getElementById('main-content');
+        if (mainContent) {
+            mainContent.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
@@ -211,7 +212,7 @@ export default function ResearchClient() {
         <div className={cn("flex flex-col space-y-6 p-4 max-w-[1920px] mx-auto transition-all duration-500", isCustomZoom ? "h-[calc(100vh-2rem)]" : "h-full pb-32 md:pb-32")}>
             {/* 1. Header Toolbar */}
             <div className="flex justify-between items-center shrink-0">
-                <h1 className="text-2xl font-bold text-white tracking-tight ml-14">
+                <h1 className="text-2xl font-bold text-white tracking-tight ml-20">
                     Pro Research Station
                 </h1>
                 <div className="flex items-center gap-2">
@@ -355,8 +356,8 @@ export default function ResearchClient() {
                                             {/* Header Info */}
                                             <div className="flex justify-between items-start">
                                                 <div className="flex gap-4">
-                                                    <div className="h-16 w-16 bg-white rounded-xl flex items-center justify-center p-2 shadow-lg">
-                                                        <img src={selectedStock.logoUrl} alt={selectedStock.symbol} className="max-w-full max-h-full object-contain" />
+                                                    <div className="h-16 w-16 bg-white rounded-full flex items-center justify-center p-1 shadow-lg overflow-hidden">
+                                                        <img src={selectedStock.logoUrl} alt={selectedStock.symbol} className="w-full h-full object-contain" />
                                                     </div>
                                                     <div>
                                                         <h2 className="text-4xl font-bold text-white">{selectedStock.symbol}</h2>

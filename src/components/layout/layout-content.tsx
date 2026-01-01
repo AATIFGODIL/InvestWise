@@ -50,9 +50,9 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
           {(!isSpecialLayoutRoute && (!isProMode || isNavVisible)) && (
             <motion.div
               key="header"
-              initial={{ x: -100, opacity: 0, filter: "blur(10px)" }}
-              animate={{ x: 0, opacity: 1, filter: "blur(0px)" }}
-              exit={{ x: -100, opacity: 0, filter: "blur(10px)" }}
+              initial={{ x: -100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -100, opacity: 0 }}
               transition={{ duration: 0.8, ease: "easeInOut" }}
               className="fixed top-0 left-0 right-0 z-50 w-full"
             >
@@ -69,9 +69,9 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
           {(!isSpecialLayoutRoute && (!isProMode || isNavVisible)) && (
             <motion.div
               key="bottom-nav"
-              initial={{ x: -100, opacity: 0, filter: "blur(10px)" }}
-              animate={{ x: 0, opacity: 1, filter: "blur(0px)" }}
-              exit={{ x: -100, opacity: 0, filter: "blur(10px)" }}
+              initial={{ x: -100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -100, opacity: 0 }}
               transition={{ duration: 0.8, ease: "easeInOut" }}
               className="z-50 w-full fixed bottom-0 left-0"
             >

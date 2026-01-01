@@ -3,19 +3,20 @@
 
 import { cn } from "@/lib/utils";
 
-export default function MainContent({ 
-  children, 
+export default function MainContent({
+  children,
   isSpecialLayoutRoute,
   disableScroll,
-}: { 
-  children: React.ReactNode, 
+}: {
+  children: React.ReactNode,
   isSpecialLayoutRoute?: boolean,
   disableScroll?: boolean,
 }) {
   return (
-    <div 
+    <div
+      id="main-content"
       className={cn(
-        "flex-1", 
+        "flex-1 transition-[padding] duration-500 ease-in-out",
         !isSpecialLayoutRoute && "pt-20",
         !disableScroll && "overflow-y-auto",
       )}
