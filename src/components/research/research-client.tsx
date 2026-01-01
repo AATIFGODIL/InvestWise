@@ -208,10 +208,10 @@ export default function ResearchClient() {
     };
 
     return (
-        <div className={cn("flex flex-col space-y-6 p-4 max-w-[1920px] mx-auto transition-all duration-500", isCustomZoom ? "h-[calc(100vh-2rem)]" : "h-full pb-24 md:pb-4")}>
+        <div className={cn("flex flex-col space-y-6 p-4 max-w-[1920px] mx-auto transition-all duration-500", isCustomZoom ? "h-[calc(100vh-2rem)]" : "h-full pb-32 md:pb-32")}>
             {/* 1. Header Toolbar */}
             <div className="flex justify-between items-center shrink-0">
-                <h1 className="text-2xl font-bold text-white tracking-tight">
+                <h1 className="text-2xl font-bold text-white tracking-tight ml-14">
                     Pro Research Station
                 </h1>
                 <div className="flex items-center gap-2">

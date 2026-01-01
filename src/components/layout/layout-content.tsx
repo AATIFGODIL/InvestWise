@@ -11,6 +11,7 @@ import useUserData from '@/hooks/use-user-data';
 import dynamic from 'next/dynamic';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useProModeStore } from '@/store/pro-mode-store';
+import AppLogoIcon from '@/components/shared/app-logo-icon';
 
 // Dynamically import client-heavy components
 const Header = dynamic(() => import('@/components/layout/header'), { ssr: false });
@@ -53,14 +54,14 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
               animate={{ x: 0, opacity: 1, filter: "blur(0px)" }}
               exit={{ x: -100, opacity: 0, filter: "blur(10px)" }}
               transition={{ duration: 0.8, ease: "easeInOut" }}
-              className="z-50 w-full"
+              className="fixed top-0 left-0 right-0 z-50 w-full"
             >
               <Header onTriggerRain={handleTriggerRain} />
             </motion.div>
           )}
         </AnimatePresence>
 
-        <MainContent isSpecialLayoutRoute={isSpecialLayoutRoute || isProMode}>
+        <MainContent isSpecialLayoutRoute={isSpecialLayoutRoute || (isProMode && !isNavVisible)}>
           {children}
         </MainContent>
 
@@ -92,13 +93,8 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
               className="fixed top-4 left-4 z-[60] cursor-pointer group"
               onClick={() => setIsNavVisible(true)}
             >
-              <div className="relative h-10 w-10 overflow-hidden rounded-full transition-transform duration-300 group-hover:scale-110 shadow-lg shadow-purple-500/20">
-                <Image
-                  src="/icon"
-                  alt="Pro Mode Trigger"
-                  fill
-                  className="object-cover"
-                />
+              <div className="relative h-10 w-10 overflow-hidden rounded-full transition-transform duration-300 group-hover:scale-110 shadow-lg shadow-purple-500/20 bg-white/10 backdrop-blur-sm p-2">
+                <AppLogoIcon className="h-full w-full" />
               </div>
             </motion.div>
           )}
