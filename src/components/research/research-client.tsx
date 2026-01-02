@@ -278,7 +278,7 @@ export default function ResearchClient() {
             ref={containerRef}
             className={cn(
                 "flex flex-col space-y-6 p-4 mx-auto transition-all duration-500",
-                isCustomZoom ? "bg-background py-6 h-screen w-screen overflow-y-auto" : "h-full pb-32 md:pb-32 max-w-[1920px]"
+                isCustomZoom ? "bg-background py-6 h-screen w-screen overflow-y-auto" : "h-full pb-12 md:pb-12 max-w-[1920px]"
             )}
         >
             {/* Header Toolbar */}
@@ -344,7 +344,7 @@ export default function ResearchClient() {
                 </div>
 
                 {/* Detailed Analysis Section */}
-                <div className={cn("pt-8 border-t space-y-6 pb-96", isClearMode ? "border-white/10" : "border-border")}>
+                <div className={cn("pt-8 border-t space-y-6 pb-24", isClearMode ? "border-white/10" : "border-border")}>
                     <h3 className={cn("text-lg font-semibold", isClearMode ? "text-primary-foreground" : "text-foreground")}>Detailed Stock Analysis</h3>
                     <div className="relative w-full px-4" ref={searchContainerRef}>
                         <div className={cn("relative flex h-14 w-full items-center rounded-full px-4 text-primary-foreground shadow-lg transition-all", isClearMode ? "bg-white/10 ring-1 ring-white/60" : "bg-card ring-1 ring-border")} style={{ backdropFilter: "blur(16px)" }}>
