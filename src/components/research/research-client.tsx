@@ -286,8 +286,24 @@ export default function ResearchClient() {
                 <h1 className="text-2xl font-bold text-white tracking-tight ml-20">Pro Research Station</h1>
                 <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" onClick={() => setGridMode(1)} className={gridMode === 1 ? "bg-muted" : "text-muted-foreground"}><Square className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => setGridMode(2)} className={gridMode === 2 ? "bg-muted" : "text-muted-foreground"}><LayoutGrid className="h-4 w-4 rotate-90" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => setGridMode(4)} className={gridMode === 4 ? "bg-muted" : "text-muted-foreground"}><Grid2X2 className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => setGridMode(2)} className={gridMode === 2 ? "bg-muted" : "text-muted-foreground"}>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="h-4 w-4"
+                        >
+                            <rect width="8" height="16" x="3" y="4" rx="3" />
+                            <rect width="8" height="16" x="13" y="4" rx="3" />
+                        </svg>
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => setGridMode(4)} className={gridMode === 4 ? "bg-muted" : "text-muted-foreground"}><LayoutGrid className="h-4 w-4 rotate-90" /></Button>
                     <Button variant="outline" size="icon" onClick={toggleZoom} className="ml-2 border-white/20 text-white hover:bg-white/10">
                         {isCustomZoom ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                     </Button>
