@@ -19,6 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import useChatbotStore from "@/store/chatbot-store";
 import { useThemeStore } from "@/store/theme-store";
+import { useProModeStore } from "@/store/pro-mode-store";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface Message {
   role: "user" | "ai" | "loading";
@@ -47,6 +49,7 @@ export default function Chatbot() {
   const [file, setFile] = useState<File | null>(null);
   const { isOpen, openChatbot, closeChatbot, initialMessage } = useChatbotStore();
   const { isClearMode, theme } = useThemeStore();
+  const { isProMode, isNavVisible } = useProModeStore();
   const isLightClear = isClearMode && theme === 'light';
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showGlow, setShowGlow] = useState(false);
@@ -133,32 +136,42 @@ export default function Chatbot() {
 
   return (
     <>
-      <div className="fixed bottom-20 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-40">
-        <Button
-          variant="outline"
-          className={cn(
-            "w-full justify-between items-center p-3 h-auto rounded-full shadow-2xl shadow-black/20 ring-1 ring-white/60 hover:bg-primary/10",
-            isClearMode
-              ? isLightClear
-                ? "bg-card/60 text-foreground" // Light Clear
-                : "bg-white/10 text-white" // Dark Clear
-              : "bg-card text-card-foreground", // Solid
-            // COPY-THIS: To apply the glow effect
-            showGlow && "login-glow"
-          )}
-          // COPY-THIS: For the glass look (backdrop filter)
-          style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
-          onClick={() => openChatbot()}
-        >
-          <div className="flex items-center gap-3">
-            <Bot className="h-6 w-6 text-primary" />
-            <span className="text-sm font-semibold">Hi! How can I assist you today?</span>
-          </div>
-          <div className="p-2 bg-primary rounded-lg">
-            <MessageCircleQuestion className="h-5 w-5 text-primary-foreground" />
-          </div>
-        </Button>
-      </div>
+      <AnimatePresence>
+        {(!isProMode || isNavVisible) && (
+          <motion.div
+            initial={{ x: -100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -100, opacity: 0 }}
+            transition={{ duration: 0.8, ease: "easeInOut" }}
+            className="fixed bottom-20 left-0 right-0 mx-auto w-[90%] max-w-md z-40"
+          >
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-between items-center p-3 h-auto rounded-full shadow-2xl shadow-black/20 ring-1 ring-white/60 hover:bg-primary/10",
+                isClearMode
+                  ? isLightClear
+                    ? "bg-card/60 text-foreground" // Light Clear
+                    : "bg-white/10 text-white" // Dark Clear
+                  : "bg-card text-card-foreground", // Solid
+                // COPY-THIS: To apply the glow effect
+                showGlow && "login-glow"
+              )}
+              // COPY-THIS: For the glass look (backdrop filter)
+              style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
+              onClick={() => openChatbot()}
+            >
+              <div className="flex items-center gap-3">
+                <Bot className="h-6 w-6 text-primary" />
+                <span className="text-sm font-semibold">Hi! How can I assist you today?</span>
+              </div>
+              <div className="p-2 bg-primary rounded-lg">
+                <MessageCircleQuestion className="h-5 w-5 text-primary-foreground" />
+              </div>
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Sheet open={isOpen} onOpenChange={closeChatbot}>
         <SheetContent className="flex flex-col">
