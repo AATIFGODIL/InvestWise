@@ -34,7 +34,7 @@ const prompt = ai.definePrompt({
   name: 'investmentChatbotPrompt',
   input: { schema: InvestmentChatbotInputSchema },
   output: { schema: InvestmentChatbotOutputSchema },
-  model: googleAI.model('gemini-3.0-flash'),
+  model: 'googleai/gemini-2.5-pro',
   prompt: `You are a friendly and helpful AI assistant named InvestWise Bot. 
   Your primary goal is to explain complex investment terms to beginners in a simple, clear, and encouraging way.
   Avoid jargon where possible, or explain it immediately. Use analogies if they help clarify a concept.
