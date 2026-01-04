@@ -44,3 +44,11 @@ next-env.d.ts
 firebase-debug.log
 firestore-debug.logproject.tar.gz
 firestore-debug.log
+
+# Sensitive deployment config (contains API keys)
+apphosting.yaml
+
+# Test files with hardcoded secrets
+test-finnhub.mjs
+test-graph-logic.mjs
+test-yahoo-range.mjs
