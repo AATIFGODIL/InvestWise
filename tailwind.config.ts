@@ -1,4 +1,8 @@
-import type {Config} from 'tailwindcss';
+/**
+ * @fileoverview Tailwind CSS configuration for InvestWise
+ * Extends the default theme with custom colors, animations, and design tokens.
+ */
+import type { Config } from 'tailwindcss';
 
 export default {
   darkMode: ['class'],

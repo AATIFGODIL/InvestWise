@@ -1,3 +1,7 @@
+/**
+ * @fileoverview Custom hook for fetching and hydrating user data from Firestore
+ * Centralizes all store hydration logic for authenticated users.
+ */
 
 "use client";
 
@@ -53,7 +57,7 @@ export default function useUserData(user: User | null) {
           const { loadPrivacySettings } = usePrivacyStore.getState();
           const { loadWatchlist } = useWatchlistStore.getState();
           const { loadTransactions } = useTransactionStore.getState();
-          
+
           const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
 
           // Hydrate all stores with the fetched data
@@ -65,14 +69,14 @@ export default function useUserData(user: User | null) {
           loadGoals(userData.goals || []);
           loadAutoInvestments(userData.autoInvestments || []);
           loadPrivacySettings({
-              leaderboardVisibility: userData.leaderboardVisibility || "public",
-              showQuests: userData.showQuests === undefined ? true : userData.showQuests,
+            leaderboardVisibility: userData.leaderboardVisibility || "public",
+            showQuests: userData.showQuests === undefined ? true : userData.showQuests,
           });
           loadWatchlist(userData.watchlist || []);
           loadTransactions(userData.transactions || []);
 
         } else {
-            console.error("User document not found for hydration!");
+          console.error("User document not found for hydration!");
         }
       } catch (error) {
         console.error("Failed to fetch and hydrate user data:", error);
