@@ -48,7 +48,7 @@ export default function useUserData(user: User | null) {
         const { loadWatchlist } = useWatchlistStore.getState();
         const { loadTransactions } = useTransactionStore.getState();
         const { loadFavorites } = useFavoritesStore.getState();
-        
+
         const createdAt = (userData.createdAt as Timestamp)?.toDate() || new Date();
 
         // Hydrate all stores with the fetched data
@@ -57,20 +57,26 @@ export default function useUserData(user: User | null) {
         setPrimaryColor(userData.primaryColor || '#775DEF');
         setUsername(userData.username || "Investor");
         setPhotoURL(userData.photoURL || "");
+
+        // IMPORTANT: Load transactions BEFORE portfolio data.
+        // The chart reconstruction logic (`reconstructPortfolioHistory`) in the portfolio store
+        // reads from the transaction store. Loading transactions first ensures they are
+        // available when `fetchChartData` is triggered by the PortfolioValue component.
+        loadTransactions(userData.transactions || []);
+
         loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
         setNotifications(userData.notifications || []);
         loadGoals(userData.goals || []);
         loadAutoInvestments(userData.autoInvestments || []);
         loadPrivacySettings({
-            leaderboardVisibility: userData.leaderboardVisibility || "public",
-            showQuests: userData.showQuests === undefined ? true : userData.showQuests,
+          leaderboardVisibility: userData.leaderboardVisibility || "public",
+          showQuests: userData.showQuests === undefined ? true : userData.showQuests,
         });
         loadWatchlist(userData.watchlist || []);
-        loadTransactions(userData.transactions || []);
         loadFavorites(userData.favorites || []);
 
       } else {
-          console.error("User document not found for hydration!");
+        console.error("User document not found for hydration!");
       }
     } catch (error) {
       console.error("Failed to fetch and hydrate user data:", error);
