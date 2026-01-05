@@ -53,6 +53,7 @@ interface PortfolioState {
     updateLivePrices: () => Promise<void>;
     updateChartHistory: () => Promise<void>;
     fetchChartData: (range: '1W' | '1M' | '6M' | '1Y') => Promise<void>;
+    invalidateChartCache: () => void;
     executeTrade: (trade: { symbol: string, qty: number, price: number, description: string }) => { success: boolean, error?: string };
     loadInitialData: (holdings: Holding[], summary: PortfolioSummary | null, registrationDate: Date) => void;
     resetPortfolio: () => void;
@@ -118,7 +119,8 @@ const reconstructPortfolioHistory = async (
     transactions: Transaction[],
     startDate: Date,
     targetPoints: number,
-    currentPrices: Record<string, number>
+    currentPrices: Record<string, number>,
+    marketHolidays: Set<string> = new Set()
 ): Promise<ChartDataPoint[]> => {
     // 1. Handle empty transactions case (Return flat 0 line instead of empty array)
     if (transactions.length === 0) {
@@ -253,11 +255,21 @@ const reconstructPortfolioHistory = async (
 
     // Better: Replay ALL transactions to determine Qty curve, and simply sample at daily intervals.
 
-    // Iterate daily from startDate
+    // Iterate daily from startDate (skip weekends and holidays)
     for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
-        // Use Noon or End of Day? Or Midnight?
-        // Interpolation works for any time.
-        // Transactions usually have timestamps.
+        const dayOfWeek = d.getDay();
+
+        // Skip weekends (Saturday = 6, Sunday = 0)
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            continue;
+        }
+
+        // Skip US market holidays (format: YYYY-MM-DD)
+        const dateString = d.toISOString().split('T')[0];
+        if (marketHolidays.has(dateString)) {
+            continue;
+        }
+
         // Consistent: Midnight of that day.
         const dayTime = d.getTime();
 
@@ -407,7 +419,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
     },
 
     fetchChartData: async (range: '1W' | '1M' | '6M' | '1Y') => {
-        const { chartRangeStatus, chartData, holdings } = get();
+        const { chartRangeStatus, chartData, holdings, marketHolidays } = get();
 
         // If already loaded or loading, do nothing (unless forced refresh needed?)
         // For now, simple caching.
@@ -450,11 +462,13 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
                     targetPoints = 10;
                     break;
                 case '6M':
-                    startDate.setMonth(now.getMonth() - 6);
+                    // Hardcoded to app launch date (August 15, 2025)
+                    startDate = new Date(2025, 7, 15); // Month is 0-indexed, so 7 = August
                     targetPoints = 21;
                     break;
                 case '1Y':
-                    startDate.setFullYear(now.getFullYear() - 1);
+                    // Hardcoded to app launch date (August 15, 2025)
+                    startDate = new Date(2025, 7, 15); // Month is 0-indexed, so 7 = August
                     targetPoints = 24;
                     break;
             }
@@ -465,7 +479,7 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
             // If so, maybe clamp startDate? Or just let it be 0 until then.
             // Let it be 0.
 
-            const data = await reconstructPortfolioHistory(transactions, startDate, targetPoints, currentPrices);
+            const data = await reconstructPortfolioHistory(transactions, startDate, targetPoints, currentPrices, marketHolidays);
 
             set(state => ({
                 chartData: { ...state.chartData, [range]: data },
@@ -486,6 +500,13 @@ export const usePortfolioStore = create<PortfolioState>((set, get) => ({
         await get().fetchChartData('1W');
     },
 
+    invalidateChartCache: () => {
+        // Reset all chart statuses to 'idle' so the next fetchChartData call will actually fetch
+        set({
+            chartRangeStatus: { '1W': 'idle', '1M': 'idle', '6M': 'idle', '1Y': 'idle' },
+            chartData: { ...defaultChartData },
+        });
+    },
 
     loadInitialData: async (holdings, summary, registrationDate) => {
         const { updateLivePrices, fetchChartData } = get();

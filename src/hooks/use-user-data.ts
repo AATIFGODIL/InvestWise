@@ -39,7 +39,7 @@ export default function useUserData(user: User | null) {
 
         // Get the update functions from each store
         const { setUsername, setPhotoURL } = useUserStore.getState();
-        const { loadInitialData } = usePortfolioStore.getState();
+        const { loadInitialData, invalidateChartCache } = usePortfolioStore.getState();
         const { setNotifications } = useNotificationStore.getState();
         const { loadGoals } = useGoalStore.getState();
         const { loadAutoInvestments } = useAutoInvestStore.getState();
@@ -63,6 +63,9 @@ export default function useUserData(user: User | null) {
         // reads from the transaction store. Loading transactions first ensures they are
         // available when `fetchChartData` is triggered by the PortfolioValue component.
         loadTransactions(userData.transactions || []);
+
+        // Invalidate chart cache so it refetches with the fresh transaction data
+        invalidateChartCache();
 
         loadInitialData(userData.portfolio?.holdings || [], userData.portfolio?.summary || null, createdAt);
         setNotifications(userData.notifications || []);
