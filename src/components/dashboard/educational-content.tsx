@@ -54,7 +54,7 @@ const EducationalContent: React.FC<EducationalContentProps> = ({ content, title,
             {content.map((item, index) => (
               <CarouselItem key={index} className="md:basis-1/2">
                 <div className="p-1 h-full">
-                  <Card className="h-full flex flex-col justify-between overflow-hidden">
+                  <Card className="h-full flex flex-col justify-between overflow-hidden min-h-[360px]">
                     {item.type === 'video' && item.youtubeUrl ? (
                       <YouTubePlayer videoTitle={item.title} youtubeUrl={item.youtubeUrl} />
                     ) : (
