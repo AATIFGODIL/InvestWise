@@ -1,5 +1,5 @@
 import { config } from 'dotenv';
-config();
+config({ path: '.env.local' });
 
 import '@/ai/flows/investment-chatbot.ts';
 import '@/ai/flows/stock-prediction.ts';
