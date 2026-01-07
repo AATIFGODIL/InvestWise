@@ -45,7 +45,7 @@ const EducationalContent: React.FC<EducationalContentProps> = ({ content, title,
   return (
     <Card className={cn("flex flex-col h-full", className)}>
       <CardHeader>
-        <CardTitle className="text-xl">{title || "Educational Content"}</CardTitle>
+        <CardTitle className="text-2xl font-bold">{title || "Educational Content"}</CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent className="flex-grow">

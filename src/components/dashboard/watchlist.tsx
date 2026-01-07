@@ -35,7 +35,7 @@ export default function Watchlist() {
 
     // State for the trade dialog
     const [isTradeDialogOpen, setIsTradeDialogOpen] = useState(false);
-    const [selectedStock, setSelectedStock] = useState<{symbol: string, price: number} | null>(null);
+    const [selectedStock, setSelectedStock] = useState<{ symbol: string, price: number } | null>(null);
 
     useEffect(() => {
         const fetchWatchlistData = async () => {
@@ -111,7 +111,7 @@ export default function Watchlist() {
     const handleRowClick = (symbol: string) => {
         const tradePageIndex = 2; // Index of "Trade"
         const tradeUrl = `/trade?symbol=${symbol}`;
-        
+
         if (pathname === '/trade') {
             setSamePageIndex(tradePageIndex);
             router.push(tradeUrl, { scroll: false });
@@ -120,12 +120,12 @@ export default function Watchlist() {
             setActiveIndex(tradePageIndex);
         }
     };
-    
+
     if (watchlist.length === 0 && !isLoading) {
         return (
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl">
+                    <CardTitle className="flex items-center gap-2 text-2xl font-bold">
                         <Star className="h-5 w-5 text-primary" />
                         My Watchlist
                     </CardTitle>
@@ -142,7 +142,7 @@ export default function Watchlist() {
         <>
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl">
+                    <CardTitle className="flex items-center gap-2 text-2xl font-bold">
                         <Star className="h-5 w-5 text-primary" />
                         My Watchlist
                     </CardTitle>

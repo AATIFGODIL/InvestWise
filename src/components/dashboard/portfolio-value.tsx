@@ -78,7 +78,7 @@ function PortfolioValue({ showTitle: showTitleProp = false }: PortfolioValueProp
       <Card>
         <CardHeader>
           {showTitle && (
-            <CardTitle className="flex items-center gap-2 text-xl mb-4">
+            <CardTitle className="flex items-center gap-2 text-2xl font-bold mb-4">
               <BarChart className="h-6 w-6 text-primary" />
               Portfolio
             </CardTitle>
@@ -108,7 +108,7 @@ function PortfolioValue({ showTitle: showTitleProp = false }: PortfolioValueProp
     <Card>
       <CardHeader>
         {showTitle && (
-          <CardTitle className="flex items-center gap-2 text-xl mb-4">
+          <CardTitle className="flex items-center gap-2 text-2xl font-bold mb-4">
             <BarChart className="h-6 w-6 text-primary" />
             Portfolio
           </CardTitle>

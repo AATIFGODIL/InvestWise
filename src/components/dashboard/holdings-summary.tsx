@@ -22,18 +22,18 @@ export default function HoldingsSummary() {
 
   if (isLoading) {
     return (
-        <Card>
-            <CardHeader>
-                <Skeleton className="h-6 w-48" />
-            </CardHeader>
-            <CardContent className="space-y-3">
-                <Skeleton className="h-16 w-full skeleton-shimmer" />
-                <Skeleton className="h-16 w-full skeleton-shimmer" />
-            </CardContent>
-            <CardFooter>
-                 <Skeleton className="h-10 w-full" />
-            </CardFooter>
-        </Card>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-48" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-16 w-full skeleton-shimmer" />
+          <Skeleton className="h-16 w-full skeleton-shimmer" />
+        </CardContent>
+        <CardFooter>
+          <Skeleton className="h-10 w-full" />
+        </CardFooter>
+      </Card>
     )
   }
 
@@ -44,29 +44,29 @@ export default function HoldingsSummary() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-xl">
-            <Briefcase className="h-5 w-5 text-primary" />
-            My Top Holdings
+        <CardTitle className="flex items-center gap-2 text-2xl font-bold">
+          <Briefcase className="h-5 w-5 text-primary" />
+          My Top Holdings
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         {topHoldings.map((holding) => {
-            const holdingValue = holding.qty * holding.currentPrice;
-            const isPositive = holding.todaysChange >= 0;
-            return (
-                 <div key={holding.symbol} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                    <div>
-                        <p className="font-semibold">{holding.symbol}</p>
-                        <p className="text-sm text-muted-foreground">{holding.qty} Shares</p>
-                    </div>
-                    <div className="text-right">
-                        <p className="font-mono font-semibold">${holdingValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                        <p className={cn("text-xs", isPositive ? "text-green-500" : "text-red-500")}>
-                            {isPositive ? '+' : ''}{holding.todaysChange.toFixed(2)} ({holding.todaysChangePercent.toFixed(2)}%)
-                        </p>
-                    </div>
-                </div>
-            )
+          const holdingValue = holding.qty * holding.currentPrice;
+          const isPositive = holding.todaysChange >= 0;
+          return (
+            <div key={holding.symbol} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+              <div>
+                <p className="font-semibold">{holding.symbol}</p>
+                <p className="text-sm text-muted-foreground">{holding.qty} Shares</p>
+              </div>
+              <div className="text-right">
+                <p className="font-mono font-semibold">${holdingValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                <p className={cn("text-xs", isPositive ? "text-green-500" : "text-red-500")}>
+                  {isPositive ? '+' : ''}{holding.todaysChange.toFixed(2)} ({holding.todaysChangePercent.toFixed(2)}%)
+                </p>
+              </div>
+            </div>
+          )
         })}
       </CardContent>
       <CardFooter>

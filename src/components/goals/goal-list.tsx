@@ -97,7 +97,7 @@ export default function GoalList({ goals }: GoalListProps) {
                     {goalIcons[goal.icon] || goalIcons.default}
                   </div>
                   <div>
-                    <CardTitle className="text-lg">{goal.name}</CardTitle>
+                    <CardTitle className="text-xl font-bold">{goal.name}</CardTitle>
                     <CardDescription>
                       Target: ${goal.target.toLocaleString()}
                     </CardDescription>

@@ -107,7 +107,7 @@ export default function AutoInvest() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-xl">
+                <CardTitle className="flex items-center gap-2 text-2xl font-bold">
                     <Repeat className="h-5 w-5 text-primary" />
                     Auto-Invest
                 </CardTitle>

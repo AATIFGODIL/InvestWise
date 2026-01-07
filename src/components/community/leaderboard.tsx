@@ -84,7 +84,7 @@ export default function Leaderboard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Community Leaderboard</CardTitle>
+        <CardTitle className="text-2xl font-bold">Community Leaderboard</CardTitle>
         <CardDescription>
           See how you stack up against other investors in the community.
         </CardDescription>
@@ -93,11 +93,11 @@ export default function Leaderboard() {
         {isLoading ? (
           <div className="space-y-2">
             {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full skeleton-shimmer" />
+              <Skeleton key={i} className="h-12 w-full skeleton-shimmer" />
             ))}
           </div>
         ) : error ? (
-           <p className="text-destructive text-center">{error}</p>
+          <p className="text-destructive text-center">{error}</p>
         ) : (
           <Table>
             <TableHeader>
@@ -111,27 +111,27 @@ export default function Leaderboard() {
               {leaderboardData.map((investor) => {
                 const isYou = investor.uid === user?.uid;
                 const gainFormatted = `${investor.gain >= 0 ? '+' : '-'}$${Math.abs(investor.gain).toFixed(2)}`;
-                
+
                 return (
                   <TableRow key={investor.rank} className={cn(isYou && "bg-primary/10")}>
-                      <TableCell className={cn("font-bold text-lg", isYou ? "rounded-l-lg" : "")}>
-                        <div className="flex items-center gap-2">
-                          {investor.rank === 1 ? <Crown className="h-5 w-5 text-yellow-500" /> : <span>{investor.rank}</span>}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar>
-                            <AvatarImage src={investor.photoURL} alt={investor.name} />
-                            <AvatarFallback>{investor.name.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <span className="font-medium">{investor.name}</span>
-                          {isYou && <Badge>You</Badge>}
-                        </div>
-                      </TableCell>
-                      <TableCell className={cn("text-right font-medium", isYou ? "rounded-r-lg" : "", investor.gain >= 0 ? 'text-green-500' : 'text-red-500')}>
-                          {gainFormatted}
-                      </TableCell>
+                    <TableCell className={cn("font-bold text-lg", isYou ? "rounded-l-lg" : "")}>
+                      <div className="flex items-center gap-2">
+                        {investor.rank === 1 ? <Crown className="h-5 w-5 text-yellow-500" /> : <span>{investor.rank}</span>}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar>
+                          <AvatarImage src={investor.photoURL} alt={investor.name} />
+                          <AvatarFallback>{investor.name.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <span className="font-medium">{investor.name}</span>
+                        {isYou && <Badge>You</Badge>}
+                      </div>
+                    </TableCell>
+                    <TableCell className={cn("text-right font-medium", isYou ? "rounded-r-lg" : "", investor.gain >= 0 ? 'text-green-500' : 'text-red-500')}>
+                      {gainFormatted}
+                    </TableCell>
                   </TableRow>
                 );
               })}

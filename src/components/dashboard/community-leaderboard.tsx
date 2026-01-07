@@ -44,18 +44,18 @@ export default function CommunityLeaderboard() {
           limit(3)
         );
         const querySnapshot = await getDocs(q);
-        
+
         const usersData = querySnapshot.docs.map((doc, index) => {
-            const data = doc.data() as UserData;
-            const isAnonymous = data.leaderboardVisibility === 'anonymous';
-            return {
-              rank: index + 1,
-              uid: doc.id,
-              name: isAnonymous ? 'Anonymous Investor' : data.username || 'Investor',
-              photoURL: data.photoURL || '',
-              gain: data.portfolio?.summary?.totalGainLoss || 0,
-            };
-          });
+          const data = doc.data() as UserData;
+          const isAnonymous = data.leaderboardVisibility === 'anonymous';
+          return {
+            rank: index + 1,
+            uid: doc.id,
+            name: isAnonymous ? 'Anonymous Investor' : data.username || 'Investor',
+            photoURL: data.photoURL || '',
+            gain: data.portfolio?.summary?.totalGainLoss || 0,
+          };
+        });
 
         setTopInvestors(usersData);
       } catch (err) {
@@ -71,7 +71,7 @@ export default function CommunityLeaderboard() {
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xl">Community Leaderboard</CardTitle>
+        <CardTitle className="text-2xl font-bold">Community Leaderboard</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 px-4 pt-2 flex-grow">
         {isLoading ? (
@@ -106,7 +106,7 @@ export default function CommunityLeaderboard() {
       </CardContent>
       <CardFooter className="pt-4 px-4">
         <Button asChild className="w-full">
-            <Link href="/community">View All</Link>
+          <Link href="/community">View All</Link>
         </Button>
       </CardFooter>
     </Card>

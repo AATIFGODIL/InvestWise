@@ -108,7 +108,7 @@ export default function ResearchTradeForm({ selectedSymbol, selectedPrice, loadi
             <Card className="border-none shadow-none ring-0 bg-card/50 backdrop-blur-sm">
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle>Place Pro Order: {selectedSymbol}</CardTitle>
+                        <CardTitle className="text-2xl font-bold">Place Pro Order: {selectedSymbol}</CardTitle>
                         <Button variant="ghost" size="icon" onClick={onClose} type="button">
                             <X className="h-4 w-4" />
                         </Button>

@@ -37,7 +37,7 @@ export default function Quests() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Investment Quests</CardTitle>
+        <CardTitle className="text-2xl font-bold">Investment Quests</CardTitle>
         <CardDescription>
           Complete lessons to earn badges and level up your skills.
         </CardDescription>
@@ -58,17 +58,17 @@ export default function Quests() {
                   <Progress value={quest.progress} />
                 </div>
               ))}
-               {beginnerQuestsComplete && (
-                  <Button asChild className={cn(
-                      "w-full mt-2 ring-1 ring-white/60",
-                      isClearMode
-                        ? isLightClear
-                            ? "bg-card/60 text-foreground"
-                            : "bg-white/10 text-white"
-                        : ""
-                  )}>
-                      <Link href="/certificate">View Certificate</Link>
-                  </Button>
+              {beginnerQuestsComplete && (
+                <Button asChild className={cn(
+                  "w-full mt-2 ring-1 ring-white/60",
+                  isClearMode
+                    ? isLightClear
+                      ? "bg-card/60 text-foreground"
+                      : "bg-white/10 text-white"
+                    : ""
+                )}>
+                  <Link href="/certificate">View Certificate</Link>
+                </Button>
               )}
             </AccordionContent>
           </AccordionItem>

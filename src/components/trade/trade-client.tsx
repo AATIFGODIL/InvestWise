@@ -366,7 +366,7 @@ export default function TradeClient() {
                         <CardHeader>
                             <div className="flex justify-between items-center flex-wrap gap-4">
                                 <div className="flex items-center gap-2">
-                                    <CardTitle>Stock Chart</CardTitle>
+                                    <CardTitle className="text-2xl font-bold">Stock Chart</CardTitle>
                                     <Button variant="ghost" size="icon" onClick={handleToggleWatchlist} className="h-8 w-8">
                                         <Star className={cn("h-5 w-5", isSymbolInWatchlist ? "text-yellow-400 fill-yellow-400" : "text-muted-foreground")} />
                                     </Button>
@@ -473,7 +473,7 @@ export default function TradeClient() {
                 <motion.div variants={itemVariants} className="pt-4">
                     <Card className="flex flex-col h-full">
                         <CardHeader>
-                            <CardTitle>Stock Screener</CardTitle>
+                            <CardTitle className="text-2xl font-bold">Stock Screener</CardTitle>
                         </CardHeader>
                         <CardContent className="h-[calc(100vh-160px)] p-0 overflow-hidden rounded-b-lg">
                             <TradingViewScreener />
@@ -489,7 +489,7 @@ export default function TradeClient() {
                     />
                     <Card className="flex flex-col h-full">
                         <CardHeader>
-                            <CardTitle>Learn About Trading</CardTitle>
+                            <CardTitle className="text-2xl font-bold">Learn About Trading</CardTitle>
                         </CardHeader>
                         <CardContent className="h-full space-y-4 flex flex-col">
                             <div className="grid grid-cols-2 gap-4 flex-1">
