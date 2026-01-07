@@ -1,5 +1,5 @@
-import { config } from 'dotenv';
-config({ path: '.env.local' });
+// Genkit development server entry point
+// Note: API keys are only available in production (Firebase App Hosting)
 
 import '@/ai/flows/investment-chatbot.ts';
 import '@/ai/flows/stock-prediction.ts';
