@@ -14,7 +14,7 @@ export const educationalContent: EducationalContentItem[] = [
     type: 'image',
   },
   {
-    title: "The Power of Compound Interest",
+    title: "Compound Interest",
     description: "A finance infographic explaining the power of compound interest.",
     filePath: "/deliverable.png",
     type: 'image',

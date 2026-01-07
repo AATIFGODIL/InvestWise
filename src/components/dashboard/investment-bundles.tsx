@@ -172,11 +172,11 @@ export default function InvestmentBundles({ bundles, title, description, showDis
                             </div>
                           </CardHeader>
                         )}
-                        <CardContent className="p-4">
-                          <h3 className="font-bold text-lg mb-1">{bundle.title}</h3>
-                          <p className="text-sm text-muted-foreground line-clamp-2">{bundle.description}</p>
+                        <CardContent className="flex-1 p-4">
+                          <h3 className="text-md font-semibold">{bundle.title}</h3>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{bundle.description}</p>
                         </CardContent>
-                        <CardFooter className="p-4 pt-0 mt-auto">
+                        <CardFooter className="p-4 pt-0">
                           <DialogTrigger asChild>
                             <Button variant="outline" size="sm" className={cn(
                               "w-full ring-1 ring-white/60 hover:bg-primary/10",
