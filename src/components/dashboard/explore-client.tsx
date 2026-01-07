@@ -118,7 +118,7 @@ export default function ExploreClient() {
       case "Experienced Investor":
         return {
           title: "Explore Specialized Bundles",
-          description: "Discover themed collections for more focused strategies.",
+          description: "",
           bundles: specializedBundles,
         };
       default:

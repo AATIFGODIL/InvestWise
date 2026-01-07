@@ -484,7 +484,7 @@ export default function TradeClient() {
                 <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
                     <InvestmentBundles
                         title="Explore Specialized Bundles"
-                        description="Discover themed collections for more focused strategies."
+                        description=""
                         bundles={specializedBundles}
                     />
                     <Card className="flex flex-col h-full">

@@ -60,8 +60,8 @@ interface InvestmentBundlesProps {
 }
 
 interface StockPrice {
-    symbol: string;
-    price: number | null;
+  symbol: string;
+  price: number | null;
 }
 
 export default function InvestmentBundles({ bundles, title, description, showDisclaimer = false }: InvestmentBundlesProps) {
@@ -76,28 +76,28 @@ export default function InvestmentBundles({ bundles, title, description, showDis
   const { isClearMode, theme } = useThemeStore();
   const { executeTrade } = usePortfolioStore();
   const { toast } = useToast();
-  
+
   const isLightClear = isClearMode && theme === 'light';
 
   useEffect(() => {
     if (!selectedBundle || !isBuyDialogOpen) return;
 
     const fetchPrices = async () => {
-        setIsLoadingPrices(true);
-        const prices = await Promise.all(
-            selectedBundle.stocks.map(async (stock) => {
-                try {
-                    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
-                    if (!res.ok) return { symbol: stock.symbol, price: null };
-                    const data = await res.json();
-                    return { symbol: stock.symbol, price: data.c || null };
-                } catch {
-                    return { symbol: stock.symbol, price: null };
-                }
-            })
-        );
-        setBundlePrices(prices);
-        setIsLoadingPrices(false);
+      setIsLoadingPrices(true);
+      const prices = await Promise.all(
+        selectedBundle.stocks.map(async (stock) => {
+          try {
+            const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${stock.symbol}&token=${API_KEY}`);
+            if (!res.ok) return { symbol: stock.symbol, price: null };
+            const data = await res.json();
+            return { symbol: stock.symbol, price: data.c || null };
+          } catch {
+            return { symbol: stock.symbol, price: null };
+          }
+        })
+      );
+      setBundlePrices(prices);
+      setIsLoadingPrices(false);
     };
 
     fetchPrices();
@@ -110,30 +110,30 @@ export default function InvestmentBundles({ bundles, title, description, showDis
 
   const handleBuyBundle = () => {
     if (!selectedBundle || bundlePrices.some(p => p.price === null)) {
-        toast({ variant: "destructive", title: "Error", description: "Cannot buy bundle, price information is missing." });
-        return;
+      toast({ variant: "destructive", title: "Error", description: "Cannot buy bundle, price information is missing." });
+      return;
     }
 
     let totalCost = 0;
     bundlePrices.forEach(p => {
-        if(p.price) {
-            totalCost += p.price * quantity;
-        }
+      if (p.price) {
+        totalCost += p.price * quantity;
+      }
     });
 
     selectedBundle.stocks.forEach(stock => {
-        const priceInfo = bundlePrices.find(p => p.symbol === stock.symbol);
-        if (priceInfo && priceInfo.price) {
-            const tradeResult = executeTrade({
-                symbol: stock.symbol,
-                qty: quantity,
-                price: priceInfo.price,
-                description: `${selectedBundle.title} Bundle`
-            });
-            if (!tradeResult.success) {
-                toast({ variant: "destructive", title: `Trade Failed for ${stock.symbol}`, description: tradeResult.error });
-            }
+      const priceInfo = bundlePrices.find(p => p.symbol === stock.symbol);
+      if (priceInfo && priceInfo.price) {
+        const tradeResult = executeTrade({
+          symbol: stock.symbol,
+          qty: quantity,
+          price: priceInfo.price,
+          description: `${selectedBundle.title} Bundle`
+        });
+        if (!tradeResult.success) {
+          toast({ variant: "destructive", title: `Trade Failed for ${stock.symbol}`, description: tradeResult.error });
         }
+      }
     });
 
     toast({ title: "Bundle Purchase Executed!", description: `Your order to buy ${quantity} unit(s) of the ${selectedBundle.title} has been placed.` });
@@ -178,13 +178,13 @@ export default function InvestmentBundles({ bundles, title, description, showDis
                         <CardFooter className="p-4 pt-0">
                           <DialogTrigger asChild>
                             <Button variant="outline" size="sm" className={cn(
-                               "w-full ring-1 ring-white/60 hover:bg-primary/10",
-                                isClearMode
+                              "w-full ring-1 ring-white/60 hover:bg-primary/10",
+                              isClearMode
                                 ? isLightClear
-                                    ? "bg-card/60 text-foreground"
-                                    : "bg-white/10 text-white"
+                                  ? "bg-card/60 text-foreground"
+                                  : "bg-white/10 text-white"
                                 : ""
-                           )} onClick={() => setSelectedBundle(bundle)}>
+                            )} onClick={() => setSelectedBundle(bundle)}>
                               Learn More
                             </Button>
                           </DialogTrigger>
@@ -194,8 +194,6 @@ export default function InvestmentBundles({ bundles, title, description, showDis
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="hidden sm:flex" />
-              <CarouselNext className="hidden sm:flex" />
             </Carousel>
           </CardContent>
           {showDisclaimer && (
@@ -233,87 +231,87 @@ export default function InvestmentBundles({ bundles, title, description, showDis
               ))}
             </div>
           </div>
-           <DialogFooter className="mt-4">
-                <Button className="w-full" onClick={() => setIsBuyDialogOpen(true)}>
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    Buy Bundle
-                </Button>
-           </DialogFooter>
+          <DialogFooter className="mt-4">
+            <Button className="w-full" onClick={() => setIsBuyDialogOpen(true)}>
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              Buy Bundle
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
-      
+
       {/* Buy Bundle Dialog */}
       <AlertDialog open={isBuyDialogOpen} onOpenChange={setIsBuyDialogOpen}>
         <AlertDialogContent>
-            <AlertDialogHeader>
-                <AlertDialogTitle>Buy {selectedBundle?.title}</AlertDialogTitle>
-                <AlertDialogDescription>
-                    Review and confirm your bundle purchase. This will execute multiple trades.
-                </AlertDialogDescription>
-            </AlertDialogHeader>
-            {isLoadingPrices ? (
-                 <div className="flex items-center justify-center h-40">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                 </div>
-            ) : (
-            <div className="space-y-4">
-                <div>
-                    <h4 className="font-semibold text-sm mb-2">Bundle Contents (1 Unit)</h4>
-                    <div className="space-y-1 p-3 bg-muted rounded-md text-sm">
-                        {bundlePrices.map(stock => (
-                            <div key={stock.symbol} className="flex justify-between">
-                                <span>{stock.symbol}</span>
-                                <span>{stock.price ? `$${stock.price.toFixed(2)}` : 'N/A'}</span>
-                            </div>
-                        ))}
-                         <div className="flex justify-between font-bold border-t pt-1 mt-1">
-                            <span>Total Price / Unit</span>
-                            <span>${totalBundlePrice.toFixed(2)}</span>
-                        </div>
-                    </div>
-                </div>
-
-                 <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="quantity">Quantity</Label>
-                        <Input id="quantity" type="number" value={quantity} onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} min="1"/>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="order-type">Order Type</Label>
-                        <Select value={orderType} onValueChange={setOrderType}>
-                            <SelectTrigger id="order-type"><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="market">Market</SelectItem>
-                                <SelectItem value="limit">Limit</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="duration">Duration</Label>
-                    <Select value={duration} onValueChange={setDuration}>
-                        <SelectTrigger id="duration"><SelectValue /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="day-only">Day Only</SelectItem>
-                            <SelectItem value="gtc">Good 'til Canceled</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                
-                 <div className="p-3 bg-muted rounded-lg text-sm font-semibold">
-                     <div className="flex justify-between">
-                        <span>Estimated Total:</span>
-                        <span className="text-primary">${estimatedTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                    </div>
-                </div>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Buy {selectedBundle?.title}</AlertDialogTitle>
+            <AlertDialogDescription>
+              Review and confirm your bundle purchase. This will execute multiple trades.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {isLoadingPrices ? (
+            <div className="flex items-center justify-center h-40">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
-            )}
-            <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleBuyBundle} disabled={isLoadingPrices || bundlePrices.some(p => p.price === null)}>
-                    Confirm Purchase
-                </AlertDialogAction>
-            </AlertDialogFooter>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold text-sm mb-2">Bundle Contents (1 Unit)</h4>
+                <div className="space-y-1 p-3 bg-muted rounded-md text-sm">
+                  {bundlePrices.map(stock => (
+                    <div key={stock.symbol} className="flex justify-between">
+                      <span>{stock.symbol}</span>
+                      <span>{stock.price ? `$${stock.price.toFixed(2)}` : 'N/A'}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between font-bold border-t pt-1 mt-1">
+                    <span>Total Price / Unit</span>
+                    <span>${totalBundlePrice.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="quantity">Quantity</Label>
+                  <Input id="quantity" type="number" value={quantity} onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} min="1" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="order-type">Order Type</Label>
+                  <Select value={orderType} onValueChange={setOrderType}>
+                    <SelectTrigger id="order-type"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="market">Market</SelectItem>
+                      <SelectItem value="limit">Limit</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="duration">Duration</Label>
+                <Select value={duration} onValueChange={setDuration}>
+                  <SelectTrigger id="duration"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="day-only">Day Only</SelectItem>
+                    <SelectItem value="gtc">Good 'til Canceled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="p-3 bg-muted rounded-lg text-sm font-semibold">
+                <div className="flex justify-between">
+                  <span>Estimated Total:</span>
+                  <span className="text-primary">${estimatedTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleBuyBundle} disabled={isLoadingPrices || bundlePrices.some(p => p.price === null)}>
+              Confirm Purchase
+            </AlertDialogAction>
+          </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>

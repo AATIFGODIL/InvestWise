@@ -102,8 +102,6 @@ const EducationalContent: React.FC<EducationalContentProps> = ({ content, title,
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="hidden sm:flex" />
-          <CarouselNext className="hidden sm:flex" />
         </Carousel>
       </CardContent>
     </Card>
