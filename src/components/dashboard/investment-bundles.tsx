@@ -161,14 +161,15 @@ export default function InvestmentBundles({ bundles, title, description, showDis
                       <Card className="h-full flex flex-col">
                         {bundle.image && (
                           <CardHeader className="p-0">
-                            <Image
-                              src={bundle.image}
-                              alt={bundle.title + " Image"}
-                              width={600}
-                              height={400}
-                              className="rounded-t-lg aspect-[16/9] object-cover"
-                              data-ai-hint={bundle.hint}
-                            />
+                            <div className="relative h-48 w-full">
+                              <Image
+                                src={bundle.image}
+                                alt={bundle.title + " Image"}
+                                fill
+                                className="rounded-lg object-cover"
+                                data-ai-hint={bundle.hint}
+                              />
+                            </div>
                           </CardHeader>
                         )}
                         <CardContent className="flex-1 p-4">

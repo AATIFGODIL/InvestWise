@@ -66,7 +66,7 @@ const EducationalContent: React.FC<EducationalContentProps> = ({ content, title,
                                 src={item.filePath}
                                 alt={item.title}
                                 fill
-                                className="object-cover"
+                                className="rounded-lg object-cover"
                                 style={{
                                   objectPosition: item.title.includes("Market Structures") ? 'top' : 'center 10%'
                                 }}
