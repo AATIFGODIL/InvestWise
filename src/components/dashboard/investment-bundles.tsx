@@ -194,6 +194,8 @@ export default function InvestmentBundles({ bundles, title, description, showDis
                   </CarouselItem>
                 ))}
               </CarouselContent>
+              <CarouselPrevious className="hidden sm:flex" />
+              <CarouselNext className="hidden sm:flex" />
             </Carousel>
           </CardContent>
           {showDisclaimer && (
