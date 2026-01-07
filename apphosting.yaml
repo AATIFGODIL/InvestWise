@@ -27,5 +27,3 @@ env:
     secret: BRAINTREE_PUBLIC_KEY
   - variable: BRAINTREE_PRIVATE_KEY
     secret: BRAINTREE_PRIVATE_KEY
-  - variable: GNEWS_API_KEY
-    secret: GNEWS_API_KEY
