@@ -14,9 +14,11 @@ import Watchlist from "@/components/dashboard/watchlist";
 import EducationalContent from "./educational-content";
 import { educationalContent } from "@/data/education";
 import CommunityLeaderboard from "@/components/dashboard/community-leaderboard";
-import MarketNews from "@/components/community/market-news";
 import HoldingsSummary from "@/components/dashboard/holdings-summary";
 import OnboardingTutorial from "@/components/dashboard/onboarding-tutorial";
+import { fetchTopFinancialNewsAction } from "@/app/actions";
+import { NewsArticle } from "@/lib/gnews";
+import { cn } from "@/lib/utils";
 
 // These components are loaded dynamically to improve initial page load performance.
 // They will only be loaded when they are needed, reducing the client-side JavaScript bundle size.
@@ -62,6 +64,8 @@ export default function ExploreClient() {
   const [userProfile, setUserProfile] = useState<string | null>(null);
   const { isMarketOpen, fetchMarketStatus } = useMarketStore();
   const [showTutorial, setShowTutorial] = useState(false);
+  const [news, setNews] = useState<NewsArticle[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
 
   useEffect(() => {
     // Check for the user's profile (from the onboarding quiz) in localStorage
@@ -76,6 +80,19 @@ export default function ExploreClient() {
       }
     }
     fetchMarketStatus();
+
+    // Fetch news for the headlines section
+    async function getNews() {
+      try {
+        const data = await fetchTopFinancialNewsAction(5);
+        setNews(data);
+      } catch (e) {
+        console.error("Failed to fetch news:", e);
+      } finally {
+        setNewsLoading(false);
+      }
+    }
+    getNews();
   }, [fetchMarketStatus]);
 
   const handleTutorialComplete = () => {
@@ -163,8 +180,46 @@ export default function ExploreClient() {
             <CommunityLeaderboard />
           </div>
         </motion.div>
-        <motion.div variants={itemVariants}>
-          <MarketNews limit={3} />
+        <motion.div variants={itemVariants} className="space-y-4">
+          <h3 className="text-lg font-semibold">Latest Headlines</h3>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {newsLoading ? (
+              <Skeleton className="h-32 w-full col-span-5" />
+            ) : news.length > 0 ? (
+              news.slice(0, 5).map((article, i) => (
+                <a
+                  key={i}
+                  href={article.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={cn(
+                    "group relative block overflow-hidden rounded-lg transition-colors border aspect-[4/3]",
+                    "bg-card border-border hover:bg-accent"
+                  )}
+                >
+                  {article.image && (
+                    <img
+                      src={article.image}
+                      alt="news"
+                      className="absolute inset-0 h-full w-full object-cover opacity-60 group-hover:opacity-40 transition-opacity"
+                    />
+                  )}
+                  <div className="absolute inset-0 p-4 flex flex-col justify-end bg-gradient-to-t from-black/90 to-transparent">
+                    <h4 className="text-sm font-medium text-white line-clamp-2 leading-tight">
+                      {article.title}
+                    </h4>
+                    <span className="text-[10px] text-zinc-400 mt-1">
+                      {article.source.name}
+                    </span>
+                  </div>
+                </a>
+              ))
+            ) : (
+              <div className="text-sm text-muted-foreground text-center py-4 col-span-5">
+                No news available at the moment.
+              </div>
+            )}
+          </div>
         </motion.div>
         <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
           <EducationalContent content={educationalContent} />
