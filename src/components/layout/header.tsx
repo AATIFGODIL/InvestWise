@@ -429,8 +429,11 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             <div className="flex shrink-0 items-center gap-0 sm:gap-1">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="group h-12 w-12 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-primary/10">
+                  <Button variant="ghost" size="icon" className="group h-12 w-12 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-primary/10 relative">
                     <Bell className={cn("h-5 w-5 transition-all bell-icon-glow", isClearMode && !isLightClear && "text-white")} />
+                    {notifications.length > 0 && (
+                      <span className="absolute top-3 right-3 h-2.5 w-2.5 rounded-full bg-primary border-2 border-background box-content pointer-events-none" />
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-80" align="end" sideOffset={16}>
@@ -439,16 +442,23 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                   {notifications.length === 0 ? (
                     <DropdownMenuItem disabled className="p-3">You have no new notifications.</DropdownMenuItem>
                   ) : (
-                    notifications.map(notification => (
-                      <DropdownMenuItem
-                        key={notification.id}
-                        className="p-3 cursor-pointer flex flex-col items-start gap-1"
-                        onClick={(e) => handleNotificationClick(e, notification)}
-                      >
-                        <div className="font-semibold text-sm">{notification.title}</div>
-                        <div className="text-xs text-muted-foreground">{notification.description}</div>
-                      </DropdownMenuItem>
-                    ))
+                    <div className="flex flex-col gap-2 p-2">
+                      {notifications.map(notification => (
+                        <DropdownMenuItem
+                          key={notification.id}
+                          className={cn(
+                            "cursor-pointer flex flex-col items-start gap-1 p-3 rounded-lg transition-colors relative overflow-hidden",
+                            isClearMode
+                              ? "bg-white/10 backdrop-blur-md border border-white/20 shadow-sm hover:bg-white/20"
+                              : "bg-muted/50 border border-transparent hover:bg-muted"
+                          )}
+                          onClick={(e) => handleNotificationClick(e, notification)}
+                        >
+                          <div className="font-semibold text-sm relative z-10">{notification.title}</div>
+                          <div className="text-xs text-muted-foreground relative z-10">{notification.description}</div>
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
