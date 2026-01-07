@@ -9,31 +9,48 @@
  * - stockPrediction: The main function that clients call to get a stock prediction.
  */
 
-import { ai } from '@/ai/genkit';
+import { getAi } from '@/ai/genkit';
 import { z } from 'zod';
-import { StockPredictionInputSchema, type StockPredictionInput, StockPredictionOutputSchema, type StockPredictionOutput } from '@/ai/types/stock-prediction-types';
-import { getPredictionFromApi } from '../tools/prediction-api-tool';
+import { StockPredictionInputSchema, type StockPredictionInput, StockPredictionOutputSchema, type StockPredictionOutput, RawStockPredictionOutputSchema } from '@/ai/types/stock-prediction-types';
 
 /**
  * An asynchronous function that serves as the entry point for the stock prediction flow.
- *
- * @param {StockPredictionInput} input - An object containing the stock symbol to be predicted.
- * @returns {Promise<StockPredictionOutput | null>} A promise that resolves to the interpreted prediction, or null if an error occurs.
  */
 export async function stockPrediction(input: StockPredictionInput): Promise<StockPredictionOutput | null> {
-  return stockPredictionFlow(input);
-}
+  const ai = getAi();
 
-// This prompt instructs the AI to act as a financial analyst. Its role is to translate
-// raw, numerical forecast data into a clear, beginner-friendly summary.
-// The prompt specifies the exact structure of the output (prediction and confidence)
-// to ensure consistent and parseable results.
-const interpretStockPredictionPrompt = ai.definePrompt({
-  name: 'interpretStockPredictionPrompt',
-  input: { schema: StockPredictionInputSchema },
-  output: { schema: StockPredictionOutputSchema },
-  tools: [getPredictionFromApi], // Make the tool available to the LLM
-  prompt: `You are a financial analyst AI. Your task is to provide a clear, concise, and easy-to-understand stock prediction for a beginner investor.
+  // Define tool at runtime
+  const getPredictionFromApi = ai.defineTool(
+    {
+      name: 'getPredictionFromApi',
+      description: 'Fetches a stock price prediction from the custom Python API.',
+      inputSchema: StockPredictionInputSchema,
+      outputSchema: RawStockPredictionOutputSchema,
+    },
+    async (toolInput) => {
+      const apiUrl = process.env.PREDICTION_API_URL;
+      if (!apiUrl) {
+        throw new Error("PREDICTION_API_URL is not defined.");
+      }
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol: toolInput.symbol }),
+      });
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+      return RawStockPredictionOutputSchema.parse(await response.json());
+    }
+  );
+
+  // Define prompt at runtime
+  const interpretStockPredictionPrompt = ai.definePrompt({
+    name: 'interpretStockPredictionPrompt',
+    input: { schema: StockPredictionInputSchema },
+    output: { schema: StockPredictionOutputSchema },
+    tools: [getPredictionFromApi],
+    prompt: `You are a financial analyst AI. Your task is to provide a clear, concise, and easy-to-understand stock prediction for a beginner investor.
     
     1. First, use the getPredictionFromApi tool to fetch the raw forecast data for the given stock symbol: {{{symbol}}}.
     2. Then, analyze the raw forecast data, which consists of an array of 5 predicted prices for the next 5 months.
@@ -45,23 +62,13 @@ const interpretStockPredictionPrompt = ai.definePrompt({
     - accuracy > 0.70 should be "Medium"
     - otherwise, it should be "Low"
     `,
-});
+  });
 
-// This flow executes the prompt, which in turn will use the provided tool to get the data it needs.
-const stockPredictionFlow = ai.defineFlow(
-  {
-    name: 'stockPredictionFlow',
-    inputSchema: StockPredictionInputSchema,
-    outputSchema: z.nullable(StockPredictionOutputSchema),
-  },
-  async (input) => {
-    try {
-      const { output } = await interpretStockPredictionPrompt(input);
-      return output || null;
-    } catch (error) {
-      // Log errors for debugging and throw to the client for proper error handling.
-      console.error("An error occurred during the stock prediction flow:", error);
-      throw error;
-    }
+  try {
+    const { output } = await interpretStockPredictionPrompt(input);
+    return output || null;
+  } catch (error) {
+    console.error("An error occurred during the stock prediction flow:", error);
+    throw error;
   }
-);
+}
