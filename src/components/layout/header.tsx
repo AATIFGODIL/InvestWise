@@ -449,11 +449,16 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                           className={cn(
                             "cursor-pointer flex flex-col items-start gap-1 p-3 rounded-lg transition-colors relative overflow-hidden",
                             isClearMode
-                              ? "bg-background/60 backdrop-blur-3xl border border-white/10 shadow-md hover:bg-background/80"
+                              ? cn(
+                                isLightClear
+                                  ? "bg-card/60 ring-1 ring-white/10"
+                                  : "bg-white/10 ring-1 ring-white/60",
+                                "hover:bg-white/20 transition-colors" // Adding a subtle hover effect for interactivity since these are buttons
+                              )
                               : "bg-muted/50 border border-transparent hover:bg-muted"
                           )}
-                          onClick={(e) => handleNotificationClick(e, notification)}
-                        >
+                          style={{ backdropFilter: isClearMode ? "blur(16px)" : undefined }}
+                          onClick={(e) => handleNotificationClick(e, notification)}                        >
                           <div className="font-semibold text-sm relative z-10">{notification.title}</div>
                           <div className="text-xs text-muted-foreground relative z-10">{notification.description}</div>
                         </DropdownMenuItem>
