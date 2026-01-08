@@ -457,10 +457,10 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                               )
                               : "bg-muted/50 border border-transparent hover:bg-muted"
                           )}
-                          style={{ backdropFilter: isClearMode ? "blur(16px)" : undefined }}
+                          style={{ backdropFilter: isClearMode ? "blur(64px)" : undefined }}
                           onClick={(e) => handleNotificationClick(e, notification)}                        >
-                          <div className="font-semibold text-sm relative z-10">{notification.title}</div>
-                          <div className="text-xs text-muted-foreground relative z-10">{notification.description}</div>
+                          <div className={cn("font-semibold text-sm relative z-10", isClearMode && "text-white")}>{notification.title}</div>
+                          <div className={cn("text-xs relative z-10", isClearMode ? "text-white/90" : "text-muted-foreground")}>{notification.description}</div>
                         </DropdownMenuItem>
                       ))}
                     </div>
