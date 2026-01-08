@@ -451,9 +451,9 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                             isClearMode
                               ? cn(
                                 isLightClear
-                                  ? "bg-card/60 ring-1 ring-white/10"
-                                  : "bg-white/10 ring-1 ring-white/60",
-                                "hover:bg-white/20 transition-colors" // Adding a subtle hover effect for interactivity since these are buttons
+                                  ? "bg-black/5 ring-1 ring-black/10"
+                                  : "bg-white/20 ring-1 ring-white/60",
+                                "hover:bg-white/30 transition-colors" // Adding a subtle hover effect for interactivity since these are buttons
                               )
                               : "bg-muted/50 border border-transparent hover:bg-muted"
                           )}
