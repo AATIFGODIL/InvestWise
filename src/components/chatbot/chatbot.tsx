@@ -47,7 +47,7 @@ export default function Chatbot() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const { isOpen, openChatbot, closeChatbot, initialMessage } = useChatbotStore();
+  const { isOpen, openChatbot, closeChatbot, initialMessage, pendingQuery } = useChatbotStore();
   const { isClearMode, theme } = useThemeStore();
   const { isProMode, isNavVisible } = useProModeStore();
   const isLightClear = isClearMode && theme === 'light';
