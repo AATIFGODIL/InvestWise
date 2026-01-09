@@ -12,6 +12,7 @@ import dynamic from 'next/dynamic';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useProModeStore } from '@/store/pro-mode-store';
 import AppLogoIcon from '@/components/shared/app-logo-icon';
+import Chatbot from '@/components/chatbot/chatbot';
 
 // Dynamically import client-heavy components
 const Header = dynamic(() => import('@/components/layout/header'), { ssr: false });
@@ -99,6 +100,8 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
             </motion.div>
           )}
         </AnimatePresence>
+
+        <Chatbot />
       </div>
     );
   }
