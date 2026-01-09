@@ -2,7 +2,7 @@
 
 import HoldingsTable from '@/components/portfolio/holdings-table';
 import { Clock, PlusCircle } from 'lucide-react';
-import Chatbot from '@/components/chatbot/chatbot';
+
 import PortfolioValue from '@/components/portfolio/portfolio-value';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -186,7 +186,7 @@ export default function PortfolioClient() {
           </TabsContent>
         </Tabs>
 
-        <Chatbot />
+
       </motion.div>
     </main>
   );

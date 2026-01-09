@@ -3,7 +3,7 @@
 
 import CreateGoal from "@/components/goals/create-goal";
 import GoalList from "@/components/goals/goal-list";
-import Chatbot from "@/components/chatbot/chatbot";
+
 import { useGoalStore } from "@/store/goal-store";
 import { motion } from "framer-motion";
 import dynamic from 'next/dynamic';
@@ -80,7 +80,7 @@ export default function GoalsClient() {
           </div>
         </motion.div>
 
-        <Chatbot />
+
       </motion.div>
     </main>
   );

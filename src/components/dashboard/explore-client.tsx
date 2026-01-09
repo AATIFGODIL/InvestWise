@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { recommendedBundles, specializedBundles } from "@/data/bundles";
 import CongratulationsBanner from "@/components/dashboard/congratulations-banner";
-import Chatbot from "@/components/chatbot/chatbot";
+
 import AiPrediction from "@/components/ai/ai-prediction";
 import AutoInvest from "@/components/dashboard/auto-invest";
 import { useMarketStore } from "@/store/market-store";
@@ -227,7 +227,7 @@ export default function ExploreClient() {
             <InvestmentBundles {...bundleProps} />
           </div>
         </motion.div>
-        <Chatbot />
+
       </motion.div>
     </main>
   );

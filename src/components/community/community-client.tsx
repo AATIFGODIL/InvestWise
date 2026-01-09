@@ -8,7 +8,7 @@ import PrivacySettings from "@/components/community/privacy-settings";
 import { useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CommunityTrends from "@/components/dashboard/community-trends";
-import Chatbot from "@/components/chatbot/chatbot";
+
 import { usePrivacyStore } from "@/store/privacy-store";
 import { useThemeStore } from "@/store/theme-store";
 import { cn } from "@/lib/utils";
@@ -124,7 +124,7 @@ export default function CommunityClient() {
             <TopNews limit={8} />
           </div>
         </motion.div>
-        <Chatbot />
+
       </motion.div>
     </main>
   );
