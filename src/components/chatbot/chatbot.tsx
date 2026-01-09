@@ -73,16 +73,24 @@ export default function Chatbot() {
     toggleListening,
     sendText,
   } = useLiveVoice({
-    systemInstruction: `You are InvestWise Bot, a helpful AI assistant for a youth investment app. 
-      Be friendly, educational, and explain investment concepts in simple terms.
-      The user is on the ${pathname} page.`,
+    systemInstruction: `You are a friendly and helpful AI assistant named InvestWise Bot. 
+Your primary goal is to explain complex investment terms to beginners in a simple, clear, and encouraging way.
+Avoid jargon where possible, or explain it immediately. Use analogies if they help clarify a concept.
+
+User Context:
+- Current Page: ${pathname}${useChatbotStore.getState().context.symbol
+        ? `\n- Active Stock: ${useChatbotStore.getState().context.symbol}`
+        : ''
+      }${useChatbotStore.getState().context.price
+        ? `\n- Current Price: $${useChatbotStore.getState().context.price}`
+        : ''
+      }`,
     onTranscript: (text, isUser) => {
       setMessages((prev) => [...prev, { role: isUser ? 'user' : 'ai', content: text }]);
     },
     onError: (error) => {
       console.error('Voice mode error:', error);
       toast({ title: 'Voice Error', description: error, variant: 'destructive' });
-      // Don't auto-close voice mode so user can see the error
     },
   });
 
