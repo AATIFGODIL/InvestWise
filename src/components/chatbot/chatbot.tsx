@@ -252,8 +252,8 @@ User Context:
                 // COPY-THIS: To apply the glow effect
                 showGlow && "login-glow"
               )}
-              // COPY-THIS: For the glass look (backdrop filter)
-              style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
+              // Revert to standard blur for clean glass look
+              style={{ backdropFilter: isClearMode ? "blur(12px)" : "none" }}
               onClick={() => openChatbot()}
             >
               <div className="flex items-center gap-3">
