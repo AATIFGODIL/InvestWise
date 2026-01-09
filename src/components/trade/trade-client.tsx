@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, Loader2, Clock, Star } from "lucide-react";
+import { Search, Loader2, Clock, Star, BrainCircuit } from "lucide-react";
 import AiPredictionTrade from "@/components/ai/ai-prediction-trade";
 import { specializedBundles } from "@/data/bundles";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,8 @@ import { useThemeStore } from "@/store/theme-store";
 import { motion } from "framer-motion";
 import { Skeleton } from "../ui/skeleton";
 import { ProModeToggle } from "@/components/shared/pro-mode-toggle";
+import { useProModeStore } from "@/store/pro-mode-store";
+import useChatbotStore from "@/store/chatbot-store";
 
 const TradingViewWidget = dynamic(() => import("@/components/shared/trading-view-widget"), {
     ssr: false,
@@ -148,6 +150,7 @@ export default function TradeClient() {
     const socketRef = useRef<WebSocket | null>(null);
     const { isMarketOpen, fetchMarketStatus } = useMarketStore();
     const { watchlist, addSymbol, removeSymbol } = useWatchlistStore();
+    const { setContext } = useChatbotStore(); // Add chatbot store context setter
 
     const isSymbolInWatchlist = watchlist.includes(searchedSymbol);
 
@@ -157,9 +160,16 @@ export default function TradeClient() {
         setWidgetSymbol(symbolFromParams);
         setInputValue(symbolFromParams);
         setSearchedSymbol(symbolFromParams);
+
+        // Update AI Context
+        setContext({
+            route: '/trade',
+            symbol: symbolFromParams
+        });
+
         fetchMarketStatus();
         setIsClient(true);
-    }, [searchParams, fetchMarketStatus]);
+    }, [searchParams, fetchMarketStatus, setContext]);
 
 
     const fetchStockDetailsBySymbol = useCallback(async (symbol: string) => {
@@ -242,6 +252,11 @@ export default function TradeClient() {
         setWidgetSymbol(newSymbol.toUpperCase());
         setInputValue(newSymbol.toUpperCase());
         setSearchedSymbol(newSymbol.toUpperCase());
+        // Update context when symbol changes via widget
+        useChatbotStore.getState().setContext({
+            route: '/trade',
+            symbol: newSymbol.toUpperCase()
+        });
     }, []);
 
     useEffect(() => {
@@ -269,6 +284,10 @@ export default function TradeClient() {
                 const data = await res.json();
                 if (data && typeof data.c !== 'undefined' && data.c !== 0) {
                     setPrice(data.c);
+                    useChatbotStore.getState().setContext({
+                        ...useChatbotStore.getState().context,
+                        price: data.c
+                    });
                 } else {
                     setError("Invalid data received for symbol. It might be delisted or incorrect.");
                 }
@@ -296,6 +315,8 @@ export default function TradeClient() {
             if (data.type === "trade" && data.data?.length > 0) {
                 const trade: TradeData = data.data[0];
                 setPrice(trade.p);
+                // Optional: Update context with live price (debounced ideally, but okay for now)
+                // useChatbotStore.getState().setContext({ ...useChatbotStore.getState().context, price: trade.p });
             }
         };
 
@@ -372,6 +393,15 @@ export default function TradeClient() {
                                     </Button>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-primary">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 gap-2 bg-primary/10 hover:bg-primary/20 border-primary/20"
+                                        onClick={() => useChatbotStore.getState().openChatbot(`Analyze ${searchedSymbol} based on its current price${price ? ` of $${price}` : ''} and recent performance.`)}
+                                    >
+                                        <BrainCircuit className="h-4 w-4 text-primary" />
+                                        <span className="text-primary hidden sm:inline">Ask AI</span>
+                                    </Button>
                                     <Clock className="h-4 w-4" />
                                     <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
                                 </div>

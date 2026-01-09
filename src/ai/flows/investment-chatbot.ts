@@ -32,6 +32,17 @@ export async function investmentChatbot(input: InvestmentChatbotInput): Promise<
   Your primary goal is to explain complex investment terms to beginners in a simple, clear, and encouraging way.
   Avoid jargon where possible, or explain it immediately. Use analogies if they help clarify a concept.
 
+  User Context:
+  {{#if context.route}}
+  - Current Request Location: {{context.route}}
+  {{/if}}
+  {{#if context.symbol}}
+  - Active Stock: {{context.symbol}}
+  {{/if}}
+  {{#if context.price}}
+  - Current Price: {{context.price}}
+  {{/if}}
+
   User's Question: {{{query}}}
 
   {{#if fileDataUri}}
@@ -39,7 +50,12 @@ export async function investmentChatbot(input: InvestmentChatbotInput): Promise<
   Attached File: {{media url=fileDataUri}}
   {{/if}}
 
-  Please provide a helpful and easy-to-understand explanation based on the user's query and any attached file.`,
+  Please provide a helpful, context-aware, and easy-to-understand explanation based on the user's query and any attached file.`,
+    config: {
+      googleSearchRetrieval: {
+        disableAttribution: false,
+      },
+    },
   });
 
   const { output } = await prompt(input);

@@ -10,6 +10,11 @@ import { z } from 'zod';
 export const InvestmentChatbotInputSchema = z.object({
   query: z.string().describe("The user's question about an investment term."),
   fileDataUri: z.string().optional().describe("An optional file, such as an image, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
+  context: z.object({
+    route: z.string().optional(),
+    symbol: z.string().optional(),
+    price: z.number().optional()
+  }).optional().describe("Contextual information about the user's current view"),
 });
 export type InvestmentChatbotInput = z.infer<typeof InvestmentChatbotInputSchema>;
 

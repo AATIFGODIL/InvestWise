@@ -42,13 +42,13 @@ type StockPredictionResult = {
  * @param {string} [fileDataUri] - Optional file data as a data URI string.
  * @returns {Promise<ActionResult>} An object with the chatbot's response or an error.
  */
-export async function handleInvestmentQuery(query: string, fileDataUri?: string): Promise<ActionResult> {
+export async function handleInvestmentQuery(query: string, fileDataUri?: string, context?: any): Promise<ActionResult> {
   if (!query && !fileDataUri) {
     return { success: false, response: "", error: "Your question cannot be empty." };
   }
 
   try {
-    const result = await investmentChatbot({ query, fileDataUri });
+    const result = await investmentChatbot({ query, fileDataUri, context });
     return { success: true, response: result.response };
   } catch (error) {
     console.error("Error calling investment chatbot flow:", error);

@@ -114,7 +114,7 @@ export default function Chatbot() {
     setFile(null); // Clear file after processing
 
     try {
-      const result = await handleInvestmentQuery(input, fileDataUri);
+      const result = await handleInvestmentQuery(input, fileDataUri, useChatbotStore.getState().context);
       if (result.success) {
         setMessages((prev) => {
           const newMessages = prev.filter((msg) => msg.role !== "loading");
@@ -230,6 +230,31 @@ export default function Chatbot() {
                 Attached: {file.name}
               </div>
             )}
+
+            {/* Contextual Suggestions */}
+            <div className="flex gap-2 p-2 overflow-x-auto hide-scrollbar">
+              {useChatbotStore.getState().context.symbol && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs bg-primary/5 hover:bg-primary/10 border-primary/20 whitespace-nowrap"
+                  onClick={() => setInput(`Analyze ${useChatbotStore.getState().context.symbol} based on its current price of $${useChatbotStore.getState().context.price || '...'} and recent performance.`)}
+                >
+                  Analyze {useChatbotStore.getState().context.symbol}
+                </Button>
+              )}
+              {useChatbotStore.getState().context.route && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs bg-muted/50 hover:bg-muted whitespace-nowrap"
+                  onClick={() => setInput(`I'm currently on the ${useChatbotStore.getState().context.route} page. Can you explain what I can do here and how to use the features on this page?`)}
+                >
+                  Explain this page
+                </Button>
+              )}
+            </div>
+
             <form onSubmit={handleSubmit} className="flex items-center gap-2">
               <input
                 type="file"
