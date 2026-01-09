@@ -21,6 +21,7 @@ import useChatbotStore from "@/store/chatbot-store";
 import { useThemeStore } from "@/store/theme-store";
 import { useProModeStore } from "@/store/pro-mode-store";
 import { AnimatePresence, motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 interface Message {
   role: "user" | "ai" | "loading";
@@ -51,6 +52,7 @@ export default function Chatbot() {
   const { isOpen, openChatbot, closeChatbot, initialMessage, pendingQuery } = useChatbotStore();
   const { isClearMode, theme } = useThemeStore();
   const { isProMode, isNavVisible } = useProModeStore();
+  const pathname = usePathname();
   const isLightClear = isClearMode && theme === 'light';
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showGlow, setShowGlow] = useState(false);
@@ -290,6 +292,21 @@ export default function Chatbot() {
                   className="h-7 text-xs bg-muted/50 hover:bg-muted whitespace-nowrap"
                   onClick={() => {
                     const query = `I'm currently on the ${useChatbotStore.getState().context.route} page. Can you explain what I can do here and how to use the features on this page?`;
+                    useChatbotStore.getState().openChatbot("Explaining page...", query);
+                  }}
+                >
+                  Explain this page
+                </Button>
+              )}
+              {/* Always show Explain Page using pathname */}
+              {!useChatbotStore.getState().context.route && pathname && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs bg-muted/50 hover:bg-muted whitespace-nowrap"
+                  onClick={() => {
+                    const pageName = pathname === '/' ? 'Home' : pathname.slice(1);
+                    const query = `I'm currently on the ${pageName} page. Can you explain what I can do here and how to use the features on this page?`;
                     useChatbotStore.getState().openChatbot("Explaining page...", query);
                   }}
                 >
