@@ -2,7 +2,8 @@
 "use client";
 
 import { useState, useRef, useEffect, type FormEvent } from "react";
-import { Bot, Send, User, MessageCircleQuestion, Paperclip } from "lucide-react";
+import { Bot, Send, User, MessageCircleQuestion, Paperclip, Mic, MicOff, Volume2 } from "lucide-react";
+import { useLiveVoice } from "@/hooks/use-live-voice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -49,6 +50,7 @@ export default function Chatbot() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [isVoiceMode, setIsVoiceMode] = useState(false);
   const { isOpen, openChatbot, closeChatbot, initialMessage, pendingQuery } = useChatbotStore();
   const { isClearMode, theme } = useThemeStore();
   const { isProMode, isNavVisible } = useProModeStore();
@@ -60,6 +62,38 @@ export default function Chatbot() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastProcessedQueryRef = useRef<string | null>(null);
+
+  // Voice mode hook
+  const {
+    isConnected: isVoiceConnected,
+    isListening,
+    isSpeaking,
+    connect: connectVoice,
+    disconnect: disconnectVoice,
+    toggleListening,
+  } = useLiveVoice({
+    systemInstruction: `You are InvestWise Bot, a helpful AI assistant for a youth investment app. 
+      Be friendly, educational, and explain investment concepts in simple terms.
+      The user is on the ${pathname} page.`,
+    onTranscript: (text, isUser) => {
+      setMessages((prev) => [...prev, { role: isUser ? 'user' : 'ai', content: text }]);
+    },
+    onError: (error) => {
+      toast({ title: 'Voice Error', description: error, variant: 'destructive' });
+      setIsVoiceMode(false);
+    },
+  });
+
+  // Toggle voice mode
+  const handleVoiceModeToggle = async () => {
+    if (isVoiceMode) {
+      disconnectVoice();
+      setIsVoiceMode(false);
+    } else {
+      await connectVoice();
+      setIsVoiceMode(true);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -326,17 +360,64 @@ export default function Chatbot() {
                 <Paperclip className="h-5 w-5 text-muted-foreground" />
                 <span className="sr-only">Attach file</span>
               </Button>
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask a question..."
-                autoComplete="off"
-                className="focus-visible:ring-primary"
-              />
-              <Button type="submit" size="icon" disabled={!input.trim() && !file}>
-                <Send className="h-4 w-4" />
-                <span className="sr-only">Send</span>
+
+              {/* Microphone toggle for voice mode */}
+              <Button
+                type="button"
+                variant={isVoiceMode ? "default" : "ghost"}
+                size="icon"
+                onClick={handleVoiceModeToggle}
+                className={cn(
+                  isVoiceMode && "bg-primary text-primary-foreground",
+                  isListening && "animate-pulse ring-2 ring-primary",
+                  isSpeaking && "ring-2 ring-green-500"
+                )}
+              >
+                {isVoiceMode ? (
+                  isListening ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />
+                ) : (
+                  <Mic className="h-5 w-5 text-muted-foreground" />
+                )}
+                <span className="sr-only">{isVoiceMode ? 'Disable voice mode' : 'Enable voice mode'}</span>
               </Button>
+
+              {/* Voice mode: show listening toggle, otherwise show text input */}
+              {isVoiceMode && isVoiceConnected ? (
+                <div className="flex-1 flex items-center justify-center gap-2 px-4">
+                  <Button
+                    type="button"
+                    variant={isListening ? "destructive" : "default"}
+                    className="flex-1 gap-2"
+                    onClick={toggleListening}
+                  >
+                    {isListening ? (
+                      <><MicOff className="h-4 w-4" /> Stop Listening</>
+                    ) : (
+                      <><Mic className="h-4 w-4" /> Start Listening</>
+                    )}
+                  </Button>
+                  {isSpeaking && (
+                    <div className="flex items-center gap-1 text-green-500">
+                      <Volume2 className="h-4 w-4 animate-pulse" />
+                      <span className="text-xs">Speaking...</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Input
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Ask a question..."
+                    autoComplete="off"
+                    className="focus-visible:ring-primary"
+                  />
+                  <Button type="submit" size="icon" disabled={!input.trim() && !file}>
+                    <Send className="h-4 w-4" />
+                    <span className="sr-only">Send</span>
+                  </Button>
+                </>
+              )}
             </form>
           </div>
         </SheetContent>
