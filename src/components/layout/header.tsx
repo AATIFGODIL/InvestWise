@@ -321,9 +321,12 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
         <div className={cn(
           "relative"
         )}>
+          {isClearMode && (
+            <div className="frosted-distortion absolute inset-0 rounded-full z-0" />
+          )}
           <nav
             className={cn(
-              "relative flex w-full items-center justify-between rounded-full p-1 px-2 shadow-lg overflow-hidden",
+              "relative z-10 flex w-full items-center justify-between rounded-full p-1 px-2 shadow-lg overflow-hidden",
               isMobileCompact ? "h-10" : "h-16",
               isClearMode
                 ? isLightClear
@@ -331,9 +334,7 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
                   : "bg-white/10 ring-1 ring-white/60"
                 : "bg-card ring-1 ring-white/60",
               // COPY-THIS: To apply the glow effect
-              showGlow && "login-glow",
-              // Apply frosted glass effect via CSS class
-              isClearMode && "frosted-glass"
+              showGlow && "login-glow"
             )}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}

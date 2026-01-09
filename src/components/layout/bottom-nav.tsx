@@ -397,10 +397,13 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-2">
+      {isClearMode && (
+        <div className="frosted-distortion absolute inset-2 rounded-full z-0" />
+      )}
       <nav
         ref={navRef}
         className={cn(
-          "relative flex items-center justify-around rounded-full p-1 px-2 shadow-2xl shadow-black/20 ring-1 ring-white/60 overflow-hidden",
+          "relative z-10 flex items-center justify-around rounded-full p-1 px-2 shadow-2xl shadow-black/20 ring-1 ring-white/60 overflow-hidden",
           isMobileCompact ? "h-10" : "h-16",
           isClearMode
             ? isLightClear
@@ -408,9 +411,7 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
               : "bg-white/10"
             : "bg-card",
           // COPY-THIS: To apply the glow effect
-          showGlow && "login-glow",
-          // Apply frosted glass effect via CSS class
-          isClearMode && "frosted-glass"
+          showGlow && "login-glow"
         )}
       >
         <div
