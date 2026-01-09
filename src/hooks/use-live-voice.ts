@@ -198,6 +198,8 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
                                         },
                                     },
                                 },
+                                outputAudioTranscription: {},
+                                inputAudioTranscription: {},
                             },
                             systemInstruction: {
                                 parts: [{
@@ -252,6 +254,16 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
                                     }
                                 }
                             }
+
+                            // Handle explicit transcriptions if provided
+                            // (When using outputAudioTranscription config)
+                            if ((data.serverContent as any).outputTranscription?.text && optionsRef.current.onTranscript) {
+                                optionsRef.current.onTranscript((data.serverContent as any).outputTranscription.text, false);
+                            }
+
+                            // Handle input transcription (User) if we enabled it?
+                            // We use Web Speech API for real-time, but this confirms it.
+                            // if ((data.serverContent as any).inputTranscription?.text) ...
                         }
                     } catch (e) {
                         console.error('Error parsing message:', e);
