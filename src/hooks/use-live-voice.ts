@@ -198,8 +198,7 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
                                         },
                                     },
                                 },
-                                output_audio_transcription: { model: `models/${tokenData.model || 'gemini-2.0-flash-exp'}` },
-                                // input_audio_transcription: { model: `models/${tokenData.model || 'gemini-2.0-flash-exp'}` },
+                                outputAudioTranscription: { model: `models/${tokenData.model || 'gemini-2.0-flash-exp'}` },
                             },
                             systemInstruction: {
                                 parts: [{
