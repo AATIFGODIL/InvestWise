@@ -202,19 +202,7 @@
     }
   }
   
-  #rotate-prompt {
-    display: none;
-  }
 
-  @media (max-width: 767px) and (orientation: portrait) {
-    #rotate-prompt {
-      display: flex;
-    }
-
-    body > #root-container {
-      display: none;
-    }
-  }
 
   @keyframes rotate-animation {
     0% {

@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import ThemeProvider from "@/components/layout/theme-provider";
 import "./globals.css";
 import Script from "next/script";
-import RotateDevicePrompt from '@/components/shared/rotate-device-prompt';
+
 import React from 'react';
 import { AuthProvider } from '@/hooks/use-auth';
 import LayoutContent from '@/components/layout/layout-content';
@@ -39,11 +39,11 @@ export default function RootLayout({
             </filter>
           </defs>
         </svg>
-        <RotateDevicePrompt />
+
         <div id="root-container">
           <ThemeProvider>
             <AuthProvider>
-                <LayoutContent>{children}</LayoutContent>
+              <LayoutContent>{children}</LayoutContent>
             </AuthProvider>
             <Toaster />
           </ThemeProvider>

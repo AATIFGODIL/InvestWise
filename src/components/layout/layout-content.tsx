@@ -61,6 +61,11 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
     }, MOBILE_NAV_AUTO_HIDE_MS);
   }, []);
 
+  const hideMobileHeader = useCallback(() => {
+    setIsMobileHeaderVisible(false);
+    if (headerTimerRef.current) clearTimeout(headerTimerRef.current);
+  }, []);
+
   const showMobileBottomNav = useCallback(() => {
     setIsMobileBottomNavVisible(true);
     // Clear existing timer
@@ -69,6 +74,11 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
     bottomNavTimerRef.current = setTimeout(() => {
       setIsMobileBottomNavVisible(false);
     }, MOBILE_NAV_AUTO_HIDE_MS);
+  }, []);
+
+  const hideMobileBottomNav = useCallback(() => {
+    setIsMobileBottomNavVisible(false);
+    if (bottomNavTimerRef.current) clearTimeout(bottomNavTimerRef.current);
   }, []);
 
   if (hydrating) {
@@ -114,7 +124,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
               transition={{ duration: 0.8, ease: "easeInOut" }}
               className="fixed top-0 left-0 right-0 z-50 w-full"
             >
-              <Header onTriggerRain={handleTriggerRain} isMobileCompact={isMobile} />
+              <Header onTriggerRain={handleTriggerRain} isMobileCompact={isMobile} onHide={isMobile ? hideMobileHeader : undefined} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -134,7 +144,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
               transition={{ duration: 0.8, ease: "easeInOut" }}
               className="z-50 w-full fixed bottom-0 left-0"
             >
-              <BottomNav isMobileCompact={isMobile} />
+              <BottomNav isMobileCompact={isMobile} onHide={isMobile ? hideMobileBottomNav : undefined} />
             </motion.div>
           )}
         </AnimatePresence>

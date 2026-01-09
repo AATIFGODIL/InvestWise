@@ -55,7 +55,8 @@ const itemVariants = {
  * The main header component for the application, displayed on most pages.
  * It provides a central search bar to open the command menu and favorite actions.
  */
-export default function Header({ onTriggerRain, isMobileCompact = false }: { onTriggerRain: () => void; isMobileCompact?: boolean }) {
+export default function Header({ onTriggerRain, isMobileCompact = false, onHide }: { onTriggerRain: () => void; isMobileCompact?: boolean; onHide?: () => void }) {
+  const longPressHideTimer = React.useRef<NodeJS.Timeout | null>(null);
   const [open, setOpen] = React.useState(false);
   const { user, signOut } = useAuth();
   const { username, photoURL } = useUserStore();
@@ -335,6 +336,17 @@ export default function Header({ onTriggerRain, isMobileCompact = false }: { onT
             <Link
               href="/dashboard"
               className="flex h-full shrink-0 items-center rounded-full bg-primary px-3 sm:px-4 shadow-md"
+              onPointerDown={() => {
+                if (onHide) {
+                  longPressHideTimer.current = setTimeout(() => onHide(), 1000);
+                }
+              }}
+              onPointerUp={() => {
+                if (longPressHideTimer.current) clearTimeout(longPressHideTimer.current);
+              }}
+              onPointerLeave={() => {
+                if (longPressHideTimer.current) clearTimeout(longPressHideTimer.current);
+              }}
               onClick={(e) => {
                 if (useProModeStore.getState().isProMode) {
                   e.preventDefault();
