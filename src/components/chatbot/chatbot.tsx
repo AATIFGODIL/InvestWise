@@ -44,7 +44,7 @@ const FormattedMessage = ({ content }: { content: string }) => {
   );
 };
 
-export default function Chatbot() {
+export default function Chatbot({ isMobileCompact = false }: { isMobileCompact?: boolean }) {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -243,7 +243,8 @@ User Context:
             <Button
               variant="outline"
               className={cn(
-                "w-full justify-between items-center p-3 h-auto rounded-full shadow-2xl shadow-black/20 ring-1 ring-white/60 hover:bg-primary/10",
+                "w-full justify-between items-center rounded-full shadow-2xl shadow-black/20 ring-1 ring-white/60 hover:bg-primary/10",
+                isMobileCompact ? "p-2 h-auto" : "p-3 h-auto",
                 isClearMode
                   ? isLightClear
                     ? "bg-card/60 text-foreground" // Light Clear
@@ -257,11 +258,11 @@ User Context:
               onClick={() => openChatbot()}
             >
               <div className="flex items-center gap-3">
-                <Bot className="h-6 w-6 text-primary" />
-                <span className="text-sm font-semibold">Hi! How can I assist you today?</span>
+                <Bot className={cn(isMobileCompact ? "h-4 w-4" : "h-6 w-6", "text-primary")} />
+                <span className={cn(isMobileCompact ? "text-xs" : "text-sm", "font-semibold")}>Hi! How can I assist you today?</span>
               </div>
-              <div className="p-2 bg-primary rounded-lg">
-                <MessageCircleQuestion className="h-5 w-5 text-primary-foreground" />
+              <div className={cn(isMobileCompact ? "p-1.5" : "p-2", "bg-primary rounded-lg")}>
+                <MessageCircleQuestion className={cn(isMobileCompact ? "h-4 w-4" : "h-5 w-5", "text-primary-foreground")} />
               </div>
             </Button>
           </motion.div>

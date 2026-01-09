@@ -21,7 +21,7 @@ import { useProModeStore } from "@/store/pro-mode-store";
 
 type AnimationState = "idle" | "rising" | "sliding" | "descending" | "dragging";
 
-export default function BottomNav() {
+export default function BottomNav({ isMobileCompact = false }: { isMobileCompact?: boolean }) {
   const pathname = usePathname() ?? "/";
   const router = useRouter();
   const navRef = useRef<HTMLElement | null>(null);
@@ -399,7 +399,8 @@ export default function BottomNav() {
       <nav
         ref={navRef}
         className={cn(
-          "relative flex h-16 items-center justify-around rounded-full p-1 px-2 shadow-2xl shadow-black/20 ring-1 ring-white/60",
+          "relative flex items-center justify-around rounded-full p-1 px-2 shadow-2xl shadow-black/20 ring-1 ring-white/60",
+          isMobileCompact ? "h-10" : "h-16",
           isClearMode
             ? isLightClear
               ? "bg-card/60"

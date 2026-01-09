@@ -55,7 +55,7 @@ const itemVariants = {
  * The main header component for the application, displayed on most pages.
  * It provides a central search bar to open the command menu and favorite actions.
  */
-export default function Header({ onTriggerRain }: { onTriggerRain: () => void }) {
+export default function Header({ onTriggerRain, isMobileCompact = false }: { onTriggerRain: () => void; isMobileCompact?: boolean }) {
   const [open, setOpen] = React.useState(false);
   const { user, signOut } = useAuth();
   const { username, photoURL } = useUserStore();
@@ -317,7 +317,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
         )}>
           <nav
             className={cn(
-              "relative flex h-16 w-full items-center justify-between rounded-full p-1 px-2 shadow-lg",
+              "relative flex w-full items-center justify-between rounded-full p-1 px-2 shadow-lg",
+              isMobileCompact ? "h-10" : "h-16",
               isClearMode
                 ? isLightClear
                   ? "bg-card/60 ring-1 ring-white/10"
@@ -355,7 +356,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                   onPointerUp={handlePointerUp}
                   onPointerLeave={handlePointerUp}
                   className={cn(
-                    "relative z-10 flex h-12 items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-colors min-w-[75px] sm:min-w-[170px]",
+                    "relative z-10 flex items-center justify-center gap-2 rounded-full px-4 shadow-lg transition-colors",
+                    isMobileCompact ? "h-7 min-w-[60px]" : "h-12 min-w-[75px] sm:min-w-[170px]",
                     isClearMode
                       ? isLightClear
                         ? "bg-card/60 text-foreground ring-1 ring-white/20"
@@ -366,7 +368,7 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
                   onClick={() => !isEditing && setOpen(true)}
                   style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
                 >
-                  <Search className="h-5 w-5" />
+                  <Search className={cn(isMobileCompact ? "h-4 w-4" : "h-5 w-5")} />
                   <AnimatePresence mode="wait">
                     <motion.span
                       key={isEditing ? 'editing' : 'search'}
@@ -429,8 +431,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
             <div className="flex shrink-0 items-center gap-0 sm:gap-1">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="group h-12 w-12 rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-primary/10 relative">
-                    <Bell className={cn("h-5 w-5 transition-all bell-icon-glow", isClearMode && !isLightClear && "text-white")} />
+                  <Button variant="ghost" size="icon" className={cn("group rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-primary/10 relative", isMobileCompact ? "h-8 w-8" : "h-12 w-12")}>
+                    <Bell className={cn("transition-all bell-icon-glow", isMobileCompact ? "h-4 w-4" : "h-5 w-5", isClearMode && !isLightClear && "text-white")} />
                     {notifications.length > 0 && (
                       <span className="absolute top-3 right-3 h-2.5 w-2.5 rounded-full bg-primary border-2 border-background box-content pointer-events-none" />
                     )}
@@ -470,8 +472,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className={cn("relative h-12 w-12 rounded-full", isClearMode ? "hover:bg-white/10" : "hover:bg-primary/10")}>
-                    <Avatar className="h-12 w-12 border-2 border-primary/50">
+                  <Button variant="ghost" className={cn("relative rounded-full", isMobileCompact ? "h-8 w-8" : "h-12 w-12", isClearMode ? "hover:bg-white/10" : "hover:bg-primary/10")}>
+                    <Avatar className={cn("border-2 border-primary/50", isMobileCompact ? "h-8 w-8" : "h-12 w-12")}>
                       <AvatarImage src={photoURL || ''} alt={username} />
                       <AvatarFallback>{username.charAt(0).toUpperCase()}</AvatarFallback>
                     </Avatar>
@@ -525,8 +527,8 @@ export default function Header({ onTriggerRain }: { onTriggerRain: () => void })
               <span>{overflowMessage}</span>
             </div>
           )}
-        </div>
-      </header>
+        </div >
+      </header >
       <CommandMenu
         open={open}
         onOpenChange={(isOpen) => {
