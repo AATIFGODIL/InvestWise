@@ -212,7 +212,7 @@ export default function Chatbot() {
       </AnimatePresence>
 
       <Sheet open={isOpen} onOpenChange={closeChatbot}>
-        <SheetContent className="flex flex-col">
+        <SheetContent className="flex flex-col fixed inset-y-0 right-0 w-full max-w-md h-full bg-background">
           <SheetHeader>
             <SheetTitle>InvestWise AI Assistant</SheetTitle>
             <SheetDescription>
