@@ -110,17 +110,29 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
     const deltaX = touchEndX - touchStartX.current;
     const deltaY = Math.abs(touchEndY - touchStartY.current);
 
+    // Determine which half of the screen the swipe started in
+    const screenHeight = window.innerHeight;
+    const isTopHalf = touchStartY.current < screenHeight / 2;
+
     // Only register horizontal swipes (deltaY should be small relative to deltaX)
     if (Math.abs(deltaX) > SWIPE_THRESHOLD && deltaY < Math.abs(deltaX) * 0.5) {
       if (deltaX > 0) {
-        // Swipe left-to-right: show bars
-        showMobileNavs();
+        // Swipe left-to-right: show bar
+        if (isTopHalf) {
+          showMobileHeader();
+        } else {
+          showMobileBottomNav();
+        }
       } else {
-        // Swipe right-to-left: hide bars
-        hideMobileNavs();
+        // Swipe right-to-left: hide bar
+        if (isTopHalf) {
+          hideMobileHeader();
+        } else {
+          hideMobileBottomNav();
+        }
       }
     }
-  }, [isMobile, showMobileNavs, hideMobileNavs]);
+  }, [isMobile, showMobileHeader, showMobileBottomNav, hideMobileHeader, hideMobileBottomNav]);
 
   if (hydrating) {
     return (
