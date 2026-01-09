@@ -154,7 +154,7 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
                         setup: {
                             model: `models/${tokenData.model || 'gemini-2.0-flash-exp'}`,
                             generationConfig: {
-                                responseModalities: ['AUDIO', 'TEXT'],
+                                responseModalities: "AUDIO", // Fixed: must be a string, not array
                                 speechConfig: {
                                     voiceConfig: {
                                         prebuiltVoiceConfig: {
@@ -171,6 +171,7 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
                         },
                     };
 
+                    console.log('Sending setup message:', JSON.stringify(setupMessage, null, 2));
                     ws.send(JSON.stringify(setupMessage));
                     wsRef.current = ws;
                 };
