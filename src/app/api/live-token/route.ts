@@ -44,7 +44,7 @@ export async function POST() {
         return NextResponse.json({
             token: apiKey,
             expiresIn: 3600, // 1 hour
-            model: 'gemini-2.5-flash-preview-native-audio-dialog',
+            model: 'gemini-2.0-flash-exp',
         });
     } catch (error: any) {
         console.error('Error generating token:', error);
