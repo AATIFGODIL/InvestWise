@@ -71,6 +71,7 @@ export default function Chatbot() {
     connect: connectVoice,
     disconnect: disconnectVoice,
     toggleListening,
+    sendText,
   } = useLiveVoice({
     systemInstruction: `You are InvestWise Bot, a helpful AI assistant for a youth investment app. 
       Be friendly, educational, and explain investment concepts in simple terms.
@@ -139,6 +140,19 @@ export default function Chatbot() {
 
   const submitQuery = async (query: string, fileDataUri?: string) => {
     if (!query.trim() && !fileDataUri) return;
+
+    // Handle voice mode text input
+    if (isVoiceMode && isVoiceConnected && !fileDataUri) {
+      setMessages(prev => [...prev, { role: "user", content: query }]);
+      sendText(query);
+      setInput("");
+
+      // Clear pending query
+      if (pendingQuery) {
+        useChatbotStore.getState().openChatbot(initialMessage, undefined);
+      }
+      return;
+    }
 
     const newMessages: Message[] = [
       ...messages,

@@ -15,6 +15,7 @@ interface UseLiveVoiceReturn {
     connect: () => Promise<void>;
     disconnect: () => void;
     toggleListening: () => void;
+    sendText: (text: string) => void;
 }
 
 /**
@@ -45,6 +46,7 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
     const connect = useCallback(async () => {
         try {
             // Get token from our API
+            console.log('Fetching live token...');
             const tokenRes = await fetch('/api/live-token', { method: 'POST' });
             const tokenData = await tokenRes.json();
 
@@ -60,7 +62,7 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
 
             ws.onopen = () => {
                 console.log('WebSocket connected');
-
+                console.log('Sending setup message...');
                 // Send setup message
                 const setupMessage = {
                     setup: {
@@ -128,8 +130,8 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
                 onError?.('Connection error');
             };
 
-            ws.onclose = () => {
-                console.log('WebSocket closed');
+            ws.onclose = (event) => {
+                console.log('WebSocket closed', event.code, event.reason);
                 setIsConnected(false);
                 setIsListening(false);
             };
@@ -296,6 +298,25 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
         }
     }, []);
 
+    const sendText = useCallback((text: string) => {
+        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+            console.error('WebSocket not connected');
+            return;
+        }
+
+        const message = {
+            client_content: {
+                turns: [{
+                    role: 'user',
+                    parts: [{ text: text }]
+                }],
+                turn_complete: true
+            }
+        };
+
+        wsRef.current.send(JSON.stringify(message));
+    }, []);
+
     return {
         isConnected,
         isListening,
@@ -303,5 +324,6 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
         connect,
         disconnect,
         toggleListening,
+        sendText,
     };
 }
