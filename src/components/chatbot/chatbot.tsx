@@ -232,13 +232,17 @@ User Context:
   return (
     <>
       <AnimatePresence>
+        {/* Show AI bar when not in Pro Mode (or nav visible in Pro Mode) - mobile visibility is handled by parent */}
         {(!isProMode || isNavVisible) && (
           <motion.div
             initial={{ x: -100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -100, opacity: 0 }}
             transition={{ duration: 0.8, ease: "easeInOut" }}
-            className="fixed bottom-20 left-0 right-0 mx-auto w-[90%] max-w-md z-40"
+            className={cn(
+              "fixed left-0 right-0 mx-auto w-[90%] max-w-md z-40",
+              isMobileCompact ? "bottom-14" : "bottom-20"
+            )}
           >
             <Button
               variant="outline"
