@@ -37,6 +37,7 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
     // Prevent multiple simultaneous connection attempts
     const isConnectingRef = useRef(false);
     const setupCompleteRef = useRef(false);
+    const nextStartTimeRef = useRef(0);
 
     const disconnect = useCallback(() => {
         if (processorRef.current) {
@@ -77,12 +78,16 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
     }, [disconnect]);
 
     const playAudioChunk = useCallback(async (base64Data: string) => {
-        if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
-            audioContextRef.current = new AudioContext({ sampleRate: 24000 });
-        }
-
-        setIsSpeaking(true);
         try {
+            if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
+                audioContextRef.current = new AudioContext({ sampleRate: 24000 });
+            }
+
+            // Resume if suspended (browser requirements)
+            if (audioContextRef.current.state === 'suspended') {
+                await audioContextRef.current.resume();
+            }
+
             const binaryString = atob(base64Data);
             const bytes = new Uint8Array(binaryString.length);
             for (let i = 0; i < binaryString.length; i++) {
@@ -100,8 +105,27 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
             const source = audioContextRef.current.createBufferSource();
             source.buffer = buffer;
             source.connect(audioContextRef.current.destination);
-            source.onended = () => setIsSpeaking(false);
-            source.start();
+
+            // Schedule seamless playback
+            const currentTime = audioContextRef.current.currentTime;
+            // If next start time is in the past, reset it to now (plus a tiny buffer)
+            if (nextStartTimeRef.current < currentTime) {
+                nextStartTimeRef.current = currentTime + 0.05; // 50ms buffer
+            }
+
+            source.start(nextStartTimeRef.current);
+            nextStartTimeRef.current += buffer.duration;
+
+            setIsSpeaking(true);
+
+            // Handle when speaking logic ends
+            // We only set isSpeaking false if we're near the end of the scheduled stream
+            source.onended = () => {
+                if (audioContextRef.current && audioContextRef.current.currentTime >= nextStartTimeRef.current - 0.1) {
+                    setIsSpeaking(false);
+                }
+            };
+
         } catch (e) {
             console.error('Audio playback error:', e);
             setIsSpeaking(false);
