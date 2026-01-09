@@ -55,9 +55,14 @@ const itemVariants = {
  * The main header component for the application, displayed on most pages.
  * It provides a central search bar to open the command menu and favorite actions.
  */
-export default function Header({ onTriggerRain, isMobileCompact = false, onHide }: { onTriggerRain: () => void; isMobileCompact?: boolean; onHide?: () => void }) {
+export default function Header({ onTriggerRain, isMobileCompact = false, onHide, onCommandMenuChange }: { onTriggerRain: () => void; isMobileCompact?: boolean; onHide?: () => void; onCommandMenuChange?: (isOpen: boolean) => void }) {
   // onHide is no longer used directly (swipe handles it globally now)
   const [open, setOpen] = React.useState(false);
+
+  // Notify parent when command menu opens/closes
+  React.useEffect(() => {
+    onCommandMenuChange?.(open);
+  }, [open, onCommandMenuChange]);
   const { user, signOut } = useAuth();
   const { username, photoURL } = useUserStore();
   const { isClearMode, theme } = useThemeStore();

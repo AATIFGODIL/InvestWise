@@ -33,6 +33,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
   // Mobile-specific nav visibility states
   const [isMobileHeaderVisible, setIsMobileHeaderVisible] = useState(false);
   const [isMobileBottomNavVisible, setIsMobileBottomNavVisible] = useState(false);
+  const [isCommandMenuOpen, setIsCommandMenuOpen] = useState(false);
 
   // Auto-hide timers
   const headerTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -60,11 +61,13 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
     setIsMobileHeaderVisible(true);
     // Clear existing timer
     if (headerTimerRef.current) clearTimeout(headerTimerRef.current);
-    // Set auto-hide timer
-    headerTimerRef.current = setTimeout(() => {
-      setIsMobileHeaderVisible(false);
-    }, MOBILE_NAV_AUTO_HIDE_MS);
-  }, []);
+    // Only set auto-hide timer if command menu is closed
+    if (!isCommandMenuOpen) {
+      headerTimerRef.current = setTimeout(() => {
+        setIsMobileHeaderVisible(false);
+      }, MOBILE_NAV_AUTO_HIDE_MS);
+    }
+  }, [isCommandMenuOpen]);
 
   const hideMobileHeader = useCallback(() => {
     setIsMobileHeaderVisible(false);
@@ -85,6 +88,28 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
     setIsMobileBottomNavVisible(false);
     if (bottomNavTimerRef.current) clearTimeout(bottomNavTimerRef.current);
   }, []);
+
+  // Handle command menu state changes - pause/resume timers
+  const handleCommandMenuChange = useCallback((isOpen: boolean) => {
+    setIsCommandMenuOpen(isOpen);
+    if (isOpen) {
+      // Pause timers when menu is open
+      if (headerTimerRef.current) clearTimeout(headerTimerRef.current);
+      if (bottomNavTimerRef.current) clearTimeout(bottomNavTimerRef.current);
+    } else {
+      // Resume timers when menu closes (start 20s countdown)
+      if (isMobileHeaderVisible) {
+        headerTimerRef.current = setTimeout(() => {
+          setIsMobileHeaderVisible(false);
+        }, MOBILE_NAV_AUTO_HIDE_MS);
+      }
+      if (isMobileBottomNavVisible) {
+        bottomNavTimerRef.current = setTimeout(() => {
+          setIsMobileBottomNavVisible(false);
+        }, MOBILE_NAV_AUTO_HIDE_MS);
+      }
+    }
+  }, [isMobileHeaderVisible, isMobileBottomNavVisible]);
 
   // Combined show/hide functions for swipe
   const showMobileNavs = useCallback(() => {
@@ -177,7 +202,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
               transition={{ duration: 0.8, ease: "easeInOut" }}
               className="fixed top-0 left-0 right-0 z-50 w-full"
             >
-              <Header onTriggerRain={handleTriggerRain} isMobileCompact={isMobile} onHide={isMobile ? hideMobileHeader : undefined} />
+              <Header onTriggerRain={handleTriggerRain} isMobileCompact={isMobile} onHide={isMobile ? hideMobileHeader : undefined} onCommandMenuChange={isMobile ? handleCommandMenuChange : undefined} />
             </motion.div>
           )}
         </AnimatePresence>
