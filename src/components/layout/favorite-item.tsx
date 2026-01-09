@@ -98,21 +98,21 @@ export default function FavoriteItem({ favorite, onSelect, onRemove, variants, i
                         key="pill"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1, transition: { delay: 0.1 } }}
-                        className="flex items-center gap-2 px-3 sm:px-4 w-full h-full"
+                        className={cn("flex items-center w-full h-full", isMobile ? "gap-1 px-1" : "gap-2 px-3 sm:px-4")}
                     >
                         {favorite.type === 'stock' ? (
                             <>
-                                <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
+                                <Avatar className={cn(isMobile ? "h-3 w-3" : "h-6 w-6 sm:h-8 sm:w-8")}>
                                     <AvatarImage src={favorite.logoUrl} alt={favorite.name} />
-                                    <AvatarFallback className="text-xs sm:text-sm">{favorite.iconName}</AvatarFallback>
+                                    <AvatarFallback className={cn(isMobile ? "text-[6px]" : "text-xs sm:text-sm")}>{favorite.iconName}</AvatarFallback>
                                 </Avatar>
-                                <div className="flex flex-col items-start text-xs overflow-hidden">
+                                <div className={cn("flex flex-col items-start overflow-hidden", isMobile ? "text-[6px]" : "text-xs")}>
                                     <span className="font-bold truncate">{favorite.name.length > 10 ? favorite.value : favorite.name}</span>
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-0.5">
                                         <span>{typeof price === 'number' ? `$${price.toFixed(2)}` : '...'}</span>
                                         {change !== null && (
                                             <span className={cn(change >= 0 ? "text-green-500" : "text-red-500", "flex items-center")}>
-                                                {change >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                                                {change >= 0 ? <TrendingUp size={isMobile ? 6 : 12} /> : <TrendingDown size={isMobile ? 6 : 12} />}
                                             </span>
                                         )}
                                     </div>
