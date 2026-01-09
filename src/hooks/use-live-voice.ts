@@ -34,6 +34,9 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
     const mediaStreamRef = useRef<MediaStream | null>(null);
     const processorRef = useRef<ScriptProcessorNode | null>(null);
 
+    // Buffer for storing audio chunks to send all at once
+    const chunksRef = useRef<string[]>([]);
+
     // Prevent multiple simultaneous connection attempts
     const isConnectingRef = useRef(false);
     const setupCompleteRef = useRef(false);
@@ -69,6 +72,8 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
         setIsSpeaking(false);
         isConnectingRef.current = false;
         setupCompleteRef.current = false;
+        nextStartTimeRef.current = 0;
+        chunksRef.current = [];
     }, []);
 
     useEffect(() => {
@@ -80,7 +85,7 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
     const playAudioChunk = useCallback(async (base64Data: string) => {
         try {
             if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
-                audioContextRef.current = new AudioContext(); // Use native sample rate (e.g. 48kHz)
+                audioContextRef.current = new AudioContext(); // Use native sample rate
             }
 
             // Resume if suspended (browser requirements)
@@ -119,7 +124,6 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
             setIsSpeaking(true);
 
             // Handle when speaking logic ends
-            // We only set isSpeaking false if we're near the end of the scheduled stream
             source.onended = () => {
                 if (audioContextRef.current && audioContextRef.current.currentTime >= nextStartTimeRef.current - 0.1) {
                     setIsSpeaking(false);
@@ -178,7 +182,7 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
                         setup: {
                             model: `models/${tokenData.model || 'gemini-2.0-flash-exp'}`,
                             generationConfig: {
-                                responseModalities: "AUDIO", // Fixed: must be a string, not array
+                                responseModalities: "AUDIO",
                                 speechConfig: {
                                     voiceConfig: {
                                         prebuiltVoiceConfig: {
@@ -201,6 +205,7 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
                     console.log('Sending setup message:', JSON.stringify(setupMessage, null, 2));
                     ws.send(JSON.stringify(setupMessage));
                     wsRef.current = ws;
+                    chunksRef.current = []; // Reset buffer
                 };
 
                 ws.onmessage = async (event) => {
@@ -285,6 +290,9 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
         }
 
         try {
+            // Reset buffer
+            chunksRef.current = [];
+
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: {
                     sampleRate: 16000,
@@ -299,12 +307,10 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
             audioContextRef.current = audioContext;
 
             const source = audioContext.createMediaStreamSource(stream);
-            const processor = audioContext.createScriptProcessor(2048, 1, 1);
+            const processor = audioContext.createScriptProcessor(4096, 1, 1);
             processorRef.current = processor;
 
             processor.onaudioprocess = (event) => {
-                if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
-
                 const inputData = event.inputBuffer.getChannelData(0);
                 const pcmData = new Int16Array(inputData.length);
                 for (let i = 0; i < inputData.length; i++) {
@@ -312,21 +318,15 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
                     pcmData[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
                 }
 
+                // Convert chunk to binary string
                 let binary = '';
                 const bytes = new Uint8Array(pcmData.buffer);
                 for (let i = 0; i < bytes.byteLength; i++) {
                     binary += String.fromCharCode(bytes[i]);
                 }
-                const base64 = btoa(binary);
 
-                wsRef.current.send(JSON.stringify({
-                    realtimeInput: {
-                        mediaChunks: [{
-                            mimeType: 'audio/pcm;rate=16000',
-                            data: base64,
-                        }],
-                    },
-                }));
+                // Store chunk in buffer instead of sending immediately
+                chunksRef.current.push(binary);
             };
 
             source.connect(processor);
@@ -340,6 +340,7 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
     }, []);
 
     const stopListening = useCallback(() => {
+        // Stop recording
         if (processorRef.current) {
             processorRef.current.disconnect();
             processorRef.current = null;
@@ -348,7 +349,30 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
             mediaStreamRef.current.getTracks().forEach(track => track.stop());
             mediaStreamRef.current = null;
         }
+
         setIsListening(false);
+
+        // Send accumulated audio if we have any
+        if (wsRef.current?.readyState === WebSocket.OPEN && chunksRef.current.length > 0) {
+            console.log(`Sending ${chunksRef.current.length} chunks of audio...`);
+
+            // Combine all chunks
+            const fullBinary = chunksRef.current.join('');
+            const base64 = btoa(fullBinary);
+
+            // Send audio payload
+            wsRef.current.send(JSON.stringify({
+                realtimeInput: {
+                    mediaChunks: [{
+                        mimeType: 'audio/pcm;rate=16000',
+                        data: base64,
+                    }],
+                },
+            }));
+
+            // Clear buffer
+            chunksRef.current = [];
+        }
     }, []);
 
     const toggleListening = useCallback(() => {
