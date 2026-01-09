@@ -18,7 +18,7 @@ interface ChatbotState {
 
 const useChatbotStore = create<ChatbotState>((set) => ({
   isOpen: false,
-  initialMessage: 'How can I assist you?',
+  initialMessage: 'Hi! How can I assist you today?',
   pendingQuery: null,
   context: {},
   openChatbot: (initialMessage, pendingQuery) => set({
