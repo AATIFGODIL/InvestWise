@@ -1,20 +1,23 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 225 6% 84%; /* #D3D4D8 */
+    --background: 225 6% 84%;
+    /* #D3D4D8 */
     --foreground: 222.2 84% 4.9%;
 
-    --card: 225 6% 84%; /* #D3D4D8 */
+    --card: 225 6% 84%;
+    /* #D3D4D8 */
     --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 225 6% 84%; /* #D3D4D8 */
+    --popover: 225 6% 84%;
+    /* #D3D4D8 */
     --popover-foreground: 222.2 84% 4.9%;
-    
-    --primary: 251 82% 60%; /* #5442F1 - Indigo Blue */
+
+    --primary: 251 82% 60%;
+    /* #5442F1 - Indigo Blue */
     --primary-foreground: 210 40% 98%;
 
     --secondary: 225 6% 84%;
@@ -23,8 +26,10 @@
     --muted: 225 6% 84%;
     --muted-foreground: 240 3.8% 46.1%;
 
-    --accent: 251 82% 60%; /* Changed to match primary */
-    --accent-foreground: 210 40% 98%; /* Changed to match primary-foreground for contrast */
+    --accent: 251 82% 60%;
+    /* Changed to match primary */
+    --accent-foreground: 210 40% 98%;
+    /* Changed to match primary-foreground for contrast */
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -55,12 +60,14 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 251 82% 65%; /* Changed to match primary */
-    --accent-foreground: 210 40% 98%; /* Changed to match primary-foreground for contrast */
+    --accent: 251 82% 65%;
+    /* Changed to match primary */
+    --accent-foreground: 210 40% 98%;
+    /* Changed to match primary-foreground for contrast */
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    
+
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 251 82% 65%;
@@ -71,6 +78,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -89,6 +97,7 @@
       transform: translateY(-10vh);
       opacity: 1;
     }
+
     100% {
       transform: translateY(110vh);
       opacity: 0;
@@ -99,6 +108,7 @@
     0% {
       margin-left: 0px;
     }
+
     100% {
       margin-left: 50px;
     }
@@ -108,18 +118,17 @@
   .bell-icon-glow {
     filter: drop-shadow(0 0 0 transparent);
   }
+
   .group:hover .bell-icon-glow {
     filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.7));
   }
 
   /* Shimmer effect for header favorites */
   .shimmer-bg {
-    background-image: linear-gradient(
-      -60deg,
-      transparent 30%,
-      hsl(var(--primary) / 0.4),
-      transparent 70%
-    );
+    background-image: linear-gradient(-60deg,
+        transparent 30%,
+        hsl(var(--primary) / 0.4),
+        transparent 70%);
     background-size: 200% 100%;
     animation: shimmer-header 2s linear infinite;
   }
@@ -128,6 +137,7 @@
     0% {
       background-position: 200% 0;
     }
+
     100% {
       background-position: -200% 0;
     }
@@ -140,7 +150,8 @@
     background-color: hsl(var(--muted) / 0.5);
   }
 
-  .skeleton-shimmer::after, .skeleton-shimmer::before {
+  .skeleton-shimmer::after,
+  .skeleton-shimmer::before {
     content: '';
     position: absolute;
     top: 0;
@@ -163,13 +174,23 @@
   }
 
   @keyframes shimmer-skeleton {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(200%); }
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(200%);
+    }
   }
-  
+
   @keyframes shimmer-skeleton-2 {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(200%); }
+    0% {
+      transform: translateX(0);
+    }
+
+    100% {
+      transform: translateX(200%);
+    }
   }
 
   /* COPY-THIS: For the login glow effect */
@@ -177,6 +198,7 @@
     position: relative;
     overflow: hidden;
   }
+
   .login-glow::after {
     content: '';
     position: absolute;
@@ -184,12 +206,10 @@
     left: -150%;
     width: 150%;
     height: 100%;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      hsl(var(--primary) / 0.2),
-      transparent
-    );
+    background: linear-gradient(90deg,
+        transparent,
+        hsl(var(--primary) / 0.2),
+        transparent);
     animation: login-shimmer 1.5s ease-in-out;
   }
 
@@ -197,25 +217,45 @@
     0% {
       transform: translateX(0) skewX(-20deg);
     }
+
     100% {
       transform: translateX(170%) skewX(-20deg);
     }
   }
-  
+
+  /* Frosted glass effect with distortion - works on mobile */
+  .frosted-glass {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .frosted-glass::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    filter: url(#frosted);
+    border-radius: inherit;
+  }
+
 
 
   @keyframes rotate-animation {
     0% {
       transform: rotate(0deg);
     }
+
     50% {
       transform: rotate(-90deg);
     }
+
     100% {
       transform: rotate(-90deg);
     }
   }
-  
+
   .tutorial-highlight-active {
     position: relative;
     z-index: 110 !important;
@@ -230,10 +270,13 @@
   }
 
   @keyframes shimmer-stroke {
-    0%, 100% {
+
+    0%,
+    100% {
       stroke: hsl(var(--primary) / 0.12);
       stroke-width: 1.5;
     }
+
     50% {
       stroke: hsl(var(--primary) / 0.5);
       stroke-width: 2.5;
@@ -242,22 +285,25 @@
 
   /* Animated Border Keyframes */
   .animated-border-path {
-      animation: draw-border 2s linear forwards;
+    animation: draw-border 2s linear forwards;
   }
-  
+
   @keyframes draw-border {
     0% {
       /* Start: Path is hidden */
       stroke-dashoffset: var(--path-length);
     }
+
     50% {
       /* Drawn: Path is fully visible */
       stroke-dashoffset: 0;
     }
+
     75% {
       /* Hold: Path stays visible */
       stroke-dashoffset: 0;
     }
+
     100% {
       /* Retrace: Path vanishes by retracing */
       stroke-dashoffset: var(--path-length);
@@ -266,12 +312,14 @@
 
   /* Hide scrollbar for Chrome, Safari and Opera */
   .hide-scrollbar::-webkit-scrollbar {
-      display: none;
+    display: none;
   }
 
   /* Hide scrollbar for IE, Edge and Firefox */
   .hide-scrollbar {
-      -ms-overflow-style: none;  /* IE and Edge */
-      scrollbar-width: none;  /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
 }

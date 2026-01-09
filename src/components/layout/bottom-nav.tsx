@@ -400,7 +400,7 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
       <nav
         ref={navRef}
         className={cn(
-          "relative flex items-center justify-around rounded-full p-1 px-2 shadow-2xl shadow-black/20 ring-1 ring-white/60",
+          "relative flex items-center justify-around rounded-full p-1 px-2 shadow-2xl shadow-black/20 ring-1 ring-white/60 overflow-hidden",
           isMobileCompact ? "h-10" : "h-16",
           isClearMode
             ? isLightClear
@@ -408,10 +408,10 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
               : "bg-white/10"
             : "bg-card",
           // COPY-THIS: To apply the glow effect
-          showGlow && "login-glow"
+          showGlow && "login-glow",
+          // Apply frosted glass effect via CSS class
+          isClearMode && "frosted-glass"
         )}
-        // COPY-THIS: For the glass look (backdrop filter)
-        style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
       >
         <div
           className="glider absolute rounded-full pointer-events-none"

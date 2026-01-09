@@ -323,7 +323,7 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
         )}>
           <nav
             className={cn(
-              "relative flex w-full items-center justify-between rounded-full p-1 px-2 shadow-lg",
+              "relative flex w-full items-center justify-between rounded-full p-1 px-2 shadow-lg overflow-hidden",
               isMobileCompact ? "h-10" : "h-16",
               isClearMode
                 ? isLightClear
@@ -331,10 +331,10 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
                   : "bg-white/10 ring-1 ring-white/60"
                 : "bg-card ring-1 ring-white/60",
               // COPY-THIS: To apply the glow effect
-              showGlow && "login-glow"
+              showGlow && "login-glow",
+              // Apply frosted glass effect via CSS class
+              isClearMode && "frosted-glass"
             )}
-            // COPY-THIS: For the glass look (backdrop filter)
-            style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
