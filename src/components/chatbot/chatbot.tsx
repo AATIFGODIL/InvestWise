@@ -80,8 +80,9 @@ export default function Chatbot() {
       setMessages((prev) => [...prev, { role: isUser ? 'user' : 'ai', content: text }]);
     },
     onError: (error) => {
+      console.error('Voice mode error:', error);
       toast({ title: 'Voice Error', description: error, variant: 'destructive' });
-      setIsVoiceMode(false);
+      // Don't auto-close voice mode so user can see the error
     },
   });
 

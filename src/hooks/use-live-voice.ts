@@ -55,8 +55,9 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
             }
 
             // Connect to Gemini Live API via WebSocket
-            const wsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${tokenData.token}`;
+            const wsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContent?key=${tokenData.token}`;
 
+            console.log('Connecting to WebSocket:', wsUrl.replace(tokenData.token, 'HIDDEN'));
             const ws = new WebSocket(wsUrl);
             wsRef.current = ws;
 
