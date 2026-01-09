@@ -46,6 +46,7 @@ export default function Chatbot() {
   const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const { isOpen, openChatbot, closeChatbot, initialMessage, pendingQuery } = useChatbotStore();
   const { isClearMode, theme } = useThemeStore();
@@ -56,6 +57,7 @@ export default function Chatbot() {
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastProcessedQueryRef = useRef<string | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -160,8 +162,11 @@ export default function Chatbot() {
 
   // Auto-submit effect
   useEffect(() => {
-    if (isOpen && pendingQuery) {
+    if (isOpen && pendingQuery && pendingQuery !== lastProcessedQueryRef.current) {
+      lastProcessedQueryRef.current = pendingQuery;
       submitQuery(pendingQuery);
+    } else if (!pendingQuery) {
+      lastProcessedQueryRef.current = null;
     }
   }, [isOpen, pendingQuery]);
 
@@ -253,6 +258,7 @@ export default function Chatbot() {
                   )}
                 </div>
               ))}
+              <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
           <div className="mt-auto">
