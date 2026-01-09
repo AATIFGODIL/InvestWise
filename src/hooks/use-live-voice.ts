@@ -190,7 +190,7 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
                         setup: {
                             model: `models/${tokenData.model || 'gemini-2.0-flash-exp'}`,
                             generationConfig: {
-                                responseModalities: ["AUDIO", "TEXT"],
+                                responseModalities: "AUDIO",
                                 speechConfig: {
                                     voiceConfig: {
                                         prebuiltVoiceConfig: {
