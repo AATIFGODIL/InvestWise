@@ -56,7 +56,7 @@ const itemVariants = {
  * It provides a central search bar to open the command menu and favorite actions.
  */
 export default function Header({ onTriggerRain, isMobileCompact = false, onHide }: { onTriggerRain: () => void; isMobileCompact?: boolean; onHide?: () => void }) {
-  const longPressHideTimer = React.useRef<NodeJS.Timeout | null>(null);
+  // onHide is no longer used directly (swipe handles it globally now)
   const [open, setOpen] = React.useState(false);
   const { user, signOut } = useAuth();
   const { username, photoURL } = useUserStore();
@@ -335,18 +335,10 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide 
           >
             <Link
               href="/dashboard"
-              className="flex h-full shrink-0 items-center rounded-full bg-primary px-3 sm:px-4 shadow-md"
-              onPointerDown={() => {
-                if (onHide) {
-                  longPressHideTimer.current = setTimeout(() => onHide(), 1000);
-                }
-              }}
-              onPointerUp={() => {
-                if (longPressHideTimer.current) clearTimeout(longPressHideTimer.current);
-              }}
-              onPointerLeave={() => {
-                if (longPressHideTimer.current) clearTimeout(longPressHideTimer.current);
-              }}
+              className={cn(
+                "flex h-full shrink-0 items-center rounded-full bg-primary shadow-md",
+                isMobileCompact ? "px-2" : "px-3 sm:px-4"
+              )}
               onClick={(e) => {
                 if (useProModeStore.getState().isProMode) {
                   e.preventDefault();
@@ -356,7 +348,7 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide 
                 }
               }}
             >
-              <h1 className="text-md sm:text-lg font-bold text-primary-foreground">
+              <h1 className={cn(isMobileCompact ? "text-xs" : "text-md sm:text-lg", "font-bold text-primary-foreground")}>
                 InvestWise
               </h1>
             </Link>

@@ -22,7 +22,7 @@ import { useProModeStore } from "@/store/pro-mode-store";
 type AnimationState = "idle" | "rising" | "sliding" | "descending" | "dragging";
 
 export default function BottomNav({ isMobileCompact = false, onHide }: { isMobileCompact?: boolean; onHide?: () => void }) {
-  const longPressHideTimer = useRef<NodeJS.Timeout | null>(null);
+  // onHide is no longer used directly (swipe handles it globally now)
   const pathname = usePathname() ?? "/";
   const router = useRouter();
   const navRef = useRef<HTMLElement | null>(null);
@@ -429,18 +429,7 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
               key={item.label}
               href={item.href}
               ref={getRef(index)}
-              onMouseDown={(e) => {
-                handleMouseDown(e, index);
-                if (onHide) {
-                  longPressHideTimer.current = setTimeout(() => onHide(), 1000);
-                }
-              }}
-              onMouseUp={() => {
-                if (longPressHideTimer.current) clearTimeout(longPressHideTimer.current);
-              }}
-              onMouseLeave={() => {
-                if (longPressHideTimer.current) clearTimeout(longPressHideTimer.current);
-              }}
+              onMouseDown={(e) => handleMouseDown(e, index)}
               onClick={(e) => e.preventDefault()} // Prevent default navigation
               className="z-10 flex-1 flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2"
               prefetch={true}

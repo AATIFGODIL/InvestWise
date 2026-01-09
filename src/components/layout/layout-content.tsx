@@ -38,6 +38,11 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
   const headerTimerRef = useRef<NodeJS.Timeout | null>(null);
   const bottomNavTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Swipe detection
+  const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
+  const SWIPE_THRESHOLD = 50; // Minimum swipe distance in pixels
+
   useUserData(user);
 
   const isAuthOrOnboardingRoute = pathname.startsWith('/auth') || pathname.startsWith('/onboarding') || pathname === '/';
@@ -81,6 +86,42 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
     if (bottomNavTimerRef.current) clearTimeout(bottomNavTimerRef.current);
   }, []);
 
+  // Combined show/hide functions for swipe
+  const showMobileNavs = useCallback(() => {
+    showMobileHeader();
+    showMobileBottomNav();
+  }, [showMobileHeader, showMobileBottomNav]);
+
+  const hideMobileNavs = useCallback(() => {
+    hideMobileHeader();
+    hideMobileBottomNav();
+  }, [hideMobileHeader, hideMobileBottomNav]);
+
+  // Swipe handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!isMobile) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaX = touchEndX - touchStartX.current;
+    const deltaY = Math.abs(touchEndY - touchStartY.current);
+
+    // Only register horizontal swipes (deltaY should be small relative to deltaX)
+    if (Math.abs(deltaX) > SWIPE_THRESHOLD && deltaY < Math.abs(deltaX) * 0.5) {
+      if (deltaX > 0) {
+        // Swipe left-to-right: show bars
+        showMobileNavs();
+      } else {
+        // Swipe right-to-left: hide bars
+        hideMobileNavs();
+      }
+    }
+  }, [isMobile, showMobileNavs, hideMobileNavs]);
+
   if (hydrating) {
     return (
       <div className="h-screen w-screen">
@@ -112,7 +153,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
 
   if (user && !isAuthOrOnboardingRoute) {
     return (
-      <div className="flex flex-col h-screen relative">
+      <div className="flex flex-col h-screen relative" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
         {/* Header */}
         <AnimatePresence>
           {shouldShowHeader && (
