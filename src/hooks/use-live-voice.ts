@@ -32,7 +32,10 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
     const wsRef = useRef<WebSocket | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const mediaStreamRef = useRef<MediaStream | null>(null);
+
     const processorRef = useRef<ScriptProcessorNode | null>(null);
+    // STT for user transcript
+    const recognitionRef = useRef<any>(null);
 
     // Buffer for storing audio chunks to send all at once
     const chunksRef = useRef<string[]>([]);
@@ -56,6 +59,11 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
         if (mediaStreamRef.current) {
             mediaStreamRef.current.getTracks().forEach(track => track.stop());
             mediaStreamRef.current = null;
+        }
+
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+            recognitionRef.current = null;
         }
 
         if (wsRef.current) {
@@ -331,6 +339,30 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
 
             source.connect(processor);
             processor.connect(audioContext.destination);
+
+            // Start Web Speech API for transcription
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+
+                recognition.onresult = (event: any) => {
+                    let finalTranscript = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript;
+                        }
+                    }
+                    if (finalTranscript && optionsRef.current.onTranscript) {
+                        optionsRef.current.onTranscript(finalTranscript, true); // true = User
+                    }
+                };
+
+                recognition.start();
+                recognitionRef.current = recognition;
+            }
+
             setIsListening(true);
 
         } catch (error: any) {
@@ -348,6 +380,11 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
         if (mediaStreamRef.current) {
             mediaStreamRef.current.getTracks().forEach(track => track.stop());
             mediaStreamRef.current = null;
+        }
+
+        if (recognitionRef.current) {
+            recognitionRef.current.stop();
+            recognitionRef.current = null;
         }
 
         setIsListening(false);
