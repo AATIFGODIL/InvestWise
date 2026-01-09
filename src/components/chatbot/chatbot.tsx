@@ -232,8 +232,8 @@ User Context:
   return (
     <>
       <AnimatePresence>
-        {/* Show AI bar when not in Pro Mode (or nav visible in Pro Mode) - mobile visibility is handled by parent */}
-        {(!isProMode || isNavVisible) && (
+        {/* Show AI bar: on mobile always (parent controls visibility), on desktop use Pro Mode logic */}
+        {(isMobileCompact || (!isProMode || isNavVisible)) && (
           <motion.div
             initial={{ x: -100, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
