@@ -9,8 +9,9 @@ interface ChatContext {
 interface ChatbotState {
   isOpen: boolean;
   initialMessage: string;
+  pendingQuery: string | null;
   context: ChatContext;
-  openChatbot: (initialMessage?: string) => void;
+  openChatbot: (initialMessage?: string, pendingQuery?: string) => void;
   closeChatbot: () => void;
   setContext: (context: ChatContext) => void;
 }
@@ -18,12 +19,14 @@ interface ChatbotState {
 const useChatbotStore = create<ChatbotState>((set) => ({
   isOpen: false,
   initialMessage: 'Hi! How can I assist you today?',
+  pendingQuery: null,
   context: {},
-  openChatbot: (initialMessage) => set({
+  openChatbot: (initialMessage, pendingQuery) => set({
     isOpen: true,
-    initialMessage: initialMessage || 'Hi! How can I assist you today?'
+    initialMessage: initialMessage || 'Hi! How can I assist you today?',
+    pendingQuery: pendingQuery || null
   }),
-  closeChatbot: () => set({ isOpen: false }),
+  closeChatbot: () => set({ isOpen: false, pendingQuery: null }),
   setContext: (context) => set({ context }),
 }));
 

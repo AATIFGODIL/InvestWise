@@ -55,6 +55,11 @@ export default function Chatbot() {
   const [showGlow, setShowGlow] = useState(false);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
     // Check for the glow effect flag on component mount
@@ -71,13 +76,8 @@ export default function Chatbot() {
   }, []);
 
   useEffect(() => {
-    if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({
-        top: scrollAreaRef.current.scrollHeight,
-        behavior: "smooth",
-      });
-    }
-  }, [messages]);
+    scrollToBottom();
+  }, [messages, isTyping]);
 
   const handleFileAttach = () => {
     fileInputRef.current?.click();
@@ -99,40 +99,71 @@ export default function Chatbot() {
     });
   }
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!input.trim() && !file) return;
+  const submitQuery = async (query: string, fileDataUri?: string) => {
+    if (!query.trim() && !fileDataUri) return;
 
-    const userMessage: Message = { role: "user", content: input };
-    setMessages((prev) => [...prev, userMessage, { role: "loading", content: "..." }]);
+    const newMessages: Message[] = [
+      ...messages,
+      { role: "user", content: query },
+      { role: "loading", content: "" },
+    ];
+    setMessages(newMessages);
     setInput("");
+    setIsTyping(true);
 
-    let fileDataUri: string | undefined = undefined;
-    if (file) {
-      fileDataUri = await fileToDataUri(file);
+    // Clear pending query if it was auto-submitted
+    if (pendingQuery) {
+      useChatbotStore.getState().openChatbot(initialMessage, undefined); // clear pending
     }
-    setFile(null); // Clear file after processing
 
     try {
-      const result = await handleInvestmentQuery(input, fileDataUri, useChatbotStore.getState().context);
+      const result = await handleInvestmentQuery(query, fileDataUri, useChatbotStore.getState().context);
       if (result.success) {
         setMessages((prev) => {
           const newMessages = prev.filter((msg) => msg.role !== "loading");
           return [...newMessages, { role: "ai", content: result.response }];
         });
       } else {
-        throw new Error(result.error);
+        setMessages((prev) => {
+          const newMessages = prev.filter((msg) => msg.role !== "loading");
+          return [
+            ...newMessages,
+            { role: "ai", content: result.error || "Something went wrong." },
+          ];
+        });
       }
     } catch (error) {
-      console.error(error);
-      setMessages((prev) => prev.filter((msg) => msg.role !== "loading"));
-      toast({
-        variant: "destructive",
-        title: "Oh no! Something went wrong.",
-        description: "Couldn't get a response from the AI. Please try again.",
-      });
+      setMessages((prev) => [
+        ...prev.filter((msg) => msg.role !== "loading"),
+        { role: "ai", content: "Failed to connect to the server." },
+      ]);
+    } finally {
+      setIsTyping(false);
     }
   };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    let fileDataUri: string | undefined;
+
+    if (file) {
+      fileDataUri = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+      setFile(null); // Clear file after processing
+    }
+
+    await submitQuery(input, fileDataUri);
+  };
+
+  // Auto-submit effect
+  useEffect(() => {
+    if (isOpen && pendingQuery) {
+      submitQuery(pendingQuery);
+    }
+  }, [isOpen, pendingQuery]);
 
   return (
     <>
@@ -238,7 +269,10 @@ export default function Chatbot() {
                   variant="outline"
                   size="sm"
                   className="h-7 text-xs bg-primary/5 hover:bg-primary/10 border-primary/20 whitespace-nowrap"
-                  onClick={() => setInput(`Analyze ${useChatbotStore.getState().context.symbol} based on its current price of $${useChatbotStore.getState().context.price || '...'} and recent performance.`)}
+                  onClick={() => {
+                    const query = `Analyze ${useChatbotStore.getState().context.symbol} based on its current price of $${useChatbotStore.getState().context.price || '...'} and recent performance.`;
+                    useChatbotStore.getState().openChatbot("Analyzing...", query);
+                  }}
                 >
                   Analyze {useChatbotStore.getState().context.symbol}
                 </Button>
@@ -248,7 +282,10 @@ export default function Chatbot() {
                   variant="outline"
                   size="sm"
                   className="h-7 text-xs bg-muted/50 hover:bg-muted whitespace-nowrap"
-                  onClick={() => setInput(`I'm currently on the ${useChatbotStore.getState().context.route} page. Can you explain what I can do here and how to use the features on this page?`)}
+                  onClick={() => {
+                    const query = `I'm currently on the ${useChatbotStore.getState().context.route} page. Can you explain what I can do here and how to use the features on this page?`;
+                    useChatbotStore.getState().openChatbot("Explaining page...", query);
+                  }}
                 >
                   Explain this page
                 </Button>

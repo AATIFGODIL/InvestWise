@@ -397,7 +397,13 @@ export default function TradeClient() {
                                         variant="outline"
                                         size="sm"
                                         className="h-8 gap-2 bg-primary/10 hover:bg-primary/20 border-primary/20"
-                                        onClick={() => useChatbotStore.getState().openChatbot(`Analyze ${searchedSymbol} based on its current price${price ? ` of $${price}` : ''} and recent performance.`)}
+                                        onClick={() => {
+                                            const query = `Analyze ${searchedSymbol} based on its current price${price ? ` of $${price}` : ''} and recent performance.`;
+                                            useChatbotStore.getState().openChatbot(
+                                                "Analyzing stock data...", // Initial description
+                                                query // Pending query to auto-send
+                                            );
+                                        }}
                                     >
                                         <BrainCircuit className="h-4 w-4 text-primary" />
                                         <span className="text-primary hidden sm:inline">Ask AI</span>
