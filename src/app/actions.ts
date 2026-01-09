@@ -50,12 +50,13 @@ export async function handleInvestmentQuery(query: string, fileDataUri?: string,
   try {
     const result = await investmentChatbot({ query, fileDataUri, context });
     return { success: true, response: result.response };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error calling investment chatbot flow:", error);
+    const debugInfo = `[Debug: GOOGLE=${process.env.GOOGLE_API_KEY ? 'Y' : 'N'}, GEMINI=${process.env.GEMINI_API_KEY ? 'Y' : 'N'}] Error: ${error?.message || 'Unknown'}`;
     return {
       success: false,
       response: "",
-      error: "I'm sorry, but I encountered an unexpected issue. Please try asking again later.",
+      error: `I'm sorry, but I encountered an unexpected issue. ${debugInfo}`,
     };
   }
 }
