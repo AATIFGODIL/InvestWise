@@ -64,8 +64,8 @@ export default function FavoriteItem({ favorite, onSelect, onRemove, variants, i
         ? 'https://cdn.brandfetch.io/idJGnLFA9x/theme/light/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1745979241933'
         : 'https://cdn.brandfetch.io/idJGnLFA9x/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1745979241741';
 
-    const height = isMobile ? '2.5rem' : '3rem'; // 40px vs 48px
-    const width = isPill ? (isMobile ? '120px' : '140px') : height;
+    const height = isMobile ? '1.5rem' : '3rem'; // 24px vs 48px - 50% reduction for mobile
+    const width = isPill ? (isMobile ? '75px' : '140px') : height;
 
     return (
         <Reorder.Item

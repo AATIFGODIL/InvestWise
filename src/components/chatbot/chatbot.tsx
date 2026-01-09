@@ -240,8 +240,8 @@ User Context:
             exit={{ x: -100, opacity: 0 }}
             transition={{ duration: 0.8, ease: "easeInOut" }}
             className={cn(
-              "fixed left-0 right-0 mx-auto w-[90%] max-w-md z-40",
-              isMobileCompact ? "bottom-14" : "bottom-20"
+              "fixed left-0 right-0 mx-auto z-40",
+              isMobileCompact ? "bottom-14 w-[60%] max-w-[220px]" : "bottom-20 w-[90%] max-w-md"
             )}
           >
             <Button
