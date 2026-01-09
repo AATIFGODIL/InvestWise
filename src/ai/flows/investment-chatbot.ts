@@ -41,7 +41,7 @@ export async function investmentChatbot(input: InvestmentChatbotInput): Promise<
   - Active Stock: {{context.symbol}}
   {{/if}}
   {{#if context.price}}
-  - Current Price: ${{ context.price }}
+  - Current Price: ${{context.price}}
   {{/if}}
   {{/if}}
 
