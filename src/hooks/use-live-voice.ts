@@ -80,7 +80,7 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
     const playAudioChunk = useCallback(async (base64Data: string) => {
         try {
             if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
-                audioContextRef.current = new AudioContext({ sampleRate: 24000 });
+                audioContextRef.current = new AudioContext(); // Use native sample rate (e.g. 48kHz)
             }
 
             // Resume if suspended (browser requirements)
