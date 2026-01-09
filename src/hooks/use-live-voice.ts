@@ -192,6 +192,9 @@ export function useLiveVoice(options: UseLiveVoiceOptions = {}): UseLiveVoiceRet
                                     text: optionsRef.current.systemInstruction || 'You are a helpful AI assistant.'
                                 }],
                             },
+                            tools: [
+                                { google_search: {} }
+                            ],
                         },
                     };
 
