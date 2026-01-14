@@ -246,18 +246,18 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
           } else if (currentStep.textPosition === 'above-bottom-nav-center') {
             // Position text just above the bottom nav, centered
             textPos = {
-              top: window.innerHeight - 220,
+              top: window.innerHeight - 250,
               left: window.innerWidth / 2 - 200,
               width: 400,
-              height: 100,
+              height: 150,
             };
           } else if (currentStep.textPosition === 'above-bottom-nav-left') {
             // Position text just above the bottom nav, aligned left
             textPos = {
-              top: window.innerHeight - 240, // Higher up for the Explore tab
+              top: window.innerHeight - 250, // Higher up for the Explore tab
               left: 20,
               width: 350,
-              height: 100,
+              height: 150,
             };
           } else {
             // Default: over-element - text appears over the highlighted element
