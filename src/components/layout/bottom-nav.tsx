@@ -301,6 +301,8 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
 
       // Instantly lift up and change style
       setAnimationState("dragging");
+      // Dispatch custom event for tutorial to listen
+      window.dispatchEvent(new CustomEvent('bottomNavDragStart'));
       setGliderStyle(prev => ({
         ...prev,
         height: 'calc(100% + 16px)',
@@ -386,6 +388,8 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
           router.push(navItems[closestIndex].href);
         }
         setAnimationState("idle");
+        // Dispatch custom event for tutorial to listen
+        window.dispatchEvent(new CustomEvent('bottomNavDragEnd'));
       }, 350)
 
       return () => clearTimeout(navigationTimeout);
@@ -397,7 +401,7 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
 
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-2">
+    <div id="bottom-nav-tutorial" className="fixed bottom-0 left-0 right-0 z-50 p-2">
       <nav
         ref={navRef}
         className={cn(

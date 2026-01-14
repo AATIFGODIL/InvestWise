@@ -15,6 +15,7 @@ interface OnboardingTutorialProps {
 
 // Define where the tooltip text should appear relative to the highlighted element
 type TextPosition = 'over-element' | 'top-center' | 'over-sibling' | 'top-of-element';
+type StepType = 'auto' | 'interactive-drag-start' | 'interactive-drag-end';
 
 interface Step {
   id: number;
@@ -24,6 +25,8 @@ interface Step {
   textPosition: TextPosition;
   // Optional: ID of the element to position text over (for 'over-sibling')
   textOverElementId?: string;
+  // Step type: auto (7s timer) or interactive (waits for user)
+  stepType?: StepType;
 }
 
 const steps: Step[] = [
@@ -78,6 +81,30 @@ const steps: Step[] = [
     highlight: 'bundles-tutorial',
     textPosition: 'over-sibling',
     textOverElementId: 'educational-content-tutorial',
+  },
+  // Phase 2: Bottom Nav Tutorial
+  {
+    id: 7,
+    title: '',
+    description: 'This is your navigation bar. Tap any icon to switch pages.',
+    highlight: 'bottom-nav-tutorial',
+    textPosition: 'top-center',
+  },
+  {
+    id: 8,
+    title: '',
+    description: 'Try it! Long press (click and hold) on the current tab to pick it up.',
+    highlight: 'bottom-nav-tutorial',
+    textPosition: 'top-center',
+    stepType: 'interactive-drag-start',
+  },
+  {
+    id: 9,
+    title: '',
+    description: 'Great! Now drag it to another page and release.',
+    highlight: 'bottom-nav-tutorial',
+    textPosition: 'top-center',
+    stepType: 'interactive-drag-end',
   },
 ];
 
@@ -257,8 +284,25 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
     };
   }, []);
 
-  // Auto-advance timer for all steps (7 seconds)
+  // Auto-advance timer for auto steps, event listeners for interactive steps
   useEffect(() => {
+    const currentStep = steps[currentStepIndex];
+    const stepType = currentStep?.stepType;
+
+    // For interactive steps, listen for events from bottom-nav
+    if (stepType === 'interactive-drag-start') {
+      const handleDragStart = () => handleNext();
+      window.addEventListener('bottomNavDragStart', handleDragStart);
+      return () => window.removeEventListener('bottomNavDragStart', handleDragStart);
+    }
+
+    if (stepType === 'interactive-drag-end') {
+      const handleDragEnd = () => handleNext();
+      window.addEventListener('bottomNavDragEnd', handleDragEnd);
+      return () => window.removeEventListener('bottomNavDragEnd', handleDragEnd);
+    }
+
+    // For auto steps (default), use the 7-second timer
     const timer = setTimeout(() => {
       handleNext();
     }, 7000);
