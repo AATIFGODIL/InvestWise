@@ -46,7 +46,7 @@ const steps: Step[] = [
     title: '',
     description: 'This area shows a summary of the top stocks you own. A full list is available on the Portfolio page.',
     highlight: 'holdings-summary-tutorial',
-    textPosition: 'top-of-element',
+    textPosition: 'top-center',
   },
   {
     id: 3,
@@ -184,7 +184,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
               top: 100,
               left: window.innerWidth / 2 - 200,
               width: 400,
-              height: 100,
+              height: 250,
             };
           } else if (currentStep.textPosition === 'top-of-element') {
             // Position text at top center of the highlighted element
@@ -334,7 +334,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
           width: `${textTooltipPosition.width}px`,
           height: `${textTooltipPosition.height}px`,
         }}
-        className="flex justify-center items-center z-[120] pointer-events-auto"
+        className="flex justify-center items-start z-[120] pointer-events-auto overflow-visible"
       >
         <div className="text-center text-white p-6 w-full">
           {isIntroStep ? (
