@@ -307,7 +307,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   if (!step || !tooltipPosition || !textTooltipPosition) return null;
 
   const isIntroStep = step.highlight === 'intro-step';
-  const descriptionLines = splitTextIntoLines(step.description, 50);
+  const descriptionLines = splitTextIntoLines(step.description, 70);
 
   return (
     <>
@@ -359,7 +359,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
               {/* Title with Swipe Reveal */}
               {step.title && (
                 <div className="flex justify-center mb-2">
-                  <div className="relative overflow-hidden w-fit inline-block">
+                  <div className="relative overflow-hidden w-fit inline-block rounded-full">
                     <motion.h3
                       className="font-bold text-3xl drop-shadow-md px-2 py-1"
                       initial={{ opacity: 0 }}
@@ -407,7 +407,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
               <div className="space-y-1">
                 {descriptionLines.map((line, index) => (
                   <div key={index} className="flex justify-center">
-                    <div className="relative overflow-hidden w-fit inline-block">
+                    <div className="relative overflow-hidden w-fit inline-block rounded-full">
                       <motion.p
                         className="text-lg drop-shadow-md px-2 py-1"
                         initial={{ opacity: 0 }}
