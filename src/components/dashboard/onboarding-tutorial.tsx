@@ -14,7 +14,7 @@ interface OnboardingTutorialProps {
 }
 
 // Define where the tooltip text should appear relative to the highlighted element
-type TextPosition = 'over-element' | 'top-center' | 'over-sibling';
+type TextPosition = 'over-element' | 'top-center' | 'over-sibling' | 'top-of-element';
 
 interface Step {
   id: number;
@@ -39,14 +39,14 @@ const steps: Step[] = [
     title: '',
     description: 'This is your main portfolio overview. Track your total value and how your investments are performing over time.',
     highlight: 'portfolio-card-tutorial',
-    textPosition: 'over-element',
+    textPosition: 'top-of-element',
   },
   {
     id: 2,
     title: '',
     description: 'This area shows a summary of the top stocks you own. A full list is available on the Portfolio page.',
     highlight: 'holdings-summary-tutorial',
-    textPosition: 'over-element',
+    textPosition: 'top-of-element',
   },
   {
     id: 3,
@@ -154,6 +154,14 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
               left: window.innerWidth / 2 - 200,
               width: 400,
               height: 100,
+            };
+          } else if (currentStep.textPosition === 'top-of-element') {
+            // Position text at top center of the highlighted element
+            textPos = {
+              top: finalRect.top + 20,
+              left: finalRect.left,
+              width: finalRect.width,
+              height: 120,
             };
           } else if (currentStep.textPosition === 'over-sibling' && currentStep.textOverElementId) {
             // Position text over a sibling element
@@ -276,7 +284,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
         }}
         className="flex justify-center items-center z-[120] pointer-events-auto"
       >
-        <div className="text-center text-white p-4 max-w-sm">
+        <div className="text-center text-white p-6">
           {isIntroStep ? (
             <>
               <div
@@ -296,15 +304,15 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
             </>
           ) : (
             <>
-              {step.title && <h3 className="font-bold text-xl drop-shadow-md">{step.title}</h3>}
-              <p className="text-sm mt-1 drop-shadow-md">{step.description}</p>
-              <div className="flex justify-between items-center mt-4">
-                <Button variant="ghost" size="sm" onClick={handleSkip} className="text-white hover:text-white hover:bg-white/10">
-                  <X className="mr-2 h-4 w-4" /> Skip
+              {step.title && <h3 className="font-bold text-3xl drop-shadow-md">{step.title}</h3>}
+              <p className="text-lg mt-2 drop-shadow-md">{step.description}</p>
+              <div className="flex justify-between items-center mt-6">
+                <Button variant="ghost" size="lg" onClick={handleSkip} className="text-white hover:text-white hover:bg-white/10">
+                  <X className="mr-2 h-5 w-5" /> Skip
                 </Button>
-                <Button variant="ghost" size="sm" onClick={handleNext} className="text-white hover:text-white hover:bg-white/10">
+                <Button variant="ghost" size="lg" onClick={handleNext} className="text-white hover:text-white hover:bg-white/10">
                   {currentStepIndex < steps.length - 1 ? 'Next' : 'Finish'}
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
             </>

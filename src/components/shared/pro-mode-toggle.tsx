@@ -1,4 +1,3 @@
-// InvestWise - A modern stock trading and investment education platform for young investors
 "use client";
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
@@ -14,7 +13,7 @@ interface ProModeToggleProps {
     showLabel?: boolean;
 }
 
-type AnimationState = "idle" | "rising" | "sliding" | "descending" | "dragging";
+type AnimationState = "idle" | "rising" | "sliding" | "descending";
 
 export const ProModeToggle: React.FC<ProModeToggleProps> = ({ className, showLabel = true }) => {
     const { isProMode, setProMode } = useProModeStore();
@@ -24,7 +23,6 @@ export const ProModeToggle: React.FC<ProModeToggleProps> = ({ className, showLab
     const containerRef = useRef<HTMLDivElement>(null);
     const gliderRef = useRef<HTMLDivElement>(null);
     const animationStateRef = useRef<AnimationState>("idle");
-    const dragStartInfo = useRef<{ x: number; left: number } | null>(null);
     const [gliderStyle, setGliderStyle] = useState<React.CSSProperties>({});
 
     // Constants for sizes
@@ -146,188 +144,6 @@ export const ProModeToggle: React.FC<ProModeToggleProps> = ({ className, showLab
         }
     };
 
-    const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-        e.preventDefault();
-        if (animationStateRef.current !== 'idle') return;
-
-        const container = containerRef.current;
-        if (!container) return;
-
-        const width = container.clientWidth;
-        const currentLeft = isProMode ? (width - THUMB_SIZE_IDLE - PADDING) : PADDING;
-
-        dragStartInfo.current = {
-            x: e.clientX,
-            left: currentLeft,
-        };
-
-        // Lift up - rise animation
-        const riseShift = (THUMB_SIZE_RISING - THUMB_SIZE_IDLE) / 2;
-        const risingLeft = currentLeft - riseShift;
-
-        animationStateRef.current = 'dragging';
-        setGliderStyle(prev => ({
-            ...prev,
-            width: `${THUMB_SIZE_RISING}px`,
-            height: `${THUMB_SIZE_RISING}px`,
-            transform: `translateX(${risingLeft}px) translateY(-50%)`,
-            backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
-            boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
-            border: '1px solid hsla(0, 0%, 100%, 0.6)',
-            backdropFilter: 'blur(16px)',
-            zIndex: 20,
-            transition: "all 140ms ease-out",
-        }));
-
-        window.addEventListener('mousemove', handleMouseMove);
-        window.addEventListener('mouseup', handleMouseUp, { once: true });
-        window.addEventListener('touchmove', handleTouchMove);
-        window.addEventListener('touchend', handleTouchEnd, { once: true });
-    };
-
-    const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-        if (animationStateRef.current !== 'idle') return;
-
-        const container = containerRef.current;
-        if (!container) return;
-
-        const touch = e.touches[0];
-        const width = container.clientWidth;
-        const currentLeft = isProMode ? (width - THUMB_SIZE_IDLE - PADDING) : PADDING;
-
-        dragStartInfo.current = {
-            x: touch.clientX,
-            left: currentLeft,
-        };
-
-        // Lift up - rise animation
-        const riseShift = (THUMB_SIZE_RISING - THUMB_SIZE_IDLE) / 2;
-        const risingLeft = currentLeft - riseShift;
-
-        animationStateRef.current = 'dragging';
-        setGliderStyle(prev => ({
-            ...prev,
-            width: `${THUMB_SIZE_RISING}px`,
-            height: `${THUMB_SIZE_RISING}px`,
-            transform: `translateX(${risingLeft}px) translateY(-50%)`,
-            backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
-            boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
-            border: '1px solid hsla(0, 0%, 100%, 0.6)',
-            backdropFilter: 'blur(16px)',
-            zIndex: 20,
-            transition: "all 140ms ease-out",
-        }));
-
-        window.addEventListener('touchmove', handleTouchMove);
-        window.addEventListener('touchend', handleTouchEnd, { once: true });
-    };
-
-    const handleMouseMove = (e: globalThis.MouseEvent) => {
-        if (animationStateRef.current !== 'dragging' || !dragStartInfo.current || !containerRef.current) return;
-
-        const container = containerRef.current;
-        const width = container.clientWidth;
-
-        const dx = e.clientX - dragStartInfo.current.x;
-        const riseShift = (THUMB_SIZE_RISING - THUMB_SIZE_IDLE) / 2;
-        let newLeft = dragStartInfo.current.left + dx - riseShift;
-
-        // Clamp to container bounds
-        const minLeft = PADDING - riseShift;
-        const maxLeft = width - THUMB_SIZE_IDLE - PADDING - riseShift;
-        newLeft = Math.max(minLeft, Math.min(maxLeft, newLeft));
-
-        setGliderStyle(prev => ({
-            ...prev,
-            transform: `translateX(${newLeft}px) translateY(-50%)`,
-            transition: "none",
-        }));
-    };
-
-    const handleTouchMove = (e: globalThis.TouchEvent) => {
-        if (animationStateRef.current !== 'dragging' || !dragStartInfo.current || !containerRef.current) return;
-
-        const touch = e.touches[0];
-        const container = containerRef.current;
-        const width = container.clientWidth;
-
-        const dx = touch.clientX - dragStartInfo.current.x;
-        const riseShift = (THUMB_SIZE_RISING - THUMB_SIZE_IDLE) / 2;
-        let newLeft = dragStartInfo.current.left + dx - riseShift;
-
-        // Clamp to container bounds
-        const minLeft = PADDING - riseShift;
-        const maxLeft = width - THUMB_SIZE_IDLE - PADDING - riseShift;
-        newLeft = Math.max(minLeft, Math.min(maxLeft, newLeft));
-
-        setGliderStyle(prev => ({
-            ...prev,
-            transform: `translateX(${newLeft}px) translateY(-50%)`,
-            transition: "none",
-        }));
-    };
-
-    const handleMouseUp = (e: globalThis.MouseEvent) => {
-        window.removeEventListener('mousemove', handleMouseMove);
-        handleRelease(e.clientX);
-    };
-
-    const handleTouchEnd = (e: globalThis.TouchEvent) => {
-        window.removeEventListener('touchmove', handleTouchMove);
-        const touch = e.changedTouches[0];
-        handleRelease(touch.clientX);
-    };
-
-    const handleRelease = (clientX: number) => {
-        if (animationStateRef.current !== 'dragging' || !dragStartInfo.current || !containerRef.current) {
-            animationStateRef.current = 'idle';
-            return;
-        }
-
-        const container = containerRef.current;
-        const width = container.clientWidth;
-        const containerRect = container.getBoundingClientRect();
-
-        const dropX = clientX - containerRect.left;
-        const centerOfTrack = width / 2;
-
-        // Determine which side we're closer to
-        const targetState = dropX > centerOfTrack; // true = Pro Mode (right side)
-
-        // Calculate end position
-        const endLeft = targetState ? (width - THUMB_SIZE_IDLE - PADDING) : PADDING;
-
-        // Descend animation
-        animationStateRef.current = 'descending';
-        setGliderStyle(prev => ({
-            ...prev,
-            width: `${THUMB_SIZE_IDLE}px`,
-            height: `${THUMB_SIZE_IDLE}px`,
-            transform: `translateX(${endLeft}px) translateY(-50%)`,
-            backgroundColor: "hsl(var(--primary))",
-            boxShadow: "0 2px 4px -1px rgb(0 0 0 / 0.1)",
-            border: '1px solid transparent',
-            backdropFilter: 'none',
-            zIndex: 10,
-            transition: "all 200ms cubic-bezier(0.22, 1, 0.36, 1)",
-        }));
-
-        setTimeout(() => {
-            animationStateRef.current = 'idle';
-            dragStartInfo.current = null;
-
-            // Only navigate if state changed
-            if (targetState !== isProMode) {
-                setProMode(targetState);
-                if (targetState) {
-                    router.push('/research');
-                } else {
-                    router.push('/goals');
-                }
-            }
-        }, 200);
-    };
-
     const handleToggleClick = () => {
         if (animationStateRef.current !== 'idle') return;
         const newState = !isProMode;
@@ -340,8 +156,6 @@ export const ProModeToggle: React.FC<ProModeToggleProps> = ({ className, showLab
             <div
                 ref={containerRef}
                 onClick={handleToggleClick}
-                onMouseDown={handleMouseDown}
-                onTouchStart={handleTouchStart}
                 className={cn(
                     "relative h-8 w-14 rounded-full cursor-pointer transition-colors",
                     isClearMode
