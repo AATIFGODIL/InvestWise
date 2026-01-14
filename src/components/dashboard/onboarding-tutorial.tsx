@@ -192,7 +192,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
               top: finalRect.top + 20,
               left: finalRect.left,
               width: finalRect.width,
-              height: 120,
+              height: 250,
             };
           } else if (currentStep.textPosition === 'over-sibling' && currentStep.textOverElementId) {
             // Position text over a sibling element
@@ -372,7 +372,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                       }
                       transition={{
                         duration: 0.01,
-                        delay: isExiting ? 0 : 0.4
+                        delay: isExiting ? 0 : 0.5
                       }}
                     >
                       {step.title}
@@ -394,8 +394,8 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                       }
                       transition={{
                         times: [0, 0.5, 1],
-                        duration: isExiting ? 0.5 : 0.6,
-                        delay: isExiting ? descriptionLines.length * 0.08 : 0,
+                        duration: isExiting ? 0.625 : 0.75,
+                        delay: isExiting ? descriptionLines.length * 0.1 : 0,
                         ease: 'easeInOut',
                       }}
                     />
@@ -420,7 +420,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                         }
                         transition={{
                           duration: 0.01,
-                          delay: isExiting ? 0 : 0.4 + ((index + 1) * 0.15)
+                          delay: isExiting ? 0 : 0.5 + ((index + 1) * 0.1875)
                         }}
                       >
                         {line}
@@ -442,10 +442,10 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                         }
                         transition={{
                           times: [0, 0.5, 1],
-                          duration: isExiting ? 0.5 : 0.6,
+                          duration: isExiting ? 0.625 : 0.75,
                           delay: isExiting
-                            ? (descriptionLines.length - 1 - index) * 0.08
-                            : (index + 1) * 0.15,
+                            ? (descriptionLines.length - 1 - index) * 0.1
+                            : (index + 1) * 0.1875,
                           ease: 'easeInOut',
                         }}
                       />
@@ -467,8 +467,8 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                         : { opacity: 0 }
                   }
                   transition={{
-                    duration: 0.3,
-                    delay: isExiting ? 0 : 0.4 + (descriptionLines.length * 0.15)
+                    duration: 0.375,
+                    delay: isExiting ? 0 : 0.5 + (descriptionLines.length * 0.1875)
                   }}
                 >
                   <Button variant="ghost" size="lg" onClick={handleSkip} className="text-white hover:text-white hover:bg-white/10">
