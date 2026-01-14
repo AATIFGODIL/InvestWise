@@ -128,50 +128,56 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
       if (element) {
         // --- Found it! ---
         const rect = element.getBoundingClientRect();
-        const highlightPos = {
-          top: rect.top,
-          left: rect.left,
-          width: rect.width,
-          height: rect.height,
-        };
-        setTooltipPosition(highlightPos);
 
-        // Calculate text position based on textPosition property
-        let textPos: TooltipPosition;
-
-        if (currentStep.textPosition === 'top-center') {
-          // Position text at top center of viewport
-          textPos = {
-            top: 100,
-            left: window.innerWidth / 2 - 200,
-            width: 400,
-            height: 100,
-          };
-        } else if (currentStep.textPosition === 'over-sibling' && currentStep.textOverElementId) {
-          // Position text over a sibling element
-          const siblingElement = document.getElementById(currentStep.textOverElementId);
-          if (siblingElement) {
-            const siblingRect = siblingElement.getBoundingClientRect();
-            textPos = {
-              top: siblingRect.top,
-              left: siblingRect.left,
-              width: siblingRect.width,
-              height: siblingRect.height,
-            };
-          } else {
-            // Fallback to over-element if sibling not found
-            textPos = highlightPos;
-          }
-        } else {
-          // Default: over-element - text appears over the highlighted element
-          textPos = highlightPos;
-        }
-
-        setTextTooltipPosition(textPos);
-
+        // First scroll the element into view
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         element.classList.add('tutorial-highlight-active');
-        setShowBlur(true);
+
+        // Wait for scroll to complete, then recalculate positions
+        setTimeout(() => {
+          const finalRect = element.getBoundingClientRect();
+          const highlightPos = {
+            top: finalRect.top,
+            left: finalRect.left,
+            width: finalRect.width,
+            height: finalRect.height,
+          };
+          setTooltipPosition(highlightPos);
+
+          // Calculate text position based on textPosition property
+          let textPos: TooltipPosition;
+
+          if (currentStep.textPosition === 'top-center') {
+            // Position text at top center of viewport
+            textPos = {
+              top: 100,
+              left: window.innerWidth / 2 - 200,
+              width: 400,
+              height: 100,
+            };
+          } else if (currentStep.textPosition === 'over-sibling' && currentStep.textOverElementId) {
+            // Position text over a sibling element
+            const siblingElement = document.getElementById(currentStep.textOverElementId);
+            if (siblingElement) {
+              const siblingRect = siblingElement.getBoundingClientRect();
+              textPos = {
+                top: siblingRect.top,
+                left: siblingRect.left,
+                width: siblingRect.width,
+                height: siblingRect.height,
+              };
+            } else {
+              // Fallback to over-element if sibling not found
+              textPos = highlightPos;
+            }
+          } else {
+            // Default: over-element - text appears over the highlighted element
+            textPos = highlightPos;
+          }
+
+          setTextTooltipPosition(textPos);
+          setShowBlur(true);
+        }, 400); // Wait for scroll animation to complete
       } else if (retriesLeft > 0) {
         // --- Not found, try again ---
         setTimeout(() => findElement(retriesLeft - 1), 50);
@@ -210,15 +216,13 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
     };
   }, []);
 
-  // Auto-advance for the intro step
+  // Auto-advance timer for all steps (7 seconds)
   useEffect(() => {
-    if (currentStepIndex === 0) {
-      const timer = setTimeout(() => {
-        handleNext();
-      }, 10000);
+    const timer = setTimeout(() => {
+      handleNext();
+    }, 7000);
 
-      return () => clearTimeout(timer);
-    }
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentStepIndex]);
 
@@ -268,7 +272,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
           top: `${textTooltipPosition.top}px`,
           left: `${textTooltipPosition.left}px`,
           width: `${textTooltipPosition.width}px`,
-          height: isIntroStep ? `${textTooltipPosition.height}px` : 'auto',
+          height: `${textTooltipPosition.height}px`,
         }}
         className="flex justify-center items-center z-[120] pointer-events-auto"
       >
