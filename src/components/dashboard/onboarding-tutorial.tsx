@@ -44,7 +44,7 @@ const steps: Step[] = [
   {
     id: 2,
     title: '',
-    description: 'This area shows a summary of the top stocks you own. A full list is available on the Portfolio page.',
+    description: 'View a summary of your top holdings. See all on the Portfolio page.',
     highlight: 'holdings-summary-tutorial',
     textPosition: 'top-center',
   },
@@ -409,7 +409,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                   <div key={index} className="flex justify-center">
                     <div className="relative overflow-hidden w-fit inline-block rounded-full">
                       <motion.p
-                        className="text-lg drop-shadow-md px-2 py-1"
+                        className="text-lg drop-shadow-md px-2 py-1 whitespace-nowrap"
                         initial={{ opacity: 0 }}
                         animate={
                           isExiting
