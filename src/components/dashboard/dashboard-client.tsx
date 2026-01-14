@@ -72,10 +72,12 @@ export default function DashboardClient() {
             const profile = localStorage.getItem('userProfile');
             setUserProfile(profile);
 
-            const hasCompletedTutorial = localStorage.getItem('hasCompletedOnboardingTutorial');
-            if (!hasCompletedTutorial) {
-                setShowTutorial(true);
-            }
+            // TESTING: Always show tutorial on reload
+            // const hasCompletedTutorial = localStorage.getItem('hasCompletedOnboardingTutorial');
+            // if (!hasCompletedTutorial) {
+            //     setShowTutorial(true);
+            // }
+            setShowTutorial(true);
         }
         fetchMarketStatus();
 
@@ -181,7 +183,7 @@ export default function DashboardClient() {
                         <CommunityLeaderboard />
                     </div>
                 </motion.div>
-                <motion.div variants={itemVariants} className="space-y-4">
+                <motion.div variants={itemVariants} className="space-y-4" id="headlines-tutorial">
                     <h3 className="text-2xl font-bold">Latest Headlines</h3>
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                         {newsLoading ? (
@@ -223,11 +225,14 @@ export default function DashboardClient() {
                     </div>
                 </motion.div>
                 <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
-                    <EducationalContent content={educationalContent} />
+                    <div id="educational-content-tutorial">
+                        <EducationalContent content={educationalContent} />
+                    </div>
                     <div id="bundles-tutorial">
                         <InvestmentBundles {...bundleProps} />
                     </div>
                 </motion.div>
+
 
             </motion.div>
         </main >
