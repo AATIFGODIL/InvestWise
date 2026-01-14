@@ -242,33 +242,20 @@
   }
 
   .tutorial-highlight-active {
+    position: relative;
     z-index: 131 !important;
-    transform: scale(1.05) translateY(-8px);
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease-in-out;
-    box-shadow:
-      0 0 30px 8px hsl(var(--primary) / 0.4),
-      0 20px 40px -10px rgba(0, 0, 0, 0.4);
-  }
-
-  /* Special handling for fixed-position bottom nav */
-  #bottom-nav-tutorial.tutorial-highlight-active {
-    transform: scale(1.02) translateY(-15px);
-    box-shadow:
-      0 0 40px 12px hsl(var(--primary) / 0.5),
-      0 30px 50px -5px rgba(0, 0, 0, 0.5);
+    transform: scale(1.03);
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    box-shadow: 0 0 25px 5px hsl(var(--primary) / 0.3);
   }
 
   /* Theme-aware glow for interactive tutorial steps */
   .tutorial-highlight-glow-light {
-    box-shadow:
-      0 0 40px 15px rgba(0, 0, 0, 0.5),
-      0 30px 50px -5px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: 0 0 30px 8px rgba(0, 0, 0, 0.4) !important;
   }
 
   .tutorial-highlight-glow-dark {
-    box-shadow:
-      0 0 40px 15px rgba(255, 255, 255, 0.6),
-      0 30px 50px -5px rgba(0, 0, 0, 0.4) !important;
+    box-shadow: 0 0 30px 8px rgba(255, 255, 255, 0.5) !important;
   }
 
   /* SVG Icon Shimmer */
