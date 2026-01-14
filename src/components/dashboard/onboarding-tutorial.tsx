@@ -376,6 +376,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   if (!step || !tooltipPosition || !textTooltipPosition) return null;
 
   const isIntroStep = step.highlight === 'intro-step';
+  const isBottomNavStep = step.highlight.includes('bottom-nav');
   const descriptionLines = splitTextIntoLines(step.description, 70);
 
   return (
@@ -383,7 +384,11 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
       {showBlur && (
         <motion.div
           className="fixed inset-0 bg-black/50 z-[100] pointer-events-auto"
-          style={{ backdropFilter: 'blur(8px)' }}
+          style={{
+            backdropFilter: 'blur(8px)',
+            // For bottom nav steps, don't cover the bottom 80px where the nav bar is
+            height: isBottomNavStep ? 'calc(100% - 80px)' : '100%',
+          }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
