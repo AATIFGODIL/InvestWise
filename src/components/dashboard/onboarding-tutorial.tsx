@@ -386,8 +386,8 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
           className="fixed inset-0 bg-black/50 z-[100] pointer-events-auto"
           style={{
             backdropFilter: 'blur(8px)',
-            // For bottom nav steps, don't cover the bottom 80px where the nav bar is
-            height: isBottomNavStep ? 'calc(100% - 80px)' : '100%',
+            // For bottom nav steps, don't cover the bottom 100px where the nav bar is
+            height: isBottomNavStep ? 'calc(100% - 100px)' : '100%',
           }}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -548,10 +548,12 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                   <Button variant="ghost" size="lg" onClick={handleSkip} className="text-white hover:text-white hover:bg-white/10">
                     <X className="mr-2 h-5 w-5" /> Skip
                   </Button>
-                  <Button variant="ghost" size="lg" onClick={handleNext} className="text-white hover:text-white hover:bg-white/10">
-                    {currentStepIndex < steps.length - 1 ? 'Next' : 'Finish'}
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
+                  {!step.stepType?.includes('interactive') && (
+                    <Button variant="ghost" size="lg" onClick={handleNext} className="text-white hover:text-white hover:bg-white/10">
+                      {currentStepIndex < steps.length - 1 ? 'Next' : 'Finish'}
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  )}
                 </motion.div>
               </div>
             </>
