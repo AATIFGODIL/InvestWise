@@ -14,7 +14,7 @@ interface OnboardingTutorialProps {
 }
 
 // Define where the tooltip text should appear relative to the highlighted element
-type TextPosition = 'over-element' | 'top-center' | 'over-sibling' | 'top-of-element';
+type TextPosition = 'over-element' | 'top-center' | 'over-sibling' | 'top-of-element' | 'above-bottom-nav-center' | 'above-bottom-nav-left';
 type StepType = 'auto' | 'interactive-drag-start' | 'interactive-drag-end';
 
 interface Step {
@@ -88,22 +88,22 @@ const steps: Step[] = [
     title: '',
     description: 'This is your navigation bar. Tap any icon to switch pages.',
     highlight: 'bottom-nav-tutorial',
-    textPosition: 'top-center',
+    textPosition: 'above-bottom-nav-center',
   },
   {
     id: 8,
     title: '',
-    description: 'Try it! Long press (click and hold) on the Explore tab to pick it up.',
+    description: 'Long press on the Explore tab to pick it up.',
     highlight: 'bottom-nav-explore-tutorial',
-    textPosition: 'top-center',
+    textPosition: 'above-bottom-nav-left',
     stepType: 'interactive-drag-start',
   },
   {
     id: 9,
     title: '',
-    description: 'Great! Now drag it to another page and release.',
+    description: 'Now drag it to another page and release.',
     highlight: 'bottom-nav-tutorial',
-    textPosition: 'top-center',
+    textPosition: 'above-bottom-nav-center',
     stepType: 'interactive-drag-end',
   },
 ];
@@ -243,6 +243,22 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
               // Fallback to over-element if sibling not found
               textPos = highlightPos;
             }
+          } else if (currentStep.textPosition === 'above-bottom-nav-center') {
+            // Position text just above the bottom nav, centered
+            textPos = {
+              top: window.innerHeight - 180,
+              left: window.innerWidth / 2 - 200,
+              width: 400,
+              height: 100,
+            };
+          } else if (currentStep.textPosition === 'above-bottom-nav-left') {
+            // Position text just above the bottom nav, aligned left
+            textPos = {
+              top: window.innerHeight - 180,
+              left: 20,
+              width: 350,
+              height: 100,
+            };
           } else {
             // Default: over-element - text appears over the highlighted element
             textPos = highlightPos;
