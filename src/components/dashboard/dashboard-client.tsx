@@ -72,12 +72,12 @@ export default function DashboardClient() {
             const profile = localStorage.getItem('userProfile');
             setUserProfile(profile);
 
-            // TESTING: Always show tutorial on reload
-            // const hasCompletedTutorial = localStorage.getItem('hasCompletedOnboardingTutorial');
-            // if (!hasCompletedTutorial) {
-            //     setShowTutorial(true);
-            // }
-            setShowTutorial(true);
+            // Check if user has seen the new tutorial (v2)
+            // This ensures new users see it, and existing users see it once (since they won't have the v2 key)
+            const hasCompletedTutorial = localStorage.getItem('hasCompletedOnboardingTutorial_v2');
+            if (!hasCompletedTutorial) {
+                setShowTutorial(true);
+            }
         }
         fetchMarketStatus();
 
@@ -97,7 +97,7 @@ export default function DashboardClient() {
 
     const handleTutorialComplete = () => {
         if (typeof window !== 'undefined') {
-            localStorage.setItem('hasCompletedOnboardingTutorial', 'true');
+            localStorage.setItem('hasCompletedOnboardingTutorial_v2', 'true');
         }
         setShowTutorial(false);
     }
