@@ -181,20 +181,47 @@ export default function ResearchClient() {
 
     // Fullscreen Toggle
     const toggleZoom = async () => {
-        if (!document.fullscreenElement) {
+        if (!isCustomZoom) {
+            // Attempt to Enter Fullscreen
+            // We use a try-catch pattern to support mobile/iOS where API might be missing or fail
+            // If API fails, we still set isCustomZoom(true) to trigger the CSS-based fullscreen mode
             try {
                 if (containerRef.current) {
-                    await containerRef.current.requestFullscreen();
-                    setIsCustomZoom(true);
+                    const el = containerRef.current as any;
+                    if (el.requestFullscreen) {
+                        await el.requestFullscreen();
+                    } else if (el.webkitRequestFullscreen) {
+                        await el.webkitRequestFullscreen();
+                    } else if (el.mozRequestFullScreen) {
+                        await el.mozRequestFullScreen();
+                    } else if (el.msRequestFullscreen) {
+                        await el.msRequestFullscreen();
+                    }
                 }
             } catch (err) {
-                console.error("Error attempting to enable fullscreen:", err);
+                console.warn("Fullscreen API failed or blocked, falling back to CSS mode:", err);
             }
+            // Always set state to true, ensuring "Fake Fullscreen" works on mobile even if API failed
+            setIsCustomZoom(true);
         } else {
-            if (document.exitFullscreen) {
-                await document.exitFullscreen();
-                setIsCustomZoom(false);
+            // Attempt to Exit Fullscreen
+            try {
+                const doc = document as any;
+                if (doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement) {
+                    if (doc.exitFullscreen) {
+                        await doc.exitFullscreen();
+                    } else if (doc.webkitExitFullscreen) {
+                        await doc.webkitExitFullscreen();
+                    } else if (doc.mozCancelFullScreen) {
+                        await doc.mozCancelFullScreen();
+                    } else if (doc.msExitFullscreen) {
+                        await doc.msExitFullscreen();
+                    }
+                }
+            } catch (err) {
+                console.warn("Exit Fullscreen API failed:", err);
             }
+            setIsCustomZoom(false);
         }
     };
 
