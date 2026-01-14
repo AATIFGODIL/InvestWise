@@ -342,6 +342,9 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
 
     if (animationStateRef.current !== "dragging" || !dragStartInfo.current) return;
 
+    // Dispatch custom event immediately on release (before snap animation)
+    window.dispatchEvent(new CustomEvent('bottomNavDragEnd'));
+
     const navEl = navRef.current;
     if (!navEl) return;
     const navRect = navEl.getBoundingClientRect();
@@ -388,8 +391,6 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
           router.push(navItems[closestIndex].href);
         }
         setAnimationState("idle");
-        // Dispatch custom event for tutorial to listen
-        window.dispatchEvent(new CustomEvent('bottomNavDragEnd'));
       }, 350)
 
       return () => clearTimeout(navigationTimeout);
@@ -434,6 +435,7 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
               key={item.label}
               href={item.href}
               ref={getRef(index)}
+              id={index === 0 ? 'bottom-nav-explore-tutorial' : undefined}
               onMouseDown={(e) => handleMouseDown(e, index)}
               onClick={(e) => e.preventDefault()} // Prevent default navigation
               className="z-10 flex-1 flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2"

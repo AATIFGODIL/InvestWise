@@ -93,8 +93,8 @@ const steps: Step[] = [
   {
     id: 8,
     title: '',
-    description: 'Try it! Long press (click and hold) on the current tab to pick it up.',
-    highlight: 'bottom-nav-tutorial',
+    description: 'Try it! Long press (click and hold) on the Explore tab to pick it up.',
+    highlight: 'bottom-nav-explore-tutorial',
     textPosition: 'top-center',
     stepType: 'interactive-drag-start',
   },
@@ -159,9 +159,11 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   const updateHighlight = useCallback(() => {
     const currentStep = steps[currentStepIndex];
 
-    // Clear any previous highlight
+    // Clear any previous highlight and glow classes
     document.querySelectorAll('.tutorial-highlight-active').forEach(el => {
       el.classList.remove('tutorial-highlight-active');
+      el.classList.remove('tutorial-highlight-glow-light');
+      el.classList.remove('tutorial-highlight-glow-dark');
     });
 
     if (currentStep.highlight === 'intro-step') {
@@ -190,6 +192,11 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
         // First scroll the element into view
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
         element.classList.add('tutorial-highlight-active');
+
+        // Add themed glow for interactive steps
+        if (currentStep.stepType === 'interactive-drag-start') {
+          element.classList.add(theme === 'dark' ? 'tutorial-highlight-glow-dark' : 'tutorial-highlight-glow-light');
+        }
 
         // Wait for scroll to complete, then recalculate positions
         setTimeout(() => {
@@ -272,6 +279,8 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
       window.removeEventListener('resize', updateHighlight);
       document.querySelectorAll('.tutorial-highlight-active').forEach(el => {
         el.classList.remove('tutorial-highlight-active');
+        el.classList.remove('tutorial-highlight-glow-light');
+        el.classList.remove('tutorial-highlight-glow-dark');
       });
     };
   }, [updateHighlight]);
