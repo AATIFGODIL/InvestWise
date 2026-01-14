@@ -250,6 +250,13 @@
     pointer-events: auto !important;
   }
 
+  /* Special handling for fixed-position bottom nav */
+  #bottom-nav-tutorial.tutorial-highlight-active,
+  .tutorial-highlight-parent-active {
+    position: fixed !important;
+    z-index: 131 !important;
+  }
+
   /* Theme-aware glow for interactive tutorial steps */
   .tutorial-highlight-glow-light {
     box-shadow: 0 0 30px 8px rgba(0, 0, 0, 0.4) !important;

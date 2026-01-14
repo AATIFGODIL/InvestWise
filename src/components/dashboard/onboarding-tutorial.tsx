@@ -246,7 +246,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
           } else if (currentStep.textPosition === 'above-bottom-nav-center') {
             // Position text just above the bottom nav, centered
             textPos = {
-              top: window.innerHeight - 180,
+              top: window.innerHeight - 220,
               left: window.innerWidth / 2 - 200,
               width: 400,
               height: 100,
@@ -254,7 +254,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
           } else if (currentStep.textPosition === 'above-bottom-nav-left') {
             // Position text just above the bottom nav, aligned left
             textPos = {
-              top: window.innerHeight - 180,
+              top: window.innerHeight - 240, // Higher up for the Explore tab
               left: 20,
               width: 350,
               height: 100,
@@ -262,6 +262,17 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
           } else {
             // Default: over-element - text appears over the highlighted element
             textPos = highlightPos;
+          }
+
+          // Special handling for bottom nav items:
+          // If we are highlighting a child of the bottom nav (like the Explore tab),
+          // we MUST also elevate the parent bottom-nav-tutorial container to z-131
+          // because it has position:fixed and z-50, creating a stacking context.
+          if (currentStep.highlight.includes('bottom-nav') && currentStep.highlight !== 'bottom-nav-tutorial') {
+            const parentNav = document.getElementById('bottom-nav-tutorial');
+            if (parentNav) {
+              parentNav.classList.add('tutorial-highlight-parent-active');
+            }
           }
 
           setTextTooltipPosition(textPos);
@@ -297,6 +308,9 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
         el.classList.remove('tutorial-highlight-active');
         el.classList.remove('tutorial-highlight-glow-light');
         el.classList.remove('tutorial-highlight-glow-dark');
+      });
+      document.querySelectorAll('.tutorial-highlight-parent-active').forEach(el => {
+        el.classList.remove('tutorial-highlight-parent-active');
       });
     };
   }, [updateHighlight]);
