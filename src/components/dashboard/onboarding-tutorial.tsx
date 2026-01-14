@@ -214,10 +214,11 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
 
           if (currentStep.textPosition === 'top-center') {
             // Position text at top center of viewport
+            const safeWidth = Math.min(window.innerWidth - 40, 600);
             textPos = {
               top: 100,
-              left: window.innerWidth / 2 - 200,
-              width: 400,
+              left: (window.innerWidth - safeWidth) / 2,
+              width: safeWidth,
               height: 250,
             };
           } else if (currentStep.textPosition === 'top-of-element') {
@@ -245,18 +246,20 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
             }
           } else if (currentStep.textPosition === 'above-bottom-nav-center') {
             // Position text just above the bottom nav, centered
+            const textWidth = Math.min(window.innerWidth - 40, 600); // Max 600px, but fit screen
             textPos = {
               top: window.innerHeight - 250,
-              left: window.innerWidth / 2 - 200,
-              width: 400,
+              left: (window.innerWidth - textWidth) / 2,
+              width: textWidth,
               height: 150,
             };
           } else if (currentStep.textPosition === 'above-bottom-nav-left') {
             // Position text just above the bottom nav, aligned left
+            const textWidth = Math.min(window.innerWidth - 40, 500);
             textPos = {
               top: window.innerHeight - 250, // Higher up for the Explore tab
               left: 20,
-              width: 350,
+              width: textWidth,
               height: 150,
             };
           } else {
@@ -422,7 +425,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
           width: `${textTooltipPosition.width}px`,
           height: `${textTooltipPosition.height}px`,
         }}
-        className="flex justify-center items-start z-[120] pointer-events-auto overflow-visible"
+        className="flex justify-center items-start z-[140] pointer-events-auto overflow-visible"
       >
         <div className="text-center text-white p-6 w-full">
           {isIntroStep ? (
