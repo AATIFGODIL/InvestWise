@@ -1,0 +1,161 @@
+// InvestWise - A modern stock trading and investment education platform for young investors
+
+export const questions = [
+  {
+    id: "q1",
+    type: "radio",
+    text: "What best describes you right now?",
+    options: [
+      { text: "A student", score: 1 },
+      { text: "Curious about investing", score: 2 },
+      { text: "Just started investing", score: 3 },
+      { text: "Investing occasionally", score: 4 },
+      { text: "Investing regularly for years", score: 5 },
+    ],
+  },
+  {
+    id: "q2",
+    type: "radio",
+    text: "Why are you using this platform?",
+    options: [
+        { text: "To learn about stocks/markets", score: 1 },
+        { text: "To try investing for the first time", score: 2 },
+        { text: "To practice trading with small amounts", score: 3 },
+        { text: "To actively manage my portfolio", score: 4 },
+        { text: "To optimize/scale my trading strategy", score: 5 },
+    ],
+  },
+  {
+    id: "q3",
+    type: "radio",
+    text: "How long have you been investing or trading?",
+    options: [
+        { text: "I haven’t started yet", score: 1 },
+        { text: "Less than 6 months", score: 2 },
+        { text: "6–24 months", score: 3 },
+        { text: "2–5 years", score: 4 },
+        { text: "Over 5 years", score: 5 },
+    ],
+  },
+  {
+    id: "q4",
+    type: "radio",
+    text: "How confident are you in understanding terms like 'P/E ratio', 'volatility', or 'dividends'?",
+    options: [
+        { text: "Never heard of them", score: 1 },
+        { text: "Heard of them but don’t fully understand", score: 2 },
+        { text: "Understand some of them", score: 3 },
+        { text: "Confidently understand all of them", score: 4 },
+        { text: "I use them regularly in decision-making", score: 5 },
+    ],
+  },
+  {
+    id: "q5",
+    type: "radio",
+    text: "Which of the following best describes your strategy?",
+    options: [
+        { text: "I don’t have a strategy yet", score: 1 },
+        { text: "I follow tips or social media trends", score: 2 },
+        { text: "I buy and hold safe stocks or ETFs", score: 3 },
+        { text: "I analyze financials before investing", score: 4 },
+        { text: "I use technical/fundamental models", score: 5 },
+    ],
+  },
+  {
+    id: "q6",
+    type: "radio",
+    text: "What amount are you comfortable investing today?",
+    options: [
+        { text: "I’m not ready to invest yet", score: 1 },
+        { text: "Less than $100", score: 2 },
+        { text: "$100 – $500", score: 3 },
+        { text: "$500 – $2,000", score: 4 },
+        { text: "Over $2,000", score: 5 },
+    ],
+  },
+  {
+    id: "q7",
+    type: "checkbox",
+    text: "What types of assets have you already invested in? (Select all that apply)",
+    options: [
+        { text: "I haven’t invested in anything", score: 1, exclusive: true },
+        { text: "Mutual funds or SIPs", score: 2 },
+        { text: "Stocks", score: 3 },
+        { text: "Crypto", score: 4 },
+        { text: "Options, futures, or other derivatives", score: 5 },
+        { text: "Bonds, REITs, or international stocks", score: 6 },
+    ],
+  },
+   {
+    id: "q8",
+    type: "radio",
+    text: "How often do you track your portfolio?",
+    options: [
+        { text: "I don’t have one", score: 1 },
+        { text: "Once a month or less", score: 2 },
+        { text: "Once a week", score: 3 },
+        { text: "Daily", score: 4 },
+        { text: "Multiple times a day", score: 5 },
+    ],
+  },
+  {
+    id: "q9",
+    type: "radio",
+    text: "How would you describe your risk tolerance?",
+    options: [
+        { text: "I want zero risk – only want to save", score: 1 },
+        { text: "I prefer low-risk, long-term returns", score: 2 },
+        { text: "I’m okay with some ups and downs", score: 3 },
+        { text: "I want high returns and accept high risk", score: 4 },
+        { text: "I take aggressive positions for quick gains", score: 5 },
+    ],
+  },
+  {
+    id: "q10",
+    type: "radio",
+    text: "Have you ever used advanced tools like stop-loss, margin trading, or technical indicators?",
+    options: [
+        { text: "Never heard of them", score: 1 },
+        { text: "Heard of them, but never used", score: 2 },
+        { text: "Tried once or twice", score: 3 },
+        { text: "Use sometimes", score: 4 },
+        { text: "Use frequently and confidently", score: 5 },
+    ],
+  },
+  {
+    id: "q11",
+    type: "radio",
+    text: "What is your primary goal?",
+    options: [
+        { text: "To learn how investing works", score: 1 },
+        { text: "To grow my savings slowly", score: 2 },
+        { text: "To build wealth over time", score: 3 },
+        { text: "To earn regular returns", score: 4 },
+        { text: "To generate short-term profits", score: 5 },
+    ],
+  },
+    {
+    id: "q12",
+    type: "radio",
+    text: "How do you usually make investment decisions?",
+    options: [
+        { text: "I haven’t made any yet", score: 1 },
+        { text: "I ask friends or family", score: 2 },
+        { text: "I follow influencers or news", score: 3 },
+        { text: "I do my own research", score: 4 },
+        { text: "I follow my own proven strategy", score: 5 },
+    ],
+  },
+   {
+    id: "q13",
+    type: "radio",
+    text: "What is your age group?",
+    options: [
+        { text: "13–18", score: 1 },
+        { text: "19–30", score: 0 }, // Age score is not used for profiling, only for student check
+        { text: "31–45", score: 0 },
+        { text: "46–60", score: 0 },
+        { text: "61+", score: 0 },
+    ],
+  },
+];

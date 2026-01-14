@@ -1,0 +1,255 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the InvestWise platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address.",
+          "format": "email"
+        },
+        "riskScore": {
+          "type": "number",
+          "description": "The user's risk score, as determined by the risk assessment quiz."
+        },
+        "role": {
+          "type": "string",
+          "description": "The user's role (e.g., user, admin)."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "email",
+        "riskScore",
+        "role"
+      ]
+    },
+    "Holding": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Holding",
+      "type": "object",
+      "description": "Represents a user's holding of a specific asset.",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Holding)"
+        },
+        "assetId": {
+          "type": "string",
+          "description": "Reference to Asset. (Relationship: Asset 1:N Holding)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of the asset held."
+        },
+        "purchasePrice": {
+          "type": "number",
+          "description": "The purchase price of the asset."
+        }
+      },
+      "required": [
+        "userId",
+        "assetId",
+        "quantity",
+        "purchasePrice"
+      ]
+    },
+    "Asset": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Asset",
+      "type": "object",
+      "description": "Represents an investment asset.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the asset entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the asset."
+        },
+        "symbol": {
+          "type": "string",
+          "description": "The symbol of the asset (e.g., AAPL)."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category of the asset (e.g., stock, bond)."
+        },
+        "riskLevel": {
+          "type": "number",
+          "description": "The risk level of the asset."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "symbol",
+        "category",
+        "riskLevel"
+      ]
+    },
+    "Transaction": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Transaction",
+      "type": "object",
+      "description": "Represents a financial transaction.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the transaction entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Transaction)"
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of transaction (e.g., deposit, withdrawal)."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of the transaction."
+        },
+        "status": {
+          "type": "string",
+          "description": "The status of the transaction (e.g., pending, completed)."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "type",
+        "amount",
+        "status"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. Path-based ownership: users can only access their own profile. Includes 'role' field for authorization.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/holdings/{holdingId}",
+        "definition": {
+          "entityName": "Holding",
+          "schema": {
+            "$ref": "#/backend/entities/Holding"
+          },
+          "description": "Stores user's holdings. Includes denormalized 'userId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "holdingId",
+              "description": "The unique identifier of the holding."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/transactions/{transactionId}",
+        "definition": {
+          "entityName": "Transaction",
+          "schema": {
+            "$ref": "#/backend/entities/Transaction"
+          },
+          "description": "Stores user's transaction history. Includes denormalized 'userId' for authorization independence.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "transactionId",
+              "description": "The unique identifier of the transaction."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/assets/{assetId}",
+        "definition": {
+          "entityName": "Asset",
+          "schema": {
+            "$ref": "#/backend/entities/Asset"
+          },
+          "description": "Stores information about investment assets. Publicly readable, admin-writable.",
+          "params": [
+            {
+              "name": "assetId",
+              "description": "The unique identifier of the asset."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/investment_bundles/{bundleId}",
+        "definition": {
+          "entityName": "Asset",
+          "schema": {
+            "$ref": "#/backend/entities/Asset"
+          },
+          "description": "Stores pre-built investment bundles. Publicly readable, admin-writable.",
+          "params": [
+            {
+              "name": "bundleId",
+              "description": "The unique identifier of the investment bundle."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores admin role assignments. Existence of document signifies admin role.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to support the InvestWise platform's core features, focusing on user onboarding, investment management, and educational resources. The structure prioritizes authorization independence by denormalizing relevant data, particularly user roles and memberships, to avoid `get()` calls in security rules. Segregation of data with different access requirements is achieved through distinct collections and subcollections, simplifying security rules and enabling secure `list` operations.\n\n**Authorization Independence:**\n\n*   User-owned data (Holdings, Transactions) is stored under the `/users/{userId}` path, ensuring that access control is based on the user's ID derived from `request.auth.uid`. This eliminates the need to fetch user data during authorization.\n\n**QAPs (Rules are not Filters):**\n\n*   The structure segregates user-specific data (Holdings, Transactions) into subcollections under each user's document. This allows secure listing of a user's own data without exposing data from other users.\n*   Administrative roles are managed through the `/roles_admin/{userId}` collection. The existence of a document in this collection grants admin privileges. This allows secure `list` operations for administrative functions without the need to read the content of the documents.\n\n**Explanation of Paths:**\n\n*   `/users/{userId}`: Stores user profiles. This collection uses path-based ownership, where each user can only access their own profile. Includes a `role` field for storing the user's role (e.g., 'user', 'admin').\n*   `/users/{userId}/holdings/{holdingId}`: Stores a user's holdings. The `userId` field within each holding document is redundant but necessary for Authorization Independence. Security rules can enforce that `request.auth.uid` matches the `userId` in the holding document.\n*   `/users/{userId}/transactions/{transactionId}`: Stores a user's transaction history. Similar to holdings, the `userId` field within each transaction document enables Authorization Independence.\n*   `/assets/{assetId}`: Stores information about investment assets. This collection is publicly readable but only writable by admins.\n*   `/investment_bundles/{bundleId}`: Stores pre-built investment bundles. This collection is publicly readable but only writable by admins.\n*   `/roles_admin/{userId}`: Stores admin role assignments. The existence of a document in this collection signifies that the user is an administrator. This approach simplifies admin role checks in security rules.\n"
+  }
+}

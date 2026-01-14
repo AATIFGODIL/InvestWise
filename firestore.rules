@@ -1,0 +1,172 @@
+# InvestWise - A modern stock trading and investment education platform for young investors
+/**
+ * @fileoverview Firestore Security Rules for InvestWise Platform
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict user-ownership model for user profiles, holdings, and transactions,
+ * while allowing public read access to assets and investment bundles. Administrative roles are
+ * managed through a dedicated collection. Authorization decisions are made independently,
+ * avoiding costly `get()` calls by denormalizing data where necessary.
+ *
+ * Data Structure:
+ * - /users/{userId}: User profiles, accessible only by the user themselves.
+ * - /users/{userId}/holdings/{holdingId}: User-specific holdings, accessible only by the user.
+ * - /users/{userId}/transactions/{transactionId}: User-specific transactions, accessible only by the user.
+ * - /assets/{assetId}: Publicly readable asset information, writable only by admins.
+ * - /investment_bundles/{bundleId}: Publicly readable investment bundles, writable only by admins.
+ * - /roles_admin/{userId}: Admin role assignments. Presence of a document indicates admin status.
+ *
+ * Key Security Decisions:
+ * - User listing is now allowed to support the community leaderboard feature.
+ * - Assets and investment bundles are publicly readable to facilitate discovery.
+ * - Admin privileges are determined by the presence of a document in the `/roles_admin/{userId}` collection.
+ * - Default security posture for ambiguous relationships is owner-only access.
+ *
+ * Denormalization for Authorization:
+ * - The `userId` is denormalized into the `Holding` and `Transaction` documents to enable independent authorization.
+ *
+ * Structural Segregation:
+ * - User-specific data (Holdings, Transactions) is stored in subcollections under each user's document to allow secure listing.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Secure user profiles. Users can only access their own profile.
+     * @path /users/{userId}
+     * @allow (create, update, get, delete) - User 'user123' can create/update/get/delete their own profile.
+     *   Request: auth.uid = 'user123', path = '/databases/(default)/documents/users/user123', data.id = 'user123'
+     * @allow (list) - Any authenticated user can list users for the leaderboard.
+     *   Request: auth.uid != null, path = '/databases/(default)/documents/users'
+     * @deny (create, update, get, delete) - User 'user456' cannot create/update/get/delete user 'user123' profile.
+     *   Request: auth.uid = 'user456', path = '/databases/(default)/documents/users/user123', data.id = 'user123'
+     * @principle Enforces document ownership for writes and restricts read access to the owner.
+     */
+    match /users/{userId} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == userId;
+      }
+
+      allow get: if isOwner();
+      allow list: if request.auth != null; // Allow listing for leaderboard if user is authenticated.
+      allow create: if isOwner() && request.resource.data.uid == userId;
+      allow update: if isOwner();
+      allow delete: if isOwner();
+    }
+
+    /**
+     * @description Secure user's holdings. Users can only access their own holdings.
+     * @path /users/{userId}/holdings/{holdingId}
+     * @allow (create, update, get, delete) - User 'user123' can create/update/get/delete their own holding.
+     *   Request: auth.uid = 'user123', path = '/databases/(default)/documents/users/user123/holdings/holding1', data.userId = 'user123'
+     * @allow (list) - User 'user123' can list their own holdings.
+     *   Request: auth.uid = 'user123', path = '/databases/(default)/documents/users/user123/holdings'
+     * @deny (create, update, get, delete) - User 'user456' cannot create/update/get/delete user 'user123' holding.
+     *   Request: auth.uid = 'user456', path = '/databases/(default)/documents/users/user123/holdings/holding1', data.userId = 'user123'
+     * @principle Enforces document ownership for writes and restricts read access to the owner.
+     */
+    match /users/{userId}/holdings/{holdingId} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      allow get: if isOwner();
+      allow list: if isOwner();
+      allow create: if isOwner() && request.resource.data.userId == userId;
+      allow update: if isOwner() && resource.data.userId == userId;
+      allow delete: if isOwner() && resource.data.userId == userId;
+    }
+
+    /**
+     * @description Secure user's transaction history. Users can only access their own transactions.
+     * @path /users/{userId}/transactions/{transactionId}
+     * @allow (create, update, get, delete) - User 'user123' can create/update/get/delete their own transaction.
+     *   Request: auth.uid = 'user123', path = '/databases/(default)/documents/users/user123/transactions/transaction1', data.userId = 'user123'
+     * @allow (list) - User 'user123' can list their own transactions.
+     *   Request: auth.uid = 'user123', path = '/databases/(default)/documents/users/user123/transactions'
+     * @deny (create, update, get, delete) - User 'user456' cannot create/update/get/delete user 'user123' transaction.
+     *   Request: auth.uid = 'user456', path = '/databases/(default)/documents/users/user123/transactions/transaction1', data.userId = 'user123'
+     * @principle Enforces document ownership for writes and restricts read access to the owner.
+     */
+    match /users/{userId}/transactions/{transactionId} {
+      function isOwner() {
+        return request.auth != null && request.auth.uid == userId;
+      }
+      allow get: if isOwner();
+      allow list: if isOwner();
+      allow create: if isOwner() && request.resource.data.userId == userId;
+      allow update: if isOwner() && resource.data.userId == userId;
+      allow delete: if isOwner() && resource.data.userId == userId;
+    }
+
+    /**
+     * @description Assets are publicly readable but only writable by admins.
+     * @path /assets/{assetId}
+     * @allow (get, list) - Any user (signed in or not) can read asset data.
+     *   Request: None (public read)
+     * @allow (create, update, delete) - Only admin users can create, update, or delete assets.
+     *   Request: auth.uid = 'admin123', path = '/databases/(default)/documents/assets/asset1'
+     * @deny (create, update, delete) - Non-admin user 'user123' cannot create, update, or delete assets.
+     *   Request: auth.uid = 'user123', path = '/databases/(default)/documents/assets/asset1'
+     * @principle Allows public read access while restricting write access to authorized roles.
+     */
+    match /assets/{assetId} {
+      allow get: if true;
+      allow list: if true;
+
+      function isAdmin() {
+        return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      }
+
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+    /**
+     * @description Investment bundles are publicly readable but only writable by admins.
+     * @path /investment_bundles/{bundleId}
+     * @allow (get, list) - Any user (signed in or not) can read investment bundle data.
+     *   Request: None (public read)
+     * @allow (create, update, delete) - Only admin users can create, update, or delete investment bundles.
+     *   Request: auth.uid = 'admin123', path = '/databases/(default)/documents/investment_bundles/bundle1'
+     * @deny (create, update, delete) - Non-admin user 'user123' cannot create, update, or delete investment bundles.
+     *   Request: auth.uid = 'user123', path = '/databases/(default)/documents/investment_bundles/bundle1'
+     * @principle Allows public read access while restricting write access to authorized roles.
+     */
+    match /investment_bundles/{bundleId} {
+      allow get: if true;
+      allow list: if true;
+
+      function isAdmin() {
+        return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      }
+
+      allow create: if isAdmin();
+      allow update: if isAdmin() && resource != null;
+      allow delete: if isAdmin() && resource != null;
+    }
+
+     /**
+      * @description Admin role assignments.  The existence of a document in this collection grants admin privileges.
+      * @path /roles_admin/{userId}
+      * @allow (create) - Any user can create their own admin role (for testing only; in production, this should be restricted).
+      *   Request: auth.uid = 'user123', path = '/databases/(default)/documents/roles_admin/user123'
+      * @allow (get, delete) - Only the user themselves can get/delete their admin role.
+      *   Request: auth.uid = 'user123', path = '/databases/(default)/documents/roles_admin/user123'
+      * @allow (list, update) - Nobody can list or update the admin roles collection.
+      *   Request: auth.uid = 'user123', path = '/databases/(default)/documents/roles_admin'
+      */
+    match /roles_admin/{userId} {
+        function isOwner() {
+            return request.auth != null && request.auth.uid == userId;
+        }
+
+        allow get: if isOwner();
+        allow list: if false;
+        allow create: if isOwner();
+        allow update: if false;
+        allow delete: if isOwner();
+    }
+  }
+}
