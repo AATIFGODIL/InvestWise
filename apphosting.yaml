@@ -1,0 +1,30 @@
+# InvestWise - A modern stock trading and investment education platform for young investors
+# Settings to manage and configure a Firebase App Hosting backend.
+# https://firebase.google.com/docs/app-hosting/configure
+
+runConfig:
+  minInstances: 1
+  maxInstances: 5
+  access: public
+env:
+  - variable: NEXT_PUBLIC_FIREBASE_CONFIG
+    value: '{"apiKey":"AIzaSyAAdBMaAXBV2PSjJr3jzw9obDJcBB3fbhc","authDomain":"investwise-f9rch.firebaseapp.com","projectId":"investwise-f9rch","storageBucket":"investwise-f9rch.firebasestorage.app","messagingSenderId":"509703968960","appId":"1:509703968960:web:4920eb3cbfa5d86094f525"}'
+  - variable: NEXT_PUBLIC_FINNHUB_API_KEY
+    value: d5cvgcpr01qvl80mofsgd5cvgcpr01qvl80moft0
+  - variable: BRAINTREE_ENVIRONMENT
+    value: Sandbox
+  - variable: PREDICTION_API_URL
+    value: https://portfolio-forecast-api-509703968960.us-central1.run.app/forecast/symbol
+  # Secrets from Cloud Secret Manager
+  - variable: GOOGLE_API_KEY
+    secret: GOOGLE_API_KEY
+  - variable: GEMINI_API_KEY
+    secret: GEMINI_API_KEY
+  - variable: FINNHUB_API_KEY
+    secret: FINNHUB_API_KEY
+  - variable: BRAINTREE_MERCHANT_ID
+    secret: BRAINTREE_MERCHANT_ID
+  - variable: BRAINTREE_PUBLIC_KEY
+    secret: BRAINTREE_PUBLIC_KEY
+  - variable: BRAINTREE_PRIVATE_KEY
+    secret: BRAINTREE_PRIVATE_KEY
