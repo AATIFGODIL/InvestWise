@@ -93,8 +93,39 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null);
   const [textTooltipPosition, setTextTooltipPosition] = useState<TooltipPosition | null>(null);
   const [showBlur, setShowBlur] = useState(false);
+  const [animateSwipe, setAnimateSwipe] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
   const { isClearMode, theme } = useThemeStore();
   const isLightClear = isClearMode && theme === 'light';
+  const isDarkClear = isClearMode && theme === 'dark';
+
+  // Determine swipe bar color based on theme
+  const getSwipeColor = () => {
+    if (isClearMode) {
+      return isLightClear
+        ? 'rgba(255, 255, 255, 0.25)'
+        : 'rgba(255, 255, 255, 0.15)';
+    }
+    return theme === 'dark' ? 'white' : 'black';
+  };
+
+  // Split description into lines for alternating swipe effect
+  const splitTextIntoLines = (text: string, maxCharsPerLine: number = 60): string[] => {
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+
+    for (const word of words) {
+      if ((currentLine + ' ' + word).trim().length <= maxCharsPerLine) {
+        currentLine = (currentLine + ' ' + word).trim();
+      } else {
+        if (currentLine) lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+    if (currentLine) lines.push(currentLine);
+    return lines;
+  };
 
 
   // Function to calculate and set the highlight position
@@ -185,6 +216,8 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
 
           setTextTooltipPosition(textPos);
           setShowBlur(true);
+          // Trigger swipe animation after positions are set
+          setTimeout(() => setAnimateSwipe(true), 100);
         }, 400); // Wait for scroll animation to complete
       } else if (retriesLeft > 0) {
         // --- Not found, try again ---
@@ -235,27 +268,46 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
   }, [currentStepIndex]);
 
   const handleNext = () => {
-    setShowBlur(false);
-    setTooltipPosition(null);
-    setTextTooltipPosition(null);
-    if (currentStepIndex < steps.length - 1) {
-      setCurrentStepIndex(currentStepIndex + 1);
-    } else {
-      onComplete();
-    }
+    if (isExiting) return; // Prevent double-clicks during exit
+
+    // Start exit animation
+    setIsExiting(true);
+    setAnimateSwipe(false);
+
+    // Wait for exit animation to complete, then transition
+    setTimeout(() => {
+      setShowBlur(false);
+      setTooltipPosition(null);
+      setTextTooltipPosition(null);
+      setIsExiting(false);
+
+      if (currentStepIndex < steps.length - 1) {
+        setCurrentStepIndex(currentStepIndex + 1);
+      } else {
+        onComplete();
+      }
+    }, 600); // Wait for exit swipe animation
   };
 
   const handleSkip = () => {
-    setShowBlur(false);
-    setTooltipPosition(null);
-    setTextTooltipPosition(null);
-    onComplete();
+    if (isExiting) return;
+    setIsExiting(true);
+    setAnimateSwipe(false);
+
+    setTimeout(() => {
+      setShowBlur(false);
+      setTooltipPosition(null);
+      setTextTooltipPosition(null);
+      setIsExiting(false);
+      onComplete();
+    }, 600);
   };
 
   const step = steps[currentStepIndex];
   if (!step || !tooltipPosition || !textTooltipPosition) return null;
 
   const isIntroStep = step.highlight === 'intro-step';
+  const descriptionLines = splitTextIntoLines(step.description, 50);
 
   return (
     <>
@@ -284,7 +336,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
         }}
         className="flex justify-center items-center z-[120] pointer-events-auto"
       >
-        <div className="text-center text-white p-6">
+        <div className="text-center text-white p-6 w-full">
           {isIntroStep ? (
             <>
               <div
@@ -304,16 +356,105 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
             </>
           ) : (
             <>
-              {step.title && <h3 className="font-bold text-3xl drop-shadow-md">{step.title}</h3>}
-              <p className="text-lg mt-2 drop-shadow-md">{step.description}</p>
-              <div className="flex justify-between items-center mt-6">
-                <Button variant="ghost" size="lg" onClick={handleSkip} className="text-white hover:text-white hover:bg-white/10">
-                  <X className="mr-2 h-5 w-5" /> Skip
-                </Button>
-                <Button variant="ghost" size="lg" onClick={handleNext} className="text-white hover:text-white hover:bg-white/10">
-                  {currentStepIndex < steps.length - 1 ? 'Next' : 'Finish'}
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
+              {/* Line-by-line Swipe Reveal for Description */}
+              <div className="space-y-1">
+                {descriptionLines.map((line, index) => (
+                  <div key={index} className="relative overflow-hidden">
+                    {/* The actual text line */}
+                    <motion.p
+                      className="text-lg drop-shadow-md"
+                      initial={{ opacity: 0 }}
+                      animate={
+                        isExiting
+                          ? { opacity: 0 }
+                          : animateSwipe
+                            ? { opacity: 1 }
+                            : { opacity: 0 }
+                      }
+                      transition={{
+                        duration: 0.01,
+                        delay: isExiting ? 0 : 0.4 + (index * 0.15)
+                      }}
+                    >
+                      {line}
+                    </motion.p>
+                    {/* The swipe bar for this line */}
+                    <motion.div
+                      className="absolute inset-0 z-20"
+                      style={{
+                        backgroundColor: getSwipeColor(),
+                        backdropFilter: isClearMode ? 'blur(12px)' : 'none',
+                        borderRadius: '0.5rem',
+                      }}
+                      initial={{ x: '-101%' }}
+                      animate={
+                        isExiting
+                          ? { x: ['101%', '0%', '-101%'] } // Reverse: come from right, exit left
+                          : animateSwipe
+                            ? { x: ['-101%', '0%', '101%'] } // Normal: come from left, exit right
+                            : { x: '-101%' }
+                      }
+                      transition={{
+                        times: [0, 0.5, 1],
+                        duration: isExiting ? 0.5 : 0.6,
+                        delay: isExiting
+                          ? (descriptionLines.length - 1 - index) * 0.08 // Reverse stagger on exit
+                          : index * 0.15, // Normal stagger on enter
+                        ease: 'easeInOut',
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Buttons with swipe reveal and exit */}
+              <div className="relative overflow-hidden mt-6">
+                <motion.div
+                  className="flex justify-between items-center"
+                  initial={{ opacity: 0 }}
+                  animate={
+                    isExiting
+                      ? { opacity: 0 }
+                      : animateSwipe
+                        ? { opacity: 1 }
+                        : { opacity: 0 }
+                  }
+                  transition={{
+                    duration: 0.01,
+                    delay: isExiting ? 0 : 0.4 + (descriptionLines.length * 0.15) + 0.3
+                  }}
+                >
+                  <Button variant="ghost" size="lg" onClick={handleSkip} className="text-white hover:text-white hover:bg-white/10">
+                    <X className="mr-2 h-5 w-5" /> Skip
+                  </Button>
+                  <Button variant="ghost" size="lg" onClick={handleNext} className="text-white hover:text-white hover:bg-white/10">
+                    {currentStepIndex < steps.length - 1 ? 'Next' : 'Finish'}
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </motion.div>
+                {/* Button swipe bar */}
+                <motion.div
+                  className="absolute inset-0 z-20"
+                  style={{
+                    backgroundColor: getSwipeColor(),
+                    backdropFilter: isClearMode ? 'blur(12px)' : 'none',
+                    borderRadius: '0.5rem',
+                  }}
+                  initial={{ x: '-101%' }}
+                  animate={
+                    isExiting
+                      ? { x: ['101%', '0%', '-101%'] }
+                      : animateSwipe
+                        ? { x: ['-101%', '0%', '101%'] }
+                        : { x: '-101%' }
+                  }
+                  transition={{
+                    times: [0, 0.5, 1],
+                    duration: isExiting ? 0.5 : 0.6,
+                    delay: isExiting ? 0 : descriptionLines.length * 0.15 + 0.2,
+                    ease: 'easeInOut',
+                  }}
+                />
               </div>
             </>
           )}
