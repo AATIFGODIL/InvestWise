@@ -359,9 +359,9 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
               {/* Title with Swipe Reveal */}
               {step.title && (
                 <div className="flex justify-center mb-2">
-                  <div className="relative overflow-hidden">
+                  <div className="relative overflow-hidden w-fit inline-block">
                     <motion.h3
-                      className="font-bold text-3xl drop-shadow-md px-1"
+                      className="font-bold text-3xl drop-shadow-md px-2 py-1"
                       initial={{ opacity: 0 }}
                       animate={
                         isExiting
@@ -382,7 +382,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                       style={{
                         backgroundColor: getSwipeColor(),
                         backdropFilter: isClearMode ? 'blur(12px)' : 'none',
-                        borderRadius: '0.5rem',
+                        borderRadius: '9999px',
                       }}
                       initial={{ x: '-101%' }}
                       animate={
@@ -407,9 +407,9 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
               <div className="space-y-1">
                 {descriptionLines.map((line, index) => (
                   <div key={index} className="flex justify-center">
-                    <div className="relative overflow-hidden">
+                    <div className="relative overflow-hidden w-fit inline-block">
                       <motion.p
-                        className="text-lg drop-shadow-md px-1"
+                        className="text-lg drop-shadow-md px-2 py-1"
                         initial={{ opacity: 0 }}
                         animate={
                           isExiting
@@ -430,7 +430,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                         style={{
                           backgroundColor: getSwipeColor(),
                           backdropFilter: isClearMode ? 'blur(12px)' : 'none',
-                          borderRadius: '0.5rem',
+                          borderRadius: '9999px',
                         }}
                         initial={{ x: '-101%' }}
                         animate={
@@ -454,8 +454,8 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                 ))}
               </div>
 
-              {/* Buttons with swipe reveal and exit */}
-              <div className="relative overflow-hidden mt-6">
+              {/* Buttons with fade reveal */}
+              <div className="mt-6">
                 <motion.div
                   className="flex justify-between items-center"
                   initial={{ opacity: 0 }}
@@ -467,8 +467,8 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                         : { opacity: 0 }
                   }
                   transition={{
-                    duration: 0.01,
-                    delay: isExiting ? 0 : 0.4 + (descriptionLines.length * 0.15) + 0.3
+                    duration: 0.3,
+                    delay: isExiting ? 0 : 0.4 + (descriptionLines.length * 0.15)
                   }}
                 >
                   <Button variant="ghost" size="lg" onClick={handleSkip} className="text-white hover:text-white hover:bg-white/10">
@@ -479,29 +479,6 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </motion.div>
-                {/* Button swipe bar */}
-                <motion.div
-                  className="absolute inset-0 z-20"
-                  style={{
-                    backgroundColor: getSwipeColor(),
-                    backdropFilter: isClearMode ? 'blur(12px)' : 'none',
-                    borderRadius: '0.5rem',
-                  }}
-                  initial={{ x: '-101%' }}
-                  animate={
-                    isExiting
-                      ? { x: ['101%', '0%', '-101%'] }
-                      : animateSwipe
-                        ? { x: ['-101%', '0%', '101%'] }
-                        : { x: '-101%' }
-                  }
-                  transition={{
-                    times: [0, 0.5, 1],
-                    duration: isExiting ? 0.5 : 0.6,
-                    delay: isExiting ? 0 : descriptionLines.length * 0.15 + 0.2,
-                    ease: 'easeInOut',
-                  }}
-                />
               </div>
             </>
           )}
