@@ -356,13 +356,12 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
             </>
           ) : (
             <>
-              {/* Line-by-line Swipe Reveal for Description */}
-              <div className="space-y-1">
-                {descriptionLines.map((line, index) => (
-                  <div key={index} className="relative overflow-hidden">
-                    {/* The actual text line */}
-                    <motion.p
-                      className="text-lg drop-shadow-md"
+              {/* Title with Swipe Reveal */}
+              {step.title && (
+                <div className="flex justify-center mb-2">
+                  <div className="relative overflow-hidden">
+                    <motion.h3
+                      className="font-bold text-3xl drop-shadow-md px-1"
                       initial={{ opacity: 0 }}
                       animate={
                         isExiting
@@ -373,12 +372,11 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                       }
                       transition={{
                         duration: 0.01,
-                        delay: isExiting ? 0 : 0.4 + (index * 0.15)
+                        delay: isExiting ? 0 : 0.4
                       }}
                     >
-                      {line}
-                    </motion.p>
-                    {/* The swipe bar for this line */}
+                      {step.title}
+                    </motion.h3>
                     <motion.div
                       className="absolute inset-0 z-20"
                       style={{
@@ -389,20 +387,69 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                       initial={{ x: '-101%' }}
                       animate={
                         isExiting
-                          ? { x: ['101%', '0%', '-101%'] } // Reverse: come from right, exit left
+                          ? { x: ['101%', '0%', '-101%'] }
                           : animateSwipe
-                            ? { x: ['-101%', '0%', '101%'] } // Normal: come from left, exit right
+                            ? { x: ['-101%', '0%', '101%'] }
                             : { x: '-101%' }
                       }
                       transition={{
                         times: [0, 0.5, 1],
                         duration: isExiting ? 0.5 : 0.6,
-                        delay: isExiting
-                          ? (descriptionLines.length - 1 - index) * 0.08 // Reverse stagger on exit
-                          : index * 0.15, // Normal stagger on enter
+                        delay: isExiting ? descriptionLines.length * 0.08 : 0,
                         ease: 'easeInOut',
                       }}
                     />
+                  </div>
+                </div>
+              )}
+
+              {/* Line-by-line Swipe Reveal for Description */}
+              <div className="space-y-1">
+                {descriptionLines.map((line, index) => (
+                  <div key={index} className="flex justify-center">
+                    <div className="relative overflow-hidden">
+                      <motion.p
+                        className="text-lg drop-shadow-md px-1"
+                        initial={{ opacity: 0 }}
+                        animate={
+                          isExiting
+                            ? { opacity: 0 }
+                            : animateSwipe
+                              ? { opacity: 1 }
+                              : { opacity: 0 }
+                        }
+                        transition={{
+                          duration: 0.01,
+                          delay: isExiting ? 0 : 0.4 + ((index + 1) * 0.15)
+                        }}
+                      >
+                        {line}
+                      </motion.p>
+                      <motion.div
+                        className="absolute inset-0 z-20"
+                        style={{
+                          backgroundColor: getSwipeColor(),
+                          backdropFilter: isClearMode ? 'blur(12px)' : 'none',
+                          borderRadius: '0.5rem',
+                        }}
+                        initial={{ x: '-101%' }}
+                        animate={
+                          isExiting
+                            ? { x: ['101%', '0%', '-101%'] }
+                            : animateSwipe
+                              ? { x: ['-101%', '0%', '101%'] }
+                              : { x: '-101%' }
+                        }
+                        transition={{
+                          times: [0, 0.5, 1],
+                          duration: isExiting ? 0.5 : 0.6,
+                          delay: isExiting
+                            ? (descriptionLines.length - 1 - index) * 0.08
+                            : (index + 1) * 0.15,
+                          ease: 'easeInOut',
+                        }}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
