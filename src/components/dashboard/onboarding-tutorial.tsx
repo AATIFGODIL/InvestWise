@@ -427,32 +427,60 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
         }}
         className="flex justify-center items-start z-[140] pointer-events-auto overflow-visible"
       >
-        <div className="text-center text-white p-6 w-full">
-          {isIntroStep ? (
-            <>
-              <div
-                className={cn(
-                  "flex justify-center mb-4",
-                  isClearMode
-                    ? isLightClear
-                      ? "text-black/60"
-                      : "text-white/80"
-                    : "text-primary"
-                )}
-              >
-                <AppleHelloEnglishEffect speed={1.1} />
-              </div>
-              <h3 className="font-bold text-2xl drop-shadow-md">{step.title}</h3>
-              <p className="text-lg mt-1 drop-shadow-md">{step.description}</p>
-            </>
-          ) : (
-            <>
+        {isIntroStep ? (
+          <div className="text-center text-white p-6 w-full">
+            <div
+              className={cn(
+                "flex justify-center mb-4",
+                isClearMode
+                  ? isLightClear
+                    ? "text-black/60"
+                    : "text-white/80"
+                  : "text-primary"
+              )}
+            >
+              <AppleHelloEnglishEffect speed={1.1} />
+            </div>
+            <h3 className="font-bold text-2xl drop-shadow-md">{step.title}</h3>
+            <p className="text-lg mt-1 drop-shadow-md">{step.description}</p>
+          </div>
+        ) : (
+          <div className="text-white p-6 flex flex-row-reverse gap-2 items-start">
+            {/* Buttons stacked vertically to the right */}
+            <motion.div
+              className="flex flex-col gap-2 shrink-0"
+              initial={{ opacity: 0 }}
+              animate={
+                isExiting
+                  ? { opacity: 0 }
+                  : animateSwipe
+                    ? { opacity: 1 }
+                    : { opacity: 0 }
+              }
+              transition={{
+                duration: 0.375,
+                delay: isExiting ? 0 : 0.5 + (descriptionLines.length * 0.1875)
+              }}
+            >
+              {!step.stepType?.includes('interactive') && (
+                <Button variant="ghost" size="sm" onClick={handleNext} className="text-white hover:text-white hover:bg-white/10 justify-start">
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                  {currentStepIndex < steps.length - 1 ? 'Next' : 'Finish'}
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" onClick={handleSkip} className="text-white hover:text-white hover:bg-white/10 justify-start">
+                <X className="mr-2 h-4 w-4" /> Skip
+              </Button>
+            </motion.div>
+
+            {/* Text content */}
+            <div className="flex-1 text-center">
               {/* Title with Swipe Reveal */}
               {step.title && (
                 <div className="flex justify-center mb-2">
                   <div className="relative overflow-hidden w-fit inline-block rounded-full">
                     <motion.h3
-                      className="font-bold text-3xl drop-shadow-md px-2 py-1"
+                      className="font-bold text-2xl drop-shadow-md px-2 py-1"
                       initial={{ opacity: 0 }}
                       animate={
                         isExiting
@@ -500,7 +528,7 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                   <div key={index} className="flex justify-center">
                     <div className="relative overflow-hidden w-fit inline-block rounded-full">
                       <motion.p
-                        className="text-lg drop-shadow-md px-2 py-1 whitespace-nowrap"
+                        className="text-base drop-shadow-md px-2 py-1 whitespace-nowrap"
                         initial={{ opacity: 0 }}
                         animate={
                           isExiting
@@ -544,38 +572,9 @@ export default function OnboardingTutorial({ onComplete }: OnboardingTutorialPro
                   </div>
                 ))}
               </div>
-
-              {/* Buttons with fade reveal */}
-              <div className="mt-6">
-                <motion.div
-                  className="flex justify-between items-center"
-                  initial={{ opacity: 0 }}
-                  animate={
-                    isExiting
-                      ? { opacity: 0 }
-                      : animateSwipe
-                        ? { opacity: 1 }
-                        : { opacity: 0 }
-                  }
-                  transition={{
-                    duration: 0.375,
-                    delay: isExiting ? 0 : 0.5 + (descriptionLines.length * 0.1875)
-                  }}
-                >
-                  <Button variant="ghost" size="lg" onClick={handleSkip} className="text-white hover:text-white hover:bg-white/10">
-                    <X className="mr-2 h-5 w-5" /> Skip
-                  </Button>
-                  {!step.stepType?.includes('interactive') && (
-                    <Button variant="ghost" size="lg" onClick={handleNext} className="text-white hover:text-white hover:bg-white/10">
-                      {currentStepIndex < steps.length - 1 ? 'Next' : 'Finish'}
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  )}
-                </motion.div>
-              </div>
-            </>
-          )}
-        </div>
+            </div>
+          </div>
+        )}
       </motion.div>
     </>
   );

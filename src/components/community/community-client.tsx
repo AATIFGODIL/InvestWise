@@ -2,10 +2,7 @@
 "use client";
 
 import Leaderboard from "@/components/community/leaderboard";
-import TopNews from "@/components/dashboard/top-news";
 import Quests from "@/components/community/quests";
-import AskMentor from "@/components/community/ask-mentor";
-import PrivacySettings from "@/components/community/privacy-settings";
 import { useSearchParams } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CommunityTrends from "@/components/dashboard/community-trends";
@@ -14,10 +11,13 @@ import { usePrivacyStore } from "@/store/privacy-store";
 import { useThemeStore } from "@/store/theme-store";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { Card, CardHeader, CardTitle } from "../ui/card";
-import { Newspaper } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import dynamic from 'next/dynamic';
 import { Skeleton } from "../ui/skeleton";
+import { Button } from "../ui/button";
+import { useState, useEffect } from "react";
+import { fetchTopFinancialNewsAction } from "@/app/actions";
+import { type NewsArticle } from "@/lib/gnews";
 
 const YouTubePlayer = dynamic(() => import('../shared/youtube-player'), {
   ssr: false,
@@ -71,10 +71,29 @@ export default function CommunityClient() {
   const { isClearMode, theme } = useThemeStore();
   const isLightClear = isClearMode && theme === 'light';
 
+  // News State
+  const [news, setNews] = useState<NewsArticle[]>([]);
+  const [newsLoading, setNewsLoading] = useState(true);
+  const [newsExpanded, setNewsExpanded] = useState(false);
+
+  useEffect(() => {
+    async function getNews() {
+      try {
+        const data = await fetchTopFinancialNewsAction(12);
+        setNews(data);
+      } catch (e) {
+        console.error("Failed to fetch news:", e);
+      } finally {
+        setNewsLoading(false);
+      }
+    }
+    getNews();
+  }, []);
+
   return (
     <main>
       <motion.div
-        className="p-4 space-y-6 pb-24"
+        className="p-4 space-y-6 pb-40"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -104,7 +123,24 @@ export default function CommunityClient() {
             <TabsContent value="feed" className="mt-6 space-y-6">
               <Leaderboard />
 
-              {showQuests && <Quests />}
+              {/* Side-by-side: Quests (half-width) and Videos */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+                {showQuests && (
+                  <div className="flex flex-col">
+                    <div className="flex-1 max-h-[450px] overflow-y-auto p-[1px]">
+                      <Quests />
+                    </div>
+                  </div>
+                )}
+                <div className="flex flex-col space-y-4">
+                  <h2 className="text-xl font-bold">Learn from the Experts</h2>
+                  <div className="grid grid-cols-2 gap-4 flex-1">
+                    {videos.map((video) => (
+                      <YouTubePlayer key={video.title} videoTitle={video.title} {...video} />
+                    ))}
+                  </div>
+                </div>
+              </div>
             </TabsContent>
             <TabsContent value="trends" className="mt-6">
               <CommunityTrends showViewAllButton={false} />
@@ -112,18 +148,60 @@ export default function CommunityClient() {
           </Tabs>
         </motion.div>
 
+        {/* News Section - Research Style */}
         <motion.div variants={itemVariants} className="space-y-4 pt-4">
-          <h2 className="text-xl font-bold">Learn from the Experts</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {videos.map((video) => (
-              <YouTubePlayer key={video.title} videoTitle={video.title} {...video} />
-            ))}
+          <div className="flex justify-between items-center">
+            <h3 className={cn("text-lg font-semibold", isClearMode ? "text-primary-foreground" : "text-foreground")}>Latest Headlines</h3>
+            <Button variant="ghost" size="sm" onClick={() => setNewsExpanded(!newsExpanded)} className={cn("hover:text-primary", isClearMode ? "text-white/70" : "text-muted-foreground")}>
+              {newsExpanded ? <ChevronUp className="h-4 w-4 mr-1" /> : <ChevronDown className="h-4 w-4 mr-1" />}
+              {newsExpanded ? "Show Less" : "Reveal All"}
+            </Button>
           </div>
-        </motion.div>
-        <motion.div variants={itemVariants}>
-          <div className="pt-4 pb-6">
-            <TopNews limit={8} />
-          </div>
+
+          {newsLoading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : newsExpanded ? (
+            // Expanded: 2 rows of 5 items (10 total)
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                {news.slice(0, 5).map((article, i) => (
+                  <a key={i} href={article.url} target="_blank" rel="noreferrer" className={cn("group relative block overflow-hidden rounded-lg transition-colors border aspect-[4/3]", isClearMode ? "bg-white/10 border-white/10 hover:bg-white/20" : "bg-card border-border hover:bg-accent")}>
+                    {article.image && <img src={article.image} alt="news" className="absolute inset-0 h-full w-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />}
+                    <div className="absolute inset-0 p-4 flex flex-col justify-end bg-gradient-to-t from-black/90 to-transparent">
+                      <h4 className="text-sm font-medium text-white line-clamp-2 leading-tight">{article.title}</h4>
+                      <span className="text-[10px] text-zinc-400 mt-1">{article.source.name}</span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                {news.slice(5, 10).map((article, i) => (
+                  <a key={i} href={article.url} target="_blank" rel="noreferrer" className={cn("group relative block overflow-hidden rounded-lg transition-colors border aspect-[4/3]", isClearMode ? "bg-white/10 border-white/10 hover:bg-white/20" : "bg-card border-border hover:bg-accent")}>
+                    {article.image && <img src={article.image} alt="news" className="absolute inset-0 h-full w-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />}
+                    <div className="absolute inset-0 p-4 flex flex-col justify-end bg-gradient-to-t from-black/90 to-transparent">
+                      <h4 className="text-sm font-medium text-white line-clamp-2 leading-tight">{article.title}</h4>
+                      <span className="text-[10px] text-zinc-400 mt-1">{article.source.name}</span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : (
+            // Collapsed: 2 items in compact form
+            <div className="space-y-3">
+              {news.slice(0, 2).map((article, i) => (
+                <a key={i} href={article.url} target="_blank" rel="noreferrer" className={cn("group flex items-center p-4 gap-4 overflow-hidden rounded-lg transition-colors border", isClearMode ? "bg-white/10 border-white/10 hover:bg-white/20" : "bg-card border-border hover:bg-accent")}>
+                  {article.image && <img src={article.image} alt="news" className="h-16 w-24 object-cover rounded flex-shrink-0" />}
+                  <div className="flex-1 min-w-0">
+                    <h4 className={cn("font-medium group-hover:text-primary transition-colors line-clamp-1", isClearMode ? "text-white" : "text-foreground")}>{article.title}</h4>
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{article.description}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
         </motion.div>
 
       </motion.div>

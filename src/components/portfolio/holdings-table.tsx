@@ -127,7 +127,7 @@ export default function HoldingsTable() {
                             </TableBody>
                         </Table>
                     </div>
-                    <div className="p-4 mt-4">
+                    <div className="p-4 mt-4" id="trade-history-container-tutorial">
                         <TradeHistory />
                     </div>
                 </CardContent>

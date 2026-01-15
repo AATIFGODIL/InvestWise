@@ -9,11 +9,11 @@ const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, style, ...props }, ref) => {
-    const { isClearMode, theme } = useThemeStore();
-    
-    const isLightClear = isClearMode && theme === 'light';
+  const { isClearMode, theme } = useThemeStore();
 
-    {/* 
+  const isLightClear = isClearMode && theme === 'light';
+
+  {/* 
       HOW TO USE THE GLASS / CLEAR MODE EFFECT:
       
       To apply this effect to any component, you need two things:
@@ -30,28 +30,28 @@ const Card = React.forwardRef<
       inline style because Tailwind CSS does not have a baked-in class for every blur value.
     */}
 
-    return (
-        <div
-            ref={ref}
-            className={cn(
-                "rounded-lg border text-card-foreground shadow-sm",
-                // --- Start of Clear Mode Logic ---
-                isClearMode
-                    ? isLightClear
-                        ? "border-0 bg-[#C8C8C8]/60 shadow-lg ring-1 ring-white/60" // Light mode liquid glass
-                        : "border-0 bg-white/10 shadow-lg ring-1 ring-white/60" // Dark mode liquid glass
-                    : "bg-card", // Standard solid card
-                // --- End of Clear Mode Logic ---
-                className
-            )}
-            // COPY-THIS: For the glass look (backdrop filter)
-            style={{
-                backdropFilter: isClearMode ? "blur(16px)" : "none",
-                ...style,
-            }}
-            {...props}
-        />
-    )
+  return (
+    <div
+      ref={ref}
+      className={cn(
+        "rounded-lg border text-card-foreground shadow-sm",
+        // --- Start of Clear Mode Logic ---
+        isClearMode
+          ? isLightClear
+            ? "border-0 bg-[#C8C8C8]/60 shadow-lg ring-1 ring-white/60" // Light mode liquid glass
+            : "border-0 bg-white/10 shadow-lg ring-1 ring-white/60" // Dark mode liquid glass
+          : "bg-card", // Standard solid card
+        // --- End of Clear Mode Logic ---
+        className
+      )}
+      // COPY-THIS: For the glass look (backdrop filter)
+      style={{
+        backdropFilter: isClearMode ? "blur(16px)" : "none",
+        ...style,
+      }}
+      {...props}
+    />
+  )
 })
 Card.displayName = "Card"
 

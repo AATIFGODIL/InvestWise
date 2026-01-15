@@ -251,9 +251,14 @@
   }
 
   /* Special handling for fixed-position bottom nav */
-  #bottom-nav-tutorial.tutorial-highlight-active,
-  .tutorial-highlight-parent-active {
+  #bottom-nav-tutorial.tutorial-highlight-active {
     position: fixed !important;
+    z-index: 131 !important;
+  }
+
+  /* Elevate parent containers that need to escape stacking context */
+  .tutorial-highlight-parent-active {
+    position: relative !important;
     z-index: 131 !important;
   }
 
@@ -264,6 +269,26 @@
 
   .tutorial-highlight-glow-dark {
     box-shadow: 0 0 30px 8px rgba(255, 255, 255, 0.5) !important;
+  }
+
+  /* Shimmer glow animation for close buttons during tutorial */
+  .tutorial-shimmer-glow {
+    animation: tutorial-shimmer 1.5s ease-in-out infinite !important;
+    border-radius: 4px !important;
+  }
+
+  @keyframes tutorial-shimmer {
+
+    0%,
+    100% {
+      box-shadow: 0 0 10px 3px hsl(var(--primary) / 0.5);
+      transform: scale(1);
+    }
+
+    50% {
+      box-shadow: 0 0 25px 8px hsl(var(--primary) / 0.8);
+      transform: scale(1.1);
+    }
   }
 
   /* SVG Icon Shimmer */
