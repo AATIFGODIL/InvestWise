@@ -20,7 +20,6 @@ import {
   GoogleAuthProvider,
   OAuthProvider,
   sendPasswordResetEmail,
-  sendEmailVerification,
   verifyPasswordResetCode,
   confirmPasswordReset,
   type AuthProvider as FirebaseAuthProvider,
@@ -137,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           router.push('/auth/signin');
         }
       }
-      
+
       setHydrating(false);
       hideLoading();
     });
@@ -148,10 +147,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email: string, pass: string, username: string) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-      await sendEmailVerification(userCredential.user);
       await initializeUserDocument(userCredential.user, { username });
-      toast({ title: "Account Created!", description: "A verification email has been sent to your inbox." });
-      router.push('/onboarding/quiz');
+
+      // Send 6-digit verification code
+      const response = await fetch('/api/send-verification-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, userId: userCredential.user.uid }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send verification code');
+      }
+
+      // Store userId for resend functionality
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pendingVerificationUserId', userCredential.user.uid);
+      }
+
+      toast({ title: "Account Created!", description: "A verification code has been sent to your email." });
+      router.push(`/auth/verify-code?email=${encodeURIComponent(email)}&redirect=/onboarding/quiz&new=true`);
     } catch (error: any) {
       hideLoading();
       throw error;
@@ -161,9 +176,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signIn = async (email: string, pass: string) => {
     showLoading();
     try {
-      await signInWithEmailAndPassword(auth, email, pass);
-      router.push('/auth/welcome-back');
-    } catch(error: any) {
+      const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+
+      // Send 6-digit verification code
+      const response = await fetch('/api/send-verification-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, userId: userCredential.user.uid }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send verification code');
+      }
+
+      // Store userId for resend functionality
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pendingVerificationUserId', userCredential.user.uid);
+      }
+
+      hideLoading();
+      toast({ title: "Verification Required", description: "A verification code has been sent to your email." });
+      router.push(`/auth/verify-code?email=${encodeURIComponent(email)}&redirect=/auth/welcome-back`);
+    } catch (error: any) {
       hideLoading();
       throw error;
     }
@@ -172,32 +206,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleSocialSignIn = async (provider: FirebaseAuthProvider) => {
     showLoading();
     try {
-        const result = await signInWithPopup(auth, provider);
-        const { isNew } = await initializeUserDocument(result.user);
-        
-        if (isNew) {
-            toast({ title: "Account Created!", description: "Your email is verified. Let's get you started." });
-            router.push('/onboarding/quiz');
-        } else {
-            router.push('/auth/welcome-back');
-        }
+      const result = await signInWithPopup(auth, provider);
+      const { isNew } = await initializeUserDocument(result.user);
+      const email = result.user.email;
+
+      if (!email) {
+        throw new Error('No email associated with this account');
+      }
+
+      // Send 6-digit verification code for social sign-in too
+      const response = await fetch('/api/send-verification-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, userId: result.user.uid }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send verification code');
+      }
+
+      // Store userId for resend functionality
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pendingVerificationUserId', result.user.uid);
+      }
+
+      hideLoading();
+      const redirectTo = isNew ? '/onboarding/quiz' : '/auth/welcome-back';
+      toast({ title: "Verification Required", description: "A verification code has been sent to your email." });
+      router.push(`/auth/verify-code?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirectTo)}&new=${isNew}`);
     } catch (error: any) {
-      // Don't hide loading here. onAuthStateChanged will handle it.
       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         console.log("Sign-in popup closed by user.");
-        hideLoading(); // Only hide loading if the user intentionally closes it.
+        hideLoading();
         toast({
-            title: "Sign-in Cancelled",
-            description: "The sign-in window was closed. Please try again.",
+          title: "Sign-in Cancelled",
+          description: "The sign-in window was closed. Please try again.",
         });
       } else {
         console.error("Popup sign-in failed:", error);
-          toast({
-              variant: "destructive",
-              title: "Sign In Failed",
-              description: error.message || "An unknown error occurred.",
-          });
-          hideLoading(); // Hide loading on other unexpected errors.
+        toast({
+          variant: "destructive",
+          title: "Sign In Failed",
+          description: error.message || "An unknown error occurred.",
+        });
+        hideLoading();
       }
     }
   };
@@ -221,7 +273,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const updateUserTheme = async (themeData: { theme?: Theme, isClearMode?: boolean, primaryColor?: string }) => {
     if (!user) return;
-    
+
     const updateData: { [key: string]: any } = {};
     if (themeData.theme !== undefined) updateData.theme = themeData.theme;
     if (themeData.isClearMode !== undefined) updateData.isClearMode = themeData.isClearMode;

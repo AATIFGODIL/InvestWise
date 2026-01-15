@@ -28,7 +28,7 @@ A modern, full-stack stock trading and investment education platform designed fo
 - **Community Leaderboard** - Compare performance with other users
 - **Shareable Certificates** - Generate achievement certificates
 
-### Pro Mode 🔥
+### Pro Mode 🔥 
 - **Advanced Analytics** - Enhanced charts and technical indicators
 - **Priority Features** - Early access to new capabilities
 

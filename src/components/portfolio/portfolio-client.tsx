@@ -1,6 +1,7 @@
 // InvestWise - A modern stock trading and investment education platform for young investors
 'use client';
 
+import { useState, useEffect } from 'react';
 import HoldingsTable from '@/components/portfolio/holdings-table';
 import { Clock, PlusCircle } from 'lucide-react';
 
@@ -24,6 +25,7 @@ import { useGoalStore } from "@/store/goal-store";
 import dynamic from 'next/dynamic';
 import { Skeleton } from "../ui/skeleton";
 import { ProModeToggle } from '@/components/shared/pro-mode-toggle';
+import PortfolioTutorial from './portfolio-tutorial';
 
 const YouTubePlayer = dynamic(() => import('../shared/youtube-player'), {
   ssr: false,
@@ -73,6 +75,26 @@ export default function PortfolioClient() {
   const { isMarketOpen } = useMarketStore();
   const { addTransaction } = useTransactionStore();
   const { goals, addGoal } = useGoalStore();
+  const [showTutorial, setShowTutorial] = useState(false);
+
+  // Check tutorial state when user is available (user-specific key)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && user?.uid) {
+      const tutorialKey = `hasCompletedPortfolioTutorial_${user.uid}`;
+      const hasCompletedTutorial = localStorage.getItem(tutorialKey);
+      if (!hasCompletedTutorial) {
+        setShowTutorial(true);
+      }
+    }
+  }, [user?.uid]);
+
+  const handleTutorialComplete = () => {
+    if (typeof window !== 'undefined' && user?.uid) {
+      const tutorialKey = `hasCompletedPortfolioTutorial_${user.uid}`;
+      localStorage.setItem(tutorialKey, 'true');
+    }
+    setShowTutorial(false);
+  };
 
   const handleAddFunds = async () => {
     if (!paymentMethodToken) {
@@ -121,6 +143,7 @@ export default function PortfolioClient() {
 
   return (
     <main>
+      {showTutorial && <PortfolioTutorial onComplete={handleTutorialComplete} />}
       <motion.div
         className="p-4 space-y-6 pb-40"
         variants={containerVariants}
@@ -142,10 +165,10 @@ export default function PortfolioClient() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6 mt-6">
-            <motion.div variants={itemVariants}>
+            <motion.div variants={itemVariants} id="portfolio-value-tutorial">
               <PortfolioValue />
             </motion.div>
-            <motion.div variants={itemVariants}>
+            <motion.div variants={itemVariants} id="holdings-section-tutorial">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Holdings</h2>
                 <div className="flex flex-col items-end gap-1">
@@ -158,12 +181,16 @@ export default function PortfolioClient() {
               </div>
               <HoldingsTable />
             </motion.div>
-            <motion.div variants={itemVariants}>
+            <motion.div variants={itemVariants} id="watchlist-portfolio-tutorial">
               <Watchlist />
             </motion.div>
             <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <AutoInvest />
-              <AiPrediction />
+              <div id="auto-invest-portfolio-tutorial">
+                <AutoInvest />
+              </div>
+              <div id="ai-prediction-portfolio-tutorial">
+                <AiPrediction />
+              </div>
             </motion.div>
           </TabsContent>
 

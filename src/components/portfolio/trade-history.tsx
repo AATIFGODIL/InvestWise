@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,24 +28,65 @@ import { cn } from "@/lib/utils";
 import { useThemeStore } from "@/store/theme-store";
 import { useTransactionStore } from "@/store/transaction-store";
 
-
 export default function TradeHistory() {
   const { toast } = useToast();
   const { transactions } = useTransactionStore();
   const [isOpen, setIsOpen] = useState(false);
+  const [tutorialMode, setTutorialMode] = useState(false);
+
+  // Listen for tutorial events to enable tutorial mode
+  useEffect(() => {
+    const handleTutorialDialogStep = () => {
+      setTutorialMode(true);
+    };
+    const handleTutorialEnd = () => {
+      setTutorialMode(false);
+    };
+
+    window.addEventListener('tradeHistoryOpened', handleTutorialDialogStep);
+    window.addEventListener('tradeHistoryClosed', handleTutorialEnd);
+
+    return () => {
+      window.removeEventListener('tradeHistoryOpened', handleTutorialDialogStep);
+      window.removeEventListener('tradeHistoryClosed', handleTutorialEnd);
+    };
+  }, []);
+
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    // Emit custom events for the tutorial
+    if (open) {
+      window.dispatchEvent(new CustomEvent('tradeHistoryOpened'));
+    } else {
+      window.dispatchEvent(new CustomEvent('tradeHistoryClosed'));
+      setTutorialMode(false);
+    }
+  };
+
+  const handleButtonClick = () => {
+    // Emit event for tutorial before opening
+    window.dispatchEvent(new CustomEvent('tradeHistoryButtonClicked'));
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button
+          id="trade-history-button-tutorial"
           variant="default"
           className={cn("w-full sm:w-auto ring-1 ring-white/60")}
+          onClick={handleButtonClick}
         >
           <History className="h-4 w-4 mr-2" />
           Trade History
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl">
+      <DialogContent
+        className="max-w-4xl"
+        id="trade-history-dialog-tutorial"
+        closeButtonId="trade-history-close-button-tutorial"
+        tutorialMode={tutorialMode}
+      >
         <DialogHeader>
           <DialogTitle>Trade History</DialogTitle>
           <DialogDescription>

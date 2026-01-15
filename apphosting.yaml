@@ -28,3 +28,7 @@ env:
     secret: BRAINTREE_PUBLIC_KEY
   - variable: BRAINTREE_PRIVATE_KEY
     secret: BRAINTREE_PRIVATE_KEY
+  - variable: GMAIL_USER
+    secret: GMAIL_USER
+  - variable: GMAIL_APP_PASSWORD
+    secret: GMAIL_APP_PASSWORD

@@ -22,6 +22,7 @@ import { ProModeToggle } from "@/components/shared/pro-mode-toggle";
 import { fetchTopFinancialNewsAction } from "@/app/actions";
 import { NewsArticle } from "@/lib/gnews";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
 
 // These components are loaded dynamically to improve initial page load performance.
 // They will only be loaded when they are needed, reducing the client-side JavaScript bundle size.
@@ -66,18 +67,12 @@ export default function DashboardClient() {
     const [showTutorial, setShowTutorial] = useState(false);
     const [news, setNews] = useState<NewsArticle[]>([]);
     const [newsLoading, setNewsLoading] = useState(true);
+    const { user } = useAuth();
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const profile = localStorage.getItem('userProfile');
             setUserProfile(profile);
-
-            // Check if user has seen the new tutorial (v2)
-            // This ensures new users see it, and existing users see it once (since they won't have the v2 key)
-            const hasCompletedTutorial = localStorage.getItem('hasCompletedOnboardingTutorial_v2');
-            if (!hasCompletedTutorial) {
-                setShowTutorial(true);
-            }
         }
         fetchMarketStatus();
 
@@ -95,9 +90,21 @@ export default function DashboardClient() {
         getNews();
     }, [fetchMarketStatus]);
 
+    // Check tutorial state when user is available (user-specific key)
+    useEffect(() => {
+        if (typeof window !== 'undefined' && user?.uid) {
+            const tutorialKey = `hasCompletedOnboardingTutorial_v2_${user.uid}`;
+            const hasCompletedTutorial = localStorage.getItem(tutorialKey);
+            if (!hasCompletedTutorial) {
+                setShowTutorial(true);
+            }
+        }
+    }, [user?.uid]);
+
     const handleTutorialComplete = () => {
-        if (typeof window !== 'undefined') {
-            localStorage.setItem('hasCompletedOnboardingTutorial_v2', 'true');
+        if (typeof window !== 'undefined' && user?.uid) {
+            const tutorialKey = `hasCompletedOnboardingTutorial_v2_${user.uid}`;
+            localStorage.setItem(tutorialKey, 'true');
         }
         setShowTutorial(false);
     }

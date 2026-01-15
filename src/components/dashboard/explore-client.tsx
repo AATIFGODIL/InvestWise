@@ -20,6 +20,7 @@ import OnboardingTutorial from "@/components/dashboard/onboarding-tutorial";
 import { fetchTopFinancialNewsAction } from "@/app/actions";
 import { NewsArticle } from "@/lib/gnews";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
 
 // These components are loaded dynamically to improve initial page load performance.
 // They will only be loaded when they are needed, reducing the client-side JavaScript bundle size.
@@ -67,6 +68,7 @@ export default function ExploreClient() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     // Check for the user's profile (from the onboarding quiz) in localStorage
@@ -74,11 +76,6 @@ export default function ExploreClient() {
     if (typeof window !== 'undefined') {
       const profile = localStorage.getItem('userProfile');
       setUserProfile(profile);
-
-      const hasCompletedTutorial = localStorage.getItem('hasCompletedOnboardingTutorial');
-      if (!hasCompletedTutorial) {
-        setShowTutorial(true);
-      }
     }
     fetchMarketStatus();
 
@@ -96,9 +93,21 @@ export default function ExploreClient() {
     getNews();
   }, [fetchMarketStatus]);
 
+  // Check tutorial state when user is available (user-specific key)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && user?.uid) {
+      const tutorialKey = `hasCompletedOnboardingTutorial_v2_${user.uid}`;
+      const hasCompletedTutorial = localStorage.getItem(tutorialKey);
+      if (!hasCompletedTutorial) {
+        setShowTutorial(true);
+      }
+    }
+  }, [user?.uid]);
+
   const handleTutorialComplete = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('hasCompletedOnboardingTutorial', 'true');
+    if (typeof window !== 'undefined' && user?.uid) {
+      const tutorialKey = `hasCompletedOnboardingTutorial_v2_${user.uid}`;
+      localStorage.setItem(tutorialKey, 'true');
     }
     setShowTutorial(false);
   }

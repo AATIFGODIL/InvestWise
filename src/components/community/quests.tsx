@@ -36,7 +36,7 @@ export default function Quests() {
   }, [updateQuestProgress]);
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader>
         <CardTitle className="text-2xl font-bold">Investment Quests</CardTitle>
         <CardDescription>
@@ -44,7 +44,7 @@ export default function Quests() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Accordion type="single" collapsible defaultValue="item-1">
+        <Accordion type="single" collapsible>
           <AccordionItem value="item-1">
             <AccordionTrigger>
               <div className="flex items-center gap-2">
