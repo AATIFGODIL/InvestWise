@@ -8,6 +8,7 @@
   packages = [
     pkgs.nodejs_20
     pkgs.zulu
+    pkgs.google-cloud-sdk
   ];
   # Sets environment variables in the workspace
   env = {};
