@@ -1,5 +1,6 @@
+import { getEnvVar } from "@/lib/env";
 // InvestWise - A modern stock trading and investment education platform for young investors
-const API_KEY = process.env.GNEWS_API_KEY || "87edc86f21dc0bf5eff4a0fa1ad845ff";
+const API_KEY = getEnvVar("GNEWS_API_KEY") || "87edc86f21dc0bf5eff4a0fa1ad845ff";
 const BASE_URL = "https://gnews.io/api/v4";
 
 export interface NewsArticle {

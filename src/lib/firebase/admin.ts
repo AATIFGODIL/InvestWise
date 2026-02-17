@@ -1,6 +1,7 @@
 // InvestWise - Firebase Admin SDK initialization for server-side operations
 import { initializeApp, getApps, cert, applicationDefault, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
+import { getEnvVar } from '@/lib/env';
 
 let app: App | null = null;
 let db: Firestore | null = null;
@@ -11,8 +12,9 @@ const PROJECT_ID = 'investwise-f9rch';
 function getProjectId(): string {
     // Try to parse from NEXT_PUBLIC_FIREBASE_CONFIG
     try {
-        if (process.env.NEXT_PUBLIC_FIREBASE_CONFIG) {
-            const config = JSON.parse(process.env.NEXT_PUBLIC_FIREBASE_CONFIG);
+        const firebaseConfig = getEnvVar('NEXT_PUBLIC_FIREBASE_CONFIG');
+        if (firebaseConfig) {
+            const config = JSON.parse(firebaseConfig);
             return config.projectId || PROJECT_ID;
         }
     } catch (e) {
@@ -32,13 +34,17 @@ export function getAdminApp(): App {
     const projectId = getProjectId();
 
     // Check if explicit service account credentials are available (local dev)
-    if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+    const firebaseProjectId = getEnvVar('FIREBASE_PROJECT_ID');
+    const firebaseClientEmail = getEnvVar('FIREBASE_CLIENT_EMAIL');
+    const firebasePrivateKey = getEnvVar('FIREBASE_PRIVATE_KEY');
+
+    if (firebaseProjectId && firebaseClientEmail && firebasePrivateKey) {
         console.log('Initializing Firebase Admin with explicit credentials');
         app = initializeApp({
             credential: cert({
-                projectId: process.env.FIREBASE_PROJECT_ID,
-                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-                privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+                projectId: firebaseProjectId,
+                clientEmail: firebaseClientEmail,
+                privateKey: firebasePrivateKey.replace(/\\n/g, '\n'),
             }),
         });
     } else {

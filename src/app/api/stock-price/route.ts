@@ -1,6 +1,7 @@
 // InvestWise - A modern stock trading and investment education platform for young investors
 
 import { NextResponse } from 'next/server';
+import { getEnvVar } from '@/lib/env';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -10,7 +11,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Stock symbol is required' }, { status: 400 });
   }
 
-  const apiKey = process.env.FINNHUB_API_KEY;
+  const apiKey = getEnvVar('FINNHUB_API_KEY');
 
   if (!apiKey) {
     console.error('FINNHUB_API_KEY is not set in the environment.');
@@ -21,7 +22,7 @@ export async function GET(request: Request) {
 
   try {
     const response = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`);
-    
+
     if (!response.ok) {
       // Forward the error from Finnhub API
       const errorData = await response.text();

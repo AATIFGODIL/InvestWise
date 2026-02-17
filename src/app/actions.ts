@@ -17,6 +17,7 @@ import type { CreateAvatarInput, CreateAvatarOutput } from "@/ai/types/create-av
 import { getBraintreeGateway } from "@/lib/braintree";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
+import { getEnvVar } from "@/lib/env";
 
 
 /**
@@ -53,7 +54,7 @@ export async function handleInvestmentQuery(query: string, fileDataUri?: string,
     return { success: true, response: result.response };
   } catch (error: any) {
     console.error("Error calling investment chatbot flow:", error);
-    const debugInfo = `[Debug: GOOGLE=${process.env.GOOGLE_API_KEY ? 'Y' : 'N'}, GEMINI=${process.env.GEMINI_API_KEY ? 'Y' : 'N'}] Error: ${error?.message || 'Unknown'}`;
+    const debugInfo = `[Debug: GOOGLE=${getEnvVar('GOOGLE_API_KEY') ? 'Y' : 'N'}, GEMINI=${getEnvVar('GEMINI_API_KEY') ? 'Y' : 'N'}] Error: ${error?.message || 'Unknown'}`;
     return {
       success: false,
       response: "",
@@ -81,7 +82,7 @@ export async function handleStockPrediction(symbol: string): Promise<StockPredic
     return { success: true, prediction: result };
   } catch (error: any) {
     console.error("Error calling stock prediction flow:", error);
-    const debugInfo = `[Debug: GOOGLE=${process.env.GOOGLE_API_KEY ? 'Y' : 'N'}, GEMINI=${process.env.GEMINI_API_KEY ? 'Y' : 'N'}]`;
+    const debugInfo = `[Debug: GOOGLE=${getEnvVar('GOOGLE_API_KEY') ? 'Y' : 'N'}, GEMINI=${getEnvVar('GEMINI_API_KEY') ? 'Y' : 'N'}]`;
     return {
       success: false,
       error: (error.message || "An unexpected error occurred while generating the prediction.") + " " + debugInfo,

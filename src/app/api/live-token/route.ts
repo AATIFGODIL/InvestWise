@@ -1,5 +1,6 @@
 // InvestWise - A modern stock trading and investment education platform for young investors
 import { NextResponse } from 'next/server';
+import { getEnvVar } from '@/lib/env';
 
 /**
  * API Route to generate ephemeral tokens for Gemini Live API.
@@ -8,7 +9,7 @@ import { NextResponse } from 'next/server';
  * @see https://ai.google.dev/gemini-api/docs/ephemeral-tokens
  */
 export async function POST() {
-    const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
+    const apiKey = getEnvVar('GOOGLE_API_KEY') || getEnvVar('GEMINI_API_KEY');
 
     if (!apiKey) {
         return NextResponse.json(

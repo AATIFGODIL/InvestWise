@@ -1,6 +1,7 @@
 // InvestWise - 6-digit email verification code API
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/firebase/admin';
+import { getEnvVar } from '@/lib/env';
 import nodemailer from 'nodemailer';
 
 // Lazy initialization for nodemailer transporter
@@ -9,15 +10,18 @@ let transporter: nodemailer.Transporter | null = null;
 function getTransporter(): nodemailer.Transporter {
   if (transporter) return transporter;
 
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+  const gmailUser = getEnvVar('GMAIL_USER');
+  const gmailPass = getEnvVar('GMAIL_APP_PASSWORD');
+
+  if (!gmailUser || !gmailPass) {
     throw new Error('GMAIL_USER and GMAIL_APP_PASSWORD environment variables are required');
   }
 
   transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
+      user: gmailUser,
+      pass: gmailPass,
     },
   });
 
@@ -71,7 +75,7 @@ export async function POST(request: NextRequest) {
 
     // Send email with code using Gmail SMTP
     const mailOptions = {
-      from: `InvestWise <${process.env.GMAIL_USER}>`,
+      from: `InvestWise <${getEnvVar('GMAIL_USER')}>`,
       to: email,
       subject: 'Your InvestWise Verification Code',
       html: `

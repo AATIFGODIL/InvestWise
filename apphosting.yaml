@@ -15,20 +15,6 @@ env:
     value: Sandbox
   - variable: PREDICTION_API_URL
     value: https://portfolio-forecast-api-509703968960.us-central1.run.app/forecast/symbol
-  # Secrets from Cloud Secret Manager
-  - variable: GOOGLE_API_KEY
-    secret: GOOGLE_API_KEY
-  - variable: GEMINI_API_KEY
-    secret: GEMINI_API_KEY
-  - variable: FINNHUB_API_KEY
-    secret: FINNHUB_API_KEY
-  - variable: BRAINTREE_MERCHANT_ID
-    secret: BRAINTREE_MERCHANT_ID
-  - variable: BRAINTREE_PUBLIC_KEY
-    secret: BRAINTREE_PUBLIC_KEY
-  - variable: BRAINTREE_PRIVATE_KEY
-    secret: BRAINTREE_PRIVATE_KEY
-  - variable: GMAIL_USER
-    secret: GMAIL_USER
-  - variable: GMAIL_APP_PASSWORD
-    secret: GMAIL_APP_PASSWORD
+  # Consolidated Secrets (Reduces cost to ₹0)
+  - variable: APP_SECRETS
+    secret: APP_SECRETS

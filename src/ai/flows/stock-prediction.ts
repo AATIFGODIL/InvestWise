@@ -11,6 +11,7 @@
  */
 
 import { getAi } from '@/ai/genkit';
+import { getEnvVar } from '@/lib/env';
 import { z } from 'zod';
 import { StockPredictionInputSchema, type StockPredictionInput, StockPredictionOutputSchema, type StockPredictionOutput, RawStockPredictionOutputSchema } from '@/ai/types/stock-prediction-types';
 
@@ -29,7 +30,7 @@ export async function stockPrediction(input: StockPredictionInput): Promise<Stoc
       outputSchema: RawStockPredictionOutputSchema,
     },
     async (toolInput) => {
-      const apiUrl = process.env.PREDICTION_API_URL;
+      const apiUrl = getEnvVar('PREDICTION_API_URL');
       if (!apiUrl) {
         throw new Error("PREDICTION_API_URL is not defined.");
       }
