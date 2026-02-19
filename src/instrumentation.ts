@@ -2,6 +2,6 @@
 
 // src/instrumentation.ts
 export async function register() {
-  // Environment variables are injected by Firebase App Hosting in production.
-  // Local development with API keys is not supported.
+  // Environment variables are injected by Firebase App Hosting in production via APP_SECRETS.
+  // Local development uses .env.local (ignored by git).
 }

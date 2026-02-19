@@ -1,6 +1,7 @@
 // InvestWise - A modern stock trading and investment education platform for young investors
 import { genkit, type Genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/google-genai';
+import { getEnvVar } from '@/lib/env';
 
 let _ai: Genkit | null = null;
 
@@ -11,8 +12,12 @@ let _ai: Genkit | null = null;
 export function getAi(): Genkit {
   if (!_ai) {
     _ai = genkit({
-      plugins: [googleAI()],
-      model: 'googleai/gemini-2.5-pro',
+      plugins: [
+        googleAI({
+          apiKey: getEnvVar('GOOGLE_API_KEY') || getEnvVar('GEMINI_API_KEY'),
+        }),
+      ],
+      model: 'googleai/gemini-2.0-flash',
     });
   }
   return _ai;
