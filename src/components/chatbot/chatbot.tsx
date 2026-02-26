@@ -250,13 +250,13 @@ User Context:
             <Button
               variant="outline"
               className={cn(
-                "relative z-10 rounded-full shadow-2xl shadow-black/20 ring-1 ring-white/60 hover:bg-primary/10 overflow-hidden",
+                "relative z-10 rounded-full shadow-2xl shadow-black/20 overflow-hidden",
                 isMobileCompact ? "w-full justify-between items-center p-2 h-auto" : "h-12 w-12 p-0 flex items-center justify-center",
                 isClearMode
                   ? isLightClear
-                    ? "bg-card/60 text-foreground" // Light Clear
-                    : "bg-white/10 text-white" // Dark Clear
-                  : "bg-card text-card-foreground", // Solid
+                    ? "bg-card/60 text-foreground ring-1 ring-black/10" // Light Clear
+                    : "bg-white/10 text-white ring-1 ring-white/60" // Dark Clear
+                  : "bg-card text-card-foreground ring-1 ring-black/40", // Solid
                 // COPY-THIS: To apply the glow effect
                 showGlow && "login-glow"
               )}

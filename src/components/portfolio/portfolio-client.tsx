@@ -75,6 +75,7 @@ export default function PortfolioClient() {
   const { isMarketOpen } = useMarketStore();
   const { addTransaction } = useTransactionStore();
   const { goals, addGoal } = useGoalStore();
+  const [activeTab, setActiveTab] = useState('overview');
   const [showTutorial, setShowTutorial] = useState(false);
 
   // Check tutorial state when user is available (user-specific key)
@@ -158,13 +159,34 @@ export default function PortfolioClient() {
           </Button>
         </div>
 
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="goals">Goals</TabsTrigger>
-          </TabsList>
+        <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="flex justify-center w-full mb-6">
+            <TabsList className={cn(
+              "grid grid-cols-2 h-12 p-1.5 rounded-full relative w-full max-w-[280px] shadow-lg ring-1 ring-border bg-muted/50"
+            )}>
+              {['overview', 'goals'].map((tab) => (
+                <TabsTrigger
+                  key={tab}
+                  value={tab}
+                  className={cn(
+                    "relative z-10 capitalize rounded-full transition-colors h-full data-[state=active]:bg-transparent data-[state=active]:shadow-none",
+                    activeTab === tab ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {tab}
+                  {activeTab === tab && (
+                    <motion.div
+                      layoutId="activeTabHighlight-portfolio"
+                      className="absolute inset-0 bg-primary rounded-full -z-10 shadow-md"
+                      transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
+                    />
+                  )}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
 
-          <TabsContent value="overview" className="space-y-6 mt-6">
+          <TabsContent value="overview" className="space-y-6">
             <motion.div variants={itemVariants} id="portfolio-value-tutorial">
               <PortfolioValue />
             </motion.div>

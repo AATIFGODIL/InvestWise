@@ -74,9 +74,20 @@ export const useThemeStore = create<ThemeState>((set) => ({
     // Set the color in the store for reactivity
     set({ primaryColor: color });
 
-    // Also update the CSS variable directly for immediate visual feedback
+    // Also update the CSS variables directly for immediate visual feedback
     if (typeof window !== 'undefined') {
-      document.documentElement.style.setProperty('--primary', hexToHslString(color));
+      const root = document.documentElement;
+      root.style.setProperty('--primary', hexToHslString(color));
+
+      // Determine contrast color for primary foreground using standard luminance
+      const r = parseInt(color.slice(1, 3), 16);
+      const g = parseInt(color.slice(3, 5), 16);
+      const b = parseInt(color.slice(5, 7), 16);
+      const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+      // Use threshold and colors from settings/page.tsx for consistency
+      const foregroundColor = luminance > 0.6 ? '222.2 84% 4.9%' : '210 40% 98%';
+      root.style.setProperty('--primary-foreground', foregroundColor);
     }
   },
 
@@ -88,6 +99,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
 
       // Explicitly set the primary color CSS variable back to default
       root.style.setProperty('--primary', hexToHslString(defaultPrimaryColor));
+      root.style.setProperty('--primary-foreground', '210 40% 98%');
     }
 
     set({

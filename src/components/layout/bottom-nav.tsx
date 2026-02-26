@@ -41,7 +41,7 @@ export default function BottomNav({
   const dragStartInfo = useRef<{ x: number; y: number; left: number; top: number; width: number; height: number } | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
-  const { isClearMode, theme } = useThemeStore();
+  const { isClearMode, theme, primaryColor } = useThemeStore();
   const { activeIndex: externalActiveIndex, targetPath, samePageIndex, clearActiveIndex } = useBottomNavStore();
   const { isProMode } = useProModeStore();
   const isLightClear = isClearMode && theme === "light";
@@ -206,10 +206,10 @@ export default function BottomNav({
         ...prev,
         height: `${startHeight}px`,
         transform: `translateX(${left}px) translateY(${startTop}px)`,
-        backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
+        backgroundColor: isClearMode ? (isLightClear ? "rgba(200, 200, 200, 0.8)" : "hsla(0, 0%, 100%, 0.15)") : "hsl(var(--background))",
         boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22)",
         transition: "transform 140ms ease-out, background-color 140ms ease-out, box-shadow 140ms ease-out, height 140ms ease-out, width 140ms ease-out, backdrop-filter 140ms ease-out",
-        border: '1px solid hsla(0, 0%, 100%, 0.6)',
+        border: isLightClear ? '1px solid rgba(0, 0, 0, 0.1)' : '1px solid hsla(0, 0%, 100%, 0.6)',
         width: `85%`,
         backdropFilter: 'blur(16px)',
         borderRadius: '9999px',
@@ -283,10 +283,10 @@ export default function BottomNav({
         ...prev,
         width: `${startWidth}px`,
         transform: `translateX(${startLeft}px) translateY(-50%)`,
-        backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
+        backgroundColor: isClearMode ? (isLightClear ? "rgba(200, 200, 200, 0.8)" : "hsla(0, 0%, 100%, 0.15)") : "hsl(var(--background))",
         boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
         transition: "transform 140ms ease-out, background-color 140ms ease-out, box-shadow 140ms ease-out, border 140ms ease-out, height 140ms ease-out, backdrop-filter 140ms ease-out",
-        border: '1px solid hsla(0, 0%, 100%, 0.6)',
+        border: isLightClear ? '1px solid rgba(0, 0, 0, 0.1)' : '1px solid hsla(0, 0%, 100%, 0.6)',
         height: 'calc(100% + 16px)',
         backdropFilter: 'blur(16px)',
       }));
@@ -396,10 +396,10 @@ export default function BottomNav({
           width: `85%`,
           height: `${gliderHeight}px`,
           transform: `translateX(${left}px) translateY(${startTop}px)`,
-          backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
+          backgroundColor: isClearMode ? (isLightClear ? "rgba(200, 200, 200, 0.8)" : "hsla(0, 0%, 100%, 0.15)") : "hsl(var(--background))",
           boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22)",
           transition: "width 200ms ease, background-color 200ms ease, box-shadow 200ms ease, border 200ms ease, backdrop-filter 200ms ease",
-          border: '1px solid hsla(0, 0%, 100%, 0.6)',
+          border: isLightClear ? '1px solid rgba(0, 0, 0, 0.1)' : '1px solid hsla(0, 0%, 100%, 0.6)',
           backdropFilter: 'blur(16px)',
           borderRadius: '9999px',
         }));
@@ -414,10 +414,10 @@ export default function BottomNav({
           ...prev,
           height: 'calc(100% + 16px)',
           transform: `translateX(${startLeft}px) translateY(-50%)`,
-          backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
+          backgroundColor: isClearMode ? (isLightClear ? "rgba(200, 200, 200, 0.8)" : "hsla(0, 0%, 100%, 0.15)") : "hsl(var(--background))",
           boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
           transition: "height 200ms ease, background-color 200ms ease, box-shadow 200ms ease, border 200ms ease, backdrop-filter 200ms ease",
-          border: '1px solid hsla(0, 0%, 100%, 0.6)',
+          border: isLightClear ? '1px solid rgba(0, 0, 0, 0.1)' : '1px solid hsla(0, 0%, 100%, 0.6)',
           backdropFilter: 'blur(16px)',
         }));
       }
@@ -537,11 +537,11 @@ export default function BottomNav({
       <nav
         ref={navRef}
         className={cn(
-          "relative flex flex-col items-center justify-between gap-4 rounded-full py-6 px-2 shadow-2xl shadow-black/20 ring-1 ring-white/60",
+          "relative flex flex-col items-center justify-between gap-4 rounded-full py-6 px-2 shadow-2xl shadow-black/20",
           "w-[80px]",
           isClearMode
-            ? isLightClear ? "bg-card/60" : "bg-white/10"
-            : "bg-card",
+            ? isLightClear ? "bg-card/60 ring-1 ring-black/10" : "bg-white/10 ring-1 ring-white/60"
+            : "bg-card ring-1 ring-black/40",
           showGlow && "login-glow"
         )}
         style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "blur(12px)" }}
@@ -575,7 +575,9 @@ export default function BottomNav({
                   "flex flex-col items-center transition-all duration-300",
                   isActive
                     ? "text-primary-foreground"
-                    : isLightClear ? "text-foreground" : (isClearMode ? "text-slate-100" : "text-muted-foreground")
+                    : theme === "light"
+                      ? "text-black"
+                      : (isClearMode ? "text-slate-100" : "text-muted-foreground")
                 )}
                 style={{
                   transform: itemTransforms[index] || 'translateY(0px)',
@@ -585,22 +587,25 @@ export default function BottomNav({
                 <item.icon className="h-6 w-6" />
                 <span className="text-[10px] font-medium leading-tight mt-0.5">{item.label}</span>
               </div>
-              {isHovered && !isActive && (
-                <div
-                  className="absolute left-full ml-3 px-2.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap pointer-events-none z-50"
-                  style={{
-                    backgroundColor: 'hsl(var(--popover))',
-                    color: 'hsl(var(--popover-foreground))',
-                    boxShadow: '0 4px 12px rgb(0 0 0 / 0.15)',
-                  }}
-                >
-                  {item.label}
-                </div>
-              )}
+              {
+                isHovered && !isActive && (
+                  <div
+                    className="absolute left-full ml-3 px-2.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap pointer-events-none z-50"
+                    style={{
+                      backgroundColor: 'hsl(var(--popover))',
+                      color: 'hsl(var(--popover-foreground))',
+                      boxShadow: '0 4px 12px rgb(0 0 0 / 0.15)',
+                    }}
+                  >
+                    {item.label}
+                  </div>
+                )
+              }
             </Link>
           );
-        })}
-      </nav>
+        })
+        }
+      </nav >
     );
 
     // When noFixedWrapper=true, return just the nav (for use inside a parent container)
@@ -624,11 +629,11 @@ export default function BottomNav({
       <nav
         ref={navRef}
         className={cn(
-          "relative flex items-center justify-around rounded-full p-1 px-2 shadow-2xl shadow-black/20 ring-1 ring-white/60",
+          "relative flex items-center justify-around rounded-full p-1 px-2 shadow-2xl shadow-black/20",
           isMobileCompact ? "h-10" : "h-16",
           isClearMode
-            ? isLightClear ? "bg-card/60" : "bg-white/10"
-            : "bg-card",
+            ? isLightClear ? "bg-card/60 ring-1 ring-black/10" : "bg-white/10 ring-1 ring-white/60"
+            : "bg-card ring-1 ring-black/40",
           showGlow && "login-glow"
         )}
         style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
@@ -659,7 +664,9 @@ export default function BottomNav({
                   "flex flex-col items-center transition-all duration-300",
                   isActive
                     ? "text-primary-foreground"
-                    : isLightClear ? "text-foreground" : (isClearMode ? "text-slate-100" : "text-muted-foreground")
+                    : theme === "light"
+                      ? "text-black"
+                      : (isClearMode ? "text-slate-100" : "text-muted-foreground")
                 )}
                 style={{
                   transform: itemTransforms[index] || 'translateY(0px)',

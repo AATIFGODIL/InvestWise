@@ -71,7 +71,8 @@ export default function CommunityClient() {
   const { isClearMode, theme } = useThemeStore();
   const isLightClear = isClearMode && theme === 'light';
 
-  // News State
+  // State
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [news, setNews] = useState<NewsArticle[]>([]);
   const [newsLoading, setNewsLoading] = useState(true);
   const [newsExpanded, setNewsExpanded] = useState(false);
@@ -100,27 +101,38 @@ export default function CommunityClient() {
       >
         <motion.h1 variants={itemVariants} className="text-2xl font-bold">Community</motion.h1>
         <motion.div variants={itemVariants}>
-          <Tabs defaultValue={defaultTab} className="w-full">
-            <TabsList className={cn(
-              "grid w-full grid-cols-2",
-              isClearMode
-                ? isLightClear
-                  ? "bg-card/60 ring-1 ring-white/10"
-                  : "bg-white/10 ring-1 ring-white/60"
-                : ""
-            )}>
-              <TabsTrigger value="feed" className={cn(
+          <Tabs defaultValue={defaultTab} value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <div className="flex justify-center w-full mb-6">
+              <TabsList className={cn(
+                "grid grid-cols-2 h-12 p-1.5 rounded-full relative w-full max-w-[280px] shadow-lg ring-1 ring-border",
                 isClearMode
-                  ? "data-[state=active]:bg-primary/80 data-[state=active]:text-primary-foreground"
-                  : ""
-              )}>Feed</TabsTrigger>
-              <TabsTrigger value="trends" className={cn(
-                isClearMode
-                  ? "data-[state=active]:bg-primary/80 data-[state=active]:text-primary-foreground"
-                  : ""
-              )}>Trends</TabsTrigger>
-            </TabsList>
-            <TabsContent value="feed" className="mt-6 space-y-6">
+                  ? isLightClear
+                    ? "bg-card/60 ring-1 ring-white/10"
+                    : "bg-white/10 ring-1 ring-white/60"
+                  : "bg-muted/50"
+              )}>
+                {['feed', 'trends'].map((tab) => (
+                  <TabsTrigger
+                    key={tab}
+                    value={tab}
+                    className={cn(
+                      "relative z-10 capitalize rounded-full transition-colors h-full data-[state=active]:bg-transparent data-[state=active]:shadow-none",
+                      activeTab === tab ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {tab}
+                    {activeTab === tab && (
+                      <motion.div
+                        layoutId="activeTabHighlight-community"
+                        className="absolute inset-0 bg-primary rounded-full -z-10 shadow-md"
+                        transition={{ type: "spring", bounce: 0.25, duration: 0.5 }}
+                      />
+                    )}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
+            <TabsContent value="feed" className="space-y-6">
               <Leaderboard />
 
               {/* Side-by-side: Quests (half-width) and Videos */}

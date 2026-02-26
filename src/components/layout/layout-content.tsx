@@ -30,7 +30,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
   const [isRaining, setIsRaining] = useState(false);
   const { isProMode, isNavVisible, setIsNavVisible } = useProModeStore();
   const isMobile = useIsMobile();
-  const { primaryColor, sidebarOrientation } = useThemeStore();
+  const { primaryColor, sidebarOrientation, theme } = useThemeStore();
 
   // Desktop header: scroll-based collapse + hover expand
   const [isAtTop, setIsAtTop] = useState(true); // true when scroll is at the top
@@ -341,7 +341,9 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
                   )}
                   style={{
                     background: `hsl(var(--primary))`,
-                    boxShadow: sidebarOrientation === 'right' ? '-2px 0 8px hsl(var(--primary) / 0.3)' : '2px 0 8px hsl(var(--primary) / 0.3)',
+                    boxShadow: theme === 'light'
+                      ? (sidebarOrientation === 'right' ? '-2px 0 8px rgba(0,0,0,0.4)' : '2px 0 8px rgba(0,0,0,0.4)')
+                      : (sidebarOrientation === 'right' ? '-2px 0 12px hsl(var(--primary) / 0.5)' : '2px 0 12px hsl(var(--primary) / 0.5)'),
                     borderRadius: sidebarOrientation === 'right' ? '4px 0 0 4px' : '0 4px 4px 0'
                   }}
                 />
@@ -405,7 +407,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
                 className="w-full h-[6px] transition-all duration-300 hover:h-3 hover:shadow-lg"
                 style={{
                   background: `hsl(var(--primary))`,
-                  boxShadow: '0 2px 8px hsl(var(--primary) / 0.3)',
+                  boxShadow: theme === 'light' ? '0 2px 8px rgba(0,0,0,0.3)' : '0 2px 8px hsl(var(--primary) / 0.3)',
                 }}
               />
             </motion.div>
@@ -436,10 +438,12 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
                 }}
               >
                 <motion.div
-                  className="flex items-center justify-center rounded-full shadow-lg ring-1 ring-white/30"
+                  className="flex items-center justify-center rounded-full shadow-lg"
                   style={{
                     backgroundColor: 'hsl(var(--primary))',
                     backdropFilter: 'blur(12px)',
+                    boxShadow: theme === 'light' ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px hsl(var(--primary) / 0.4)',
+                    border: theme === 'light' ? '1px solid rgba(0,0,0,0.1)' : '1px solid rgba(255,255,255,0.3)'
                   }}
                   animate={{
                     width: isDotExpanded ? 120 : 12,

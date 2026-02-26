@@ -51,9 +51,9 @@ export default function FavoriteItem({ favorite, onSelect, onRemove, variants, i
         isEditing ? "cursor-grab active:cursor-grabbing shimmer-bg" : "cursor-pointer",
         isClearMode
             ? isLightClear
-                ? "bg-card/60 text-foreground ring-1 ring-white/20"
+                ? "bg-card/60 text-foreground ring-1 ring-black/20"
                 : "bg-white/10 text-slate-100 ring-1 ring-white/60"
-            : "bg-background text-foreground ring-1 ring-border"
+            : isLightClear ? "bg-background text-foreground ring-1 ring-black/40" : "bg-background text-foreground ring-1 ring-border"
     );
 
     const handleRemoveClick = (e: React.MouseEvent) => {
@@ -144,7 +144,7 @@ export default function FavoriteItem({ favorite, onSelect, onRemove, variants, i
                                     <AvatarFallback><Icon className="h-4 w-4 sm:h-5 sm:w-5" /></AvatarFallback>
                                 </Avatar>
                             ) : (
-                                <Icon className={cn("h-5 w-5 sm:h-6 sm:w-6", isClearMode ? "text-slate-100" : "text-foreground")} />
+                                <Icon className={cn("h-5 w-5 sm:h-6 sm:w-6", isClearMode ? (isLightClear ? "text-foreground" : "text-slate-100") : "text-foreground")} />
                             )
                         ) : null}
                     </motion.div>

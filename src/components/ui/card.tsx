@@ -38,9 +38,9 @@ const Card = React.forwardRef<
         // --- Start of Clear Mode Logic ---
         isClearMode
           ? isLightClear
-            ? "border-0 bg-[#C8C8C8]/60 shadow-lg ring-1 ring-white/60" // Light mode liquid glass
+            ? "border-0 bg-[#C8C8C8]/60 shadow-lg ring-1 ring-black/10" // Light mode liquid glass
             : "border-0 bg-white/10 shadow-lg ring-1 ring-white/60" // Dark mode liquid glass
-          : "bg-card", // Standard solid card
+          : isLightClear ? "bg-card ring-1 ring-black/40 border-0" : "bg-card", // Standard solid card
         // --- End of Clear Mode Logic ---
         className
       )}

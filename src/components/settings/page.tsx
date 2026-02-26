@@ -50,13 +50,7 @@ function getLuminance(hex: string): number {
     return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
 }
 
-function setForegroundForContrast(hex: string) {
-    if (typeof window === 'undefined') return;
-    const luminance = getLuminance(hex);
-    // Use a higher threshold to allow more bright colors to have white text
-    const newForeground = luminance > 0.6 ? '222.2 84% 4.9%' : '210 40% 98%';
-    document.documentElement.style.setProperty('--primary-foreground', newForeground);
-}
+
 
 
 function hexToHslString(hex: string): string {
@@ -109,12 +103,6 @@ function ColorPicker() {
 
     useEffect(() => {
         setPrimaryColor(debouncedColor);
-
-        const hslString = hexToHslString(debouncedColor);
-        document.documentElement.style.setProperty('--primary', hslString);
-
-        setForegroundForContrast(debouncedColor);
-
         updateUserTheme({ primaryColor: debouncedColor });
     }, [debouncedColor, updateUserTheme, setPrimaryColor]);
 

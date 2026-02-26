@@ -337,9 +337,9 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
                 isMobileCompact ? "h-10" : "h-16",
                 isClearMode
                   ? isLightClear
-                    ? "bg-card/60 ring-1 ring-white/10"
+                    ? "bg-card/60 ring-1 ring-black/10"
                     : "bg-white/10 ring-1 ring-white/60"
-                  : "bg-card ring-1 ring-white/60",
+                  : "bg-card ring-1 ring-black/40",
                 showGlow && "login-glow"
               )}
               style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "blur(12px)" }}
@@ -371,7 +371,7 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
                     isMobileCompact ? "h-7 min-w-[60px]" : "h-12 min-w-[75px] sm:min-w-[170px]",
                     isClearMode
                       ? isLightClear
-                        ? "bg-card/60 text-foreground ring-1 ring-white/20"
+                        ? "bg-card/60 text-foreground ring-1 ring-black/20"
                         : "bg-white/10 text-slate-100 ring-1 ring-white/60"
                       : "bg-background text-foreground ring-1 ring-border",
                     isEditing && "shimmer-bg"
@@ -445,9 +445,9 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
                 isMobileCompact ? "h-10" : "h-16",
                 isClearMode
                   ? isLightClear
-                    ? "bg-card/60 ring-1 ring-white/10"
+                    ? "bg-card/60 ring-1 ring-black/10"
                     : "bg-white/10 ring-1 ring-white/60"
-                  : "bg-card ring-1 ring-white/60",
+                  : "bg-card ring-1 ring-black/40",
                 showGlow && "login-glow"
               )}
               style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "blur(12px)" }}
@@ -541,9 +541,9 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
                 "mt-2 text-center text-xs font-semibold overflow-hidden p-2 rounded-full relative shimmer-bg max-w-xs mx-auto px-4",
                 isClearMode
                   ? isLightClear
-                    ? "bg-card/60 ring-1 ring-white/20 text-foreground"
+                    ? "bg-card/60 ring-1 ring-black/20 text-foreground"
                     : "bg-white/10 ring-1 ring-white/60 text-white"
-                  : "bg-background ring-1 ring-border text-foreground"
+                  : isLightClear ? "bg-background ring-1 ring-black/40 text-foreground" : "bg-background ring-1 ring-border text-foreground"
               )}
               style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
             >
