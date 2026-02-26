@@ -54,7 +54,7 @@ export default function Chatbot({ isMobileCompact = false }: { isMobileCompact?:
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const { isOpen, openChatbot, closeChatbot, initialMessage, pendingQuery } = useChatbotStore();
   const { isClearMode, theme } = useThemeStore();
-  const { isProMode, isNavVisible } = useProModeStore();
+  const { isProMode } = useProModeStore();
   const pathname = usePathname();
   const isLightClear = isClearMode && theme === 'light';
   const fileInputRef = useRef<HTMLInputElement>(null);

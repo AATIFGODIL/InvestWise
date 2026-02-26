@@ -28,7 +28,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
   const pathname = usePathname();
   const { user, hydrating } = useAuth();
   const [isRaining, setIsRaining] = useState(false);
-  const { isProMode, isNavVisible, setIsNavVisible } = useProModeStore();
+  const { isProMode } = useProModeStore();
   const isMobile = useIsMobile();
   const { primaryColor, sidebarOrientation, theme } = useThemeStore();
 
@@ -261,7 +261,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
     : (!isSpecialLayoutRoute); // desktop: always show (full or accent line in pro mode)
 
   // In pro mode, sidebar is expanded only when hovered
-  const isSideRailExpanded = !isProMode || isNavVisible || isSideRailHovered;
+  const isSideRailExpanded = !isProMode || isSideRailHovered;
 
   // Show triggers when nav is hidden
   const shouldShowHeaderTrigger = isMobile && !isMobileHeaderVisible && !isSpecialLayoutRoute;
