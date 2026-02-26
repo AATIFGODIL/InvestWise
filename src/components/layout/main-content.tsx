@@ -8,18 +8,25 @@ export default function MainContent({
   children,
   isSpecialLayoutRoute,
   disableScroll,
+  hasSideRail,
+  hasExpandedHeader,
 }: {
   children: React.ReactNode,
   isSpecialLayoutRoute?: boolean,
   disableScroll?: boolean,
+  hasSideRail?: boolean,
+  hasExpandedHeader?: boolean,
 }) {
   return (
     <div
       id="main-content"
       className={cn(
         "flex-1 transition-[padding] duration-500 ease-in-out",
-        !isSpecialLayoutRoute && "pt-20",
+        // When header is expanded (at page top), need full top padding
+        // When collapsed to accent line, only need minimal padding
+        hasExpandedHeader ? "pt-20" : (!isSpecialLayoutRoute ? "pt-4" : ""),
         !disableScroll && "overflow-y-auto",
+        hasSideRail && "pl-[92px]",
       )}
     >
       {children}

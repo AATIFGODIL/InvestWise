@@ -324,40 +324,46 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
         )}>
           <nav
             className={cn(
-              "relative flex w-full items-center justify-between rounded-full p-1 px-2 shadow-lg",
+              "relative flex w-full items-center justify-between rounded-full p-1 px-2",
               isMobileCompact ? "h-10" : "h-16",
-              isClearMode
-                ? isLightClear
-                  ? "bg-card/60 ring-1 ring-white/10"
-                  : "bg-white/10 ring-1 ring-white/60"
-                : "bg-card ring-1 ring-white/60",
-              // COPY-THIS: To apply the glow effect
-              showGlow && "login-glow"
+              // No background - transparent nav bar
             )}
-            // COPY-THIS: For the glass look (backdrop filter)
-            style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
           >
-            <Link
-              href="/dashboard"
+            <div
               className={cn(
-                "flex h-full shrink-0 items-center rounded-full bg-primary shadow-md",
-                isMobileCompact ? "px-2" : "px-3 sm:px-4"
+                "flex shrink-0 items-center rounded-full px-3 shadow-lg",
+                isMobileCompact ? "h-10" : "h-16",
+                isClearMode
+                  ? isLightClear
+                    ? "bg-card/60 ring-1 ring-white/10"
+                    : "bg-white/10 ring-1 ring-white/60"
+                  : "bg-card ring-1 ring-white/60",
+                showGlow && "login-glow"
               )}
-              onClick={(e) => {
-                if (useProModeStore.getState().isProMode) {
-                  e.preventDefault();
-                  useProModeStore.getState().setIsNavVisible(false);
-                } else {
-                  handleNavigate(e, '/dashboard');
-                }
-              }}
+              style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "blur(12px)" }}
             >
-              <h1 className={cn(isMobileCompact ? "text-xs" : "text-md sm:text-lg", "font-bold text-primary-foreground")}>
-                InvestWise
-              </h1>
-            </Link>
+              <Link
+                href="/dashboard"
+                className={cn(
+                  "flex shrink-0 items-center rounded-full bg-primary shadow-md",
+                  isMobileCompact ? "h-8 px-2" : "h-[52px] px-3 sm:px-4"
+                )}
+                onClick={(e) => {
+                  if (useProModeStore.getState().isProMode) {
+                    e.preventDefault();
+                    useProModeStore.getState().setIsNavVisible(false);
+                  } else {
+                    handleNavigate(e, '/dashboard');
+                  }
+                }}
+              >
+                <h1 className={cn(isMobileCompact ? "text-xs" : "text-md sm:text-lg", "font-bold text-primary-foreground")}>
+                  InvestWise
+                </h1>
+              </Link>
+            </div>
 
             <div className="flex-1 flex justify-center items-center h-full sm:mx-2 overflow-x-auto hide-scrollbar">
               <div className="relative z-10">
@@ -438,7 +444,19 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
               </AnimatePresence>
             </div>
 
-            <div className="flex shrink-0 items-center gap-0 sm:gap-1">
+            <div
+              className={cn(
+                "flex shrink-0 items-center gap-0 sm:gap-1 rounded-full px-1 shadow-lg",
+                isMobileCompact ? "h-10" : "h-16",
+                isClearMode
+                  ? isLightClear
+                    ? "bg-card/60 ring-1 ring-white/10"
+                    : "bg-white/10 ring-1 ring-white/60"
+                  : "bg-card ring-1 ring-white/60",
+                showGlow && "login-glow"
+              )}
+              style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "blur(12px)" }}
+            >
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className={cn("group rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-primary/10 relative", isMobileCompact ? "h-8 w-8" : "h-12 w-12")}>

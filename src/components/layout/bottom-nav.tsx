@@ -23,13 +23,12 @@ import { useProModeStore } from "@/store/pro-mode-store";
 type AnimationState = "idle" | "rising" | "sliding" | "descending" | "dragging";
 
 export default function BottomNav({ isMobileCompact = false, onHide }: { isMobileCompact?: boolean; onHide?: () => void }) {
-  // onHide is no longer used directly (swipe handles it globally now)
   const pathname = usePathname() ?? "/";
   const router = useRouter();
   const navRef = useRef<HTMLElement | null>(null);
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const animationStateRef = useRef<AnimationState>("idle");
-  const dragStartInfo = useRef<{ x: number; left: number; width: number } | null>(null);
+  const dragStartInfo = useRef<{ x: number; y: number; left: number; top: number; width: number; height: number } | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
   const { isClearMode, theme } = useThemeStore();
@@ -37,6 +36,9 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
   const { isProMode } = useProModeStore();
   const isLightClear = isClearMode && theme === "light";
   const isMobile = useIsMobile();
+
+  // Desktop => side rail, Mobile => bottom bar
+  const isDesktop = !isMobile;
 
   const navItems = useMemo(() => {
     const items = [
@@ -57,27 +59,21 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
   const [hasMounted, setHasMounted] = useState(false);
   const [itemTransforms, setItemTransforms] = useState<Record<number, string>>({});
   const [showGlow, setShowGlow] = useState(false);
-
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    // Check for the glow effect flag on component mount
     if (sessionStorage.getItem('showGlowEffect') === 'true') {
       setShowGlow(true);
-
-      // We don't remove the flag here; let the Header component handle it
-      // to ensure all components can react to it before it's gone.
-
-      // Turn off the glow after a few seconds
       const timer = setTimeout(() => {
         setShowGlow(false);
       }, 4000);
-
       return () => clearTimeout(timer);
     }
   }, []);
 
-  const WIDTH_FACTOR = isMobile ? 0.95 : 0.55;
+  const WIDTH_FACTOR = 0.95;
   const MIN_GLIDER_WIDTH = 28;
+  const MIN_GLIDER_HEIGHT = 28;
 
   const activeIndex = navItems.findIndex((item) =>
     pathname.startsWith(item.href)
@@ -100,22 +96,44 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
     const navRect = navEl.getBoundingClientRect();
     const itemRect = target.getBoundingClientRect();
 
-    const gliderWidth = Math.max(Math.round(itemRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
-    const left = itemRect.left - navRect.left + (itemRect.width - gliderWidth) / 2;
+    if (isDesktop) {
+      // Vertical rail: glider is taller than wide for vertical pill shape
+      const gliderHeight = itemRect.height + 12;
+      const top = itemRect.top - navRect.top - 6;
+      const gliderWidth = Math.round(navRect.width * 0.85);
+      const left = Math.round((navRect.width - gliderWidth) / 2);
 
-    setGliderStyle({
-      width: `${gliderWidth}px`,
-      height: "calc(100% - 12px)",
-      transform: `translateX(${left}px) translateY(-50%)`,
-      opacity: 1,
-      transition: options.immediate ? "none" : "transform 300ms ease, width 300ms ease, opacity 200ms ease, background-color 300ms ease",
-      backgroundColor: "hsl(var(--primary))",
-      top: "50%",
-      left: 0,
-      position: "absolute",
-    });
+      setGliderStyle({
+        width: `${gliderWidth}px`,
+        height: `${gliderHeight}px`,
+        transform: `translateX(${left}px) translateY(${top}px)`,
+        opacity: 1,
+        transition: options.immediate ? "none" : "transform 300ms ease, width 300ms ease, height 300ms ease, opacity 200ms ease, background-color 300ms ease",
+        backgroundColor: "hsl(var(--primary))",
+        top: 0,
+        left: 0,
+        position: "absolute",
+        borderRadius: "9999px",
+      });
+    } else {
+      // Horizontal bottom bar: glider moves horizontally
+      const gliderWidth = Math.max(Math.round(itemRect.width * 0.95), MIN_GLIDER_WIDTH);
+      const left = itemRect.left - navRect.left + (itemRect.width - gliderWidth) / 2;
+
+      setGliderStyle({
+        width: `${gliderWidth}px`,
+        height: "calc(100% - 12px)",
+        transform: `translateX(${left}px) translateY(-50%)`,
+        opacity: 1,
+        transition: options.immediate ? "none" : "transform 300ms ease, width 300ms ease, opacity 200ms ease, background-color 300ms ease",
+        backgroundColor: "hsl(var(--primary))",
+        top: "50%",
+        left: 0,
+        position: "absolute",
+      });
+    }
     return true;
-  }, [WIDTH_FACTOR, MIN_GLIDER_WIDTH]);
+  }, [isDesktop, WIDTH_FACTOR, MIN_GLIDER_WIDTH, MIN_GLIDER_HEIGHT]);
 
   useEffect(() => {
     setHasMounted(true);
@@ -132,19 +150,35 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
 
     itemRefs.current.forEach((itemEl, index) => {
       if (!itemEl) return;
-
       const itemRect = itemEl.getBoundingClientRect();
-      const itemCenter = itemRect.left - navRect.left + itemRect.width / 2;
 
-      const distance = Math.abs(itemCenter - (gliderRect.left - navRect.left + gliderRect.width / 2));
-      const effectRadius = gliderRect.width * 0.8;
+      if (isDesktop) {
+        // Vertical rail: items rise (shift up) when glider is near
+        const itemCenter = itemRect.top - navRect.top + itemRect.height / 2;
+        const gliderCenter = gliderRect.top - navRect.top + gliderRect.height / 2;
+        const distance = Math.abs(itemCenter - gliderCenter);
+        const effectRadius = gliderRect.height * 0.8;
 
-      if (distance < effectRadius) {
-        const scale = Math.cos((distance / effectRadius) * (Math.PI / 2));
-        const rise = -6 * scale; // Max rise of -6px
-        newTransforms[index] = `translateY(${rise}px)`;
+        if (distance < effectRadius) {
+          const scale = Math.cos((distance / effectRadius) * (Math.PI / 2));
+          const rise = -4 * scale;
+          newTransforms[index] = `translateY(${rise}px)`;
+        } else {
+          newTransforms[index] = 'translateY(0px)';
+        }
       } else {
-        newTransforms[index] = 'translateY(0px)';
+        // Horizontal: items rise up
+        const itemCenter = itemRect.left - navRect.left + itemRect.width / 2;
+        const distance = Math.abs(itemCenter - (gliderRect.left - navRect.left + gliderRect.width / 2));
+        const effectRadius = gliderRect.width * 0.8;
+
+        if (distance < effectRadius) {
+          const scale = Math.cos((distance / effectRadius) * (Math.PI / 2));
+          const rise = -6 * scale;
+          newTransforms[index] = `translateY(${rise}px)`;
+        } else {
+          newTransforms[index] = 'translateY(0px)';
+        }
       }
     });
 
@@ -153,12 +187,10 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
     if (animationStateRef.current === 'sliding' || animationStateRef.current === 'dragging') {
       animationFrameRef.current = requestAnimationFrame(animateItemTransforms);
     }
-  }, []);
+  }, [isDesktop]);
 
   const animateTo = useCallback((clickedIndex: number, isSamePage: boolean = false, overridePath?: string | null) => {
     if (animationStateRef.current !== "idle" || clickedIndex === -1) return;
-
-    // Prevent animation if it's not a same-page action and the index is already active
     if (!isSamePage && clickedIndex === activeIndex) return;
 
     const navEl = navRef.current;
@@ -175,27 +207,138 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
     const startRect = startItem.getBoundingClientRect();
     const endRect = endItem.getBoundingClientRect();
 
-    const startWidth = Math.max(Math.round(startRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
-    const startLeft = startRect.left - navRect.left + (startRect.width - startWidth) / 2;
-    const endWidth = Math.max(Math.round(endRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
-    const endLeft = endRect.left - navRect.left + (endRect.width - endWidth) / 2;
+    if (isDesktop) {
+      // Vertical animation - full width glider, generous height
+      const startHeight = startRect.height + 12;
+      const startTop = startRect.top - navRect.top - 6;
+      const endHeight = endRect.height + 12;
+      const endTop = endRect.top - navRect.top - 6;
+      const gliderWidth = Math.round(navRect.width * 0.85);
+      const left = Math.round((navRect.width - gliderWidth) / 2);
 
-    setGliderStyle(prev => ({
-      ...prev,
-      width: `${startWidth}px`,
-      transform: `translateX(${startLeft}px) translateY(-50%)`,
-      backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
-      boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
-      transition: "transform 140ms ease-out, background-color 140ms ease-out, box-shadow 140ms ease-out, border 140ms ease-out, height 140ms ease-out, backdrop-filter 140ms ease-out",
-      border: '1px solid hsla(0, 0%, 100%, 0.6)',
-      height: 'calc(100% + 16px)',
-      backdropFilter: 'blur(16px)',
-    }));
+      setGliderStyle(prev => ({
+        ...prev,
+        height: `${startHeight}px`,
+        transform: `translateX(${left}px) translateY(${startTop}px)`,
+        backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
+        boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22)",
+        transition: "transform 140ms ease-out, background-color 140ms ease-out, box-shadow 140ms ease-out, height 140ms ease-out, width 140ms ease-out, backdrop-filter 140ms ease-out",
+        border: '1px solid hsla(0, 0%, 100%, 0.6)',
+        width: `85%`,
+        backdropFilter: 'blur(16px)',
+        borderRadius: '9999px',
+      }));
 
-    // If it's a same-page click, skip the sliding part.
-    if (isSamePage) {
+      if (isSamePage) {
+        const settleTimeout = setTimeout(() => {
+          setAnimationState("descending");
+          setGliderStyle(prev => ({
+            ...prev,
+            transform: `translateX(${left}px) translateY(${endTop}px)`,
+            backgroundColor: "hsl(var(--primary))",
+            boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12)",
+            transition: "transform 160ms ease-in, background-color 160ms ease-in, box-shadow 160ms ease-in, height 160ms ease-in, width 160ms ease-in, backdrop-filter 160ms ease-in",
+            border: '1px solid transparent',
+            width: `${gliderWidth}px`,
+            height: `${endHeight}px`,
+            backdropFilter: 'none',
+          }));
+          const idleTimeout = setTimeout(() => setAnimationState("idle"), 170);
+          return () => clearTimeout(idleTimeout);
+        }, 150);
+        return () => clearTimeout(settleTimeout);
+      }
+
+      const slideTimeout = setTimeout(() => {
+        setAnimationState("sliding");
+        setGliderStyle(prev => ({
+          ...prev,
+          height: `${endHeight}px`,
+          transform: `translateX(${left}px) translateY(${endTop}px)`,
+          transition: "transform 500ms cubic-bezier(0.22, 0.9, 0.35, 1), height 500ms cubic-bezier(0.22, 0.9, 0.35, 1), border 320ms ease-out",
+        }));
+        animationFrameRef.current = requestAnimationFrame(animateItemTransforms);
+      }, 150);
+
       const settleTimeout = setTimeout(() => {
         setAnimationState("descending");
+        if (!isSamePage) router.push(overridePath || navItems[clickedIndex].href);
+        setGliderStyle(prev => ({
+          ...prev,
+          transform: `translateX(${left}px) translateY(${endTop}px)`,
+          backgroundColor: "hsl(var(--primary))",
+          boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12)",
+          transition: "transform 160ms ease-in, background-color 160ms ease-in, box-shadow 160ms ease-in, height 160ms ease-in, width 160ms ease-in, backdrop-filter 160ms ease-in",
+          border: '1px solid transparent',
+          width: `${gliderWidth}px`,
+          height: `${endHeight}px`,
+          backdropFilter: 'none',
+        }));
+      }, 650);
+
+      const idleTimeout = setTimeout(() => {
+        setAnimationState("idle");
+        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+        setItemTransforms({});
+      }, 820);
+
+      return () => {
+        clearTimeout(slideTimeout);
+        clearTimeout(settleTimeout);
+        clearTimeout(idleTimeout);
+      };
+    } else {
+      // Horizontal animation (original bottom bar logic)
+      const startWidth = Math.max(Math.round(startRect.width * 0.95), MIN_GLIDER_WIDTH);
+      const startLeft = startRect.left - navRect.left + (startRect.width - startWidth) / 2;
+      const endWidth = Math.max(Math.round(endRect.width * 0.95), MIN_GLIDER_WIDTH);
+      const endLeft = endRect.left - navRect.left + (endRect.width - endWidth) / 2;
+
+      setGliderStyle(prev => ({
+        ...prev,
+        width: `${startWidth}px`,
+        transform: `translateX(${startLeft}px) translateY(-50%)`,
+        backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
+        boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
+        transition: "transform 140ms ease-out, background-color 140ms ease-out, box-shadow 140ms ease-out, border 140ms ease-out, height 140ms ease-out, backdrop-filter 140ms ease-out",
+        border: '1px solid hsla(0, 0%, 100%, 0.6)',
+        height: 'calc(100% + 16px)',
+        backdropFilter: 'blur(16px)',
+      }));
+
+      if (isSamePage) {
+        const settleTimeout = setTimeout(() => {
+          setAnimationState("descending");
+          setGliderStyle(prev => ({
+            ...prev,
+            transform: `translateX(${endLeft}px) translateY(-50%)`,
+            backgroundColor: "hsl(var(--primary))",
+            boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
+            transition: "transform 160ms ease-in, background-color 160ms ease-in, box-shadow 160ms ease-in, border 160ms ease-in, height 160ms ease-in, backdrop-filter 160ms ease-in",
+            border: '1px solid transparent',
+            height: 'calc(100% - 12px)',
+            backdropFilter: 'none',
+          }));
+          const idleTimeout = setTimeout(() => setAnimationState("idle"), 170);
+          return () => clearTimeout(idleTimeout);
+        }, 150);
+        return () => clearTimeout(settleTimeout);
+      }
+
+      const slideTimeout = setTimeout(() => {
+        setAnimationState("sliding");
+        setGliderStyle(prev => ({
+          ...prev,
+          width: `${endWidth}px`,
+          transform: `translateX(${endLeft}px) translateY(-50%)`,
+          transition: "transform 500ms cubic-bezier(0.22, 0.9, 0.35, 1), width 500ms cubic-bezier(0.22, 0.9, 0.35, 1), border 320ms ease-out",
+        }));
+        animationFrameRef.current = requestAnimationFrame(animateItemTransforms);
+      }, 150);
+
+      const settleTimeout = setTimeout(() => {
+        setAnimationState("descending");
+        if (!isSamePage) router.push(overridePath || navItems[clickedIndex].href);
         setGliderStyle(prev => ({
           ...prev,
           transform: `translateX(${endLeft}px) translateY(-50%)`,
@@ -206,53 +349,21 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
           height: 'calc(100% - 12px)',
           backdropFilter: 'none',
         }));
-        const idleTimeout = setTimeout(() => {
-          setAnimationState("idle");
-        }, 170);
-        return () => clearTimeout(idleTimeout);
-      }, 150);
-      return () => clearTimeout(settleTimeout);
+      }, 650);
+
+      const idleTimeout = setTimeout(() => {
+        setAnimationState("idle");
+        if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+        setItemTransforms({});
+      }, 820);
+
+      return () => {
+        clearTimeout(slideTimeout);
+        clearTimeout(settleTimeout);
+        clearTimeout(idleTimeout);
+      };
     }
-
-
-    const slideTimeout = setTimeout(() => {
-      setAnimationState("sliding");
-      setGliderStyle(prev => ({
-        ...prev,
-        width: `${endWidth}px`,
-        transform: `translateX(${endLeft}px) translateY(-50%)`,
-        transition: "transform 500ms cubic-bezier(0.22, 0.9, 0.35, 1), width 500ms cubic-bezier(0.22, 0.9, 0.35, 1), border 320ms ease-out",
-      }));
-      animationFrameRef.current = requestAnimationFrame(animateItemTransforms);
-    }, 150);
-
-    const settleTimeout = setTimeout(() => {
-      setAnimationState("descending");
-      if (!isSamePage) router.push(overridePath || navItems[clickedIndex].href);
-      setGliderStyle(prev => ({
-        ...prev,
-        transform: `translateX(${endLeft}px) translateY(-50%)`,
-        backgroundColor: "hsl(var(--primary))",
-        boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
-        transition: "transform 160ms ease-in, background-color 160ms ease-in, box-shadow 160ms ease-in, border 160ms ease-in, height 160ms ease-in, backdrop-filter 160ms ease-in",
-        border: '1px solid transparent',
-        height: 'calc(100% - 12px)',
-        backdropFilter: 'none',
-      }));
-    }, 650);
-
-    const idleTimeout = setTimeout(() => {
-      setAnimationState("idle");
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-      setItemTransforms({});
-    }, 820);
-
-    return () => {
-      clearTimeout(slideTimeout);
-      clearTimeout(settleTimeout);
-      clearTimeout(idleTimeout);
-    }
-  }, [activeIndex, isClearMode, router, WIDTH_FACTOR, MIN_GLIDER_WIDTH, animateItemTransforms]);
+  }, [activeIndex, isClearMode, router, isDesktop, WIDTH_FACTOR, MIN_GLIDER_WIDTH, MIN_GLIDER_HEIGHT, animateItemTransforms, navItems]);
 
 
   useEffect(() => {
@@ -264,7 +375,7 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
       animateTo(samePageIndex, true);
       clearActiveIndex();
     }
-  }, [externalActiveIndex, samePageIndex, animateTo, clearActiveIndex]);
+  }, [externalActiveIndex, samePageIndex, animateTo, clearActiveIndex, targetPath]);
 
 
   useEffect(() => {
@@ -282,7 +393,6 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
     if (animationStateRef.current !== "idle") return;
 
     if (clickedIndex === activeIndex) {
-      // Start drag interaction
       const navEl = navRef.current;
       const targetItem = itemRefs.current[clickedIndex];
       if (!navEl || !targetItem) return;
@@ -290,34 +400,65 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
       const navRect = navEl.getBoundingClientRect();
       const itemRect = targetItem.getBoundingClientRect();
 
-      const gliderWidth = Math.max(Math.round(itemRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
-      const startLeft = itemRect.left - navRect.left + (itemRect.width - gliderWidth) / 2;
+      if (isDesktop) {
+        const gliderHeight = itemRect.height + 12;
+        const startTop = itemRect.top - navRect.top - 6;
+        const gliderWidth = Math.round(navRect.width * 0.85);
+        const left = Math.round((navRect.width - gliderWidth) / 2);
 
-      dragStartInfo.current = {
-        x: e.clientX,
-        left: startLeft,
-        width: gliderWidth,
-      };
+        dragStartInfo.current = {
+          x: e.clientX,
+          y: e.clientY,
+          left,
+          top: startTop,
+          width: gliderWidth,
+          height: gliderHeight,
+        };
 
-      // Instantly lift up and change style
-      setAnimationState("dragging");
-      // Dispatch custom event for tutorial to listen
-      window.dispatchEvent(new CustomEvent('bottomNavDragStart'));
-      setGliderStyle(prev => ({
-        ...prev,
-        height: 'calc(100% + 16px)',
-        transform: `translateX(${startLeft}px) translateY(-50%)`,
-        backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
-        boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
-        transition: "height 200ms ease, background-color 200ms ease, box-shadow 200ms ease, border 200ms ease, backdrop-filter 200ms ease",
-        border: '1px solid hsla(0, 0%, 100%, 0.6)',
-        backdropFilter: 'blur(16px)',
-      }));
+        setAnimationState("dragging");
+        window.dispatchEvent(new CustomEvent('bottomNavDragStart'));
+        setGliderStyle(prev => ({
+          ...prev,
+          width: `85%`,
+          height: `${gliderHeight}px`,
+          transform: `translateX(${left}px) translateY(${startTop}px)`,
+          backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
+          boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22)",
+          transition: "width 200ms ease, background-color 200ms ease, box-shadow 200ms ease, border 200ms ease, backdrop-filter 200ms ease",
+          border: '1px solid hsla(0, 0%, 100%, 0.6)',
+          backdropFilter: 'blur(16px)',
+          borderRadius: '9999px',
+        }));
+      } else {
+        const gliderWidth = Math.max(Math.round(itemRect.width * 0.95), MIN_GLIDER_WIDTH);
+        const startLeft = itemRect.left - navRect.left + (itemRect.width - gliderWidth) / 2;
+
+        dragStartInfo.current = {
+          x: e.clientX,
+          y: e.clientY,
+          left: startLeft,
+          top: 0,
+          width: gliderWidth,
+          height: 0,
+        };
+
+        setAnimationState("dragging");
+        window.dispatchEvent(new CustomEvent('bottomNavDragStart'));
+        setGliderStyle(prev => ({
+          ...prev,
+          height: 'calc(100% + 16px)',
+          transform: `translateX(${startLeft}px) translateY(-50%)`,
+          backgroundColor: isClearMode ? "hsla(0, 0%, 100%, 0.15)" : "hsl(var(--background))",
+          boxShadow: "0 10px 18px -6px rgb(0 0 0 / 0.22), 0 6px 10px -8px rgb(0 0 0 / 0.12)",
+          transition: "height 200ms ease, background-color 200ms ease, box-shadow 200ms ease, border 200ms ease, backdrop-filter 200ms ease",
+          border: '1px solid hsla(0, 0%, 100%, 0.6)',
+          backdropFilter: 'blur(16px)',
+        }));
+      }
 
       animationFrameRef.current = requestAnimationFrame(animateItemTransforms);
       window.addEventListener("mousemove", handleMouseMove);
       window.addEventListener("mouseup", handleMouseUp, { once: true });
-
     } else {
       animateTo(clickedIndex);
     }
@@ -326,14 +467,24 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
   const handleMouseMove = (e: globalThis.MouseEvent) => {
     if (animationStateRef.current !== "dragging" || !dragStartInfo.current) return;
 
-    const dx = e.clientX - dragStartInfo.current.x;
-    const newLeft = dragStartInfo.current.left + dx;
-
-    setGliderStyle(prev => ({
-      ...prev,
-      transform: `translateX(${newLeft}px) translateY(-50%)`,
-      transition: "none", // No transition while dragging
-    }));
+    if (isDesktop) {
+      const dy = e.clientY - dragStartInfo.current.y;
+      const newTop = dragStartInfo.current.top + dy;
+      const left = dragStartInfo.current.left;
+      setGliderStyle(prev => ({
+        ...prev,
+        transform: `translateX(${left}px) translateY(${newTop}px)`,
+        transition: "none",
+      }));
+    } else {
+      const dx = e.clientX - dragStartInfo.current.x;
+      const newLeft = dragStartInfo.current.left + dx;
+      setGliderStyle(prev => ({
+        ...prev,
+        transform: `translateX(${newLeft}px) translateY(-50%)`,
+        transition: "none",
+      }));
+    }
   };
 
   const handleMouseUp = (e: globalThis.MouseEvent) => {
@@ -342,13 +493,11 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
 
     if (animationStateRef.current !== "dragging" || !dragStartInfo.current) return;
 
-    // Dispatch custom event immediately on release (before snap animation)
     window.dispatchEvent(new CustomEvent('bottomNavDragEnd'));
 
     const navEl = navRef.current;
     if (!navEl) return;
     const navRect = navEl.getBoundingClientRect();
-    const dropX = e.clientX - navRect.left;
 
     let closestIndex = 0;
     let minDistance = Infinity;
@@ -356,11 +505,22 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
     itemRefs.current.forEach((itemEl, index) => {
       if (itemEl) {
         const itemRect = itemEl.getBoundingClientRect();
-        const itemCenter = (itemRect.left - navRect.left) + itemRect.width / 2;
-        const distance = Math.abs(dropX - itemCenter);
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestIndex = index;
+        if (isDesktop) {
+          const itemCenter = (itemRect.top - navRect.top) + itemRect.height / 2;
+          const dropY = e.clientY - navRect.top;
+          const distance = Math.abs(dropY - itemCenter);
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestIndex = index;
+          }
+        } else {
+          const itemCenter = (itemRect.left - navRect.left) + itemRect.width / 2;
+          const dropX = e.clientX - navRect.left;
+          const distance = Math.abs(dropX - itemCenter);
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestIndex = index;
+          }
         }
       }
     });
@@ -368,30 +528,51 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
     const endItem = itemRefs.current[closestIndex];
     if (endItem) {
       const endRect = endItem.getBoundingClientRect();
-      const endWidth = Math.max(Math.round(endRect.width * WIDTH_FACTOR), MIN_GLIDER_WIDTH);
-      const endLeft = endRect.left - navRect.left + (endRect.width - endWidth) / 2;
 
       setAnimationState("descending");
-      setItemTransforms({}); // Reset transforms on drop
+      setItemTransforms({});
 
-      setGliderStyle(prev => ({
-        ...prev,
-        width: `${endWidth}px`,
-        transform: `translateX(${endLeft}px) translateY(-50%)`,
-        backgroundColor: "hsl(var(--primary))",
-        boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
-        transition: "transform 350ms cubic-bezier(0.22, 1, 0.36, 1), background-color 200ms ease-in, box-shadow 200ms ease-in, border 200ms ease-in, height 200ms ease-in, width 350ms cubic-bezier(0.22, 1, 0.36, 1), backdrop-filter 200ms ease-in",
-        border: '1px solid transparent',
-        height: 'calc(100% - 12px)',
-        backdropFilter: 'none',
-      }));
+      if (isDesktop) {
+        const endHeight = endRect.height + 12;
+        const endTop = endRect.top - navRect.top - 6;
+        const gliderWidth = Math.round(navRect.width * 0.85);
+        const left = Math.round((navRect.width - gliderWidth) / 2);
+
+        setGliderStyle(prev => ({
+          ...prev,
+          width: `${gliderWidth}px`,
+          height: `${endHeight}px`,
+          transform: `translateX(${left}px) translateY(${endTop}px)`,
+          backgroundColor: "hsl(var(--primary))",
+          boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12)",
+          transition: "transform 350ms cubic-bezier(0.22, 1, 0.36, 1), background-color 200ms ease-in, box-shadow 200ms ease-in, border 200ms ease-in, width 350ms cubic-bezier(0.22, 1, 0.36, 1), height 350ms cubic-bezier(0.22, 1, 0.36, 1), backdrop-filter 200ms ease-in",
+          border: '1px solid transparent',
+          backdropFilter: 'none',
+          borderRadius: '9999px',
+        }));
+      } else {
+        const endWidth = Math.max(Math.round(endRect.width * 0.95), MIN_GLIDER_WIDTH);
+        const endLeft = endRect.left - navRect.left + (endRect.width - endWidth) / 2;
+
+        setGliderStyle(prev => ({
+          ...prev,
+          width: `${endWidth}px`,
+          transform: `translateX(${endLeft}px) translateY(-50%)`,
+          backgroundColor: "hsl(var(--primary))",
+          boxShadow: "0 4px 10px -2px rgb(0 0 0 / 0.12), 0 2px 6px -3px rgb(0 0 0 / 0.08)",
+          transition: "transform 350ms cubic-bezier(0.22, 1, 0.36, 1), background-color 200ms ease-in, box-shadow 200ms ease-in, border 200ms ease-in, height 200ms ease-in, width 350ms cubic-bezier(0.22, 1, 0.36, 1), backdrop-filter 200ms ease-in",
+          border: '1px solid transparent',
+          height: 'calc(100% - 12px)',
+          backdropFilter: 'none',
+        }));
+      }
 
       const navigationTimeout = setTimeout(() => {
         if (closestIndex !== activeIndex) {
           router.push(navItems[closestIndex].href);
         }
         setAnimationState("idle");
-      }, 350)
+      }, 350);
 
       return () => clearTimeout(navigationTimeout);
     }
@@ -401,6 +582,93 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
   };
 
 
+  // ============================================================
+  // RENDER: Desktop Side Rail
+  // ============================================================
+  if (isDesktop) {
+    return (
+      <div className="fixed top-0 left-0 bottom-0 z-40 flex items-center p-2">
+        <nav
+          ref={navRef}
+          className={cn(
+            "relative flex flex-col items-center justify-between gap-4 rounded-full py-6 px-2 shadow-2xl shadow-black/20 ring-1 ring-white/60",
+            "w-[80px]",
+            isClearMode
+              ? isLightClear
+                ? "bg-card/60"
+                : "bg-white/10"
+              : "bg-card",
+            showGlow && "login-glow"
+          )}
+          style={{
+            backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "blur(12px)",
+          }}
+        >
+          <div
+            className="glider absolute pointer-events-none rounded-full"
+            style={{
+              ...gliderStyle,
+              visibility: hasMounted ? "visible" : "hidden",
+              willChange: 'transform, width, height, background-color, backdrop-filter',
+            }}
+          />
+
+          {navItems.map((item, index) => {
+            const isActive = index === activeIndex;
+            const isHovered = hoveredIndex === index;
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                ref={getRef(index)}
+                id={index === 0 ? 'bottom-nav-explore-tutorial' : undefined}
+                onMouseDown={(e) => handleMouseDown(e, index)}
+                onClick={(e) => e.preventDefault()}
+                onMouseEnter={() => setHoveredIndex(index)}
+                onMouseLeave={() => setHoveredIndex(null)}
+                className="z-10 flex w-full flex-col items-center justify-center gap-1 rounded-full py-5 px-1.5 relative group"
+                prefetch={true}
+              >
+                <div
+                  className={cn(
+                    "flex flex-col items-center transition-all duration-300",
+                    isActive
+                      ? "text-primary-foreground"
+                      : isLightClear ? "text-foreground" : (isClearMode ? "text-slate-100" : "text-muted-foreground")
+                  )}
+                  style={{
+                    transform: itemTransforms[index] || 'translateY(0px)',
+                    transition: 'transform 300ms cubic-bezier(0.22, 1, 0.36, 1)',
+                  }}
+                >
+                  <item.icon className="h-6 w-6" />
+                  <span className="text-[10px] font-medium leading-tight mt-0.5">{item.label}</span>
+                </div>
+
+                {/* Tooltip on hover (only when not active) */}
+                {isHovered && !isActive && (
+                  <div
+                    className="absolute left-full ml-3 px-2.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap pointer-events-none z-50"
+                    style={{
+                      backgroundColor: 'hsl(var(--popover))',
+                      color: 'hsl(var(--popover-foreground))',
+                      boxShadow: '0 4px 12px rgb(0 0 0 / 0.15)',
+                    }}
+                  >
+                    {item.label}
+                  </div>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+    );
+  }
+
+  // ============================================================
+  // RENDER: Mobile Bottom Nav
+  // ============================================================
   return (
     <div id="bottom-nav-tutorial" className="fixed bottom-0 left-0 right-0 z-50 p-2">
       <nav
@@ -413,10 +681,8 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
               ? "bg-card/60"
               : "bg-white/10"
             : "bg-card",
-          // COPY-THIS: To apply the glow effect
           showGlow && "login-glow"
         )}
-        // COPY-THIS: For the glass look (backdrop filter)
         style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
       >
         <div
@@ -437,7 +703,7 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
               ref={getRef(index)}
               id={index === 0 ? 'bottom-nav-explore-tutorial' : undefined}
               onMouseDown={(e) => handleMouseDown(e, index)}
-              onClick={(e) => e.preventDefault()} // Prevent default navigation
+              onClick={(e) => e.preventDefault()}
               className="z-10 flex-1 flex h-auto w-full flex-col items-center justify-center gap-1 rounded-full p-2"
               prefetch={true}
             >
@@ -463,4 +729,3 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
     </div>
   );
 }
-
