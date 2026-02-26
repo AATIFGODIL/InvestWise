@@ -44,7 +44,7 @@ export default function useUserData(user: User | null) {
         const { setNotifications } = useNotificationStore.getState();
         const { loadGoals } = useGoalStore.getState();
         const { loadAutoInvestments } = useAutoInvestStore.getState();
-        const { setTheme, setClearMode, setPrimaryColor } = useThemeStore.getState();
+        const { setTheme, setClearMode, setPrimaryColor, setSidebarOrientation } = useThemeStore.getState();
         const { loadPrivacySettings } = usePrivacyStore.getState();
         const { loadWatchlist } = useWatchlistStore.getState();
         const { loadTransactions } = useTransactionStore.getState();
@@ -56,6 +56,7 @@ export default function useUserData(user: User | null) {
         setTheme(userData.theme || "light");
         setClearMode(userData.isClearMode || false);
         setPrimaryColor(userData.primaryColor || '#775DEF');
+        setSidebarOrientation(userData.sidebarOrientation || 'left');
         setUsername(userData.username || "Investor");
         setPhotoURL(userData.photoURL || "");
 

@@ -351,12 +351,7 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
                   isMobileCompact ? "h-8 px-2" : "h-[52px] px-3 sm:px-4"
                 )}
                 onClick={(e) => {
-                  if (useProModeStore.getState().isProMode) {
-                    e.preventDefault();
-                    useProModeStore.getState().setIsNavVisible(false);
-                  } else {
-                    handleNavigate(e, '/dashboard');
-                  }
+                  handleNavigate(e, '/dashboard');
                 }}
               >
                 <h1 className={cn(isMobileCompact ? "text-xs" : "text-md sm:text-lg", "font-bold text-primary-foreground")}>

@@ -50,7 +50,7 @@ interface AuthContextType {
   signInWithApple: () => Promise<void>;
   signOut: () => void;
   updateUserProfile: (data: { username?: string, photoURL?: string }) => Promise<void>;
-  updateUserTheme: (themeData: { theme?: Theme, isClearMode?: boolean, primaryColor?: string }) => Promise<void>;
+  updateUserTheme: (themeData: { theme?: Theme, isClearMode?: boolean, primaryColor?: string, sidebarOrientation?: 'left' | 'right' }) => Promise<void>;
   updatePrivacySettings: (settings: Partial<Omit<PrivacyState, 'setLeaderboardVisibility' | 'setShowQuests' | 'loadPrivacySettings' | 'resetPrivacySettings'>>) => Promise<void>;
   updateFavorites: (favorites: Favorite[]) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
@@ -78,6 +78,7 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
     theme: "light",
     isClearMode: false,
     primaryColor: "#775DEF", // Default purple color
+    sidebarOrientation: "left",
     leaderboardVisibility: "public",
     showQuests: true,
     createdAt: new Date(),
@@ -271,13 +272,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await updateProfile(user, data);
   };
 
-  const updateUserTheme = async (themeData: { theme?: Theme, isClearMode?: boolean, primaryColor?: string }) => {
+  const updateUserTheme = async (themeData: { theme?: Theme, isClearMode?: boolean, primaryColor?: string, sidebarOrientation?: 'left' | 'right' }) => {
     if (!user) return;
 
     const updateData: { [key: string]: any } = {};
     if (themeData.theme !== undefined) updateData.theme = themeData.theme;
     if (themeData.isClearMode !== undefined) updateData.isClearMode = themeData.isClearMode;
     if (themeData.primaryColor !== undefined) updateData.primaryColor = themeData.primaryColor;
+    if (themeData.sidebarOrientation !== undefined) updateData.sidebarOrientation = themeData.sidebarOrientation;
 
     if (Object.keys(updateData).length > 0) {
       const userDocRef = doc(db, "users", user.uid);

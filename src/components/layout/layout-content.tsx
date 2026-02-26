@@ -254,7 +254,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
   // Determine visibility
   const shouldShowHeader = isMobile
     ? isMobileHeaderVisible
-    : (!isSpecialLayoutRoute && (!isProMode || isNavVisible));
+    : (!isSpecialLayoutRoute);
 
   const shouldShowBottomNav = isMobile
     ? isMobileBottomNavVisible
@@ -272,7 +272,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
     return (
       <div className="flex flex-col h-screen relative" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
         {/* Desktop: Accent line + expandable header */}
-        {!isMobile && !isSpecialLayoutRoute && (!isProMode || isNavVisible) && (
+        {!isMobile && !isSpecialLayoutRoute && (
           <div
             className="fixed top-0 left-0 right-0 z-50"
             onMouseEnter={expandDesktopHeader}
@@ -320,62 +320,46 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
           )}
         </AnimatePresence>
 
-        {/* Desktop: Side Rail (with pro mode accent line collapse) */}
+        {/* Desktop: Side Rail & Chatbot (with pro mode accent line collapse) */}
         {!isMobile && shouldShowBottomNav && (
           <div
             className={cn(
-              "fixed top-0 bottom-0 z-40",
-              sidebarOrientation === 'right' ? "right-0" : "left-0"
+              "fixed inset-y-0 z-40 flex items-center",
+              sidebarOrientation === 'right' ? "right-4" : "left-4"
             )}
             onMouseEnter={isProMode ? expandSideRail : undefined}
             onMouseLeave={isProMode ? collapseSideRail : undefined}
           >
-            {/* Pro mode: accent line when collapsed */}
-            {isProMode && !isSideRailExpanded && (
+            <div className="relative flex flex-col items-center justify-center gap-4">
+              {/* Pro mode: accent line when collapsed */}
+              {isProMode && (
+                <div
+                  className={cn(
+                    "absolute inset-y-0 w-[6px] transition-all duration-300 z-50",
+                    isSideRailExpanded ? "opacity-0" : "opacity-100 hover:w-[10px]",
+                    sidebarOrientation === 'right' ? "-right-4" : "-left-4"
+                  )}
+                  style={{
+                    background: `hsl(var(--primary))`,
+                    boxShadow: sidebarOrientation === 'right' ? '-2px 0 8px hsl(var(--primary) / 0.3)' : '2px 0 8px hsl(var(--primary) / 0.3)',
+                    borderRadius: sidebarOrientation === 'right' ? '4px 0 0 4px' : '0 4px 4px 0'
+                  }}
+                />
+              )}
+
+              {/* Keep contents mounted to give the container height, but hide them when collapsed */}
               <div
                 className={cn(
-                  "absolute top-0 bottom-0 w-[6px] transition-all duration-300 hover:w-[10px]",
-                  sidebarOrientation === 'right' ? "right-0" : "left-0"
+                  "flex flex-col items-center gap-3 transition-all duration-300",
+                  !isSideRailExpanded ? (sidebarOrientation === 'right' ? "translate-x-8 opacity-0 pointer-events-none" : "-translate-x-8 opacity-0 pointer-events-none") : "translate-x-0 opacity-100"
                 )}
-                style={{
-                  background: `hsl(var(--primary))`,
-                  boxShadow: sidebarOrientation === 'right' ? '-2px 0 8px hsl(var(--primary) / 0.3)' : '2px 0 8px hsl(var(--primary) / 0.3)',
-                }}
-              />
-            )}
-            {/* Full side rail */}
-            <AnimatePresence>
-              {isSideRailExpanded && (
-                <motion.div
-                  key="side-rail"
-                  initial={{ opacity: 0, x: sidebarOrientation === 'right' ? 40 : -40 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: sidebarOrientation === 'right' ? 40 : -40 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                >
-                  <BottomNav isMobileCompact={false} onHide={undefined} />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
-
-        {/* AI Chatbot icon - sits above sidebar on desktop, or floating on mobile */}
-        {(!isMobile && !isSpecialLayoutRoute) && (
-          <div
-            className={cn(
-              "fixed z-[41] flex justify-center",
-              sidebarOrientation === 'right' ? "right-0" : "left-0"
-            )}
-            style={{
-              top: '16px',
-              width: isSideRailExpanded ? '84px' : '24px',
-              transition: 'width 0.3s ease',
-            }}
-            onMouseEnter={isProMode ? expandSideRail : undefined}
-            onMouseLeave={isProMode ? collapseSideRail : undefined}
-          >
-            <Chatbot isMobileCompact={false} />
+              >
+                <div className="w-[80px] flex justify-center z-50">
+                  <Chatbot isMobileCompact={false} />
+                </div>
+                <BottomNav isMobileCompact={false} noFixedWrapper />
+              </div>
+            </div>
           </div>
         )}
 

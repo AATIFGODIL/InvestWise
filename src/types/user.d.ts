@@ -13,6 +13,7 @@ export interface UserData {
   theme?: Theme;
   isClearMode?: boolean;
   primaryColor?: string;
+  sidebarOrientation?: 'left' | 'right';
   createdAt?: Timestamp;
   portfolio?: {
     holdings: Holding[];

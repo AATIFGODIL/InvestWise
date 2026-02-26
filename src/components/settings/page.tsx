@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Shield, Sun, Eye, ShieldBan, FileUp, ArrowLeft, TrendingUp } from "lucide-react";
+import { Shield, Sun, Eye, ShieldBan, FileUp, ArrowLeft, TrendingUp, Search, Bell, Home, BarChart, Repeat, Target, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useThemeStore } from "@/store/theme-store";
@@ -25,6 +25,7 @@ import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
 import { cn } from "@/lib/utils";
 import { HexColorPicker } from "react-colorful";
 import { useDebounce } from "@/hooks/use-debounce";
+import { motion } from "framer-motion";
 
 
 // --- Helper Functions for Color Management ---
@@ -179,6 +180,122 @@ const ThemeCard: React.FC<ThemeCardProps> = ({ label, themeType, isClear = false
     );
 };
 
+// --- Sidebar Orientation Component ---
+
+function SidebarOrientationSkeleton({ orientation, isSelected, onClick }: { orientation: 'left' | 'right', isSelected: boolean, onClick: () => void }) {
+    return (
+        <button
+            onClick={onClick}
+            className={cn(
+                "w-[260px] aspect-[16/10] rounded-xl border-2 overflow-hidden relative flex flex-col transition-all cursor-pointer text-left focus:outline-none bg-background",
+                isSelected ? "border-primary ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg" : "border-border hover:border-primary/50"
+            )}
+        >
+            {/* App Header */}
+            <div className="h-[4px] w-full shrink-0" style={{ background: 'hsl(var(--primary))' }} />
+            <div className="h-8 border-b bg-card w-full flex items-center justify-between px-3 shrink-0">
+                <div className="flex gap-2 items-center">
+                    <div className="w-4 h-4 rounded bg-primary/20 flex items-center justify-center">
+                        <div className="w-2 h-2 rounded-sm bg-primary/80" />
+                    </div>
+                    <div className="w-16 h-2 rounded-full bg-muted-foreground/20" />
+                </div>
+                <div className="flex gap-2">
+                    <div className="w-3 h-3 rounded-full bg-muted-foreground/20" />
+                    <div className="w-3 h-3 rounded-full bg-muted-foreground/20" />
+                    <div className="w-4 h-4 rounded-full bg-primary/20" />
+                </div>
+            </div>
+
+            <div className="flex flex-1 w-full bg-muted/10 relative overflow-hidden">
+                {orientation === 'left' && (
+                    <motion.div
+                        animate={{ width: [48, 6, 6, 48] }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", times: [0, 0.3, 0.7, 1] }}
+                        className="h-full bg-card border-r flex flex-col items-center py-3 gap-3 relative z-10 shrink-0 box-border overflow-hidden shadow-[2px_0_8px_rgba(0,0,0,0.02)]"
+                    >
+                        {/* Expanded content */}
+                        <motion.div
+                            className="absolute inset-0 flex flex-col items-center py-3 gap-3 w-[48px]"
+                            animate={{ opacity: [1, 0, 0, 1] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", times: [0, 0.25, 0.75, 1] }}
+                        >
+                            <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center shrink-0">
+                                <div className="w-3 h-3 rounded-sm bg-primary/60" />
+                            </div>
+                            <div className="w-full flex flex-col items-center gap-2 mt-2">
+                                <div className="w-5 h-5 rounded flex items-center justify-center bg-muted-foreground/5"><div className="w-3 h-3 bg-muted-foreground/30 rounded-full" /></div>
+                                <div className="w-5 h-5 rounded flex items-center justify-center bg-muted-foreground/5"><div className="w-3 h-3 bg-muted-foreground/30 rounded-[2px]" /></div>
+                                <div className="w-5 h-5 rounded flex items-center justify-center bg-muted-foreground/5"><div className="w-3 h-3 bg-muted-foreground/30 rounded-sm" /></div>
+                            </div>
+                        </motion.div>
+
+                        {/* Collapsed line */}
+                        <motion.div
+                            className="absolute right-0 top-0 bottom-0 z-20"
+                            style={{ background: 'hsl(var(--primary))', borderRadius: '0 4px 4px 0', boxShadow: '2px 0 8px hsl(var(--primary) / 0.3)' }}
+                            animate={{ width: [0, 6, 6, 0], opacity: [0, 1, 1, 0] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", times: [0, 0.3, 0.7, 1] }}
+                        />
+                    </motion.div>
+                )}
+
+                <div className="flex-1 p-4 flex flex-col gap-3 min-w-0">
+                    <div className="w-24 h-3 rounded-full bg-muted-foreground/20" />
+                    <div className="flex gap-3">
+                        <div className="flex-1 h-14 rounded-lg bg-card border shadow-sm flex flex-col justify-center px-3 gap-1.5">
+                            <div className="w-8 h-2 rounded-full bg-muted-foreground/20" />
+                            <div className="w-16 h-3 rounded-full bg-primary/40" />
+                        </div>
+                        <div className="flex-1 h-14 rounded-lg bg-card border shadow-sm flex flex-col justify-center px-3 gap-1.5">
+                            <div className="w-8 h-2 rounded-full bg-muted-foreground/20" />
+                            <div className="w-12 h-3 rounded-full bg-primary/40" />
+                        </div>
+                    </div>
+                    <div className="w-full h-16 rounded-lg bg-card border shadow-sm flex flex-col justify-center px-3 gap-1.5">
+                        <div className="w-12 h-2 rounded-full bg-muted-foreground/20" />
+                        <div className="w-full h-8 rounded bg-muted/50" />
+                    </div>
+                </div>
+
+                {orientation === 'right' && (
+                    <motion.div
+                        animate={{ width: [48, 6, 6, 48] }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", times: [0, 0.3, 0.7, 1] }}
+                        className="h-full bg-card border-l flex flex-col items-center py-3 gap-3 relative z-10 shrink-0 box-border overflow-hidden shadow-[-2px_0_8px_rgba(0,0,0,0.02)]"
+                    >
+                        {/* Expanded content */}
+                        <motion.div
+                            className="absolute inset-0 flex flex-col items-center py-3 gap-3 w-[48px]"
+                            animate={{ opacity: [1, 0, 0, 1] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", times: [0, 0.25, 0.75, 1] }}
+                        >
+                            <div className="w-6 h-6 rounded bg-primary/10 flex items-center justify-center shrink-0">
+                                <div className="w-3 h-3 rounded-sm bg-primary/60" />
+                            </div>
+                            <div className="w-full flex flex-col items-center gap-2 mt-2">
+                                <div className="w-5 h-5 rounded flex items-center justify-center bg-muted-foreground/5"><div className="w-3 h-3 bg-muted-foreground/30 rounded-full" /></div>
+                                <div className="w-5 h-5 rounded flex items-center justify-center bg-muted-foreground/5"><div className="w-3 h-3 bg-muted-foreground/30 rounded-[2px]" /></div>
+                                <div className="w-5 h-5 rounded flex items-center justify-center bg-muted-foreground/5"><div className="w-3 h-3 bg-muted-foreground/30 rounded-sm" /></div>
+                            </div>
+                        </motion.div>
+
+                        {/* Collapsed line */}
+                        <motion.div
+                            className="absolute left-0 top-0 bottom-0 z-20"
+                            style={{ background: 'hsl(var(--primary))', borderRadius: '4px 0 0 4px', boxShadow: '-2px 0 8px hsl(var(--primary) / 0.3)' }}
+                            animate={{ width: [0, 6, 6, 0], opacity: [0, 1, 1, 0] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", times: [0, 0.3, 0.7, 1] }}
+                        />
+                    </motion.div>
+                )}
+            </div>
+            {/* Absolute overlay to capture clicks safely over motion divs */}
+            <div className="absolute inset-0 bg-transparent" />
+        </button>
+    )
+}
+
 // --- Main Settings Component ---
 
 export default function SettingsClient() {
@@ -315,19 +432,33 @@ export default function SettingsClient() {
                                 <ColorPicker />
 
                                 <div className="space-y-4 pt-4 border-t">
-                                    <Label className="font-medium flex items-center gap-2">
+                                    <Label className="font-medium flex items-center justify-center gap-2">
                                         Sidebar Orientation
                                     </Label>
-                                    <RadioGroup value={sidebarOrientation} onValueChange={(value) => setSidebarOrientation(value as 'left' | 'right')}>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="left" id="sidebar-left" />
-                                            <Label htmlFor="sidebar-left">Left</Label>
+                                    <div className="flex flex-wrap items-center gap-8 justify-center mt-4">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <SidebarOrientationSkeleton
+                                                orientation="left"
+                                                isSelected={sidebarOrientation === 'left'}
+                                                onClick={() => {
+                                                    setSidebarOrientation('left');
+                                                    updateUserTheme({ sidebarOrientation: 'left' });
+                                                }}
+                                            />
+                                            <span className="text-sm font-medium">Left</span>
                                         </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="right" id="sidebar-right" />
-                                            <Label htmlFor="sidebar-right">Right</Label>
+                                        <div className="flex flex-col items-center gap-3">
+                                            <SidebarOrientationSkeleton
+                                                orientation="right"
+                                                isSelected={sidebarOrientation === 'right'}
+                                                onClick={() => {
+                                                    setSidebarOrientation('right');
+                                                    updateUserTheme({ sidebarOrientation: 'right' });
+                                                }}
+                                            />
+                                            <span className="text-sm font-medium">Right</span>
                                         </div>
-                                    </RadioGroup>
+                                    </div>
                                 </div>
                             </>
                         )}

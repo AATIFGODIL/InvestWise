@@ -233,55 +233,52 @@ User Context:
   return (
     <>
       <AnimatePresence>
-        {/* Show AI bar: on mobile always (parent controls visibility), on desktop use Pro Mode logic */}
-        {(isMobileCompact || (!isProMode || isNavVisible)) && (
-          <motion.div
-            initial={{ x: -100, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -100, opacity: 0 }}
-            transition={{ duration: 0.8, ease: "easeInOut" }}
-            className={cn(
-              "z-40",
-              isMobileCompact ? "fixed left-0 right-0 mx-auto bottom-14 w-[60%] max-w-[220px]" : "relative w-12 h-12 flex items-center justify-center"
+        <motion.div
+          initial={{ x: -100, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: -100, opacity: 0 }}
+          transition={{ duration: 0.8, ease: "easeInOut" }}
+          className={cn(
+            "z-40",
+            isMobileCompact ? "fixed left-0 right-0 mx-auto bottom-14 w-[60%] max-w-[220px]" : "relative w-12 h-12 flex items-center justify-center"
+          )}
+        >
+          <div className="relative w-full group">
+            {isClearMode && (
+              <div className="frosted-distortion absolute inset-0 rounded-full z-0" />
             )}
-          >
-            <div className="relative w-full group">
-              {isClearMode && (
-                <div className="frosted-distortion absolute inset-0 rounded-full z-0" />
+            <Button
+              variant="outline"
+              className={cn(
+                "relative z-10 rounded-full shadow-2xl shadow-black/20 ring-1 ring-white/60 hover:bg-primary/10 overflow-hidden",
+                isMobileCompact ? "w-full justify-between items-center p-2 h-auto" : "h-12 w-12 p-0 flex items-center justify-center",
+                isClearMode
+                  ? isLightClear
+                    ? "bg-card/60 text-foreground" // Light Clear
+                    : "bg-white/10 text-white" // Dark Clear
+                  : "bg-card text-card-foreground", // Solid
+                // COPY-THIS: To apply the glow effect
+                showGlow && "login-glow"
               )}
-              <Button
-                variant="outline"
-                className={cn(
-                  "relative z-10 rounded-full shadow-2xl shadow-black/20 ring-1 ring-white/60 hover:bg-primary/10 overflow-hidden",
-                  isMobileCompact ? "w-full justify-between items-center p-2 h-auto" : "h-12 w-12 p-0 flex items-center justify-center",
-                  isClearMode
-                    ? isLightClear
-                      ? "bg-card/60 text-foreground" // Light Clear
-                      : "bg-white/10 text-white" // Dark Clear
-                    : "bg-card text-card-foreground", // Solid
-                  // COPY-THIS: To apply the glow effect
-                  showGlow && "login-glow"
-                )}
-                style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
-                onClick={() => openChatbot()}
-              >
-                {isMobileCompact ? (
-                  <>
-                    <div className="flex items-center gap-3">
-                      <Bot className="h-3 w-3 text-primary" />
-                      <span className="text-[8px] font-semibold">Hi! How can I assist you today?</span>
-                    </div>
-                    <div className="p-1 bg-primary rounded-lg">
-                      <MessageCircleQuestion className="h-3 w-3 text-primary-foreground" />
-                    </div>
-                  </>
-                ) : (
-                  <Bot className="h-7 w-7 text-primary" />
-                )}
-              </Button>
-            </div>
-          </motion.div>
-        )}
+              style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
+              onClick={() => openChatbot()}
+            >
+              {isMobileCompact ? (
+                <>
+                  <div className="flex items-center gap-3">
+                    <Bot className="h-3 w-3 text-primary" />
+                    <span className="text-[8px] font-semibold">Hi! How can I assist you today?</span>
+                  </div>
+                  <div className="p-1 bg-primary rounded-lg">
+                    <MessageCircleQuestion className="h-3 w-3 text-primary-foreground" />
+                  </div>
+                </>
+              ) : (
+                <Bot className="h-7 w-7 text-primary" />
+              )}
+            </Button>
+          </div>
+        </motion.div>
       </AnimatePresence>
 
       <Sheet open={isOpen} onOpenChange={closeChatbot}>

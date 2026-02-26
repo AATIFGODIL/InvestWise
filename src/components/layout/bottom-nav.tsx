@@ -22,7 +22,17 @@ import { useProModeStore } from "@/store/pro-mode-store";
 
 type AnimationState = "idle" | "rising" | "sliding" | "descending" | "dragging";
 
-export default function BottomNav({ isMobileCompact = false, onHide }: { isMobileCompact?: boolean; onHide?: () => void }) {
+export default function BottomNav({
+  isMobileCompact = false,
+  onHide,
+  noFixedWrapper = false,
+}: {
+  isMobileCompact?: boolean;
+  onHide?: () => void;
+  /** When true on desktop, renders the nav element without the outer fixed wrapper.
+   *  Use this when BottomNav is placed inside a parent fixed container. */
+  noFixedWrapper?: boolean;
+}) {
   const pathname = usePathname() ?? "/";
   const router = useRouter();
   const navRef = useRef<HTMLElement | null>(null);
@@ -37,7 +47,6 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
   const isLightClear = isClearMode && theme === "light";
   const isMobile = useIsMobile();
 
-  // Desktop => side rail, Mobile => bottom bar
   const isDesktop = !isMobile;
 
   const navItems = useMemo(() => {
@@ -53,9 +62,7 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
     return items;
   }, [isProMode]);
 
-  const [gliderStyle, setGliderStyle] = useState<CSSProperties>({
-    opacity: 0,
-  });
+  const [gliderStyle, setGliderStyle] = useState<CSSProperties>({ opacity: 0 });
   const [hasMounted, setHasMounted] = useState(false);
   const [itemTransforms, setItemTransforms] = useState<Record<number, string>>({});
   const [showGlow, setShowGlow] = useState(false);
@@ -64,20 +71,15 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
   useEffect(() => {
     if (sessionStorage.getItem('showGlowEffect') === 'true') {
       setShowGlow(true);
-      const timer = setTimeout(() => {
-        setShowGlow(false);
-      }, 4000);
+      const timer = setTimeout(() => setShowGlow(false), 4000);
       return () => clearTimeout(timer);
     }
   }, []);
 
-  const WIDTH_FACTOR = 0.95;
   const MIN_GLIDER_WIDTH = 28;
   const MIN_GLIDER_HEIGHT = 28;
 
-  const activeIndex = navItems.findIndex((item) =>
-    pathname.startsWith(item.href)
-  );
+  const activeIndex = navItems.findIndex((item) => pathname.startsWith(item.href));
 
   const getRef = (index: number) => (el: HTMLAnchorElement | null) => {
     itemRefs.current[index] = el;
@@ -90,19 +92,16 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
   const setGliderTo = useCallback((index: number, options: { immediate?: boolean } = {}) => {
     const navEl = navRef.current;
     const target = itemRefs.current[index];
-
     if (!navEl || !target || index === -1) return false;
 
     const navRect = navEl.getBoundingClientRect();
     const itemRect = target.getBoundingClientRect();
 
     if (isDesktop) {
-      // Vertical rail: glider is taller than wide for vertical pill shape
       const gliderHeight = itemRect.height + 12;
       const top = itemRect.top - navRect.top - 6;
       const gliderWidth = Math.round(navRect.width * 0.85);
       const left = Math.round((navRect.width - gliderWidth) / 2);
-
       setGliderStyle({
         width: `${gliderWidth}px`,
         height: `${gliderHeight}px`,
@@ -116,10 +115,8 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
         borderRadius: "9999px",
       });
     } else {
-      // Horizontal bottom bar: glider moves horizontally
       const gliderWidth = Math.max(Math.round(itemRect.width * 0.95), MIN_GLIDER_WIDTH);
       const left = itemRect.left - navRect.left + (itemRect.width - gliderWidth) / 2;
-
       setGliderStyle({
         width: `${gliderWidth}px`,
         height: "calc(100% - 12px)",
@@ -133,11 +130,9 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
       });
     }
     return true;
-  }, [isDesktop, WIDTH_FACTOR, MIN_GLIDER_WIDTH, MIN_GLIDER_HEIGHT]);
+  }, [isDesktop, MIN_GLIDER_WIDTH]);
 
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
+  useEffect(() => { setHasMounted(true); }, []);
 
   const animateItemTransforms = useCallback(() => {
     const gliderEl = navRef.current?.querySelector<HTMLDivElement>('.glider');
@@ -145,7 +140,6 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
 
     const gliderRect = gliderEl.getBoundingClientRect();
     const navRect = navRef.current.getBoundingClientRect();
-
     const newTransforms: Record<number, string> = {};
 
     itemRefs.current.forEach((itemEl, index) => {
@@ -153,29 +147,23 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
       const itemRect = itemEl.getBoundingClientRect();
 
       if (isDesktop) {
-        // Vertical rail: items rise (shift up) when glider is near
         const itemCenter = itemRect.top - navRect.top + itemRect.height / 2;
         const gliderCenter = gliderRect.top - navRect.top + gliderRect.height / 2;
         const distance = Math.abs(itemCenter - gliderCenter);
         const effectRadius = gliderRect.height * 0.8;
-
         if (distance < effectRadius) {
           const scale = Math.cos((distance / effectRadius) * (Math.PI / 2));
-          const rise = -4 * scale;
-          newTransforms[index] = `translateY(${rise}px)`;
+          newTransforms[index] = `translateY(${-4 * scale}px)`;
         } else {
           newTransforms[index] = 'translateY(0px)';
         }
       } else {
-        // Horizontal: items rise up
         const itemCenter = itemRect.left - navRect.left + itemRect.width / 2;
         const distance = Math.abs(itemCenter - (gliderRect.left - navRect.left + gliderRect.width / 2));
         const effectRadius = gliderRect.width * 0.8;
-
         if (distance < effectRadius) {
           const scale = Math.cos((distance / effectRadius) * (Math.PI / 2));
-          const rise = -6 * scale;
-          newTransforms[index] = `translateY(${rise}px)`;
+          newTransforms[index] = `translateY(${-6 * scale}px)`;
         } else {
           newTransforms[index] = 'translateY(0px)';
         }
@@ -183,7 +171,6 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
     });
 
     setItemTransforms(newTransforms);
-
     if (animationStateRef.current === 'sliding' || animationStateRef.current === 'dragging') {
       animationFrameRef.current = requestAnimationFrame(animateItemTransforms);
     }
@@ -208,7 +195,6 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
     const endRect = endItem.getBoundingClientRect();
 
     if (isDesktop) {
-      // Vertical animation - full width glider, generous height
       const startHeight = startRect.height + 12;
       const startTop = startRect.top - navRect.top - 6;
       const endHeight = endRect.height + 12;
@@ -288,7 +274,6 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
         clearTimeout(idleTimeout);
       };
     } else {
-      // Horizontal animation (original bottom bar logic)
       const startWidth = Math.max(Math.round(startRect.width * 0.95), MIN_GLIDER_WIDTH);
       const startLeft = startRect.left - navRect.left + (startRect.width - startWidth) / 2;
       const endWidth = Math.max(Math.round(endRect.width * 0.95), MIN_GLIDER_WIDTH);
@@ -363,8 +348,7 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
         clearTimeout(idleTimeout);
       };
     }
-  }, [activeIndex, isClearMode, router, isDesktop, WIDTH_FACTOR, MIN_GLIDER_WIDTH, MIN_GLIDER_HEIGHT, animateItemTransforms, navItems]);
-
+  }, [activeIndex, isClearMode, router, isDesktop, MIN_GLIDER_WIDTH, animateItemTransforms, navItems]);
 
   useEffect(() => {
     if (externalActiveIndex !== null) {
@@ -377,7 +361,6 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
     }
   }, [externalActiveIndex, samePageIndex, animateTo, clearActiveIndex, targetPath]);
 
-
   useEffect(() => {
     if (activeIndex !== -1 && animationStateRef.current === 'idle') {
       setGliderTo(activeIndex, { immediate: !hasMounted });
@@ -386,7 +369,6 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, [pathname, activeIndex, hasMounted, setGliderTo]);
-
 
   const handleMouseDown = (e: MouseEvent<HTMLAnchorElement>, clickedIndex: number) => {
     e.preventDefault();
@@ -406,15 +388,7 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
         const gliderWidth = Math.round(navRect.width * 0.85);
         const left = Math.round((navRect.width - gliderWidth) / 2);
 
-        dragStartInfo.current = {
-          x: e.clientX,
-          y: e.clientY,
-          left,
-          top: startTop,
-          width: gliderWidth,
-          height: gliderHeight,
-        };
-
+        dragStartInfo.current = { x: e.clientX, y: e.clientY, left, top: startTop, width: gliderWidth, height: gliderHeight };
         setAnimationState("dragging");
         window.dispatchEvent(new CustomEvent('bottomNavDragStart'));
         setGliderStyle(prev => ({
@@ -433,15 +407,7 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
         const gliderWidth = Math.max(Math.round(itemRect.width * 0.95), MIN_GLIDER_WIDTH);
         const startLeft = itemRect.left - navRect.left + (itemRect.width - gliderWidth) / 2;
 
-        dragStartInfo.current = {
-          x: e.clientX,
-          y: e.clientY,
-          left: startLeft,
-          top: 0,
-          width: gliderWidth,
-          height: 0,
-        };
-
+        dragStartInfo.current = { x: e.clientX, y: e.clientY, left: startLeft, top: 0, width: gliderWidth, height: 0 };
         setAnimationState("dragging");
         window.dispatchEvent(new CustomEvent('bottomNavDragStart'));
         setGliderStyle(prev => ({
@@ -466,22 +432,18 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
 
   const handleMouseMove = (e: globalThis.MouseEvent) => {
     if (animationStateRef.current !== "dragging" || !dragStartInfo.current) return;
-
     if (isDesktop) {
       const dy = e.clientY - dragStartInfo.current.y;
-      const newTop = dragStartInfo.current.top + dy;
-      const left = dragStartInfo.current.left;
       setGliderStyle(prev => ({
         ...prev,
-        transform: `translateX(${left}px) translateY(${newTop}px)`,
+        transform: `translateX(${dragStartInfo.current!.left}px) translateY(${dragStartInfo.current!.top + dy}px)`,
         transition: "none",
       }));
     } else {
       const dx = e.clientX - dragStartInfo.current.x;
-      const newLeft = dragStartInfo.current.left + dx;
       setGliderStyle(prev => ({
         ...prev,
-        transform: `translateX(${newLeft}px) translateY(-50%)`,
+        transform: `translateX(${dragStartInfo.current!.left + dx}px) translateY(-50%)`,
         transition: "none",
       }));
     }
@@ -490,7 +452,6 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
   const handleMouseUp = (e: globalThis.MouseEvent) => {
     window.removeEventListener("mousemove", handleMouseMove);
     if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-
     if (animationStateRef.current !== "dragging" || !dragStartInfo.current) return;
 
     window.dispatchEvent(new CustomEvent('bottomNavDragEnd'));
@@ -507,20 +468,12 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
         const itemRect = itemEl.getBoundingClientRect();
         if (isDesktop) {
           const itemCenter = (itemRect.top - navRect.top) + itemRect.height / 2;
-          const dropY = e.clientY - navRect.top;
-          const distance = Math.abs(dropY - itemCenter);
-          if (distance < minDistance) {
-            minDistance = distance;
-            closestIndex = index;
-          }
+          const distance = Math.abs((e.clientY - navRect.top) - itemCenter);
+          if (distance < minDistance) { minDistance = distance; closestIndex = index; }
         } else {
           const itemCenter = (itemRect.left - navRect.left) + itemRect.width / 2;
-          const dropX = e.clientX - navRect.left;
-          const distance = Math.abs(dropX - itemCenter);
-          if (distance < minDistance) {
-            minDistance = distance;
-            closestIndex = index;
-          }
+          const distance = Math.abs((e.clientX - navRect.left) - itemCenter);
+          if (distance < minDistance) { minDistance = distance; closestIndex = index; }
         }
       }
     });
@@ -528,7 +481,6 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
     const endItem = itemRefs.current[closestIndex];
     if (endItem) {
       const endRect = endItem.getBoundingClientRect();
-
       setAnimationState("descending");
       setItemTransforms({});
 
@@ -537,7 +489,6 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
         const endTop = endRect.top - navRect.top - 6;
         const gliderWidth = Math.round(navRect.width * 0.85);
         const left = Math.round((navRect.width - gliderWidth) / 2);
-
         setGliderStyle(prev => ({
           ...prev,
           width: `${gliderWidth}px`,
@@ -553,7 +504,6 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
       } else {
         const endWidth = Math.max(Math.round(endRect.width * 0.95), MIN_GLIDER_WIDTH);
         const endLeft = endRect.left - navRect.left + (endRect.width - endWidth) / 2;
-
         setGliderStyle(prev => ({
           ...prev,
           width: `${endWidth}px`,
@@ -568,9 +518,7 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
       }
 
       const navigationTimeout = setTimeout(() => {
-        if (closestIndex !== activeIndex) {
-          router.push(navItems[closestIndex].href);
-        }
+        if (closestIndex !== activeIndex) router.push(navItems[closestIndex].href);
         setAnimationState("idle");
       }, 350);
 
@@ -581,87 +529,89 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
     setAnimationState("idle");
   };
 
-
   // ============================================================
   // RENDER: Desktop Side Rail
   // ============================================================
   if (isDesktop) {
-    return (
-      <div className="fixed top-0 left-0 bottom-0 z-40 flex items-center p-2">
-        <nav
-          ref={navRef}
-          className={cn(
-            "relative flex flex-col items-center justify-between gap-4 rounded-full py-6 px-2 shadow-2xl shadow-black/20 ring-1 ring-white/60",
-            "w-[80px]",
-            isClearMode
-              ? isLightClear
-                ? "bg-card/60"
-                : "bg-white/10"
-              : "bg-card",
-            showGlow && "login-glow"
-          )}
+    const navElement = (
+      <nav
+        ref={navRef}
+        className={cn(
+          "relative flex flex-col items-center justify-between gap-4 rounded-full py-6 px-2 shadow-2xl shadow-black/20 ring-1 ring-white/60",
+          "w-[80px]",
+          isClearMode
+            ? isLightClear ? "bg-card/60" : "bg-white/10"
+            : "bg-card",
+          showGlow && "login-glow"
+        )}
+        style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "blur(12px)" }}
+      >
+        <div
+          className="glider absolute pointer-events-none rounded-full"
           style={{
-            backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "blur(12px)",
+            ...gliderStyle,
+            visibility: hasMounted ? "visible" : "hidden",
+            willChange: 'transform, width, height, background-color, backdrop-filter',
           }}
-        >
-          <div
-            className="glider absolute pointer-events-none rounded-full"
-            style={{
-              ...gliderStyle,
-              visibility: hasMounted ? "visible" : "hidden",
-              willChange: 'transform, width, height, background-color, backdrop-filter',
-            }}
-          />
-
-          {navItems.map((item, index) => {
-            const isActive = index === activeIndex;
-            const isHovered = hoveredIndex === index;
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                ref={getRef(index)}
-                id={index === 0 ? 'bottom-nav-explore-tutorial' : undefined}
-                onMouseDown={(e) => handleMouseDown(e, index)}
-                onClick={(e) => e.preventDefault()}
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
-                className="z-10 flex w-full flex-col items-center justify-center gap-1 rounded-full py-5 px-1.5 relative group"
-                prefetch={true}
+        />
+        {navItems.map((item, index) => {
+          const isActive = index === activeIndex;
+          const isHovered = hoveredIndex === index;
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              ref={getRef(index)}
+              id={index === 0 ? 'bottom-nav-explore-tutorial' : undefined}
+              onMouseDown={(e) => handleMouseDown(e, index)}
+              onClick={(e) => e.preventDefault()}
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
+              className="z-10 flex w-full flex-col items-center justify-center gap-1 rounded-full py-5 px-1.5 relative group"
+              prefetch={true}
+            >
+              <div
+                className={cn(
+                  "flex flex-col items-center transition-all duration-300",
+                  isActive
+                    ? "text-primary-foreground"
+                    : isLightClear ? "text-foreground" : (isClearMode ? "text-slate-100" : "text-muted-foreground")
+                )}
+                style={{
+                  transform: itemTransforms[index] || 'translateY(0px)',
+                  transition: 'transform 300ms cubic-bezier(0.22, 1, 0.36, 1)',
+                }}
               >
+                <item.icon className="h-6 w-6" />
+                <span className="text-[10px] font-medium leading-tight mt-0.5">{item.label}</span>
+              </div>
+              {isHovered && !isActive && (
                 <div
-                  className={cn(
-                    "flex flex-col items-center transition-all duration-300",
-                    isActive
-                      ? "text-primary-foreground"
-                      : isLightClear ? "text-foreground" : (isClearMode ? "text-slate-100" : "text-muted-foreground")
-                  )}
+                  className="absolute left-full ml-3 px-2.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap pointer-events-none z-50"
                   style={{
-                    transform: itemTransforms[index] || 'translateY(0px)',
-                    transition: 'transform 300ms cubic-bezier(0.22, 1, 0.36, 1)',
+                    backgroundColor: 'hsl(var(--popover))',
+                    color: 'hsl(var(--popover-foreground))',
+                    boxShadow: '0 4px 12px rgb(0 0 0 / 0.15)',
                   }}
                 >
-                  <item.icon className="h-6 w-6" />
-                  <span className="text-[10px] font-medium leading-tight mt-0.5">{item.label}</span>
+                  {item.label}
                 </div>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
+    );
 
-                {/* Tooltip on hover (only when not active) */}
-                {isHovered && !isActive && (
-                  <div
-                    className="absolute left-full ml-3 px-2.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap pointer-events-none z-50"
-                    style={{
-                      backgroundColor: 'hsl(var(--popover))',
-                      color: 'hsl(var(--popover-foreground))',
-                      boxShadow: '0 4px 12px rgb(0 0 0 / 0.15)',
-                    }}
-                  >
-                    {item.label}
-                  </div>
-                )}
-              </Link>
-            );
-          })}
-        </nav>
+    // When noFixedWrapper=true, return just the nav (for use inside a parent container)
+    if (noFixedWrapper) {
+      return navElement;
+    }
+
+    // Default: wrap in fixed positioning container
+    return (
+      <div className="fixed top-0 left-0 bottom-0 z-40 flex items-center p-2">
+        {navElement}
       </div>
     );
   }
@@ -677,9 +627,7 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
           "relative flex items-center justify-around rounded-full p-1 px-2 shadow-2xl shadow-black/20 ring-1 ring-white/60",
           isMobileCompact ? "h-10" : "h-16",
           isClearMode
-            ? isLightClear
-              ? "bg-card/60"
-              : "bg-white/10"
+            ? isLightClear ? "bg-card/60" : "bg-white/10"
             : "bg-card",
           showGlow && "login-glow"
         )}
@@ -693,7 +641,6 @@ export default function BottomNav({ isMobileCompact = false, onHide }: { isMobil
             willChange: 'transform, width, height, background-color, backdrop-filter',
           }}
         />
-
         {navItems.map((item, index) => {
           const isActive = index === activeIndex;
           return (
