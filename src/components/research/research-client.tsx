@@ -18,6 +18,7 @@ import { useThemeStore } from '@/store/theme-store';
 import ResearchTradeForm from './research-trade-form';
 import { AnimatePresence, motion } from 'framer-motion';
 import { fetchTopFinancialNewsAction } from '@/app/actions';
+import { ProModeToggle } from '@/components/shared/pro-mode-toggle';
 
 const TradingViewWidget = dynamic(
     () => import('@/components/shared/trading-view-widget'),
@@ -332,6 +333,7 @@ export default function ResearchClient() {
                         </svg>
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => setGridMode(4)} className={gridMode === 4 ? "bg-muted" : "text-muted-foreground"}><LayoutGrid className="h-4 w-4 rotate-90" /></Button>
+                    <ProModeToggle className="ml-2 mr-2" showLabel={false} />
                     <Button variant="outline" size="icon" onClick={toggleZoom} className="ml-2 border-white/20 text-white hover:bg-white/10">
                         {isCustomZoom ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
                     </Button>
