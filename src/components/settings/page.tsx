@@ -5,11 +5,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -90,9 +90,9 @@ function hexToHslString(hex: string): string {
 
 function ColorPicker() {
     const { primaryColor: storedPrimaryColor, setPrimaryColor } = useThemeStore();
-    
+
     const [color, setColor] = useState(storedPrimaryColor);
-    
+
     const { updateUserTheme } = useAuth();
     const debouncedColor = useDebounce(color, 200);
 
@@ -105,16 +105,16 @@ function ColorPicker() {
         const newHex = `#${e.target.value.replace('#', '')}`;
         setColor(newHex);
     };
-    
+
     useEffect(() => {
         setPrimaryColor(debouncedColor);
-        
+
         const hslString = hexToHslString(debouncedColor);
         document.documentElement.style.setProperty('--primary', hslString);
 
         setForegroundForContrast(debouncedColor);
-        
-        updateUserTheme({ primaryColor: debouncedColor }); 
+
+        updateUserTheme({ primaryColor: debouncedColor });
     }, [debouncedColor, updateUserTheme, setPrimaryColor]);
 
     return (
@@ -131,7 +131,7 @@ function ColorPicker() {
                         className={cn("pl-7 font-mono", !/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.test(color) && "border-destructive")}
                     />
                 </div>
-                 <p className="text-xs text-muted-foreground text-center">Default color is #775DEF</p>
+                <p className="text-xs text-muted-foreground text-center">Default color is #775DEF</p>
             </div>
         </div>
     )
@@ -140,225 +140,241 @@ function ColorPicker() {
 // --- ThemeCard Component ---
 
 interface ThemeCardProps {
-  label: string;
-  themeType: "light" | "dark";
-  isClear?: boolean;
-  isSelected: boolean;
-  onClick: () => void;
+    label: string;
+    themeType: "light" | "dark";
+    isClear?: boolean;
+    isSelected: boolean;
+    onClick: () => void;
 }
 
 const ThemeCard: React.FC<ThemeCardProps> = ({ label, themeType, isClear = false, isSelected, onClick }) => {
-  return (
-    <div className="text-center flex flex-col items-center">
-      <button
-        onClick={onClick}
-        className={cn(
-          "h-24 w-24 rounded-lg p-2 transition-all duration-200 flex items-center justify-center",
-          isSelected ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : "ring-1 ring-border"
-        )}
-      >
-        <div
-          className={cn(
-            "w-full h-full rounded-md flex items-center justify-center",
-            themeType === 'light' && !isClear && "bg-white",
-            themeType === 'dark' && !isClear && "bg-gray-800",
-            isClear && "bg-gray-700/50 backdrop-blur-sm"
-          )}
-        >
-          <TrendingUp className={cn(
-            "h-8 w-8",
-             (themeType === 'dark' && !isClear) || (isClear && themeType === 'light') ? "text-white" : "",
-             themeType === 'light' && !isClear ? "text-gray-800" : "",
-             isClear && themeType === 'dark' ? "text-primary" : ""
-          )} />
+    return (
+        <div className="text-center flex flex-col items-center">
+            <button
+                onClick={onClick}
+                className={cn(
+                    "h-24 w-24 rounded-lg p-2 transition-all duration-200 flex items-center justify-center",
+                    isSelected ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : "ring-1 ring-border"
+                )}
+            >
+                <div
+                    className={cn(
+                        "w-full h-full rounded-md flex items-center justify-center",
+                        themeType === 'light' && !isClear && "bg-white",
+                        themeType === 'dark' && !isClear && "bg-gray-800",
+                        isClear && "bg-gray-700/50 backdrop-blur-sm"
+                    )}
+                >
+                    <TrendingUp className={cn(
+                        "h-8 w-8",
+                        (themeType === 'dark' && !isClear) || (isClear && themeType === 'light') ? "text-white" : "",
+                        themeType === 'light' && !isClear ? "text-gray-800" : "",
+                        isClear && themeType === 'dark' ? "text-primary" : ""
+                    )} />
+                </div>
+            </button>
+            <p className="text-sm font-medium mt-2">{label}</p>
+            {label === 'Clear' && <p className="text-xs text-muted-foreground">(Liquid Glass)</p>}
         </div>
-      </button>
-      <p className="text-sm font-medium mt-2">{label}</p>
-      {label === 'Clear' && <p className="text-xs text-muted-foreground">(Liquid Glass)</p>}
-    </div>
-  );
+    );
 };
 
 // --- Main Settings Component ---
 
 export default function SettingsClient() {
-  const router = useRouter();
-  const [parentalControl, setParentalControl] = useState(false);
-  const { theme, setTheme, isClearMode, setClearMode, primaryColor } = useThemeStore();
-  const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
-  const { user, updateUserTheme, updatePrivacySettings } = useAuth();
-  const [isClient, setIsClient] = useState(false);
-  const isLightClear = isClearMode && theme === 'light';
+    const router = useRouter();
+    const [parentalControl, setParentalControl] = useState(false);
+    const { theme, setTheme, isClearMode, setClearMode, primaryColor, sidebarOrientation, setSidebarOrientation } = useThemeStore();
+    const { leaderboardVisibility, setLeaderboardVisibility, showQuests, setShowQuests } = usePrivacyStore();
+    const { user, updateUserTheme, updatePrivacySettings } = useAuth();
+    const [isClient, setIsClient] = useState(false);
+    const isLightClear = isClearMode && theme === 'light';
 
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-  
-  const handleThemeChange = (newTheme: "light" | "dark") => {
-    setTheme(newTheme);
-    updateUserTheme({ theme: newTheme });
-  };
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
-  const handleClearModeToggle = () => {
-    const newClearMode = !isClearMode;
-    setClearMode(newClearMode);
-    updateUserTheme({ isClearMode: newClearMode });
-  };
+    const handleThemeChange = (newTheme: "light" | "dark") => {
+        setTheme(newTheme);
+        updateUserTheme({ theme: newTheme });
+    };
+
+    const handleClearModeToggle = () => {
+        const newClearMode = !isClearMode;
+        setClearMode(newClearMode);
+        updateUserTheme({ isClearMode: newClearMode });
+    };
 
 
-  const handleLeaderboardChange = (visibility: LeaderboardVisibility) => {
-    setLeaderboardVisibility(visibility);
-    updatePrivacySettings({ leaderboardVisibility: visibility });
-  };
-  
-  const handleQuestsChange = (show: boolean) => {
-    setShowQuests(show);
-    updatePrivacySettings({ showQuests: show });
-  }
+    const handleLeaderboardChange = (visibility: LeaderboardVisibility) => {
+        setLeaderboardVisibility(visibility);
+        updatePrivacySettings({ leaderboardVisibility: visibility });
+    };
 
-  return (
-      <div className="relative">
-        <div className="fixed top-4 left-4 z-40">
-             <button
-                onClick={() => router.back()}
-                className={cn(
-                    "flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-colors shimmer-bg",
-                    isClearMode
-                        ? isLightClear
-                            ? "bg-card/60 text-foreground ring-1 ring-white/20"
-                            : "bg-white/10 text-slate-100 ring-1 ring-white/60"
-                        : "bg-background text-foreground ring-1 ring-border"
-                )}
-                style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
+    const handleQuestsChange = (show: boolean) => {
+        setShowQuests(show);
+        updatePrivacySettings({ showQuests: show });
+    }
+
+    return (
+        <div className="relative">
+            <div className="fixed top-4 left-4 z-40">
+                <button
+                    onClick={() => router.back()}
+                    className={cn(
+                        "flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-colors shimmer-bg",
+                        isClearMode
+                            ? isLightClear
+                                ? "bg-card/60 text-foreground ring-1 ring-white/20"
+                                : "bg-white/10 text-slate-100 ring-1 ring-white/60"
+                            : "bg-background text-foreground ring-1 ring-border"
+                    )}
+                    style={{ backdropFilter: isClearMode ? "blur(2px)" : "none" }}
                 >
-                <ArrowLeft className="h-6 w-6" />
-            </button>
-        </div>
-        
-        <main className="container mx-auto p-4 space-y-8 pb-24 max-w-4xl">
-            {user && <PaymentMethods userId={user.uid} />}
+                    <ArrowLeft className="h-6 w-6" />
+                </button>
+            </div>
 
-            <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Shield className="text-primary"/>Parental Control</CardTitle>
-                <CardDescription>
-                Manage content and feature restrictions for younger users.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                <Label htmlFor="parental-control" className="font-medium">Enable Parental Controls</Label>
-                <Switch 
-                    id="parental-control" 
-                    checked={parentalControl} 
-                    onCheckedChange={setParentalControl}
-                />
-                </div>
-                {parentalControl && (
-                    <div className="p-4 rounded-lg bg-muted/50 space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="parent-email">Parent's Email</Label>
-                            <Input id="parent-email" type="email" placeholder="parent@example.com"/>
+            <main className="container mx-auto p-4 space-y-8 pb-24 max-w-4xl">
+                {user && <PaymentMethods userId={user.uid} />}
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Shield className="text-primary" />Parental Control</CardTitle>
+                        <CardDescription>
+                            Manage content and feature restrictions for younger users.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                            <Label htmlFor="parental-control" className="font-medium">Enable Parental Controls</Label>
+                            <Switch
+                                id="parental-control"
+                                checked={parentalControl}
+                                onCheckedChange={setParentalControl}
+                            />
                         </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="parent-id">Parent's ID Verification</Label>
-                            <Button asChild variant="outline" className="w-full justify-start text-muted-foreground font-normal">
-                                <div>
-                                    <FileUp className="h-4 w-4 mr-2" />
-                                    Upload Parent's Government ID
+                        {parentalControl && (
+                            <div className="p-4 rounded-lg bg-muted/50 space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="parent-email">Parent's Email</Label>
+                                    <Input id="parent-email" type="email" placeholder="parent@example.com" />
                                 </div>
-                            </Button>
-                            <Input id="parent-id" type="file" className="hidden" accept="application/pdf, image/*" />
-                        </div>
-                        <Button className="w-full">Save Parental Settings</Button>
-                    </div>
-                )}
-            </CardContent>
-            </Card>
+                                <div className="space-y-2">
+                                    <Label htmlFor="parent-id">Parent's ID Verification</Label>
+                                    <Button asChild variant="outline" className="w-full justify-start text-muted-foreground font-normal">
+                                        <div>
+                                            <FileUp className="h-4 w-4 mr-2" />
+                                            Upload Parent's Government ID
+                                        </div>
+                                    </Button>
+                                    <Input id="parent-id" type="file" className="hidden" accept="application/pdf, image/*" />
+                                </div>
+                                <Button className="w-full">Save Parental Settings</Button>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
 
-            <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Sun className="text-primary"/>Appearance</CardTitle>
-                <CardDescription>
-                Customize the look and feel of the app.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-8">
-                {!isClient ? (
-                    <div className="space-y-4">
-                        <Skeleton className="h-32 w-full skeleton-shimmer" />
-                        <Skeleton className="h-48 w-full skeleton-shimmer" />
-                    </div>
-                ) : (
-                    <>
-                    <div className="grid grid-cols-3 gap-4 justify-items-center">
-                            <ThemeCard
-                                label="Light"
-                                themeType="light"
-                                isSelected={theme === 'light'}
-                                onClick={() => handleThemeChange('light')}
-                            />
-                            <ThemeCard
-                                label="Dark"
-                                themeType="dark"
-                                isSelected={theme === 'dark'}
-                                onClick={() => handleThemeChange('dark')}
-                            />
-                            <ThemeCard
-                                label="Clear"
-                                themeType={theme}
-                                isClear={true}
-                                isSelected={isClearMode}
-                                onClick={handleClearModeToggle}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Sun className="text-primary" />Appearance</CardTitle>
+                        <CardDescription>
+                            Customize the look and feel of the app.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-8">
+                        {!isClient ? (
+                            <div className="space-y-4">
+                                <Skeleton className="h-32 w-full skeleton-shimmer" />
+                                <Skeleton className="h-48 w-full skeleton-shimmer" />
+                            </div>
+                        ) : (
+                            <>
+                                <div className="grid grid-cols-3 gap-4 justify-items-center">
+                                    <ThemeCard
+                                        label="Light"
+                                        themeType="light"
+                                        isSelected={theme === 'light'}
+                                        onClick={() => handleThemeChange('light')}
+                                    />
+                                    <ThemeCard
+                                        label="Dark"
+                                        themeType="dark"
+                                        isSelected={theme === 'dark'}
+                                        onClick={() => handleThemeChange('dark')}
+                                    />
+                                    <ThemeCard
+                                        label="Clear"
+                                        themeType={theme}
+                                        isClear={true}
+                                        isSelected={isClearMode}
+                                        onClick={handleClearModeToggle}
+                                    />
+                                </div>
+                                <ColorPicker />
+
+                                <div className="space-y-4 pt-4 border-t">
+                                    <Label className="font-medium flex items-center gap-2">
+                                        Sidebar Orientation
+                                    </Label>
+                                    <RadioGroup value={sidebarOrientation} onValueChange={(value) => setSidebarOrientation(value as 'left' | 'right')}>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="left" id="sidebar-left" />
+                                            <Label htmlFor="sidebar-left">Left</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <RadioGroupItem value="right" id="sidebar-right" />
+                                            <Label htmlFor="sidebar-right">Right</Label>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+                            </>
+                        )}
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2"><Eye className="text-primary" />Privacy</CardTitle>
+                        <CardDescription>
+                            Control how your information is shared within the community.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="p-4 rounded-lg bg-muted/50 space-y-3">
+                            <Label className="font-medium flex items-center gap-2">
+                                Leaderboard Visibility
+                            </Label>
+                            <RadioGroup value={leaderboardVisibility} onValueChange={(value) => handleLeaderboardChange(value as LeaderboardVisibility)}>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="public" id="vis-public" />
+                                    <Label htmlFor="vis-public">Public (Show rank and username)</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="anonymous" id="vis-anon" />
+                                    <Label htmlFor="vis-anon">Anonymous (Show rank, hide username)</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="hidden" id="vis-hidden" />
+                                    <Label htmlFor="vis-hidden">Hidden (Don't show on leaderboard)</Label>
+                                </div>
+                            </RadioGroup>
+                        </div>
+                        <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+                            <Label htmlFor="quests-switch" className="font-medium flex items-center gap-2">
+                                <ShieldBan className="h-4 w-4" />
+                                Participate in Quests
+                            </Label>
+                            <Switch
+                                id="quests-switch"
+                                checked={showQuests}
+                                onCheckedChange={handleQuestsChange}
                             />
                         </div>
-                        <ColorPicker />
-                    </>
-                )}
-            </CardContent>
-            </Card>
-
-            <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2"><Eye className="text-primary"/>Privacy</CardTitle>
-                <CardDescription>
-                Control how your information is shared within the community.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="p-4 rounded-lg bg-muted/50 space-y-3">
-                <Label className="font-medium flex items-center gap-2">
-                    Leaderboard Visibility
-                </Label>
-                <RadioGroup value={leaderboardVisibility} onValueChange={(value) => handleLeaderboardChange(value as LeaderboardVisibility)}>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="public" id="vis-public" />
-                        <Label htmlFor="vis-public">Public (Show rank and username)</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="anonymous" id="vis-anon" />
-                        <Label htmlFor="vis-anon">Anonymous (Show rank, hide username)</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="hidden" id="vis-hidden" />
-                        <Label htmlFor="vis-hidden">Hidden (Don't show on leaderboard)</Label>
-                    </div>
-                </RadioGroup>
-                </div>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
-                <Label htmlFor="quests-switch" className="font-medium flex items-center gap-2">
-                    <ShieldBan className="h-4 w-4" />
-                    Participate in Quests
-                    </Label>
-                <Switch 
-                    id="quests-switch" 
-                    checked={showQuests} 
-                    onCheckedChange={handleQuestsChange}
-                />
-                </div>
-            </CardContent>
-            </Card>
-        </main>
-      </div>
-  );
+                    </CardContent>
+                </Card>
+            </main>
+        </div>
+    );
 }

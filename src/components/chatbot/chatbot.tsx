@@ -241,8 +241,8 @@ User Context:
             exit={{ x: -100, opacity: 0 }}
             transition={{ duration: 0.8, ease: "easeInOut" }}
             className={cn(
-              "fixed left-0 right-0 mx-auto z-40",
-              isMobileCompact ? "bottom-14 w-[60%] max-w-[220px]" : "bottom-20 w-[90%] max-w-md"
+              "z-40",
+              isMobileCompact ? "fixed left-0 right-0 mx-auto bottom-14 w-[60%] max-w-[220px]" : "relative w-12 h-12 flex items-center justify-center"
             )}
           >
             <div className="relative w-full group">
@@ -252,8 +252,8 @@ User Context:
               <Button
                 variant="outline"
                 className={cn(
-                  "relative z-10 w-full justify-between items-center rounded-full shadow-2xl shadow-black/20 ring-1 ring-white/60 hover:bg-primary/10 overflow-hidden",
-                  isMobileCompact ? "p-2 h-auto" : "p-3 h-auto",
+                  "relative z-10 rounded-full shadow-2xl shadow-black/20 ring-1 ring-white/60 hover:bg-primary/10 overflow-hidden",
+                  isMobileCompact ? "w-full justify-between items-center p-2 h-auto" : "h-12 w-12 p-0 flex items-center justify-center",
                   isClearMode
                     ? isLightClear
                       ? "bg-card/60 text-foreground" // Light Clear
@@ -265,13 +265,19 @@ User Context:
                 style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "none" }}
                 onClick={() => openChatbot()}
               >
-                <div className="flex items-center gap-3">
-                  <Bot className={cn(isMobileCompact ? "h-3 w-3" : "h-6 w-6", "text-primary")} />
-                  <span className={cn(isMobileCompact ? "text-[8px]" : "text-sm", "font-semibold")}>Hi! How can I assist you today?</span>
-                </div>
-                <div className={cn(isMobileCompact ? "p-1" : "p-2", "bg-primary rounded-lg")}>
-                  <MessageCircleQuestion className={cn(isMobileCompact ? "h-3 w-3" : "h-5 w-5", "text-primary-foreground")} />
-                </div>
+                {isMobileCompact ? (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <Bot className="h-3 w-3 text-primary" />
+                      <span className="text-[8px] font-semibold">Hi! How can I assist you today?</span>
+                    </div>
+                    <div className="p-1 bg-primary rounded-lg">
+                      <MessageCircleQuestion className="h-3 w-3 text-primary-foreground" />
+                    </div>
+                  </>
+                ) : (
+                  <Bot className="h-7 w-7 text-primary" />
+                )}
               </Button>
             </div>
           </motion.div>

@@ -16,6 +16,7 @@ import Chatbot from '@/components/chatbot/chatbot';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Navigation } from 'lucide-react';
 import { useThemeStore } from '@/store/theme-store';
+import { cn } from '@/lib/utils';
 
 // Dynamically import client-heavy components
 const Header = dynamic(() => import('@/components/layout/header'), { ssr: false });
@@ -29,7 +30,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
   const [isRaining, setIsRaining] = useState(false);
   const { isProMode, isNavVisible, setIsNavVisible } = useProModeStore();
   const isMobile = useIsMobile();
-  const { primaryColor } = useThemeStore();
+  const { primaryColor, sidebarOrientation } = useThemeStore();
 
   // Desktop header: scroll-based collapse + hover expand
   const [isAtTop, setIsAtTop] = useState(true); // true when scroll is at the top
@@ -322,17 +323,23 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
         {/* Desktop: Side Rail (with pro mode accent line collapse) */}
         {!isMobile && shouldShowBottomNav && (
           <div
-            className="fixed top-0 left-0 bottom-0 z-40"
+            className={cn(
+              "fixed top-0 bottom-0 z-40",
+              sidebarOrientation === 'right' ? "right-0" : "left-0"
+            )}
             onMouseEnter={isProMode ? expandSideRail : undefined}
             onMouseLeave={isProMode ? collapseSideRail : undefined}
           >
             {/* Pro mode: accent line when collapsed */}
             {isProMode && !isSideRailExpanded && (
               <div
-                className="absolute top-0 left-0 bottom-0 w-[6px] transition-all duration-300 hover:w-[10px]"
+                className={cn(
+                  "absolute top-0 bottom-0 w-[6px] transition-all duration-300 hover:w-[10px]",
+                  sidebarOrientation === 'right' ? "right-0" : "left-0"
+                )}
                 style={{
                   background: `hsl(var(--primary))`,
-                  boxShadow: '2px 0 8px hsl(var(--primary) / 0.3)',
+                  boxShadow: sidebarOrientation === 'right' ? '-2px 0 8px hsl(var(--primary) / 0.3)' : '2px 0 8px hsl(var(--primary) / 0.3)',
                 }}
               />
             )}
@@ -341,9 +348,9 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
               {isSideRailExpanded && (
                 <motion.div
                   key="side-rail"
-                  initial={{ opacity: 0, x: -40 }}
+                  initial={{ opacity: 0, x: sidebarOrientation === 'right' ? 40 : -40 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -40 }}
+                  exit={{ opacity: 0, x: sidebarOrientation === 'right' ? 40 : -40 }}
                   transition={{ duration: 0.3, ease: "easeOut" }}
                 >
                   <BottomNav isMobileCompact={false} onHide={undefined} />
@@ -356,7 +363,10 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
         {/* AI Chatbot icon - sits above sidebar on desktop, or floating on mobile */}
         {(!isMobile && !isSpecialLayoutRoute) && (
           <div
-            className="fixed left-0 z-[41] flex justify-center"
+            className={cn(
+              "fixed z-[41] flex justify-center",
+              sidebarOrientation === 'right' ? "right-0" : "left-0"
+            )}
             style={{
               top: '16px',
               width: isSideRailExpanded ? '84px' : '24px',
@@ -372,7 +382,8 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
         <MainContent
           isSpecialLayoutRoute={isSpecialLayoutRoute || (isMobile && !isMobileHeaderVisible)}
           hasSideRail={!isMobile && shouldShowBottomNav && isSideRailExpanded && !isSpecialLayoutRoute}
-          hasExpandedHeader={!isMobile && isHeaderExpanded && !isSpecialLayoutRoute && (!isProMode || isNavVisible)}
+          hasExpandedHeader={!isMobile && isHeaderExpanded && !isSpecialLayoutRoute}
+          sidebarOrientation={sidebarOrientation}
         >
           {children}
         </MainContent>

@@ -10,12 +10,14 @@ export default function MainContent({
   disableScroll,
   hasSideRail,
   hasExpandedHeader,
+  sidebarOrientation = 'left',
 }: {
   children: React.ReactNode,
   isSpecialLayoutRoute?: boolean,
   disableScroll?: boolean,
   hasSideRail?: boolean,
   hasExpandedHeader?: boolean,
+  sidebarOrientation?: 'left' | 'right',
 }) {
   return (
     <div
@@ -26,7 +28,7 @@ export default function MainContent({
         // When collapsed to accent line, only need minimal padding
         hasExpandedHeader ? "pt-20" : (!isSpecialLayoutRoute ? "pt-4" : ""),
         !disableScroll && "overflow-y-auto",
-        hasSideRail && "pl-[92px]",
+        hasSideRail && (sidebarOrientation === 'right' ? "pr-[92px]" : "pl-[92px]"),
       )}
     >
       {children}
