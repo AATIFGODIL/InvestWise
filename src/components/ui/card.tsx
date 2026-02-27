@@ -34,13 +34,13 @@ const Card = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "rounded-lg border text-card-foreground shadow-sm",
+        "relative overflow-hidden rounded-3xl border-none text-card-foreground shadow-xl transition-all duration-300 ring-1 ring-white/60 hover:ring-primary/50",
         // --- Start of Clear Mode Logic ---
         isClearMode
           ? isLightClear
-            ? "border-0 bg-[#C8C8C8]/60 shadow-lg ring-1 ring-black/10" // Light mode liquid glass
-            : "border-0 bg-white/10 shadow-lg ring-1 ring-white/60" // Dark mode liquid glass
-          : isLightClear ? "bg-card ring-1 ring-black/40 border-0" : "bg-card", // Standard solid card
+            ? "bg-[#C8C8C8]/60 ring-black/10" // Light mode liquid glass
+            : "bg-white/10" // Dark mode liquid glass
+          : isLightClear ? "bg-card ring-black/40" : "bg-card", // Standard solid card
         // --- End of Clear Mode Logic ---
         className
       )}
@@ -115,3 +115,4 @@ const CardFooter = React.forwardRef<
 CardFooter.displayName = "CardFooter"
 
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+ 

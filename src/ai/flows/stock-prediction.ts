@@ -74,3 +74,4 @@ export async function stockPrediction(input: StockPredictionInput): Promise<Stoc
     throw error;
   }
 }
+ 

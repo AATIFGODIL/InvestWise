@@ -66,3 +66,4 @@ export function getAdminDb(): Firestore {
     db = getFirestore();
     return db;
 }
+ 

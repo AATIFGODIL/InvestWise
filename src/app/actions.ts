@@ -224,3 +224,4 @@ export async function fetchStockHistory(symbol: string, range: string = '1mo', i
     return null;
   }
 }
+ 

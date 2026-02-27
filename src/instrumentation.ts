@@ -5,3 +5,4 @@ export async function register() {
   // Environment variables are injected by Firebase App Hosting in production via APP_SECRETS.
   // Local development uses .env.local (ignored by git).
 }
+ 

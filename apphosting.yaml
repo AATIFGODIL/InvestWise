@@ -18,3 +18,4 @@ env:
   # Consolidated Secrets (Reduces cost to ₹0)
   - variable: APP_SECRETS
     secret: APP_SECRETS
+ 

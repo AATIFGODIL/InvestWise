@@ -483,3 +483,4 @@ export default function ResearchClient() {
         </div>
     );
 }
+ 

@@ -28,3 +28,4 @@ export async function GET() {
     return NextResponse.json({ error: 'An internal server error occurred.' }, { status: 500 });
   }
 }
+ 

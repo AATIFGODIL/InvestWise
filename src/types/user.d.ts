@@ -29,3 +29,4 @@ export interface UserData {
   paymentMethodToken?: string;
   favorites?: Favorite[];
 }
+ 

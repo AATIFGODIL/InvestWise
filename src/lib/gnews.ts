@@ -69,3 +69,4 @@ export async function getStockNews(symbol: string, limit = 3): Promise<NewsArtic
         max: limit.toString(),
     });
 }
+ 

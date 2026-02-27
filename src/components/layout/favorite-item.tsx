@@ -152,4 +152,4 @@ export default function FavoriteItem({ favorite, onSelect, onRemove, variants, i
             </AnimatePresence>
         </Reorder.Item>
     );
-}
+} 

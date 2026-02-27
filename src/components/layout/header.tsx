@@ -568,3 +568,4 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
     </>
   );
 }
+ 

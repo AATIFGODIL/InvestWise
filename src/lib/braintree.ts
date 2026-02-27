@@ -44,3 +44,4 @@ function initializeBraintreeGateway(): BraintreeGateway {
 export function getBraintreeGateway() {
   return initializeBraintreeGateway();
 }
+ 
