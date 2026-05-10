@@ -362,20 +362,10 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
             </div>
 
             <div className="flex-1 flex justify-center items-center h-full sm:mx-2 overflow-x-auto hide-scrollbar">
-              {/* Pro Mode Toggle - appears on hover like favorites */}
-              <AnimatePresence>
-                {((isHovered && !isMobile) || isMobile) && (
-                  <motion.div
-                    className="flex items-center mr-2"
-                    initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: 'auto', opacity: 1 }}
-                    exit={{ width: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <ProModeToggle className={cn(isMobileCompact ? "scale-75" : "scale-90")} showLabel={!isMobile} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* Pro Mode Toggle - always visible, shifts left on hover with favorites */}
+              <div className="flex items-center mr-2 shrink-0">
+                <ProModeToggle className={cn(isMobileCompact ? "scale-75" : "scale-90")} showLabel={!isMobile} />
+              </div>
 
               <div className="relative z-10">
                 <motion.button
