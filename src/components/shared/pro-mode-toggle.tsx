@@ -3,7 +3,7 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { Label } from "@/components/ui/label";
 import { useProModeStore } from '@/store/pro-mode-store';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useThemeStore } from '@/store/theme-store';
@@ -16,9 +16,10 @@ interface ProModeToggleProps {
 type AnimationState = "idle" | "rising" | "sliding" | "descending";
 
 export const ProModeToggle: React.FC<ProModeToggleProps> = ({ className, showLabel = true }) => {
-    const { isProMode, setProMode } = useProModeStore();
+    const { isProMode, setProMode, previousPath, setPreviousPath } = useProModeStore();
     const { isClearMode, theme } = useThemeStore();
     const router = useRouter();
+    const pathname = usePathname();
 
     const containerRef = useRef<HTMLDivElement>(null);
     const gliderRef = useRef<HTMLDivElement>(null);
@@ -138,9 +139,14 @@ export const ProModeToggle: React.FC<ProModeToggleProps> = ({ className, showLab
         // Finalize state update
         setProMode(targetState);
         if (targetState) {
+            // Entering Pro Mode — save current path and go to Research
+            setPreviousPath(pathname);
             router.push('/research');
         } else {
-            router.push('/goals');
+            // Leaving Pro Mode — return to the page the user was on before
+            const returnPath = previousPath || '/dashboard';
+            setPreviousPath(null);
+            router.push(returnPath);
         }
     };
 

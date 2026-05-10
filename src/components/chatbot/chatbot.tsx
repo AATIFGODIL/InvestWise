@@ -58,6 +58,15 @@ export default function Chatbot({ isMobileCompact = false }: { isMobileCompact?:
   const pathname = usePathname();
   const isLightClear = isClearMode && theme === 'light';
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Keep chatbot context in sync with the current route so the AI
+  // always knows which page the user is on (preserves symbol/price if set).
+  useEffect(() => {
+    const currentContext = useChatbotStore.getState().context;
+    if (pathname && currentContext.route !== pathname) {
+      useChatbotStore.getState().setContext({ ...currentContext, route: pathname });
+    }
+  }, [pathname]);
   const [showGlow, setShowGlow] = useState(false);
 
   const scrollAreaRef = useRef<HTMLDivElement>(null);

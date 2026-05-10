@@ -11,6 +11,7 @@
 
 import { getAi } from '@/ai/genkit';
 import type { InvestmentChatbotInput, InvestmentChatbotOutput } from '@/ai/types/investment-chatbot-types';
+import { getPageDescription } from '@/data/page-descriptions';
 
 /**
  * An asynchronous function that serves as the entry point for the investment chatbot.
@@ -26,6 +27,11 @@ export async function investmentChatbot(input: InvestmentChatbotInput): Promise<
     contextSection = '\nUser Context:';
     if (input.context.route) {
       contextSection += `\n- Current Page: ${input.context.route}`;
+      // Inject detailed page description so the AI knows exactly what's on this page
+      const pageDescription = getPageDescription(input.context.route);
+      if (pageDescription) {
+        contextSection += `\n\nDetailed Page Content (use this to give specific, tailored answers about this page):\n${pageDescription}`;
+      }
     }
     if (input.context.symbol) {
       contextSection += `\n- Active Stock: ${input.context.symbol}`;
@@ -39,6 +45,7 @@ export async function investmentChatbot(input: InvestmentChatbotInput): Promise<
   const systemPrompt = `You are a friendly and helpful AI assistant named InvestWise Bot. 
 Your primary goal is to explain complex investment terms to beginners in a simple, clear, and encouraging way.
 Avoid jargon where possible, or explain it immediately. Use analogies if they help clarify a concept.
+When the user asks about a specific page, refer to the detailed page content provided in context to give accurate, specific answers about the features and functionality available on that page in InvestWise.
 ${contextSection}
 
 User's Question: ${input.query}
@@ -47,7 +54,7 @@ Please provide a helpful, context-aware, and easy-to-understand explanation base
 
   // Use ai.generate() which supports Google Search grounding with text output
   const response = await ai.generate({
-    model: 'googleai/gemini-2.5-pro',
+    model: 'googleai/gemini-2.5-flash',
     prompt: systemPrompt,
     config: {
       googleSearchRetrieval: true,
@@ -56,3 +63,4 @@ Please provide a helpful, context-aware, and easy-to-understand explanation base
 
   return { response: response.text };
 }
+
