@@ -300,7 +300,8 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     const isFavorite = favorites.some(fav => fav.value === item.value);
 
     if (isFavorite) {
-      removeFavorite(item.value);
+      const favToRemove = favorites.find(fav => fav.value === item.value);
+      if (favToRemove) removeFavorite(favToRemove.id);
       toast({ description: `${item.name} removed from favorites.` });
     } else {
       const newFavorite: Omit<Favorite, 'id' | 'size'> = {
