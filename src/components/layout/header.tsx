@@ -32,6 +32,7 @@ import { useNotificationStore, type AppNotification } from "@/store/notification
 import { usePendingTradeStore } from "@/store/pending-trade-store";
 import AutoTradeApprovalDialog from "@/components/trade/auto-trade-approval-dialog";
 import { useProModeStore } from "@/store/pro-mode-store";
+import { ProModeToggle } from "@/components/shared/pro-mode-toggle";
 
 
 const containerVariants = {
@@ -242,15 +243,15 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
     }
 
     // Special case: 6 or more pills and on desktop, show 6 pills and 1 icon
-    if (!isMobile && pills.length >= 6) {
-      const visiblePills = pills.slice(0, 6);
+    if (!isMobile && pills.length >= 5) {
+      const visiblePills = pills.slice(0, 5);
       const visibleIcons = icons.slice(0, 1);
       return {
         displayedFavorites: [...visiblePills, ...visibleIcons],
       };
     }
 
-    const maxWeight = isMobile ? 6 : 14;
+    const maxWeight = isMobile ? 4 : 10;
 
     // General case: fill up to maxWeight
     let weight = 0;
@@ -277,12 +278,12 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
       const pills = favorites.filter(f => f.size === 'pill');
       const icons = favorites.filter(f => f.size === 'icon');
 
-      if (!isMobile && pills.length >= 7) {
-        calculatedPillsToDelete = pills.length - 6;
+      if (!isMobile && pills.length >= 6) {
+        calculatedPillsToDelete = pills.length - 5;
         calculatedIconsToDelete = Math.max(0, icons.length - 1);
       } else {
         const currentWeight = pills.length * 2 + icons.length;
-        const maxWeight = isMobile ? 6 : 14;
+        const maxWeight = isMobile ? 4 : 10;
         if (currentWeight > maxWeight) {
           let excess = currentWeight - maxWeight;
           const removableIcons = Math.min(excess, icons.length);
@@ -361,6 +362,21 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
             </div>
 
             <div className="flex-1 flex justify-center items-center h-full sm:mx-2 overflow-x-auto hide-scrollbar">
+              {/* Pro Mode Toggle - appears on hover like favorites */}
+              <AnimatePresence>
+                {((isHovered && !isMobile) || isMobile) && (
+                  <motion.div
+                    className="flex items-center mr-2"
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: 'auto', opacity: 1 }}
+                    exit={{ width: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ProModeToggle className={cn(isMobileCompact ? "scale-75" : "scale-90")} showLabel={!isMobile} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               <div className="relative z-10">
                 <motion.button
                   onPointerDown={handlePointerDown}

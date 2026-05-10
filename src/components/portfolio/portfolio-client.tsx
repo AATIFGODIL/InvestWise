@@ -24,7 +24,7 @@ import GoalList from "@/components/goals/goal-list";
 import { useGoalStore } from "@/store/goal-store";
 import dynamic from 'next/dynamic';
 import { Skeleton } from "../ui/skeleton";
-import { ProModeToggle } from '@/components/shared/pro-mode-toggle';
+
 import PortfolioTutorial from './portfolio-tutorial';
 
 const YouTubePlayer = dynamic(() => import('../shared/youtube-player'), {
@@ -193,12 +193,9 @@ export default function PortfolioClient() {
             <motion.div variants={itemVariants} id="holdings-section-tutorial">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">Holdings</h2>
-                <div className="flex flex-col items-end gap-1">
-                  <div className="flex items-center gap-2 text-sm text-primary">
-                    <Clock className="h-4 w-4" />
-                    <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
-                  </div>
-                  <ProModeToggle className="scale-90 origin-right" showLabel={true} />
+                <div className="flex items-center gap-2 text-sm text-primary">
+                  <Clock className="h-4 w-4" />
+                  <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
                 </div>
               </div>
               <HoldingsTable />

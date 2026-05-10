@@ -21,7 +21,7 @@ import { useDebounce } from "@/hooks/use-debounce";
 import { useThemeStore } from "@/store/theme-store";
 import { motion } from "framer-motion";
 import { Skeleton } from "../ui/skeleton";
-import { ProModeToggle } from "@/components/shared/pro-mode-toggle";
+
 import { useProModeStore } from "@/store/pro-mode-store";
 import useChatbotStore from "@/store/chatbot-store";
 
@@ -378,8 +378,7 @@ export default function TradeClient() {
                 initial="hidden"
                 animate="visible"
             >
-                <motion.div variants={itemVariants} className="flex items-center gap-4">
-                    <ProModeToggle />
+                <motion.div variants={itemVariants}>
                     <h1 className="text-2xl font-bold">Trade</h1>
                 </motion.div>
 

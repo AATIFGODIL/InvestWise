@@ -18,7 +18,7 @@ import CommunityLeaderboard from "@/components/dashboard/community-leaderboard";
 import HoldingsSummary from "@/components/dashboard/holdings-summary";
 import OnboardingTutorial from "@/components/dashboard/onboarding-tutorial";
 import { Skeleton } from "../ui/skeleton";
-import { ProModeToggle } from "@/components/shared/pro-mode-toggle";
+
 import { fetchTopFinancialNewsAction } from "@/app/actions";
 import { NewsArticle } from "@/lib/gnews";
 import { cn } from "@/lib/utils";
@@ -153,12 +153,9 @@ export default function DashboardClient() {
             >
                 <motion.div variants={itemVariants} className="flex justify-between items-center">
                     <h1 className="text-2xl font-bold">Explore</h1>
-                    <div className="flex flex-col items-end gap-1">
-                        <div className="flex items-center gap-2 text-sm text-primary">
-                            <Clock className="h-4 w-4" />
-                            <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
-                        </div>
-                        <ProModeToggle className="scale-90 origin-right" showLabel={true} />
+                    <div className="flex items-center gap-2 text-sm text-primary">
+                        <Clock className="h-4 w-4" />
+                        <span>Market is {isMarketOpen ? 'open' : 'closed'}.</span>
                     </div>
                 </motion.div>
 
