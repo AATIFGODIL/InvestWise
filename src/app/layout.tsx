@@ -10,9 +10,12 @@ import React from 'react';
 import { AuthProvider } from '@/hooks/use-auth';
 import LayoutContent from '@/components/layout/layout-content';
 
+// 500/600/800 are for the marketing landing page, which builds its hierarchy
+// from weight as much as from size. The app itself still only reaches for
+// 400 and 700.
 const poppins = Poppins({
   subsets: ["latin"],
-  weight: ["400", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-body",
 });
 

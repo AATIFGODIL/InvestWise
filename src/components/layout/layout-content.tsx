@@ -238,6 +238,20 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
     }
   }, [isMobile, showMobileHeader, showMobileBottomNav, hideMobileHeader, hideMobileBottomNav]);
 
+  // The landing page owns the whole viewport: no header, no side rail, no
+  // scroll lock, and no auth skeleton. `/` is included because that route now
+  // renders the landing page for signed-out visitors — and it has to escape
+  // the `disableScroll` wrapper below, since the whole page is 19,000px of
+  // scroll-driven choreography. `/` handles its own signed-in redirect and its
+  // own loading state, so nothing is lost by letting it through here.
+  //
+  // Above the `hydrating` gate on purpose: the page is identical signed in or
+  // out, so waiting on Firebase would only flash a skeleton over content that
+  // never needed it.
+  if (pathname === '/' || pathname.startsWith('/landing')) {
+    return <>{children}</>;
+  }
+
   if (hydrating) {
     return (
       <div className="h-screen w-screen">

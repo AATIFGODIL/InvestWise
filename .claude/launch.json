@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "investwise-web",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["next", "dev", "--port", "9002"],
+      "url": "http://localhost:9002",
+      "port": 9002
+    }
+  ]
+}

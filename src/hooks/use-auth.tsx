@@ -132,8 +132,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!firebaseUser) {
         resetAllStores();
-        const isProtectedPage = !window.location.pathname.startsWith('/auth');
-        if (isProtectedPage) {
+        // The public surface: the root, which *is* the marketing page for
+        // anyone signed out (`src/app/page.tsx`), the same page at `/landing`,
+        // and the auth flow. Everything else is account-only and bounces to
+        // sign-in. `/` has to be matched exactly — `startsWith('/')` is every
+        // route there is.
+        const path = window.location.pathname;
+        const isPublicPage =
+          path === '/' || path.startsWith('/auth') || path.startsWith('/landing');
+        if (!isPublicPage) {
           router.push('/auth/signin');
         }
       }
