@@ -158,30 +158,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await initializeUserDocument(userCredential.user, { username });
 
       // Send 6-digit verification code
-      try {
-        const response = await fetch('/api/send-verification-code', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, userId: userCredential.user.uid }),
-        });
+      const response = await fetch('/api/send-verification-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, userId: userCredential.user.uid }),
+      });
 
-        if (response.ok) {
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('pendingVerificationUserId', userCredential.user.uid);
-          }
-          toast({ title: "Account Created!", description: "A verification code has been sent to your email." });
-          router.push(`/auth/verify-code?email=${encodeURIComponent(email)}&redirect=/onboarding/quiz&new=true`);
-          return;
-        } else {
-          const errData = await response.json().catch(() => ({}));
-          console.warn('Verification code email sending failed:', errData.error);
-        }
-      } catch (codeErr) {
-        console.warn('Could not call send-verification-code API:', codeErr);
+      if (!response.ok) {
+        throw new Error('Failed to send verification code');
       }
 
-      toast({ title: "Account Created!", description: "Welcome to InvestWise." });
-      router.push('/onboarding/quiz');
+      // Store userId for resend functionality
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pendingVerificationUserId', userCredential.user.uid);
+      }
+
+      toast({ title: "Account Created!", description: "A verification code has been sent to your email." });
+      router.push(`/auth/verify-code?email=${encodeURIComponent(email)}&redirect=/onboarding/quiz&new=true`);
     } catch (error: any) {
       hideLoading();
       throw error;
@@ -194,32 +187,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userCredential = await signInWithEmailAndPassword(auth, email, pass);
 
       // Send 6-digit verification code
-      try {
-        const response = await fetch('/api/send-verification-code', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, userId: userCredential.user.uid }),
-        });
+      const response = await fetch('/api/send-verification-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, userId: userCredential.user.uid }),
+      });
 
-        if (response.ok) {
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('pendingVerificationUserId', userCredential.user.uid);
-          }
-          hideLoading();
-          toast({ title: "Verification Required", description: "A verification code has been sent to your email." });
-          router.push(`/auth/verify-code?email=${encodeURIComponent(email)}&redirect=/auth/welcome-back`);
-          return;
-        } else {
-          const errData = await response.json().catch(() => ({}));
-          console.warn('Verification code email sending failed:', errData.error);
-        }
-      } catch (codeErr) {
-        console.warn('Could not call send-verification-code API:', codeErr);
+      if (!response.ok) {
+        throw new Error('Failed to send verification code');
+      }
+
+      // Store userId for resend functionality
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pendingVerificationUserId', userCredential.user.uid);
       }
 
       hideLoading();
-      toast({ title: "Signed In Successfully", description: "Welcome back to InvestWise." });
-      router.push('/dashboard');
+      toast({ title: "Verification Required", description: "A verification code has been sent to your email." });
+      router.push(`/auth/verify-code?email=${encodeURIComponent(email)}&redirect=/auth/welcome-back`);
     } catch (error: any) {
       hideLoading();
       throw error;
@@ -238,34 +223,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // Send 6-digit verification code for social sign-in too
-      try {
-        const response = await fetch('/api/send-verification-code', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, userId: result.user.uid }),
-        });
+      const response = await fetch('/api/send-verification-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, userId: result.user.uid }),
+      });
 
-        if (response.ok) {
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('pendingVerificationUserId', result.user.uid);
-          }
-          hideLoading();
-          const redirectTo = isNew ? '/onboarding/quiz' : '/auth/welcome-back';
-          toast({ title: "Verification Required", description: "A verification code has been sent to your email." });
-          router.push(`/auth/verify-code?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirectTo)}&new=${isNew}`);
-          return;
-        } else {
-          const errData = await response.json().catch(() => ({}));
-          console.warn('Verification code email sending failed:', errData.error);
-        }
-      } catch (codeErr) {
-        console.warn('Could not call send-verification-code API:', codeErr);
+      if (!response.ok) {
+        throw new Error('Failed to send verification code');
+      }
+
+      // Store userId for resend functionality
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('pendingVerificationUserId', result.user.uid);
       }
 
       hideLoading();
-      const target = isNew ? '/onboarding/quiz' : '/dashboard';
-      toast({ title: "Welcome!", description: "Successfully signed in." });
-      router.push(target);
+      const redirectTo = isNew ? '/onboarding/quiz' : '/auth/welcome-back';
+      toast({ title: "Verification Required", description: "A verification code has been sent to your email." });
+      router.push(`/auth/verify-code?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirectTo)}&new=${isNew}`);
     } catch (error: any) {
       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         console.log("Sign-in popup closed by user.");
