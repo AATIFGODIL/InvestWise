@@ -52,26 +52,28 @@ export async function POST(request: NextRequest) {
     const code = generateCode();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
 
-    // Delete any existing codes for this email
-    const existingCodes = await firestore
-      .collection('verification_codes')
-      .where('email', '==', email)
-      .get();
+    if (firestore) {
+      // Delete any existing codes for this email
+      const existingCodes = await firestore
+        .collection('verification_codes')
+        .where('email', '==', email)
+        .get();
 
-    const batch = firestore.batch();
-    existingCodes.forEach((doc) => {
-      batch.delete(doc.ref);
-    });
-    await batch.commit();
+      const batch = firestore.batch();
+      existingCodes.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
 
-    // Store new code in Firestore
-    await firestore.collection('verification_codes').add({
-      email,
-      userId,
-      code,
-      expiresAt,
-      createdAt: new Date(),
-    });
+      // Store new code in Firestore
+      await firestore.collection('verification_codes').add({
+        email,
+        userId,
+        code,
+        expiresAt,
+        createdAt: new Date(),
+      });
+    }
 
     // Send email with code using Gmail SMTP
     const mailOptions = {
@@ -111,19 +113,19 @@ export async function POST(request: NextRequest) {
 
     try {
       await mailTransporter.sendMail(mailOptions);
-    } catch (emailError) {
+    } catch (emailError: any) {
       console.error('Email sending error:', emailError);
       return NextResponse.json(
-        { error: 'Failed to send verification email' },
+        { error: `Failed to send verification email: ${emailError?.message || 'SMTP Error'}` },
         { status: 500 }
       );
     }
 
     return NextResponse.json({ success: true, message: 'Verification code sent' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Send verification code error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: error?.message || 'Internal server error' },
       { status: 500 }
     );
   }

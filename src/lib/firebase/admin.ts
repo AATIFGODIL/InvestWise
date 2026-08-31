@@ -23,7 +23,7 @@ function getProjectId(): string {
     return PROJECT_ID;
 }
 
-export function getAdminApp(): App {
+export function getAdminApp(): App | null {
     if (app) return app;
 
     if (getApps().length > 0) {
@@ -33,37 +33,46 @@ export function getAdminApp(): App {
 
     const projectId = getProjectId();
 
-    // Check if explicit service account credentials are available (local dev)
+    // Check if explicit service account credentials are available
     const firebaseProjectId = getEnvVar('FIREBASE_PROJECT_ID');
     const firebaseClientEmail = getEnvVar('FIREBASE_CLIENT_EMAIL');
     const firebasePrivateKey = getEnvVar('FIREBASE_PRIVATE_KEY');
 
-    if (firebaseProjectId && firebaseClientEmail && firebasePrivateKey) {
-        console.log('Initializing Firebase Admin with explicit credentials');
-        app = initializeApp({
-            credential: cert({
-                projectId: firebaseProjectId,
-                clientEmail: firebaseClientEmail,
-                privateKey: firebasePrivateKey.replace(/\\n/g, '\n'),
-            }),
-        });
-    } else {
-        // Use Application Default Credentials (works on Firebase App Hosting, Cloud Run, etc.)
-        console.log('Initializing Firebase Admin with ADC, projectId:', projectId);
-        app = initializeApp({
-            credential: applicationDefault(),
-            projectId,
-        });
+    try {
+        if (firebaseProjectId && firebaseClientEmail && firebasePrivateKey) {
+            console.log('Initializing Firebase Admin with explicit credentials');
+            app = initializeApp({
+                credential: cert({
+                    projectId: firebaseProjectId,
+                    clientEmail: firebaseClientEmail,
+                    privateKey: firebasePrivateKey.replace(/\\n/g, '\n'),
+                }),
+            });
+        } else {
+            console.log('Initializing Firebase Admin with ADC, projectId:', projectId);
+            app = initializeApp({
+                credential: applicationDefault(),
+                projectId,
+            });
+        }
+        return app;
+    } catch (error) {
+        console.error('Failed to initialize Firebase Admin SDK:', error);
+        return null;
     }
-
-    return app;
 }
 
-export function getAdminDb(): Firestore {
+export function getAdminDb(): Firestore | null {
     if (db) return db;
 
-    getAdminApp(); // Ensure app is initialized
-    db = getFirestore();
-    return db;
+    const adminApp = getAdminApp();
+    if (!adminApp) return null;
+    try {
+        db = getFirestore(adminApp);
+        return db;
+    } catch (error) {
+        console.error('Failed to get Firestore Admin instance:', error);
+        return null;
+    }
 }
  
