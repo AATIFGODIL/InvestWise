@@ -54,7 +54,7 @@ Please provide a helpful, context-aware, and easy-to-understand explanation base
 
   // Use ai.generate() which supports Google Search grounding with text output
   const response = await ai.generate({
-    model: 'googleai/gemini-2.5-flash',
+    model: 'googleai/gemini-3.5-flash',
     prompt: systemPrompt,
     config: {
       googleSearchRetrieval: true,
