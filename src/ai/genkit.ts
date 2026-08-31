@@ -17,7 +17,7 @@ export function getAi(): Genkit {
           apiKey: getEnvVar('GOOGLE_API_KEY') || getEnvVar('GEMINI_API_KEY'),
         }),
       ],
-      model: 'googleai/gemini-3.5-flash',
+      model: 'googleai/gemini-3.6-flash',
     });
   }
   return _ai;
