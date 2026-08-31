@@ -52,13 +52,10 @@ User's Question: ${input.query}
 
 Please provide a helpful, context-aware, and easy-to-understand explanation based on the user's query.`;
 
-  // Use ai.generate() which supports Google Search grounding with text output
+  // Use ai.generate() for text output
   const response = await ai.generate({
     model: 'googleai/gemini-3.5-flash',
     prompt: systemPrompt,
-    config: {
-      googleSearchRetrieval: true,
-    },
   });
 
   return { response: response.text };
