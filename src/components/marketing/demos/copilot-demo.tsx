@@ -25,7 +25,7 @@ const QUERY = "Analyze NVDA based on its current price of $184.92 and recent per
 const ANSWER: string[] = [
   "**NVDA at $184.92** is up 2.44% today, extending a strong run on data center demand.",
   "**What's driving it:** orders from cloud companies keep beating expectations.",
-  "**What to watch:** after a run like this, the price already assumes a lot of growth — a small miss can mean a sharp drop.",
+  "**What to watch:** after a run like this, the price already assumes a lot of growth, so a small miss can mean a sharp drop.",
   "**If you're new:** consider starting small and adding over time rather than buying all at once.",
 ];
 

@@ -3,7 +3,8 @@
 "use client";
 
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Rotate3d } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Rotate3d } from "lucide-react";
 import { MarketSculpture, type SculpturePhase } from "@/components/marketing/market-sculpture";
 import { HeroBackdrop } from "@/components/marketing/hero-backdrop";
 import { QuoteRing, RING_SYMBOLS } from "@/components/marketing/quote-ring";
@@ -46,7 +47,16 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
     <div className="flex h-dvh w-full overflow-hidden bg-background">
       <section className="relative h-full w-full overflow-hidden lg:w-1/2">
         <FinanceBackground />
-        <div className="relative z-10 flex h-full w-full items-center justify-center px-4">
+        <Link
+          href="/landing"
+          aria-label="Back to the InvestWise home page"
+          className="absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full bg-white/[0.06] px-4 py-2 text-sm font-medium text-foreground/80 ring-1 ring-white/15 backdrop-blur-md transition-[color,transform] duration-150 hover:text-foreground active:scale-[0.97] sm:left-6 sm:top-6"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Link>
+        {/* Top padding keeps the fitted card clear of the Back button. */}
+        <div className="relative z-10 flex h-full w-full items-center justify-center px-4 pb-4 pt-16 sm:pt-20">
           <FitToHeight>{children}</FitToHeight>
         </div>
       </section>

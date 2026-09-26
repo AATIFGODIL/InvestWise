@@ -139,10 +139,9 @@ export function LandingLoader({
           transition: `opacity ${CLEAR_MS}ms cubic-bezier(0.4, 0, 0.2, 1)`,
         }}
       >
-        <div className="lp-grid absolute inset-0 opacity-40" />
         <div
-          className="lp-aurora lp-drift-a left-1/2 top-1/2 h-[64vh] w-[64vh] -translate-x-1/2 -translate-y-1/2"
-          style={{ background: "hsl(var(--primary) / 0.3)" }}
+          className="absolute left-1/2 top-1/2 h-[70vh] w-[70vh] -translate-x-1/2 -translate-y-1/2"
+          style={{ background: "radial-gradient(closest-side, hsl(var(--primary) / 0.28), transparent)" }}
         />
       </div>
 

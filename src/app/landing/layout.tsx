@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "InvestWise — Learn to invest before it costs you",
+  title: "InvestWise | Paper trading platform for the youth",
   description:
     "A trading floor that explains itself. Real market data, an AI that knows what you're looking at, and not a cent of your own money at risk while you learn.",
 };

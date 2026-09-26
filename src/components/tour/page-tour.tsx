@@ -2,9 +2,9 @@
 
 "use client";
 
-import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,16 +17,18 @@ import { TOURS, tourIdFor, type TourStep } from "@/components/tour/tours";
 /**
  * The page tour.
  *
- * The page is dimmed by a single spotlight: a box whose shadow is the scrim,
- * sitting over the real element. Nothing in the page is lifted, re-parented or
+ * The page is dimmed by one scrim with the spotlight cut out of it, sitting
+ * over the real element. Nothing in the page is lifted, re-parented or
  * re-stacked, so the highlighted card is always crisp and exactly where it
  * lives — the old tutorial's z-index lifting was trapped by the page's own
  * stacking contexts and blurred the very thing it was pointing at.
  *
- * The spotlight and the card spring from one target to the next (critically
- * damped — nothing was thrown), and once they arrive they track the target
- * 1:1 if the page moves. Nothing advances on a timer: people read at their own
- * pace. Next, Back, the arrow keys and Escape all work; clicking the dimmed
+ * Each step is drawn fresh: the previous spotlight and message fade out, the
+ * page scrolls the next target into view, and once it has come to rest a new
+ * spotlight fades open around it and the message fades in beside it. Nothing
+ * slides or stretches between targets. While a step is showing it tracks its
+ * target 1:1 if the page moves. Nothing advances on a timer: people read at
+ * their own pace. Next, Back, the arrow keys and Escape all work; clicking the dimmed
  * page does nothing, so a stray click can't lose your place.
  *
  * Runs once automatically per page for every account (new users, and existing
@@ -111,17 +113,19 @@ function TourOverlay({ tourId, steps: allSteps }: { tourId: string; steps: TourS
     });
   });
 
+  /** The step we're heading to. */
   const [index, setIndex] = useState(0);
+  /** The step actually on screen — null while one fades out and the next is found. */
+  const [shown, setShown] = useState<number | null>(null);
   const [rect, setRect] = useState<Rect | null>(null);
-  const [tracking, setTracking] = useState(false);
-  const [cardH, setCardH] = useState(180);
+  const [cardH, setCardH] = useState(190);
   const targetRef = useRef<HTMLElement | null>(null);
   const directionRef = useRef<1 | -1>(1);
-  const cardRef = useRef<HTMLDivElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
 
   const step = steps[index];
-  const isLast = index === steps.length - 1;
+  const maskId = `tour-mask-${tourId}`;
+  const fade = reduceMotion ? 0 : 0.22;
 
   const finish = useCallback(() => useTourStore.getState().finish(tourId), [tourId]);
   const go = useCallback(
@@ -139,39 +143,67 @@ function TourOverlay({ tourId, steps: allSteps }: { tourId: string; steps: TourS
     if (steps.length === 0) finish();
   }, [steps.length, finish]);
 
-  // Resolve the step: find its target (it may still be mounting), bring it into
-  // view, then hand over to tracking. A target that never appears is skipped.
+  // Each step: let the previous one fade away, find this step's target (it may
+  // still be mounting), bring it into view, wait for the scroll to come to rest,
+  // and only then reveal a fresh spotlight and message in place. Nothing slides
+  // or resizes between targets, so there's nothing to go wrong mid-flight.
   useEffect(() => {
     if (!step) return;
     let cancelled = false;
-    let tries = 0;
-    setTracking(false);
+    const timers: number[] = [];
+    const later = (fn: () => void, ms: number) => timers.push(window.setTimeout(() => !cancelled && fn(), ms));
+
+    setShown(null);
     targetRef.current = null;
 
+    // Scrolling waits for the outgoing step to finish fading, so nothing ever
+    // slides underneath a spotlight that's still on screen.
     const main = document.getElementById("main-content");
     if (step.scrollTop && main && main.scrollTop > 0) {
-      main.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" });
+      later(() => main.scrollTo({ top: 0, behavior: reduceMotion ? "auto" : "smooth" }), fade * 1000);
     }
 
     if (!step.target) {
-      setRect(null);
-      return;
+      later(() => {
+        setRect(null);
+        setShown(index);
+      }, fade * 1000);
+      return () => {
+        cancelled = true;
+        timers.forEach(window.clearTimeout);
+      };
     }
 
+    let tries = 0;
+    const measure = (el: HTMLElement) => {
+      const r = el.getBoundingClientRect();
+      return { top: r.top, left: r.left, width: r.width, height: r.height };
+    };
+
+    const waitForRest = (el: HTMLElement, last: Rect, stableFor: number, waited: number) => {
+      const now = measure(el);
+      const still = Math.abs(now.top - last.top) < 0.5 && Math.abs(now.left - last.left) < 0.5;
+      const settled = still ? stableFor + 1 : 0;
+      if (settled >= 2 || waited > 900) {
+        setRect(now);
+        setShown(index);
+        return;
+      }
+      later(() => waitForRest(el, now, settled, waited + 60), 60);
+    };
+
     const attempt = () => {
-      if (cancelled) return;
       const el = findTarget(step);
       if (el) {
         targetRef.current = el;
-        bringIntoView(el, !reduceMotion);
-        const r = el.getBoundingClientRect();
-        setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
-        // Spring to it while the scroll settles, then follow it exactly.
-        window.setTimeout(() => !cancelled && setTracking(true), reduceMotion ? 0 : 520);
+        later(() => {
+          bringIntoView(el, !reduceMotion);
+          waitForRest(el, measure(el), 0, 0);
+        }, fade * 1000);
         return;
       }
       if (++tries < 25) {
-        window.setTimeout(attempt, 60);
+        later(attempt, 60);
         return;
       }
       const next = index + directionRef.current;
@@ -180,13 +212,17 @@ function TourOverlay({ tourId, steps: allSteps }: { tourId: string; steps: TourS
       else setIndex(next);
     };
     attempt();
+
     return () => {
       cancelled = true;
+      timers.forEach(window.clearTimeout);
     };
-  }, [step, index, steps.length, finish, reduceMotion]);
+  }, [step, index, steps.length, finish, reduceMotion, fade]);
 
-  // Follow the target every frame (scroll, resize, content loading in).
+  // Once a step is showing, its spotlight and message are pinned to the target
+  // 1:1 — if the page scrolls or the card grows, they follow exactly.
   useEffect(() => {
+    if (shown === null) return;
     let frame = 0;
     const tick = () => {
       const el = targetRef.current;
@@ -206,20 +242,17 @@ function TourOverlay({ tourId, steps: allSteps }: { tourId: string; steps: TourS
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, []);
+  }, [shown]);
 
-  useLayoutEffect(() => {
-    const node = cardRef.current;
-    if (!node) return;
-    const observer = new ResizeObserver(() => setCardH(node.offsetHeight));
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [mounted]);
+  // The card's height, for choosing which side of the target it goes on.
+  const cardRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) setCardH(node.offsetHeight);
+  }, []);
 
   // Keyboard, and focus on the primary action so Enter moves on.
   useEffect(() => {
-    nextRef.current?.focus({ preventScroll: true });
-  }, [index]);
+    if (shown !== null) nextRef.current?.focus({ preventScroll: true });
+  }, [shown]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") finish();
@@ -234,121 +267,165 @@ function TourOverlay({ tourId, steps: allSteps }: { tourId: string; steps: TourS
 
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const cardW = step.welcome ? Math.min(420, vw - MARGIN * 2) : Math.min(CARD_W, vw - MARGIN * 2);
-
-  const hole = rect
-    ? { top: rect.top - PAD, left: rect.left - PAD, width: rect.width + PAD * 2, height: rect.height + PAD * 2 }
-    : { top: vh / 2, left: vw / 2, width: 0, height: 0 };
-  const radius = rect ? Math.min(step.radius ?? 32, (hole.height / 2) | 0) : 0;
-  const card = placeCard(rect ? hole : null, cardW, cardH, vw, vh);
-
-  const spring = reduceMotion
-    ? { duration: 0 }
-    : tracking
-      ? { duration: 0 }
-      : { type: "spring" as const, bounce: 0, duration: 0.5 };
+  const current = shown !== null ? steps[shown] : null;
+  const cardW = current?.welcome ? Math.min(420, vw - MARGIN * 2) : Math.min(CARD_W, vw - MARGIN * 2);
+  const hole =
+    current?.target && rect
+      ? { top: rect.top - PAD, left: rect.left - PAD, width: rect.width + PAD * 2, height: rect.height + PAD * 2 }
+      : null;
+  const radius = hole ? Math.min(current?.radius ?? 32, hole.height / 2) : 0;
+  const ease = [0.32, 0.72, 0, 1] as const;
 
   return createPortal(
-    <div className="fixed inset-0 z-190" role="dialog" aria-modal="true" aria-labelledby="tour-title">
+    <div className="fixed inset-0 z-[190]" role="dialog" aria-modal="true" aria-labelledby="tour-title">
       {/* Holds the page still under the scrim; a click here does nothing. */}
       <div className="absolute inset-0" />
 
-      <motion.div
-        className="pointer-events-none absolute"
-        initial={false}
-        animate={{ top: hole.top, left: hole.left, width: hole.width, height: hole.height, borderRadius: radius }}
-        transition={spring}
-        style={{
-          boxShadow: rect
-            ? "0 0 0 2px hsl(var(--primary) / 0.9), 0 0 32px 4px hsl(var(--primary) / 0.35), 0 0 0 9999px rgb(0 0 0 / 0.62)"
-            : "0 0 0 9999px rgb(0 0 0 / 0.62)",
-        }}
-      />
+      {/* The scrim never moves or flickers; each step's spotlight is a hole cut
+          into it that fades open, and fades shut when the step leaves. */}
+      <svg className="pointer-events-none absolute inset-0 h-full w-full" aria-hidden>
+        <defs>
+          <mask id={maskId} maskUnits="userSpaceOnUse" x="0" y="0" width={vw} height={vh}>
+            <rect x="0" y="0" width={vw} height={vh} fill="white" />
+            <AnimatePresence>
+              {hole && shown !== null && (
+                <motion.rect
+                  key={`hole-${shown}`}
+                  x={hole.left}
+                  y={hole.top}
+                  width={hole.width}
+                  height={hole.height}
+                  rx={radius}
+                  fill="black"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: fade * 1.2, ease }}
+                />
+              )}
+            </AnimatePresence>
+          </mask>
+        </defs>
+        <rect x="0" y="0" width={vw} height={vh} fill="rgb(0 0 0 / 0.62)" mask={`url(#${maskId})`} />
+      </svg>
 
-      <motion.div
-        ref={cardRef}
-        initial={{ opacity: 0, scale: 0.96, top: card.top, left: card.left }}
-        animate={{ opacity: 1, scale: 1, top: card.top, left: card.left }}
-        transition={spring}
-        className={cn(
-          "absolute rounded-3xl bg-background/90 p-5 text-foreground shadow-2xl ring-1 ring-white/15 backdrop-blur-xl",
-          step.welcome && "p-7 text-center"
+      {/* The spotlight's rim. */}
+      <AnimatePresence>
+        {hole && shown !== null && (
+          <motion.div
+            key={`ring-${shown}`}
+            className="pointer-events-none absolute"
+            style={{
+              top: hole.top,
+              left: hole.left,
+              width: hole.width,
+              height: hole.height,
+              borderRadius: radius,
+              boxShadow: "0 0 0 2px hsl(var(--primary) / 0.9), 0 0 32px 4px hsl(var(--primary) / 0.35)",
+            }}
+            initial={{ opacity: 0, scale: reduceMotion ? 1 : 1.015 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: fade * 1.3, ease }}
+          />
         )}
-        style={{ width: cardW }}
-      >
-        {step.welcome ? (
-          <>
-            <div className="flex justify-center text-primary">
-              <AppleHelloEnglishEffect speed={1.1} />
-            </div>
-            <h3 id="tour-title" className="mt-3 text-xl font-bold tracking-tight">
-              {step.title}
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
-            <div className="mt-6 flex items-center justify-center gap-2">
-              <Button variant="ghost" size="sm" onClick={finish} className="text-muted-foreground hover:bg-muted hover:text-foreground">
-                Not now
-              </Button>
-              <Button ref={nextRef} size="sm" onClick={() => go(1)}>
-                Show me around
-              </Button>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium tabular-nums text-muted-foreground">
-                {index + 1} of {steps.length}
-              </span>
-              <button
-                type="button"
-                onClick={finish}
-                aria-label="Close tour"
-                className="-mr-1.5 flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <h3 id="tour-title" className="mt-1.5 text-[17px] font-semibold tracking-tight">
-              {step.title}
-            </h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-1" aria-hidden>
-                {steps.map((_, i) => (
-                  <span
-                    key={i}
-                    className={cn(
-                      "h-1.5 rounded-full transition-all duration-300",
-                      i === index ? "w-4 bg-primary" : "w-1.5 bg-muted-foreground/30"
-                    )}
-                  />
-                ))}
-              </div>
-              <div className="flex shrink-0 gap-2">
-                {index > 0 && (
-                  <Button variant="outline" size="sm" onClick={() => go(-1)}>
-                    Back
+      </AnimatePresence>
+
+      {/* The message. */}
+      <AnimatePresence>
+        {current && shown !== null && (
+          <motion.div
+            key={`card-${shown}`}
+            ref={cardRef}
+            initial={{ opacity: 0, y: reduceMotion ? 0 : 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, transition: { duration: fade * 0.8 } }}
+            transition={{ duration: fade * 1.3, ease }}
+            className={cn(
+              "absolute rounded-3xl bg-background/90 p-5 text-foreground shadow-2xl ring-1 ring-white/15 backdrop-blur-xl",
+              current.welcome && "p-7 text-center"
+            )}
+            style={{ width: cardW, ...placeCard(hole, cardW, cardH, vw, vh) }}
+          >
+            {current.welcome ? (
+              <>
+                <div className="flex justify-center text-primary">
+                  <AppleHelloEnglishEffect speed={1.1} />
+                </div>
+                <h3 id="tour-title" className="mt-3 text-xl font-bold tracking-tight">
+                  {current.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{current.body}</p>
+                <div className="mt-6 flex items-center justify-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={finish} className="text-muted-foreground hover:bg-muted hover:text-foreground">
+                    Not now
                   </Button>
-                )}
-                <Button ref={nextRef} size="sm" onClick={() => go(1)}>
-                  {isLast ? "Done" : "Next"}
-                </Button>
-              </div>
-            </div>
-          </>
+                  <Button ref={nextRef} size="sm" onClick={() => go(1)}>
+                    Show me around
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium tabular-nums text-muted-foreground">
+                    {shown + 1} of {steps.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={finish}
+                    aria-label="Close tour"
+                    className="-mr-1.5 flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <h3 id="tour-title" className="mt-1.5 text-[17px] font-semibold tracking-tight">
+                  {current.title}
+                </h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{current.body}</p>
+                <div className="mt-4 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-1" aria-hidden>
+                    {steps.map((_, i) => (
+                      <span
+                        key={i}
+                        className={cn(
+                          "h-1.5 rounded-full transition-all duration-300",
+                          i === shown ? "w-4 bg-primary" : "w-1.5 bg-muted-foreground/30"
+                        )}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    {shown > 0 && (
+                      <Button variant="outline" size="sm" onClick={() => go(-1)}>
+                        Back
+                      </Button>
+                    )}
+                    <Button ref={nextRef} size="sm" onClick={() => go(1)}>
+                      {shown === steps.length - 1 ? "Done" : "Next"}
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </motion.div>
         )}
-      </motion.div>
+      </AnimatePresence>
     </div>,
     document.body
   );
 }
 
-/** Below the target if it fits, then above, then beside, then over its lower edge. */
-function placeCard(hole: Rect | null, w: number, h: number, vw: number, vh: number) {
+/**
+ * Where the message goes: below the target if it fits, then above, then
+ * beside, then over its lower edge. Anchored by the edge nearest the target
+ * (`top` below, `bottom` above), so the card's own height never shifts it.
+ */
+function placeCard(hole: Rect | null, w: number, h: number, vw: number, vh: number): React.CSSProperties {
   const clampX = (x: number) => Math.min(Math.max(x, MARGIN), vw - w - MARGIN);
   const clampY = (y: number) => Math.min(Math.max(y, MARGIN), vh - h - MARGIN);
-  if (!hole) return { top: (vh - h) / 2, left: (vw - w) / 2 };
+  if (!hole) return { top: Math.max(MARGIN, (vh - h) / 2), left: (vw - w) / 2 };
 
   const bottom = hole.top + hole.height;
   const right = hole.left + hole.width;
@@ -356,8 +433,8 @@ function placeCard(hole: Rect | null, w: number, h: number, vw: number, vh: numb
   const centredY = clampY(hole.top + hole.height / 2 - h / 2);
 
   if (vh - bottom >= h + GAP + MARGIN) return { top: bottom + GAP, left: centredX };
-  if (hole.top >= h + GAP + MARGIN) return { top: hole.top - GAP - h, left: centredX };
+  if (hole.top >= h + GAP + MARGIN) return { bottom: vh - hole.top + GAP, left: centredX };
   if (vw - right >= w + GAP + MARGIN) return { top: centredY, left: right + GAP };
   if (hole.left >= w + GAP + MARGIN) return { top: centredY, left: hole.left - GAP - w };
-  return { top: clampY(Math.min(bottom, vh) - h - 24), left: centredX };
+  return { bottom: MARGIN + 8, left: centredX };
 }

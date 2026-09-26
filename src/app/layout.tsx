@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import ThemeProvider from "@/components/layout/theme-provider";
 import "./globals.css";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
 
 import React from 'react';
 import { AuthProvider } from '@/hooks/use-auth';
@@ -16,7 +17,7 @@ import LayoutContent from '@/components/layout/layout-content';
 const poppins = Poppins({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-body",
+  variable: "--font-poppins",
 });
 
 export const metadata: Metadata = {
@@ -52,6 +53,7 @@ export default function RootLayout({
             <Toaster />
           </ThemeProvider>
         </div>
+        <Analytics />
       </body>
     </html>
   );

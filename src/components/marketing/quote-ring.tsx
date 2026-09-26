@@ -19,7 +19,7 @@ export function QuoteChip({ symbol, quote }: { symbol: string; quote?: Quote }) 
       <span className="flex flex-col items-start leading-tight">
         <span className="text-[13px] font-bold tracking-tight text-foreground">{symbol}</span>
         <span className="flex items-center gap-1.5 tabular-nums">
-          <span className="text-[12px] text-foreground/65">{quote ? `$${quote.price.toFixed(2)}` : "—"}</span>
+          <span className="text-[12px] text-foreground/65">{quote ? `$${quote.price.toFixed(2)}` : "…"}</span>
           {quote && (
             <span className={cn("text-[11.5px] font-semibold", up ? "text-emerald-400" : "text-red-400")}>
               {up ? "+" : "−"}

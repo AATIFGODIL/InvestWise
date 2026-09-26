@@ -84,14 +84,14 @@ const CARDS: Card[] = [
     id: "prediction",
     label: "AI Stock Prediction",
     title: "A forecast that admits doubt.",
-    body: "A five-month outlook on any symbol, with the model's confidence attached. A simulation — never advice.",
+    body: "A five-month outlook on any symbol, with the model's confidence attached. A simulation, never advice.",
     preview: <PredictionPreview />,
   },
   {
     id: "bundles",
     label: "Investment Bundles",
     title: "Diversify in one tap.",
-    body: "Curated sets like the Tech Starter Pack — every company in it shown right on the card — picked for your experience level.",
+    body: "Curated sets like the Tech Starter Pack, with every company shown right on the card, picked for your experience level.",
     preview: <BundlePreview />,
   },
   {

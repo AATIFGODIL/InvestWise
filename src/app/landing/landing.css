@@ -33,27 +33,6 @@
   -webkit-backdrop-filter: blur(20px) saturate(160%);
 }
 
-/* The heavier variant, for surfaces that read as structural rather than as
-   a control. Apple's rule: bigger surfaces read as thicker. */
-.lp-glass-deep {
-  background-color: hsl(var(--background) / 0.72);
-  box-shadow:
-    inset 0 1px 0 0 hsl(0 0% 100% / 0.14),
-    inset 0 0 0 1px hsl(0 0% 100% / 0.08),
-    0 40px 90px -30px hsl(0 0% 0% / 0.85);
-  backdrop-filter: blur(28px) saturate(150%);
-  -webkit-backdrop-filter: blur(28px) saturate(150%);
-}
-
-/* The true app recipe, used where the page is *demonstrating* clear mode
-   rather than merely borrowing it. `#frosted` lives in the root layout. */
-.lp-frosted {
-  background-color: hsl(0 0% 100% / 0.1);
-  box-shadow: inset 0 0 0 1px hsl(0 0% 100% / 0.6);
-  backdrop-filter: url(#frosted) blur(1px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
 /**
  * The app's light palette, re-declared as a class.
  *
@@ -125,12 +104,6 @@
   letter-spacing: 0.004em;
 }
 
-/* Numerals that have to line up in a column — prices, deltas, tickers. */
-.lp-tnum {
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum";
-}
-
 /* ───────────────────────────────────────────────────────────────────────────
    Editorial reveals — per-character blur-up, staged copy, wiping stills
    ───────────────────────────────────────────────────────────────────────────
@@ -175,157 +148,12 @@
 .lp-panel.is-active .lp-fade[data-stagger="3"] { transition-delay: 0.54s; }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   Ambient field — the indigo bloom the whole page floats in
-   ─────────────────────────────────────────────────────────────────────────── */
-.lp-aurora {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(90px);
-  will-change: transform;
-  pointer-events: none;
-}
-
-/* Deliberately slow, but never near the 0.2 Hz band that triggers motion
-   sensitivity — 34s and 46s cycles, out of phase with each other. */
-@keyframes lp-drift-a {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
-  50% { transform: translate3d(6%, -8%, 0) scale(1.12); }
-}
-
-@keyframes lp-drift-b {
-  0%, 100% { transform: translate3d(0, 0, 0) scale(1.08); }
-  50% { transform: translate3d(-7%, 6%, 0) scale(0.94); }
-}
-
-.lp-drift-a { animation: lp-drift-a 34s ease-in-out infinite; }
-.lp-drift-b { animation: lp-drift-b 46s ease-in-out infinite; }
-
-/* The hero chart drawing itself in, left to right, once. `pathLength="1"` on
-   the path normalises these to fractions of its own length. */
-.lp-draw {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: lp-draw 2.6s cubic-bezier(0.32, 0.72, 0, 1) 0.25s forwards;
-}
-
-@keyframes lp-draw {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-/* The live-price marker. Slow enough to read as a heartbeat rather than a
-   notification badge demanding to be clicked. */
-.lp-pulse {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: lp-pulse 2.8s ease-out infinite;
-}
-
-@keyframes lp-pulse {
-  0% {
-    transform: scale(0.55);
-    opacity: 0.9;
-  }
-  70%,
-  100% {
-    transform: scale(1.9);
-    opacity: 0;
-  }
-}
-
-/* The chart annotation lands after the line has drawn past it, so it reads as
-   a note being made about something that already happened. */
-.lp-annotate {
-  opacity: 0;
-  animation: lp-annotate-in 700ms cubic-bezier(0.16, 1, 0.3, 1) 1.5s forwards;
-}
-
-@keyframes lp-annotate-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Market furniture drifting in the hero's margins — tilted glass chips that
-   bob very slightly out of phase with each other. Two classes rather than one
-   so no two chips are ever in sync, which is what stops it reading as a
-   carousel. */
-.lp-chip-a {
-  animation: lp-chip-a 13s ease-in-out infinite;
-}
-
-.lp-chip-b {
-  animation: lp-chip-b 17s ease-in-out infinite;
-}
-
-@keyframes lp-chip-a {
-  0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--lp-tilt, 0deg)); }
-  50% { transform: translate3d(0, -12px, 0) rotate(var(--lp-tilt, 0deg)); }
-}
-
-@keyframes lp-chip-b {
-  0%, 100% { transform: translate3d(0, -8px, 0) rotate(var(--lp-tilt, 0deg)); }
-  50% { transform: translate3d(0, 6px, 0) rotate(var(--lp-tilt, 0deg)); }
-}
-
-/**
- * The hero's logo is hidden until the loader has finished flying its own copy
- * onto it, at which point the loader sets `data-lp-loaded` on `<html>`. Without
- * this you see two logos during the flight — the travelling one and the one
- * already sitting at the destination.
- *
- * No transition: the reveal happens while the travelling logo is still exactly
- * on top of it, so a fade would only make the swap visible.
- */
-[data-hero-logo] {
-  opacity: 0;
-}
-
-html[data-lp-loaded="1"] [data-hero-logo] {
-  opacity: 1;
-}
-
-/* The loader's logo arrival: up, out of a blur, with the glow blooming last. */
-@keyframes lp-loader-in {
-  0% {
-    opacity: 0;
-    transform: translateY(18px) scale(0.94);
-    filter: blur(14px) brightness(0.5);
-  }
-  60% {
-    opacity: 1;
-    filter: blur(0) brightness(1.08);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0) brightness(1);
-  }
-}
-
-/* ───────────────────────────────────────────────────────────────────────────
    Depth — the things that stop large dark areas reading as empty
    ───────────────────────────────────────────────────────────────────────────
    A dark page with generous spacing can tip from "composed" into "unfinished"
    very easily, and the difference is almost never another element: it's whether
    the surfaces catch light. These are the light sources.
 */
-
-/* Grid floor. Masked to a soft ellipse so it never meets an edge. */
-.lp-grid {
-  background-image:
-    linear-gradient(to right, hsl(var(--primary) / 0.12) 1px, transparent 1px),
-    linear-gradient(to bottom, hsl(var(--primary) / 0.12) 1px, transparent 1px);
-  background-size: 56px 56px;
-  -webkit-mask-image: radial-gradient(ellipse 70% 55% at 50% 45%, #000 0%, transparent 78%);
-  mask-image: radial-gradient(ellipse 70% 55% at 50% 45%, #000 0%, transparent 78%);
-}
 
 /* Film grain, so the large flat gradients never band on an 8-bit panel. */
 .lp-grain::after {
@@ -379,7 +207,7 @@ html[data-lp-loaded="1"] [data-hero-logo] {
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
-   Demo furniture — the synthetic cursor and keycaps used inside the device
+   Demo furniture — the synthetic cursor used inside the device
    ─────────────────────────────────────────────────────────────────────────── */
 .lp-caret {
   display: inline-block;
@@ -393,23 +221,6 @@ html[data-lp-loaded="1"] [data-hero-logo] {
 @keyframes lp-blink {
   0%, 45% { opacity: 1; }
   46%, 100% { opacity: 0; }
-}
-
-.lp-key {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.55em;
-  padding: 0.2em 0.42em;
-  border-radius: 0.4em;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  line-height: 1;
-  color: hsl(var(--foreground) / 0.86);
-  background-color: hsl(0 0% 100% / 0.09);
-  box-shadow:
-    inset 0 0 0 1px hsl(0 0% 100% / 0.14),
-    inset 0 -1px 0 0 hsl(0 0% 0% / 0.4);
 }
 
 /* Pointer used by the demos. Cheap to move: transform only. */
@@ -432,28 +243,6 @@ html[data-lp-loaded="1"] [data-hero-logo] {
 
 .lp-tap {
   animation: lp-tap 620ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* ───────────────────────────────────────────────────────────────────────────
-   Marquee
-   ───────────────────────────────────────────────────────────────────────────
-   Translating a duplicated track by exactly -50% loops seamlessly, and stays
-   on the compositor the whole way.
-*/
-@keyframes lp-marquee {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(-50%, 0, 0); }
-}
-
-.lp-marquee-track {
-  display: flex;
-  width: max-content;
-  will-change: transform;
-  animation: lp-marquee var(--lp-marquee-duration, 44s) linear infinite;
-}
-
-.lp-marquee-track[data-direction="right"] {
-  animation-direction: reverse;
 }
 
 /* ───────────────────────────────────────────────────────────────────────────
@@ -508,7 +297,7 @@ html[data-lp-loaded="1"] [data-hero-logo] {
    Accessibility
    ───────────────────────────────────────────────────────────────────────────
    Reduced motion means a gentler equivalent, not a dead page: reveals resolve
-   to their finished state, ambient drift and marquees stop, the scroll-linked
+   to their finished state, looping decoration stops, the scroll-linked
    sections still work because their transforms are driven by scroll position
    (the user's own motion) rather than by a timer.
 */
@@ -521,30 +310,11 @@ html[data-lp-loaded="1"] [data-hero-logo] {
     filter: none !important;
   }
 
-  .lp-drift-a,
-  .lp-drift-b,
-  .lp-marquee-track,
   .lp-caret,
   .lp-tap,
-  .lp-pulse,
-  .lp-chip-a,
-  .lp-chip-b,
   .lp-bill {
     animation: none !important;
   }
-
-  /* The annotation still has to arrive — it just arrives already there. */
-  .lp-annotate {
-    animation: none !important;
-    opacity: 1;
-  }
-
-  /* The chart still has to be drawn — just not drawn *in*. */
-  .lp-draw {
-    animation: none !important;
-    stroke-dashoffset: 0;
-  }
-
 
   .lp-cursor {
     transition: none !important;
@@ -557,9 +327,7 @@ html[data-lp-loaded="1"] [data-hero-logo] {
 
 /* Translucency is a preference, not a given. */
 @media (prefers-reduced-transparency: reduce) {
-  .lp-glass,
-  .lp-glass-deep,
-  .lp-frosted {
+  .lp-glass {
     background-color: hsl(var(--card));
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -573,8 +341,7 @@ html[data-lp-loaded="1"] [data-hero-logo] {
     color: hsl(var(--foreground) / 0.95);
   }
 
-  .lp-glass,
-  .lp-glass-deep {
+  .lp-glass {
     box-shadow: inset 0 0 0 1px hsl(var(--foreground) / 0.55);
   }
 }

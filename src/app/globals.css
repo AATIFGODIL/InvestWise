@@ -17,8 +17,14 @@
   }
 }
 
-@theme {
-  --font-body: var(--font-body), sans-serif;
+/*
+  `inline` makes utilities use the variable itself (`bg-background` →
+  `hsl(var(--background))`) rather than a copy resolved once at :root, so any
+  subtree that re-scopes the palette (`.dark` wrappers, the landing page's
+  mock screens) actually gets its own colours.
+*/
+@theme inline {
+  --font-body: var(--font-poppins), sans-serif;
 
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));

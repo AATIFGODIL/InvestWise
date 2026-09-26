@@ -249,7 +249,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
   // Above the `hydrating` gate on purpose: the page is identical signed in or
   // out, so waiting on Firebase would only flash a skeleton over content that
   // never needed it.
-  if (pathname === '/' || pathname.startsWith('/landing')) {
+  if (pathname === '/' || pathname.startsWith('/landing') || pathname.startsWith('/privacy')) {
     return <>{children}</>;
   }
 
