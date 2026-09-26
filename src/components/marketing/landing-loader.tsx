@@ -128,10 +128,10 @@ export function LandingLoader({
   if (gone) return null;
 
   return (
-    // `z-[150]` puts this over the page but under the sculpture, which the hero
-    // lifts to `z-[200]` until it has settled. That ordering is the whole
+    // `z-150` puts this over the page but under the sculpture, which the hero
+    // lifts to `z-200` until it has settled. That ordering is the whole
     // trick: the glyph is never covered, so it never has to be handed over.
-    <div className="pointer-events-none fixed inset-0 z-[150] overflow-hidden" aria-hidden>
+    <div className="pointer-events-none fixed inset-0 z-150 overflow-hidden" aria-hidden>
       <div
         className="lp-grain absolute inset-0 bg-background"
         style={{

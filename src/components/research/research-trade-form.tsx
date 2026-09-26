@@ -27,7 +27,8 @@ const tradeSchema = z.object({
     path: ["limitPrice"],
 });
 
-type TradeFormValues = z.infer<typeof tradeSchema>;
+type TradeFormInput = z.input<typeof tradeSchema>;
+type TradeFormValues = z.output<typeof tradeSchema>;
 
 interface ResearchTradeFormProps {
     selectedSymbol: string;
@@ -41,7 +42,7 @@ export default function ResearchTradeForm({ selectedSymbol, selectedPrice, loadi
     const { toast } = useToast();
     const { executeTrade } = usePortfolioStore();
 
-    const { register, handleSubmit, control, watch, formState: { errors, isValid }, setValue, reset } = useForm<TradeFormValues>({
+    const { register, handleSubmit, control, watch, formState: { errors, isValid }, setValue, reset } = useForm<TradeFormInput, unknown, TradeFormValues>({
         resolver: zodResolver(tradeSchema),
         mode: "onChange",
         defaultValues: {
@@ -64,8 +65,11 @@ export default function ResearchTradeForm({ selectedSymbol, selectedPrice, loadi
     }, [selectedPrice, setValue]);
 
     const orderType = watch("orderType");
-    const quantity = watch("quantity");
-    const limitPrice = watch("limitPrice");
+    // `watch` reports what's typed (zod 4 keeps input and output types apart);
+    // coerce the same way the schema does before doing arithmetic with it.
+    const quantity = Number(watch("quantity")) || 0;
+    const rawLimitPrice = watch("limitPrice");
+    const limitPrice = rawLimitPrice === undefined || rawLimitPrice === "" ? undefined : Number(rawLimitPrice);
 
     const estimatedCost = (orderType === 'limit' ? limitPrice : selectedPrice) && quantity > 0
         ? (orderType === 'limit' ? limitPrice! : selectedPrice!) * quantity
@@ -106,7 +110,7 @@ export default function ResearchTradeForm({ selectedSymbol, selectedPrice, loadi
             exit={{ opacity: 0, y: 20 }}
             className="w-full"
         >
-            <Card className="border-none shadow-none ring-0 bg-card/50 backdrop-blur-sm">
+            <Card className="border-none shadow-none ring-0 bg-card/50 backdrop-blur-xs">
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-2xl font-bold">Place Pro Order: {selectedSymbol}</CardTitle>

@@ -3,8 +3,8 @@
 // Note: API keys are only available in production (Firebase App Hosting)
 import 'dotenv/config';
 
-import '@/ai/flows/investment-chatbot.ts';
-import '@/ai/flows/stock-prediction.ts';
-import '@/ai/flows/create-avatar-flow.ts';
+import '@/ai/flows/investment-chatbot';
+import '@/ai/flows/stock-prediction';
+import '@/ai/flows/create-avatar-flow';
 
  

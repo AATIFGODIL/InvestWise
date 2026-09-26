@@ -85,7 +85,7 @@ export default function FavoriteItem({ favorite, onSelect, onRemove, isEditing, 
                 opacity: { duration: 0.2, delay: revealed ? 0.05 + revealIndex * 0.035 : 0 },
                 scale: { type: "spring", bounce: 0, duration: 0.35, delay: revealed ? 0.05 + revealIndex * 0.035 : 0 },
             }}
-            className={cn("z-10 flex-shrink-0", containerClasses, className)}
+            className={cn("z-10 shrink-0", containerClasses, className)}
             style={{ backdropFilter: "blur(2px)", height, width }}
             onClick={() => onSelect(favorite)}
         >
@@ -97,7 +97,7 @@ export default function FavoriteItem({ favorite, onSelect, onRemove, isEditing, 
                         exit={{ opacity: 0, scale: 0.5 }}
                         transition={{ duration: 0.2 }}
                         onClick={handleRemoveClick}
-                        className="absolute -top-1 -left-1 z-20 h-5 w-5 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/50"
+                        className="absolute -top-1 -left-1 z-20 h-5 w-5 rounded-full bg-black/50 backdrop-blur-xs flex items-center justify-center ring-2 ring-white/50"
                     >
                         <Minus className="h-4 w-4 text-white" />
                     </motion.button>
@@ -135,7 +135,7 @@ export default function FavoriteItem({ favorite, onSelect, onRemove, isEditing, 
                             </div>
                         ) : (
                             <div className="flex items-center justify-center gap-1 sm:gap-2 w-full text-center">
-                                {Icon && <Icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />}
+                                {Icon && <Icon className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />}
                                 <span className="font-semibold text-xs whitespace-normal leading-tight text-center">{favorite.name}</span>
                             </div>
                         )}

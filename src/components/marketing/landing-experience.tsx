@@ -78,9 +78,9 @@ export function LandingExperience() {
       {phase === "settled" && <LandingNav />}
 
       {/* Two things change while the loader is up.
-          `z-[200]` lifts this above the loader's `z-[150]`, which is the only
+          `z-200` lifts this above the loader's `z-150`, which is the only
           way the hero's sculpture can render over the splash — `main` is a
-          stacking context, so a `z-[200]` descendant of a `z-10` parent is
+          stacking context, so a `z-200` descendant of a `z-10` parent is
           still trapped underneath. Nothing else in here is visible yet (every
           section fades in on settle, and the rest is below the fold), so the
           glyph is all that shows.
@@ -90,7 +90,7 @@ export function LandingExperience() {
       <main
         className={cn(
           "relative",
-          phase === "settled" ? "z-10 bg-background" : "z-[200] bg-transparent",
+          phase === "settled" ? "z-10 bg-background" : "z-200 bg-transparent",
           peel ? "mb-[100svh]" : "mb-0"
         )}
       >
@@ -102,7 +102,7 @@ export function LandingExperience() {
       </main>
 
       {peel && (
-        <div className="fixed inset-x-0 bottom-0 z-0 h-[100svh]">
+        <div className="fixed inset-x-0 bottom-0 z-0 h-svh">
           <ClosingCta />
         </div>
       )}

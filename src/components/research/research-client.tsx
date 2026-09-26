@@ -343,10 +343,10 @@ export default function ResearchClient() {
             {/* TradingView Grid */}
             <div id="research-grid-tutorial" className={cn("grid gap-4 transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]", getGridClass(), isCustomZoom ? "flex-1 min-h-[calc(100vh-8rem)]" : "min-h-[600px]")}>
                 {Array.from({ length: gridMode }).map((_, index) => (
-                    <Card key={index} className="overflow-hidden flex flex-col h-full border-muted/20 bg-card/40 backdrop-blur-sm shadow-2xl">
+                    <Card key={index} className="overflow-hidden flex flex-col h-full border-muted/20 bg-card/40 backdrop-blur-xs shadow-2xl">
                         <CardContent className="p-0 flex-1 relative">
                             <div className="absolute top-2 left-2 z-10 w-24 opacity-0 hover:opacity-100 transition-opacity">
-                                <Input className="h-8 text-xs bg-black/60 backdrop-blur border-none text-white" placeholder="Symbol" onKeyDown={(e) => { if (e.key === 'Enter') updateSymbol(index, e.currentTarget.value) }} />
+                                <Input className="h-8 text-xs bg-black/60 backdrop-blur-sm border-none text-white" placeholder="Symbol" onKeyDown={(e) => { if (e.key === 'Enter') updateSymbol(index, e.currentTarget.value) }} />
                             </div>
                             <TradingViewWidget symbol={symbols[index]} interval="1" studies={PRO_STUDIES} containerIdSuffix={`_pro_${index}`} />
                         </CardContent>
@@ -366,7 +366,7 @@ export default function ResearchClient() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                         {newsLoading ? <Skeleton className="h-24 w-full col-span-5" /> : (newsExpanded ? news.slice(0, 5) : news.slice(0, 1)).map((article, i) => (
-                            <a key={i} href={article.url} target="_blank" rel="noreferrer" className={cn("group relative block overflow-hidden rounded-lg transition-colors border", !newsExpanded ? "md:col-span-5 flex items-center p-4 gap-4 h-24" : "aspect-[4/3]", isClearMode ? "bg-white/10 border-white/10 hover:bg-white/20" : "bg-card border-border hover:bg-accent")}>
+                            <a key={i} href={article.url} target="_blank" rel="noreferrer" className={cn("group relative block overflow-hidden rounded-lg transition-colors border", !newsExpanded ? "md:col-span-5 flex items-center p-4 gap-4 h-24" : "aspect-4/3", isClearMode ? "bg-white/10 border-white/10 hover:bg-white/20" : "bg-card border-border hover:bg-accent")}>
                                 {!newsExpanded ? (
                                     <>
                                         {article.image && <img src={article.image} alt="news" className="h-16 w-24 object-cover rounded" />}
@@ -378,7 +378,7 @@ export default function ResearchClient() {
                                 ) : (
                                     <>
                                         {article.image && <img src={article.image} alt="news" className="absolute inset-0 h-full w-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />}
-                                        <div className="absolute inset-0 p-4 flex flex-col justify-end bg-gradient-to-t from-black/90 to-transparent">
+                                        <div className="absolute inset-0 p-4 flex flex-col justify-end bg-linear-to-t from-black/90 to-transparent">
                                             <h4 className="text-sm font-medium text-white line-clamp-2 leading-tight">{article.title}</h4>
                                             <span className="text-[10px] text-zinc-400 mt-1">{article.source.name}</span>
                                         </div>

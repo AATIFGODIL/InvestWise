@@ -56,7 +56,8 @@ const tradeSchema = z.object({
   path: ["limitPrice"],
 });
 
-type TradeFormValues = z.infer<typeof tradeSchema>;
+type TradeFormInput = z.input<typeof tradeSchema>;
+type TradeFormValues = z.output<typeof tradeSchema>;
 
 interface TradeFormProps {
   selectedSymbol: string | null;
@@ -72,7 +73,7 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice,
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewData, setPreviewData] = useState<TradeFormValues | null>(null);
 
-  const { register, handleSubmit, control, watch, formState: { errors, isValid }, setValue, reset } = useForm<TradeFormValues>({
+  const { register, handleSubmit, control, watch, formState: { errors, isValid }, setValue, reset } = useForm<TradeFormInput, unknown, TradeFormValues>({
     resolver: zodResolver(tradeSchema),
     mode: "onChange",
     defaultValues: {
@@ -105,8 +106,11 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice,
 
 
   const orderType = watch("orderType");
-  const quantity = watch("quantity");
-  const limitPrice = watch("limitPrice");
+  // `watch` reports what's typed (zod 4 keeps input and output types apart);
+  // coerce the same way the schema does before doing arithmetic with it.
+  const quantity = Number(watch("quantity")) || 0;
+  const rawLimitPrice = watch("limitPrice");
+  const limitPrice = rawLimitPrice === undefined || rawLimitPrice === "" ? undefined : Number(rawLimitPrice);
 
   const estimatedCost = (orderType === 'limit' ? limitPrice : selectedPrice) && quantity > 0
     ? (orderType === 'limit' ? limitPrice! : selectedPrice!) * quantity

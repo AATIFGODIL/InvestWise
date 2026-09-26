@@ -14,12 +14,13 @@ import { useMarketStore } from "@/store/market-store";
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { tradingVideos } from "@/data/videos";
 import Watchlist from "../dashboard/watchlist";
 import { CommandItem, CommandList } from "../ui/command";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useThemeStore } from "@/store/theme-store";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { Skeleton } from "../ui/skeleton";
 
 import { useProModeStore } from "@/store/pro-mode-store";
@@ -40,6 +41,11 @@ const TradingViewScreener = dynamic(() => import("@/components/shared/trading-vi
     loading: () => <Skeleton className="h-[600px] w-full" />,
 });
 
+
+const YouTubePlayer = dynamic(() => import('../shared/youtube-player'), {
+    ssr: false,
+    loading: () => <Skeleton className="aspect-video w-full rounded-3xl" />,
+});
 
 const InvestmentBundles = dynamic(() => import("../dashboard/investment-bundles"), {
     ssr: false,
@@ -69,7 +75,7 @@ interface TradeData {
     p: number; // price
 }
 
-const containerVariants = {
+const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
@@ -79,7 +85,7 @@ const containerVariants = {
     },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
         y: 0,
@@ -512,6 +518,15 @@ export default function TradeClient() {
                         description=""
                         bundles={specializedBundles}
                     />
+                </motion.div>
+
+                <motion.div variants={itemVariants} className="space-y-4 pt-4" id="learn-trading-tutorial">
+                    <h2 className="text-2xl font-bold">Learn About Trading</h2>
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                        {tradingVideos.map((video) => (
+                            <YouTubePlayer key={video.title} videoTitle={video.title} description={video.description} youtubeUrl={video.youtubeUrl} />
+                        ))}
+                    </div>
                 </motion.div>
 
 

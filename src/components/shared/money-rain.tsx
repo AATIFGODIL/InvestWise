@@ -17,7 +17,7 @@ export default function MoneyRain({ isActive }: MoneyRainProps) {
   const bills = Array.from({ length: 50 });
 
   return (
-    <div className="pointer-events-none fixed top-0 left-0 w-full h-full overflow-hidden z-[9999]">
+    <div className="pointer-events-none fixed top-0 left-0 w-full h-full overflow-hidden z-9999">
       {bills.map((_, i) => (
         <div
           key={i}

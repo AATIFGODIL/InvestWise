@@ -85,7 +85,7 @@ function BundleCover({ bundle }: { bundle: Bundle }) {
         className="pointer-events-none absolute -bottom-8 -right-6 h-40 w-40 -rotate-12 text-white/[0.14]"
       />
       <div className="relative flex items-center justify-between">
-        <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide backdrop-blur-sm">
+        <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide backdrop-blur-xs">
           {bundle.tag}
         </span>
         <span className="text-[11px] font-medium text-white/70">{bundle.stocks.length} stocks</span>
@@ -197,7 +197,7 @@ export default function InvestmentBundles({ bundles, title, description, showDis
             <CardTitle className="text-2xl font-bold">{title}</CardTitle>
             <CardDescription>{description}</CardDescription>
           </CardHeader>
-          <CardContent className="flex-grow">
+          <CardContent className="grow">
             <Carousel opts={{ align: "start" }} className="w-full">
               <CarouselContent>
                 {bundles.map((bundle, index) => (

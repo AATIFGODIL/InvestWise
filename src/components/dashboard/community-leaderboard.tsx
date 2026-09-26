@@ -74,7 +74,7 @@ export default function CommunityLeaderboard() {
       <CardHeader className="pb-2">
         <CardTitle className="text-2xl font-bold">Community Leaderboard</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 px-4 pt-2 flex-grow">
+      <CardContent className="space-y-3 px-4 pt-2 grow">
         {isLoading ? (
           <div className="flex justify-center items-center h-full">
             <Loader2 className="h-6 w-6 animate-spin text-primary" />

@@ -60,7 +60,7 @@ export default function AiPrediction() {
       </CardHeader>
       <CardContent className="flex-1 space-y-4">
         <div className="flex flex-col sm:flex-row gap-2">
-          <div className="flex-grow space-y-2">
+          <div className="grow space-y-2">
             <Label htmlFor="stock-symbol-portfolio">Stock Symbol</Label>
             <Input
               id="stock-symbol-portfolio"

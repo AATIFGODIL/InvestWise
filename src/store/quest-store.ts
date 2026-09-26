@@ -5,7 +5,7 @@ import { useGoalStore } from './goal-store';
 import { usePortfolioStore } from './portfolio-store';
 import { useAutoInvestStore } from './auto-invest-store';
 import { useTransactionStore } from './transaction-store';
-import { useWatchlistStore } from './watchlist-store';
+import useVideoProgressStore from './video-progress-store';
 import { doc, getDoc, updateDoc, getFirestore, Timestamp } from "firebase/firestore";
 import { auth } from '@/lib/firebase/config';
 
@@ -34,7 +34,7 @@ const initialQuestData: QuestData = {
     intermediate: [
         { title: "Diversify your portfolio with 3+ assets", progress: 0 },
         { title: "Set up a recurring investment", progress: 0 },
-        { title: "Add 3 stocks to your watchlist", progress: 0 },
+        { title: "Watch 4 educational videos", progress: 0 },
     ],
     pro: [
         { title: "Reach a portfolio value of $10,000", progress: 0 },
@@ -50,7 +50,7 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         const { goals } = useGoalStore.getState();
         const { holdings, portfolioSummary } = usePortfolioStore.getState();
         const { autoInvestments } = useAutoInvestStore.getState();
-        const { watchlist } = useWatchlistStore.getState();
+        const { watchedVideos } = useVideoProgressStore.getState();
         const { transactions } = useTransactionStore.getState();
 
 
@@ -65,7 +65,8 @@ export const useQuestStore = create<QuestState>((set, get) => ({
         const diversificationProgress = Math.min((holdings.length / 3) * 100, 100);
         newQuestData.intermediate[0].progress = diversificationProgress;
         newQuestData.intermediate[1].progress = autoInvestments.length > 0 ? 100 : 0;
-        newQuestData.intermediate[2].progress = Math.min((watchlist.length / 3) * 100, 100);
+        const videoProgress = Math.min((watchedVideos.size / 4) * 100, 100);
+        newQuestData.intermediate[2].progress = videoProgress;
         
         // Pro Quests
         const portfolioValueProgress = Math.min((portfolioSummary.totalValue / 10000) * 100, 100);

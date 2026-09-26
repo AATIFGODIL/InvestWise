@@ -32,7 +32,8 @@ export const PAGE_DESCRIPTIONS: Record<string, string> = {
 
 **Goals Tab:**
 - **Create Goal**: A form to create new financial goals with target amounts, deadlines, and goal types.
-- **Goal List**: All active goals with progress tracking, contribution history, and status.`,
+- **Goal List**: All active goals with progress tracking, contribution history, and status.
+- **Learn About Goals**: YouTube videos about setting SMART financial goals and trading psychology.`,
 
   '/trade': `The Trade page is where users buy and sell stocks. It contains:
 - **Stock Chart (TradingView)**: A full interactive TradingView chart showing the selected stock's price history with candlesticks, volume, and technical indicators. Users can change timeframes, draw on the chart, and use professional chart tools.
@@ -44,6 +45,7 @@ export const PAGE_DESCRIPTIONS: Record<string, string> = {
 - **AI Prediction (Trade)**: AI-powered prediction specific to the stock being viewed.
 - **Stock Screener**: A TradingView-powered screener showing a wide table of stocks with metrics like market cap, P/E ratio, dividends, etc. Users can filter and sort.
 - **Investment Bundles**: Themed stock collections for exploration.
+- **Learn About Trading**: YouTube videos about reading stock charts and trading basics.
 - **Market Status**: Real-time market open/closed indicator.`,
 
   '/goals': `The Goals page helps users set and track financial goals. It contains:
@@ -52,7 +54,8 @@ export const PAGE_DESCRIPTIONS: Record<string, string> = {
   - Progress bar showing percentage toward target
   - Current saved amount vs target amount
   - Days remaining until deadline
-  - Contribution history`,
+  - Contribution history
+- **Learn About Goals**: YouTube videos about setting SMART financial goals and trading psychology.`,
 
   '/community': `The Community page connects users with other InvestWise investors. It has multiple tabs:
 - **Feed Tab**: Shows community posts, discussions, and social interactions between investors. Users can share thoughts, strategies, and celebrate wins.

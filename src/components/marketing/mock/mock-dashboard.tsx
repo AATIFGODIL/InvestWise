@@ -207,7 +207,7 @@ export function MockDashboard({ theme }: { theme: MockTheme }) {
             </div>
             <div className="space-y-4 p-6 pt-0">
               <div className="flex flex-row gap-2">
-                <div className="flex-grow space-y-2">
+                <div className="grow space-y-2">
                   <p className="text-sm font-medium">Stock Symbol</p>
                   <div className="flex h-10 w-full items-center rounded-2xl border border-input bg-background px-3 text-sm">
                     NVDA
@@ -243,9 +243,9 @@ export function MockDashboard({ theme }: { theme: MockTheme }) {
               <MCardTitle>Goal Progress</MCardTitle>
               <span className="text-sm font-medium text-primary">View All</span>
             </div>
-            <div className="flex flex-grow items-center p-6 pt-2">
+            <div className="flex grow items-center p-6 pt-2">
               <div className="flex w-full items-center gap-2 pt-2">
-                <div className="flex-grow">
+                <div className="grow">
                   <p className="text-sm text-muted-foreground">New Laptop</p>
                   <p className="text-2xl font-bold">$1,240</p>
                   <p className="text-xs font-semibold text-muted-foreground">62% to target</p>
@@ -262,7 +262,7 @@ export function MockDashboard({ theme }: { theme: MockTheme }) {
             <div className="p-6 pb-2">
               <MCardTitle>Community Leaderboard</MCardTitle>
             </div>
-            <div className="flex-grow space-y-3 px-4 pt-2">
+            <div className="grow space-y-3 px-4 pt-2">
               {LEADERS.map((leader) => (
                 <div key={leader.rank} className="flex items-center justify-between">
                   <div className="flex items-center gap-3">

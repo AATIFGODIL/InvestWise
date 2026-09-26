@@ -132,7 +132,7 @@ function ResearchStation({ toggleOn }: { toggleOn: boolean }) {
         {CHARTS.map((c) => (
           <div
             key={c.symbol}
-            className="relative flex h-full flex-col overflow-hidden rounded-3xl bg-card/40 shadow-2xl ring-1 ring-white/60 backdrop-blur-sm"
+            className="relative flex h-full flex-col overflow-hidden rounded-3xl bg-card/40 shadow-2xl ring-1 ring-white/60 backdrop-blur-xs"
           >
             <TvChart
               symbol={c.symbol}

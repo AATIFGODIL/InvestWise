@@ -22,6 +22,25 @@ import { useProModeStore } from "@/store/pro-mode-store";
 
 type AnimationState = "idle" | "rising" | "sliding" | "descending" | "dragging";
 
+/**
+ * Where a dragged glider may go. It moves freely between the first and last
+ * items (`min`..`max`); past them it meets rubber-band resistance that can
+ * never carry it beyond the bar's own edges (`lo`..`hi`).
+ */
+type DragBounds = { min: number; max: number; lo: number; hi: number };
+
+/** Progressive resistance: approaches `room` but never reaches it. */
+function rubberband(overshoot: number, room: number) {
+  if (room <= 0) return 0;
+  return room * (1 - 1 / ((overshoot / room) * 0.55 + 1));
+}
+
+function softClamp(value: number, { min, max, lo, hi }: DragBounds) {
+  if (value < min) return min - rubberband(min - value, min - lo);
+  if (value > max) return max + rubberband(value - max, hi - max);
+  return value;
+}
+
 export default function BottomNav({
   isMobileCompact = false,
   onHide,
@@ -39,6 +58,7 @@ export default function BottomNav({
   const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const animationStateRef = useRef<AnimationState>("idle");
   const dragStartInfo = useRef<{ x: number; y: number; left: number; top: number; width: number; height: number } | null>(null);
+  const dragBounds = useRef<DragBounds | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
   const { isClearMode, theme, primaryColor } = useThemeStore();
@@ -389,6 +409,14 @@ export default function BottomNav({
         const left = Math.round((navRect.width - gliderWidth) / 2);
 
         dragStartInfo.current = { x: e.clientX, y: e.clientY, left, top: startTop, width: gliderWidth, height: gliderHeight };
+        const firstRect = itemRefs.current[0]?.getBoundingClientRect();
+        const lastRect = itemRefs.current[navItems.length - 1]?.getBoundingClientRect();
+        dragBounds.current = {
+          min: firstRect ? firstRect.top - navRect.top - 6 : startTop,
+          max: lastRect ? lastRect.top - navRect.top - 6 : startTop,
+          lo: 2,
+          hi: navRect.height - gliderHeight - 2,
+        };
         setAnimationState("dragging");
         window.dispatchEvent(new CustomEvent('bottomNavDragStart'));
         setGliderStyle(prev => ({
@@ -408,6 +436,15 @@ export default function BottomNav({
         const startLeft = itemRect.left - navRect.left + (itemRect.width - gliderWidth) / 2;
 
         dragStartInfo.current = { x: e.clientX, y: e.clientY, left: startLeft, top: 0, width: gliderWidth, height: 0 };
+        const firstRect = itemRefs.current[0]?.getBoundingClientRect();
+        const lastRect = itemRefs.current[navItems.length - 1]?.getBoundingClientRect();
+        const leftFor = (r: DOMRect) => r.left - navRect.left + (r.width - gliderWidth) / 2;
+        dragBounds.current = {
+          min: firstRect ? leftFor(firstRect) : startLeft,
+          max: lastRect ? leftFor(lastRect) : startLeft,
+          lo: 2,
+          hi: navRect.width - gliderWidth - 2,
+        };
         setAnimationState("dragging");
         window.dispatchEvent(new CustomEvent('bottomNavDragStart'));
         setGliderStyle(prev => ({
@@ -434,16 +471,22 @@ export default function BottomNav({
     if (animationStateRef.current !== "dragging" || !dragStartInfo.current) return;
     if (isDesktop) {
       const dy = e.clientY - dragStartInfo.current.y;
+      const top = dragBounds.current
+        ? softClamp(dragStartInfo.current.top + dy, dragBounds.current)
+        : dragStartInfo.current.top + dy;
       setGliderStyle(prev => ({
         ...prev,
-        transform: `translateX(${dragStartInfo.current!.left}px) translateY(${dragStartInfo.current!.top + dy}px)`,
+        transform: `translateX(${dragStartInfo.current!.left}px) translateY(${top}px)`,
         transition: "none",
       }));
     } else {
       const dx = e.clientX - dragStartInfo.current.x;
+      const left = dragBounds.current
+        ? softClamp(dragStartInfo.current.left + dx, dragBounds.current)
+        : dragStartInfo.current.left + dx;
       setGliderStyle(prev => ({
         ...prev,
-        transform: `translateX(${dragStartInfo.current!.left + dx}px) translateY(-50%)`,
+        transform: `translateX(${left}px) translateY(-50%)`,
         transition: "none",
       }));
     }
@@ -526,6 +569,7 @@ export default function BottomNav({
     }
 
     dragStartInfo.current = null;
+    dragBounds.current = null;
     setAnimationState("idle");
   };
 

@@ -92,7 +92,7 @@ function ColorPicker() {
 
     return (
         <div className="flex flex-col items-center gap-4">
-            <HexColorPicker color={color} onChange={setColor} className="!w-full" />
+            <HexColorPicker color={color} onChange={setColor} className="w-full!" />
             <div className="grid w-full items-center gap-1.5">
                 <Label htmlFor="hex-color">Primary Color (HEX)</Label>
                 <div className="relative">
@@ -163,7 +163,7 @@ const ThemeCard: React.FC<ThemeCardProps> = ({ label, themeType, isClear = false
                 "flex h-full w-full items-center justify-center rounded-md",
                 themeType === 'light' && !isClear && "bg-white",
                 themeType === 'dark' && !isClear && "bg-gray-800",
-                isClear && "bg-gray-700/50 backdrop-blur-sm"
+                isClear && "bg-gray-700/50 backdrop-blur-xs"
             )}
             >
             <TrendingUp className={cn(

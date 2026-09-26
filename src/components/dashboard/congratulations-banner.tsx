@@ -37,8 +37,8 @@ export default function CongratulationsBanner({ show, userProfile }: Congratulat
         <div className="absolute top-8 left-1/3 w-4 h-4 bg-blue-300/70 rounded-full animate-pulse delay-1000"></div>
         <div className="absolute top-1/2 right-4 w-2 h-2 bg-green-300/70 rounded-full animate-pulse delay-700"></div>
 
-        <Trophy className="h-10 w-10 text-accent flex-shrink-0" />
-        <div className="flex-grow">
+        <Trophy className="h-10 w-10 text-accent shrink-0" />
+        <div className="grow">
           <h3 className="font-bold text-lg">Congratulations!</h3>
           <p className="text-sm opacity-90">
             You've completed all 3 beginner lessons.

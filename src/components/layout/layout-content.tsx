@@ -416,7 +416,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed top-0 left-0 right-0 z-[60] cursor-pointer"
+              className="fixed top-0 left-0 right-0 z-60 cursor-pointer"
               onClick={showMobileHeader}
             >
               <div
@@ -439,7 +439,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[60]"
+              className="fixed bottom-5 left-1/2 -translate-x-1/2 z-60"
             >
               <motion.div
                 className="cursor-pointer"

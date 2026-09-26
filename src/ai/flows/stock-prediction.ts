@@ -12,7 +12,7 @@
 
 import { getAi } from '@/ai/genkit';
 import { getEnvVar } from '@/lib/env';
-import { z } from 'zod';
+import { z } from 'genkit';
 import { StockPredictionInputSchema, type StockPredictionInput, StockPredictionOutputSchema, type StockPredictionOutput, RawStockPredictionOutputSchema } from '@/ai/types/stock-prediction-types';
 
 /**

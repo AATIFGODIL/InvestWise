@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Rotate3d } from "lucide-react";
@@ -10,8 +10,8 @@ import { cn } from "@/lib/utils";
 import { HeroBackdrop } from "@/components/marketing/hero-backdrop";
 import { InvestWiseLogo } from "@/components/marketing/investwise-logo";
 import { MarketSculpture, type SculpturePhase } from "@/components/marketing/market-sculpture";
-import { TickerLogo } from "@/components/marketing/mock/mock-kit";
-import { useQuotes, type Quote } from "@/components/marketing/use-quotes";
+import { QuoteChip, QuoteRing, RING_SYMBOLS } from "@/components/marketing/quote-ring";
+import { useQuotes } from "@/components/marketing/use-quotes";
 import type { StageCapabilities } from "@/components/marketing/use-stage-capabilities";
 
 /**
@@ -40,8 +40,7 @@ const HOME_X = "min(25vw, 330px)";
 const LOADER_POSE = "translate(-50%, -50%) translateX(0px) translateY(0px) scale(1)";
 const HOME_POSE = `translate(-50%, -50%) translateX(${HOME_X}) translateY(-10px) scale(${HOME_SCALE})`;
 
-/** The ring's symbols. VOO is the odd one out on purpose — the recurring buy. */
-const RING = ["NVDA", "AAPL", "TSLA", "MSFT", "VOO", "AMZN", "GOOGL", "META"];
+const RING = RING_SYMBOLS;
 
 export function HeroCinema({
   caps,
@@ -76,7 +75,7 @@ export function HeroCinema({
   // ─── Compact ───────────────────────────────────────────────────────────────
   if (caps.checked && !caps.canStage) {
     return (
-      <section className="relative flex min-h-[100svh] flex-col items-center justify-center px-5 pb-16 pt-24 text-center">
+      <section className="relative flex min-h-svh flex-col items-center justify-center px-5 pb-16 pt-24 text-center">
         <HeroBackdrop />
         <Copy settled align="center" />
         <div className="relative z-10 mt-12 flex w-full max-w-md flex-wrap justify-center gap-2">
@@ -129,11 +128,13 @@ export function HeroCinema({
         settled={settled}
         velocityRef={velocityRef}
         reducedMotion={caps.prefersReducedMotion}
+        className="hidden lg:block"
+        style={{ left: `calc(50% + ${HOME_X})`, top: "50%" }}
       />
 
       {showSculpture ? (
         <div
-          className={cn("absolute left-1/2 top-1/2", settled ? "z-[30]" : "z-[200]")}
+          className={cn("absolute left-1/2 top-1/2", settled ? "z-30" : "z-200")}
           style={{
             width: GLYPH_BOX,
             height: GLYPH_BOX,
@@ -155,7 +156,7 @@ export function HeroCinema({
       ) : (
         caps.checked && (
           <div
-            className="absolute left-1/2 top-1/2 z-[30] w-[320px]"
+            className="absolute left-1/2 top-1/2 z-30 w-[320px]"
             style={{ transform: `translate(-50%, -50%) translateX(${HOME_X})` }}
           >
             <InvestWiseLogo sizes="320px" />
@@ -166,7 +167,7 @@ export function HeroCinema({
       {/* The affordance, retired the first time it's used. */}
       {showSculpture && (
         <div
-          className="pointer-events-none absolute top-1/2 z-[45] flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[12px] font-medium text-foreground/70 lp-glass"
+          className="pointer-events-none absolute top-1/2 z-45 flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[12px] font-medium text-foreground/70 lp-glass"
           style={{
             left: `calc(50% + ${HOME_X})`,
             transform: "translate(-50%, 210px)",
@@ -239,130 +240,6 @@ function Copy({ settled, align }: { settled: boolean; align: "left" | "center" }
           See the app
         </a>
       </div>
-    </div>
-  );
-}
-
-/** One quote, on glass. */
-function QuoteChip({ symbol, quote }: { symbol: string; quote?: Quote }) {
-  const up = (quote?.changePercent ?? 0) >= 0;
-  return (
-    <span className="lp-glass flex items-center gap-2.5 rounded-2xl py-2 pl-2 pr-3.5">
-      <TickerLogo symbol={symbol} className="h-8 w-8" />
-      <span className="flex flex-col items-start leading-tight">
-        <span className="text-[13px] font-bold tracking-tight text-foreground">{symbol}</span>
-        <span className="flex items-center gap-1.5">
-          <span className="lp-tnum text-[12px] text-foreground/65">
-            {quote ? `$${quote.price.toFixed(2)}` : "—"}
-          </span>
-          {quote && (
-            <span className={cn("lp-tnum text-[11.5px] font-semibold", up ? "text-emerald-400" : "text-red-400")}>
-              {up ? "+" : "−"}
-              {Math.abs(quote.changePercent).toFixed(2)}%
-            </span>
-          )}
-        </span>
-      </span>
-    </span>
-  );
-}
-
-/** Idle orbit speed, rad/ms: one lap every ~70s. */
-const RING_SPEED = 0.00009;
-/** How much of the glyph's spin the ring picks up. */
-const RING_COUPLING = 0.6;
-
-/**
- * The orbit. Positions are written straight to each chip's `transform` from a
- * rAF loop — eight elements moving every frame is compositor work, and going
- * through React for it would be a render per frame for nothing.
- *
- * Depth is faked the honest way: chips at the back of the ellipse are smaller,
- * dimmer, and sit *behind* the glyph in z-order; at the front they are full
- * size and in front of it.
- */
-function QuoteRing({
-  quotes,
-  settled,
-  velocityRef,
-  reducedMotion,
-}: {
-  quotes: Record<string, Quote>;
-  settled: boolean;
-  velocityRef: React.MutableRefObject<number>;
-  reducedMotion: boolean;
-}) {
-  const chipRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const settledAt = useRef<number | null>(null);
-
-  useEffect(() => {
-    if (settled && settledAt.current === null) settledAt.current = performance.now();
-  }, [settled]);
-
-  useEffect(() => {
-    let frame = 0;
-    let previous = performance.now();
-    let theta = 0.35;
-    let omega = RING_SPEED;
-    const n = RING.length;
-
-    const place = (now: number) => {
-      const rx = Math.min(300, window.innerWidth * 0.2);
-      const ry = 78;
-      // The ring arrives after the glyph has landed, one chip after another.
-      const since = settledAt.current === null ? -1 : now - settledAt.current;
-      chipRefs.current.forEach((el, i) => {
-        if (!el) return;
-        const a = theta + (i / n) * Math.PI * 2;
-        const depth = Math.cos(a);
-        const t = (depth + 1) / 2;
-        const arrive = since < 0 ? 0 : Math.min(1, Math.max(0, (since - 500 - i * 70) / 600));
-        const x = rx * Math.sin(a);
-        const y = ry * depth + 24 + (1 - arrive) * 30;
-        el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, -50%) scale(${(0.7 + 0.3 * t).toFixed(3)})`;
-        el.style.opacity = ((0.22 + 0.78 * t) * arrive).toFixed(3);
-        el.style.zIndex = depth > 0 ? "40" : "10";
-      });
-    };
-
-    const loop = (now: number) => {
-      const dt = Math.min(now - previous, 64);
-      previous = now;
-      const target = RING_SPEED + velocityRef.current * RING_COUPLING;
-      // Eased, so a throw hands its momentum to the ring rather than jerking it.
-      omega += (target - omega) * Math.min(1, dt / 120);
-      theta += omega * dt;
-      place(now);
-      frame = requestAnimationFrame(loop);
-    };
-
-    if (reducedMotion) {
-      settledAt.current = settledAt.current ?? performance.now() - 10_000;
-      place(performance.now() + 10_000);
-    } else {
-      frame = requestAnimationFrame(loop);
-    }
-    return () => cancelAnimationFrame(frame);
-  }, [reducedMotion, velocityRef]);
-
-  return (
-    <div
-      className="pointer-events-none absolute top-1/2 hidden lg:block"
-      style={{ left: `calc(50% + ${HOME_X})` }}
-      aria-hidden
-    >
-      {RING.map((symbol, i) => (
-        <div
-          key={symbol}
-          ref={(el) => {
-            chipRefs.current[i] = el;
-          }}
-          className="absolute left-0 top-0 will-change-transform"
-          style={{ opacity: 0 }}
-        >
-          <QuoteChip symbol={symbol} quote={quotes[symbol]} />
-        </div>
-      ))}
     </div>
   );
 }

@@ -472,7 +472,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
               Explore stock charts with TradingView.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-grow">
+          <div className="grow">
             <TradingViewWidget symbol="AAPL" />
           </div>
         </DialogContent>

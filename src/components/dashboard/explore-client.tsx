@@ -3,7 +3,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { recommendedBundles, specializedBundles } from "@/data/bundles";
 import CongratulationsBanner from "@/components/dashboard/congratulations-banner";
 
@@ -36,7 +36,7 @@ const InvestmentBundles = dynamic(() => import("@/components/dashboard/investmen
 import { Skeleton } from "../ui/skeleton";
 
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -46,7 +46,7 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { y: 20, opacity: 0 },
   visible: {
     y: 0,
@@ -177,7 +177,7 @@ export default function ExploreClient() {
                   target="_blank"
                   rel="noreferrer"
                   className={cn(
-                    "group relative block overflow-hidden rounded-lg transition-colors border aspect-[4/3]",
+                    "group relative block overflow-hidden rounded-lg transition-colors border aspect-4/3",
                     "bg-card border-border hover:bg-accent"
                   )}
                 >
@@ -188,7 +188,7 @@ export default function ExploreClient() {
                       className="absolute inset-0 h-full w-full object-cover opacity-60 group-hover:opacity-40 transition-opacity"
                     />
                   )}
-                  <div className="absolute inset-0 p-4 flex flex-col justify-end bg-gradient-to-t from-black/90 to-transparent">
+                  <div className="absolute inset-0 p-4 flex flex-col justify-end bg-linear-to-t from-black/90 to-transparent">
                     <h4 className="text-sm font-medium text-white line-clamp-2 leading-tight">
                       {article.title}
                     </h4>

@@ -16,14 +16,22 @@ import { useAuth } from '@/hooks/use-auth';
 import { useMarketStore } from '@/store/market-store';
 import Watchlist from '../dashboard/watchlist';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { useTransactionStore } from '@/store/transaction-store';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CreateGoal from "@/components/goals/create-goal";
 import GoalList from "@/components/goals/goal-list";
 import { useGoalStore } from "@/store/goal-store";
+import dynamic from 'next/dynamic';
+import { Skeleton } from "../ui/skeleton";
+import { goalVideos } from "@/data/videos";
 
-const containerVariants = {
+const YouTubePlayer = dynamic(() => import('../shared/youtube-player'), {
+  ssr: false,
+  loading: () => <Skeleton className="aspect-video w-full rounded-3xl" />,
+});
+
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -33,7 +41,7 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { y: 20, opacity: 0 },
   visible: {
     y: 0,
@@ -176,6 +184,15 @@ export default function PortfolioClient() {
 
             <motion.div variants={itemVariants}>
               <GoalList goals={goals} />
+            </motion.div>
+
+            <motion.div variants={itemVariants} className="space-y-4 pt-4">
+              <h2 className="text-xl font-bold">Learn About Goals</h2>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {goalVideos.map((video) => (
+                  <YouTubePlayer key={video.title} videoTitle={video.title} description={video.description} youtubeUrl={video.youtubeUrl} />
+                ))}
+              </div>
             </motion.div>
           </TabsContent>
         </Tabs>

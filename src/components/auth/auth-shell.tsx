@@ -5,14 +5,21 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Rotate3d } from "lucide-react";
 import { MarketSculpture, type SculpturePhase } from "@/components/marketing/market-sculpture";
+import { HeroBackdrop } from "@/components/marketing/hero-backdrop";
+import { QuoteRing, RING_SYMBOLS } from "@/components/marketing/quote-ring";
+import { useQuotes } from "@/components/marketing/use-quotes";
 
 /**
  * The frame for Sign In and Sign Up.
  *
- * One screen, never scrolled: the logo and form sit on the left, and on a
- * desktop the landing page's 3D glyph stands on the right — the same object,
- * in its fixed place, turned by dragging it. Phones get the form and the logo
- * only.
+ * One screen, never scrolled, split down the middle. The left half is the
+ * sign-in side: the auth pages' own finance-pattern background, the logo and
+ * the card. The right half is the market: the landing page's 3D glyph, fixed
+ * in place and turned by dragging it, with a ring of live quotes orbiting it
+ * over moving price lines. Throw the glyph and the ring spins with it.
+ *
+ * Phones get the left half only — the form and the logo — and never load the
+ * 3D scene.
  *
  * Whatever the viewport, the form column is fitted to the height available:
  * if the logo and card are taller than the screen (a short laptop, a phone in
@@ -36,21 +43,24 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="relative h-[100dvh] w-full overflow-hidden">
-      <FinanceBackground />
-      <div className="relative z-10 mx-auto flex h-full w-full max-w-6xl items-center px-4 lg:px-12">
-        <div className="flex h-full w-full items-center justify-center lg:w-[44%]">
+    <div className="flex h-dvh w-full overflow-hidden bg-background">
+      <section className="relative h-full w-full overflow-hidden lg:w-1/2">
+        <FinanceBackground />
+        <div className="relative z-10 flex h-full w-full items-center justify-center px-4">
           <FitToHeight>{children}</FitToHeight>
         </div>
-        {isDesktop && <GlyphStage />}
-      </div>
+      </section>
+      {isDesktop && <MarketPanel />}
     </div>
   );
 }
 
-/** The spinnable glyph, in its place on the right. */
-function GlyphStage() {
+/** The right half: the glyph, its orbit of quotes, and the moving market behind them. */
+function MarketPanel() {
   const phaseRef = useRef<SculpturePhase>("settled");
+  const velocityRef = useRef(0);
+  const quotes = useQuotes(RING_SYMBOLS);
+  const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)");
   const [grabbed, setGrabbed] = useState(false);
   const [shown, setShown] = useState(false);
 
@@ -59,52 +69,71 @@ function GlyphStage() {
     return () => cancelAnimationFrame(frame);
   }, []);
 
-  const size = "min(520px, 44vw, 72vh)";
+  const size = "min(440px, 34vw, 58vh)";
 
   return (
-    <div className="relative flex h-full flex-1 items-center justify-center">
-      {/* A pool of light for it to stand in. */}
+    <section
+      className="relative hidden h-full w-1/2 overflow-hidden border-l border-white/10 lg:block"
+      aria-label="InvestWise"
+    >
+      <HeroBackdrop />
+
+      {/* A pool of light for the glyph to stand in. */}
       <div
-        className="pointer-events-none absolute rounded-[50%]"
+        className="pointer-events-none absolute left-1/2 -translate-x-1/2 rounded-[50%]"
         style={{
-          width: `calc(${size} * 1.2)`,
-          height: `calc(${size} * 0.42)`,
-          top: `calc(50% + ${size} * 0.24)`,
-          background: "radial-gradient(closest-side, hsl(var(--primary) / 0.32), transparent)",
+          width: `calc(${size} * 1.35)`,
+          height: `calc(${size} * 0.45)`,
+          top: `calc(50% + ${size} * 0.22)`,
+          background: "radial-gradient(closest-side, hsl(var(--primary) / 0.35), transparent)",
           filter: "blur(18px)",
           opacity: shown ? 1 : 0,
           transition: "opacity 900ms ease-out 200ms",
         }}
         aria-hidden
       />
+
+      <QuoteRing
+        quotes={quotes}
+        settled={shown}
+        velocityRef={velocityRef}
+        reducedMotion={reducedMotion}
+        maxRadius={260}
+        radiusFraction={0.17}
+        style={{ left: "50%", top: "50%" }}
+      />
+
       <div
+        className="absolute left-1/2 top-1/2 z-30"
         style={{
           width: size,
           height: size,
           opacity: shown ? 1 : 0,
-          transform: shown ? "scale(1)" : "scale(0.92)",
+          transform: `translate(-50%, -50%) scale(${shown ? 1 : 0.92})`,
           transition: "opacity 700ms ease-out, transform 900ms cubic-bezier(0.32, 0.72, 0, 1)",
         }}
       >
         <MarketSculpture
           phaseRef={phaseRef}
+          velocityRef={velocityRef}
           onGrab={() => setGrabbed(true)}
           className="h-full w-full cursor-grab"
         />
       </div>
+
       <div
-        className="pointer-events-none absolute left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white/[0.06] px-3.5 py-1.5 text-xs font-medium text-foreground/70 ring-1 ring-white/10 backdrop-blur-md"
+        className="pointer-events-none absolute left-1/2 z-45 flex -translate-x-1/2 items-center gap-2 rounded-full bg-white/6 px-3.5 py-1.5 text-xs font-medium text-foreground/70 ring-1 ring-white/10 backdrop-blur-md"
         style={{
-          top: `calc(50% + ${size} * 0.5 + 8px)`,
+          top: `calc(50% + ${size} * 0.5 + 28px)`,
           opacity: shown && !grabbed ? 1 : 0,
-          transition: "opacity 500ms ease-out 700ms",
+          transition: "opacity 500ms ease-out 900ms",
         }}
         aria-hidden
       >
         <Rotate3d className="h-3.5 w-3.5" />
         Drag to spin
       </div>
-    </div>
+    </section>
   );
 }
 

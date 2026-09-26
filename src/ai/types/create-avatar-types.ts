@@ -3,7 +3,7 @@
  * @fileOverview Defines TypeScript types and Zod schemas for the avatar creation AI flow.
  */
 
-import { z } from 'zod';
+import { z } from 'genkit';
 
 export const CreateAvatarInputSchema = z.object({
   prompt: z.string().optional().describe("The user's text description for the avatar."),

@@ -5,7 +5,7 @@
  * Using Zod schemas ensures type safety and data validation.
  */
 
-import { z } from 'zod';
+import { z } from 'genkit';
 
 // Defines the expected input from the user. It now includes an optional fileDataUri.
 export const InvestmentChatbotInputSchema = z.object({

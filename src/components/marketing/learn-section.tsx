@@ -13,6 +13,7 @@ import {
   Crown,
   Laptop,
   PartyPopper,
+  Play,
   PlusCircle,
   Repeat,
   Shield,
@@ -92,6 +93,13 @@ const CARDS: Card[] = [
     title: "Diversify in one tap.",
     body: "Curated sets like the Tech Starter Pack — every company in it shown right on the card — picked for your experience level.",
     preview: <BundlePreview />,
+  },
+  {
+    id: "learn",
+    label: "Learn About Trading",
+    title: "Lessons where you trade.",
+    body: "Short videos on charts and trading basics, right on the Trade and Goals pages. Watch them to count towards your quests.",
+    preview: <LearnPreview />,
   },
   {
     id: "parental",
@@ -252,7 +260,7 @@ function CertificatePreview() {
         <span className="absolute bottom-3 left-24 h-2 w-2 animate-pulse rounded-full bg-pink-300/70" />
         <div className="flex items-center gap-3">
           <Trophy className="h-9 w-9 shrink-0" />
-          <div className="flex-grow">
+          <div className="grow">
             <p className="text-[15px] font-bold">Congratulations!</p>
             <p className="text-[11.5px] opacity-90">You&apos;ve completed all 3 beginner lessons.</p>
           </div>
@@ -261,7 +269,7 @@ function CertificatePreview() {
           View Certificate
         </span>
       </div>
-      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.06] to-transparent p-4 text-center">
+      <div className="rounded-2xl border border-white/10 bg-linear-to-br from-white/6 to-transparent p-4 text-center">
         <p className="text-[9px] font-semibold uppercase tracking-[0.3em] text-foreground/50">Certificate of completion</p>
         <p className="mt-1.5 font-serif text-[18px] italic">Alex Morgan</p>
         <p className="mt-1 text-[10px] text-foreground/50">InvestWise · September 26, 2026</p>
@@ -310,7 +318,7 @@ function GoalPreview() {
         <span className="text-[12px] font-medium text-primary">View All</span>
       </div>
       <div className="mt-4 flex items-start gap-3">
-        <div className="flex-grow">
+        <div className="grow">
           <p className="text-[12px] text-muted-foreground">New Laptop</p>
           <p className="text-[22px] font-bold">$1,240</p>
           <p className="text-[11px] font-semibold text-muted-foreground">62% to target</p>
@@ -414,6 +422,29 @@ function BundlePreview() {
         <MButton size="sm" variant="outline" className="mt-3 h-8 w-full text-[12px] ring-1 ring-white/60">
           Learn More
         </MButton>
+      </div>
+    </Panel>
+  );
+}
+
+function LearnPreview() {
+  return (
+    <Panel>
+      <p className="text-[15px] font-bold">Learn About Trading</p>
+      <div className="mt-3 grid grid-cols-2 gap-2.5">
+        {["Reading stock charts", "Finance & trading", "SMART goals", "Trading psychology"].map((title, i) => (
+          <div key={title}>
+            <div
+              className="flex aspect-video items-center justify-center rounded-xl"
+              style={{ background: `linear-gradient(135deg, hsl(${230 + i * 25} 55% ${28 + i * 3}%), hsl(${260 + i * 20} 45% 14%))` }}
+            >
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/90">
+                <Play className="ml-0.5 h-3.5 w-3.5 fill-black text-black" />
+              </span>
+            </div>
+            <p className="mt-1 text-[10.5px] font-medium">{title}</p>
+          </div>
+        ))}
       </div>
     </Panel>
   );

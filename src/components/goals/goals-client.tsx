@@ -6,9 +6,17 @@ import CreateGoal from "@/components/goals/create-goal";
 import GoalList from "@/components/goals/goal-list";
 
 import { useGoalStore } from "@/store/goal-store";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
+import dynamic from 'next/dynamic';
+import { Skeleton } from "../ui/skeleton";
 
-const containerVariants = {
+const YouTubePlayer = dynamic(() => import('../shared/youtube-player'), {
+  ssr: false,
+  loading: () => <Skeleton className="aspect-video w-full rounded-3xl" />,
+});
+import { goalVideos } from "@/data/videos";
+
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -18,7 +26,7 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { y: 20, opacity: 0 },
   visible: {
     y: 0,
@@ -49,6 +57,15 @@ export default function GoalsClient() {
 
         <motion.div variants={itemVariants} id="goal-list-tutorial">
           <GoalList goals={goals} />
+        </motion.div>
+
+        <motion.div variants={itemVariants} className="space-y-4 pt-4" id="goal-videos-tutorial">
+          <h2 className="text-xl font-bold">Learn About Goals</h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            {goalVideos.map((video) => (
+              <YouTubePlayer key={video.title} videoTitle={video.title} description={video.description} youtubeUrl={video.youtubeUrl} />
+            ))}
+          </div>
         </motion.div>
 
       </motion.div>

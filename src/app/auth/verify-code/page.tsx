@@ -305,7 +305,7 @@ export default function VerifyCodePage() {
                                     className={cn(
                                         "w-11 h-14 text-center text-2xl font-bold rounded-lg border-2",
                                         "bg-background/50 text-foreground",
-                                        "focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary",
+                                        "focus:outline-hidden focus:ring-2 focus:ring-primary focus:border-primary",
                                         "transition-all duration-200",
                                         digit ? "border-primary/50" : "border-border",
                                         isVerifying && "opacity-50 cursor-not-allowed"

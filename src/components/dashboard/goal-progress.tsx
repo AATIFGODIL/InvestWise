@@ -47,10 +47,10 @@ export default function GoalProgress() {
           <Link href="/goals">View All</Link>
         </Button>
       </CardHeader>
-      <CardContent className="flex-grow flex items-center pt-2">
+      <CardContent className="grow flex items-center pt-2">
         <div className="w-full">
           <div className="flex items-center gap-2 pt-2">
-            <div className="flex-grow">
+            <div className="grow">
               <p className="text-sm text-muted-foreground">{goal.name}</p>
               <p className="text-2xl font-bold">${goal.current.toLocaleString()}</p>
               <p className="text-xs font-semibold text-muted-foreground">{goal.progress}% to target</p>

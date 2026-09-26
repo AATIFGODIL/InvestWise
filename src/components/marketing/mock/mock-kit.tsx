@@ -50,8 +50,8 @@ export function recipes(theme: MockTheme) {
     /** `ui/card.tsx` */
     card: cn(
       "relative overflow-hidden rounded-3xl text-card-foreground shadow-xl ring-1 transition-colors duration-500",
-      clearDark && "bg-white/10 ring-white/60 backdrop-blur-[16px]",
-      clearLight && "bg-[#C8C8C8]/60 ring-black/10 backdrop-blur-[16px]",
+      clearDark && "bg-white/10 ring-white/60 backdrop-blur-lg",
+      clearLight && "bg-[#C8C8C8]/60 ring-black/10 backdrop-blur-lg",
       !clearDark && !clearLight && "bg-card ring-white/60"
     ),
     /** The floating header groups, the rail and the chatbot button. */
@@ -278,7 +278,7 @@ export function FavouriteChip({
       }}
     >
       <span
-        className="absolute -left-1 -top-1 z-20 flex h-5 w-5 items-center justify-center rounded-full bg-black/50 ring-2 ring-white/50 backdrop-blur-sm"
+        className="absolute -left-1 -top-1 z-20 flex h-5 w-5 items-center justify-center rounded-full bg-black/50 ring-2 ring-white/50 backdrop-blur-xs"
         style={{
           opacity: editing ? 1 : 0,
           transform: `scale(${editing ? 1 : 0.5})`,

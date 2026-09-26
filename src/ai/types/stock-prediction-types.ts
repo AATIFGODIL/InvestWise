@@ -6,7 +6,7 @@
  * from user input to the final structured output.
  */
 
-import { z } from 'zod';
+import { z } from 'genkit';
 
 /**
  * Schema for the input provided by the user to the main stock prediction flow.

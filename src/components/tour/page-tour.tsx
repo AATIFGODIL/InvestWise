@@ -249,7 +249,7 @@ function TourOverlay({ tourId, steps: allSteps }: { tourId: string; steps: TourS
       : { type: "spring" as const, bounce: 0, duration: 0.5 };
 
   return createPortal(
-    <div className="fixed inset-0 z-[190]" role="dialog" aria-modal="true" aria-labelledby="tour-title">
+    <div className="fixed inset-0 z-190" role="dialog" aria-modal="true" aria-labelledby="tour-title">
       {/* Holds the page still under the scrim; a click here does nothing. */}
       <div className="absolute inset-0" />
 

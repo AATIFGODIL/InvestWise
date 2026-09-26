@@ -10,15 +10,23 @@ import CommunityTrends from "@/components/dashboard/community-trends";
 import { usePrivacyStore } from "@/store/privacy-store";
 import { useThemeStore } from "@/store/theme-store";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { Button } from "../ui/button";
 import { useState, useEffect } from "react";
 import { fetchTopFinancialNewsAction } from "@/app/actions";
 import { type NewsArticle } from "@/lib/gnews";
+import dynamic from "next/dynamic";
+import { Skeleton } from "../ui/skeleton";
+import { expertChannels } from "@/data/videos";
+
+const YouTubePlayer = dynamic(() => import("../shared/youtube-player"), {
+  ssr: false,
+  loading: () => <Skeleton className="aspect-video w-full rounded-3xl" />,
+});
 
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -28,7 +36,7 @@ const containerVariants = {
   },
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { y: 20, opacity: 0 },
   visible: {
     y: 0,
@@ -112,11 +120,29 @@ export default function CommunityClient() {
               <div id="leaderboard-tutorial">
                 <Leaderboard />
               </div>
-              {showQuests && (
-                <div id="quests-tutorial">
-                  <Quests />
-                </div>
-              )}
+              {/* Quests beside the expert channels, the two filling one row. */}
+              <div className={cn("grid grid-cols-1 gap-6", showQuests && "lg:grid-cols-2")}>
+                {showQuests && (
+                  <div id="quests-tutorial" className="h-full">
+                    <Quests />
+                  </div>
+                )}
+                <section id="experts-tutorial" className="flex h-full flex-col gap-4">
+                  <h2 className="text-xl font-bold">Learn from the Experts</h2>
+                  <div className="grid flex-1 grid-cols-1 gap-6 sm:grid-cols-2">
+                    {expertChannels.map((channel) => (
+                      <YouTubePlayer
+                        key={channel.title}
+                        videoTitle={channel.title}
+                        description={channel.description}
+                        youtubeUrl={channel.youtubeUrl}
+                        isChannel
+                        imageUrl={channel.imageUrl}
+                      />
+                    ))}
+                  </div>
+                </section>
+              </div>
             </TabsContent>
             <TabsContent value="trends" className="mt-6">
               <CommunityTrends showViewAllButton={false} />
@@ -143,9 +169,9 @@ export default function CommunityClient() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 {news.slice(0, 5).map((article, i) => (
-                  <a key={i} href={article.url} target="_blank" rel="noreferrer" className={cn("group relative block overflow-hidden rounded-lg transition-colors border aspect-[4/3]", isClearMode ? "bg-white/10 border-white/10 hover:bg-white/20" : "bg-card border-border hover:bg-accent")}>
+                  <a key={i} href={article.url} target="_blank" rel="noreferrer" className={cn("group relative block overflow-hidden rounded-lg transition-colors border aspect-4/3", isClearMode ? "bg-white/10 border-white/10 hover:bg-white/20" : "bg-card border-border hover:bg-accent")}>
                     {article.image && <img src={article.image} alt="news" className="absolute inset-0 h-full w-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />}
-                    <div className="absolute inset-0 p-4 flex flex-col justify-end bg-gradient-to-t from-black/90 to-transparent">
+                    <div className="absolute inset-0 p-4 flex flex-col justify-end bg-linear-to-t from-black/90 to-transparent">
                       <h4 className="text-sm font-medium text-white line-clamp-2 leading-tight">{article.title}</h4>
                       <span className="text-[10px] text-zinc-400 mt-1">{article.source.name}</span>
                     </div>
@@ -154,9 +180,9 @@ export default function CommunityClient() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 {news.slice(5, 10).map((article, i) => (
-                  <a key={i} href={article.url} target="_blank" rel="noreferrer" className={cn("group relative block overflow-hidden rounded-lg transition-colors border aspect-[4/3]", isClearMode ? "bg-white/10 border-white/10 hover:bg-white/20" : "bg-card border-border hover:bg-accent")}>
+                  <a key={i} href={article.url} target="_blank" rel="noreferrer" className={cn("group relative block overflow-hidden rounded-lg transition-colors border aspect-4/3", isClearMode ? "bg-white/10 border-white/10 hover:bg-white/20" : "bg-card border-border hover:bg-accent")}>
                     {article.image && <img src={article.image} alt="news" className="absolute inset-0 h-full w-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />}
-                    <div className="absolute inset-0 p-4 flex flex-col justify-end bg-gradient-to-t from-black/90 to-transparent">
+                    <div className="absolute inset-0 p-4 flex flex-col justify-end bg-linear-to-t from-black/90 to-transparent">
                       <h4 className="text-sm font-medium text-white line-clamp-2 leading-tight">{article.title}</h4>
                       <span className="text-[10px] text-zinc-400 mt-1">{article.source.name}</span>
                     </div>
@@ -169,7 +195,7 @@ export default function CommunityClient() {
             <div className="space-y-3">
               {news.slice(0, 2).map((article, i) => (
                 <a key={i} href={article.url} target="_blank" rel="noreferrer" className={cn("group flex items-center p-4 gap-4 overflow-hidden rounded-lg transition-colors border", isClearMode ? "bg-white/10 border-white/10 hover:bg-white/20" : "bg-card border-border hover:bg-accent")}>
-                  {article.image && <img src={article.image} alt="news" className="h-16 w-24 object-cover rounded flex-shrink-0" />}
+                  {article.image && <img src={article.image} alt="news" className="h-16 w-24 object-cover rounded shrink-0" />}
                   <div className="flex-1 min-w-0">
                     <h4 className={cn("font-medium group-hover:text-primary transition-colors line-clamp-1", isClearMode ? "text-white" : "text-foreground")}>{article.title}</h4>
                     <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{article.description}</p>

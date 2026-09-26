@@ -229,7 +229,7 @@ function ThemeCard({
             "flex h-full w-full items-center justify-center rounded-md",
             kind === "light" && "bg-white",
             kind === "dark" && "bg-gray-800",
-            kind === "clear" && "bg-gray-700/50 backdrop-blur-sm"
+            kind === "clear" && "bg-gray-700/50 backdrop-blur-xs"
           )}
         >
           <TrendingUp

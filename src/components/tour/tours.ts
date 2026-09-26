@@ -166,6 +166,11 @@ export const TOURS: Record<string, TourStep[]> = {
       title: "Or buy a bundle",
       body: "A themed set of stocks in one order — an easy way to spread your risk.",
     },
+    {
+      target: "#learn-trading-tutorial",
+      title: "Learn as you go",
+      body: "Short videos on reading charts and trading basics. Watch them to the end to count towards your quests.",
+    },
   ],
 
   goals: [
@@ -178,6 +183,11 @@ export const TOURS: Record<string, TourStep[]> = {
       target: "#goal-list-tutorial",
       title: "Track it",
       body: "Your goals and how close you are. Your progress also shows on the dashboard.",
+    },
+    {
+      target: "#goal-videos-tutorial",
+      title: "Learn about goals",
+      body: "Two short videos on setting goals you'll actually hit.",
     },
   ],
 
@@ -197,6 +207,11 @@ export const TOURS: Record<string, TourStep[]> = {
       target: "#quests-tutorial",
       title: "Investment Quests",
       body: "Beginner, Intermediate and Pro lessons that fill in as you go. Finish the beginner ones to earn your certificate.",
+    },
+    {
+      target: "#experts-tutorial",
+      title: "Learn from the experts",
+      body: "YouTube channels from experienced traders, one tap away.",
     },
   ],
 

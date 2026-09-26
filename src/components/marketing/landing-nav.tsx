@@ -41,7 +41,7 @@ export function LandingNav() {
   return (
     <>
       <motion.div
-        className="fixed inset-x-0 top-0 z-[70] h-[3px] origin-left"
+        className="fixed inset-x-0 top-0 z-70 h-[3px] origin-left"
         style={{
           scaleX: progress,
           background: "hsl(var(--primary))",
@@ -52,7 +52,7 @@ export function LandingNav() {
 
       <header
         className={cn(
-          "fixed inset-x-0 top-0 z-[60] flex items-center justify-between gap-3 px-4 pt-4 transition-all duration-500 sm:px-6",
+          "fixed inset-x-0 top-0 z-60 flex items-center justify-between gap-3 px-4 pt-4 transition-all duration-500 sm:px-6",
           shown ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-3 opacity-0"
         )}
       >

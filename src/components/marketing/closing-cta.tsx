@@ -20,7 +20,7 @@ import { InvestWiseLogo } from "@/components/marketing/investwise-logo";
  */
 export function ClosingCta() {
   return (
-    <div className="relative flex h-full min-h-[100svh] w-full flex-col items-center justify-center overflow-hidden px-6 text-center">
+    <div className="relative flex h-full min-h-svh w-full flex-col items-center justify-center overflow-hidden px-6 text-center">
       <div className="lp-grain pointer-events-none absolute inset-0" aria-hidden>
         <div className="lp-grid absolute inset-0 opacity-60" />
         <div

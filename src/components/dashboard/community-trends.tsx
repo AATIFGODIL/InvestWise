@@ -129,7 +129,7 @@ export default function CommunityTrends({ showViewAllButton = true, limit }: Com
             Popular investments among investors aged 18-30. Click an asset to trade.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0 flex-grow">
+        <CardContent className="p-0 grow">
           <Table>
             <TableHeader>
               <TableRow>

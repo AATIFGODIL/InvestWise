@@ -108,7 +108,7 @@ function ColorPicker() {
 
     return (
         <div className="flex flex-col items-center gap-4">
-            <HexColorPicker color={color} onChange={setColor} className="!w-full" />
+            <HexColorPicker color={color} onChange={setColor} className="w-full!" />
             <div className="grid w-full items-center gap-1.5">
                 <Label htmlFor="hex-color">Primary Color (HEX)</Label>
                 <div className="relative">
@@ -151,7 +151,7 @@ const ThemeCard: React.FC<ThemeCardProps> = ({ label, themeType, isClear = false
                         "w-full h-full rounded-md flex items-center justify-center",
                         themeType === 'light' && !isClear && "bg-white",
                         themeType === 'dark' && !isClear && "bg-gray-800",
-                        isClear && "bg-gray-700/50 backdrop-blur-sm"
+                        isClear && "bg-gray-700/50 backdrop-blur-xs"
                     )}
                 >
                     <TrendingUp className={cn(
@@ -175,7 +175,7 @@ function SidebarOrientationSkeleton({ orientation, isSelected, onClick }: { orie
         <button
             onClick={onClick}
             className={cn(
-                "w-[260px] aspect-[16/10] rounded-xl border-2 overflow-hidden relative flex flex-col transition-all cursor-pointer text-left focus:outline-none bg-background",
+                "w-[260px] aspect-16/10 rounded-xl border-2 overflow-hidden relative flex flex-col transition-all cursor-pointer text-left focus:outline-hidden bg-background",
                 isSelected ? "border-primary ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg" : "border-border hover:border-primary/50"
             )}
         >
@@ -231,16 +231,16 @@ function SidebarOrientationSkeleton({ orientation, isSelected, onClick }: { orie
                 <div className="flex-1 p-4 flex flex-col gap-3 min-w-0">
                     <div className="w-24 h-3 rounded-full bg-muted-foreground/20" />
                     <div className="flex gap-3">
-                        <div className="flex-1 h-14 rounded-lg bg-card border shadow-sm flex flex-col justify-center px-3 gap-1.5">
+                        <div className="flex-1 h-14 rounded-lg bg-card border shadow-xs flex flex-col justify-center px-3 gap-1.5">
                             <div className="w-8 h-2 rounded-full bg-muted-foreground/20" />
                             <div className="w-16 h-3 rounded-full bg-primary/40" />
                         </div>
-                        <div className="flex-1 h-14 rounded-lg bg-card border shadow-sm flex flex-col justify-center px-3 gap-1.5">
+                        <div className="flex-1 h-14 rounded-lg bg-card border shadow-xs flex flex-col justify-center px-3 gap-1.5">
                             <div className="w-8 h-2 rounded-full bg-muted-foreground/20" />
                             <div className="w-12 h-3 rounded-full bg-primary/40" />
                         </div>
                     </div>
-                    <div className="w-full h-16 rounded-lg bg-card border shadow-sm flex flex-col justify-center px-3 gap-1.5">
+                    <div className="w-full h-16 rounded-lg bg-card border shadow-xs flex flex-col justify-center px-3 gap-1.5">
                         <div className="w-12 h-2 rounded-full bg-muted-foreground/20" />
                         <div className="w-full h-8 rounded bg-muted/50" />
                     </div>
