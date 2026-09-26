@@ -341,7 +341,7 @@ export default function ResearchClient() {
             </div>
 
             {/* TradingView Grid */}
-            <div className={cn("grid gap-4 transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]", getGridClass(), isCustomZoom ? "flex-1 min-h-[calc(100vh-8rem)]" : "min-h-[600px]")}>
+            <div id="research-grid-tutorial" className={cn("grid gap-4 transition-all duration-700 ease-[cubic-bezier(0.25,1,0.5,1)]", getGridClass(), isCustomZoom ? "flex-1 min-h-[calc(100vh-8rem)]" : "min-h-[600px]")}>
                 {Array.from({ length: gridMode }).map((_, index) => (
                     <Card key={index} className="overflow-hidden flex flex-col h-full border-muted/20 bg-card/40 backdrop-blur-sm shadow-2xl">
                         <CardContent className="p-0 flex-1 relative">
@@ -394,7 +394,7 @@ export default function ResearchClient() {
                     (showSuggestions && inputValue) ? "pb-96" : "pb-32",
                     isClearMode ? "border-white/10" : "border-border")}>
                     <h3 className={cn("text-lg font-semibold", isClearMode ? "text-primary-foreground" : "text-foreground")}>Detailed Stock Analysis</h3>
-                    <div className="relative w-full px-4" ref={searchContainerRef}>
+                    <div id="research-search-tutorial" className="relative w-full px-4" ref={searchContainerRef}>
                         <div className={cn("relative flex h-14 w-full items-center rounded-full px-4 text-primary-foreground shadow-lg transition-all", isClearMode ? "bg-white/10 ring-1 ring-white/60" : "bg-card ring-1 ring-border")} style={{ backdropFilter: "blur(16px)" }}>
                             <Search className={cn("h-5 w-5 ml-2 cursor-pointer", isClearMode ? "text-primary-foreground" : "text-muted-foreground")} />
                             <Input value={inputValue} onChange={(e) => { setInputValue(e.target.value.toUpperCase()); setShowSuggestions(true); }} onFocus={() => setShowSuggestions(true)} placeholder="Search symbol (e.g. AAPL) for deep analysis..." className={cn("w-full h-full bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 text-lg placeholder:text-muted-foreground ml-2", isClearMode ? "text-primary-foreground placeholder:text-primary-foreground/50" : "text-foreground")} />

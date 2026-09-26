@@ -536,6 +536,7 @@ export default function BottomNav({
     const navElement = (
       <nav
         ref={navRef}
+        id="tour-side-rail"
         className={cn(
           "relative flex flex-col items-center justify-between gap-4 rounded-full py-6 px-2 shadow-2xl shadow-black/20",
           "w-[80px]",

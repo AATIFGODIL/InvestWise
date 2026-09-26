@@ -17,12 +17,16 @@ interface FavoriteItemProps {
     favorite: Favorite;
     onSelect: (fav: Favorite) => void;
     onRemove: (id: string) => void;
-    variants: any;
     isEditing: boolean;
     isPill: boolean;
+    /** Whether the header's favourites row is open. Drives the reveal. */
+    revealed: boolean;
+    /** Position in the row, for the reveal's stagger. */
+    revealIndex: number;
+    className?: string;
 }
 
-export default function FavoriteItem({ favorite, onSelect, onRemove, variants, isEditing, isPill }: FavoriteItemProps) {
+export default function FavoriteItem({ favorite, onSelect, onRemove, isEditing, isPill, revealed, revealIndex, className }: FavoriteItemProps) {
     const { isClearMode, theme } = useThemeStore();
     const isMobile = useIsMobile();
     const isLightClear = isClearMode && theme === 'light';
@@ -71,11 +75,17 @@ export default function FavoriteItem({ favorite, onSelect, onRemove, variants, i
     return (
         <Reorder.Item
             value={favorite}
-            variants={variants}
-            layout // Animate layout changes
-            whileDrag={{ scale: 1.1, zIndex: 50 }} // Lift and scale item while dragging
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className={cn("z-10 flex-shrink-0", containerClasses)}
+            // One owner per property: the reveal animates opacity and scale,
+            // Reorder animates position (layout), and the drag lifts it.
+            initial={false}
+            animate={{ opacity: revealed ? 1 : 0, scale: revealed ? 1 : 0.6 }}
+            whileDrag={{ scale: 1.1, zIndex: 50 }}
+            transition={{
+                layout: { type: "spring", stiffness: 420, damping: 38 },
+                opacity: { duration: 0.2, delay: revealed ? 0.05 + revealIndex * 0.035 : 0 },
+                scale: { type: "spring", bounce: 0, duration: 0.35, delay: revealed ? 0.05 + revealIndex * 0.035 : 0 },
+            }}
+            className={cn("z-10 flex-shrink-0", containerClasses, className)}
             style={{ backdropFilter: "blur(2px)", height, width }}
             onClick={() => onSelect(favorite)}
         >

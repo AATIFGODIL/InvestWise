@@ -52,7 +52,8 @@ export default function FavoritesEditor({ isOpen, onOpenChange }: FavoritesEdito
                                     favorite={fav}
                                     onSelect={() => {}}
                                     onRemove={removeFavorite}
-                                    variants={{}}
+                                    revealed
+                                    revealIndex={0}
                                     isEditing={true}
                                     isPill={true}
                                 />
@@ -73,7 +74,8 @@ export default function FavoritesEditor({ isOpen, onOpenChange }: FavoritesEdito
                                     favorite={fav}
                                     onSelect={() => {}}
                                     onRemove={removeFavorite}
-                                    variants={{}}
+                                    revealed
+                                    revealIndex={0}
                                     isEditing={true}
                                     isPill={false}
                                 />

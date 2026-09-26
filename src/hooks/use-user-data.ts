@@ -19,6 +19,7 @@ import { usePrivacyStore } from "@/store/privacy-store";
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useTransactionStore } from "@/store/transaction-store";
 import { useFavoritesStore } from '@/store/favorites-store';
+import { useTourStore } from '@/store/tour-store';
 
 /**
  * A hook to fetch and hydrate all user-related data from Firestore
@@ -78,7 +79,9 @@ export default function useUserData(user: User | null) {
           showQuests: userData.showQuests === undefined ? true : userData.showQuests,
         });
         loadWatchlist(userData.watchlist || []);
-        loadFavorites(userData.favorites || []);
+        // "Educational Content" was removed from the app; drop it if pinned.
+        loadFavorites((userData.favorites || []).filter((f) => f.value !== "Educational Content"));
+        useTourStore.getState().hydrate(userToFetch.uid, userData.toursSeen || {});
 
       } else {
         console.error("User document not found for hydration!");

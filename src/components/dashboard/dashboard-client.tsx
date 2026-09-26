@@ -12,17 +12,13 @@ import AutoInvest from "@/components/dashboard/auto-invest";
 import { useMarketStore } from "@/store/market-store";
 import { Clock } from "lucide-react";
 import Watchlist from "@/components/dashboard/watchlist";
-import EducationalContent from "./educational-content";
-import { educationalContent } from "@/data/education";
 import CommunityLeaderboard from "@/components/dashboard/community-leaderboard";
 import HoldingsSummary from "@/components/dashboard/holdings-summary";
-import OnboardingTutorial from "@/components/dashboard/onboarding-tutorial";
 import { Skeleton } from "../ui/skeleton";
 
 import { fetchTopFinancialNewsAction } from "@/app/actions";
 import { NewsArticle } from "@/lib/gnews";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/use-auth";
 
 // These components are loaded dynamically to improve initial page load performance.
 // They will only be loaded when they are needed, reducing the client-side JavaScript bundle size.
@@ -64,10 +60,8 @@ const itemVariants = {
 export default function DashboardClient() {
     const [userProfile, setUserProfile] = useState<string | null>(null);
     const { isMarketOpen, fetchMarketStatus } = useMarketStore();
-    const [showTutorial, setShowTutorial] = useState(false);
     const [news, setNews] = useState<NewsArticle[]>([]);
     const [newsLoading, setNewsLoading] = useState(true);
-    const { user } = useAuth();
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -89,25 +83,6 @@ export default function DashboardClient() {
         }
         getNews();
     }, [fetchMarketStatus]);
-
-    // Check tutorial state when user is available (user-specific key)
-    useEffect(() => {
-        if (typeof window !== 'undefined' && user?.uid) {
-            const tutorialKey = `hasCompletedOnboardingTutorial_v2_${user.uid}`;
-            const hasCompletedTutorial = localStorage.getItem(tutorialKey);
-            if (!hasCompletedTutorial) {
-                setShowTutorial(true);
-            }
-        }
-    }, [user?.uid]);
-
-    const handleTutorialComplete = () => {
-        if (typeof window !== 'undefined' && user?.uid) {
-            const tutorialKey = `hasCompletedOnboardingTutorial_v2_${user.uid}`;
-            localStorage.setItem(tutorialKey, 'true');
-        }
-        setShowTutorial(false);
-    }
 
     // This function determines which set of investment bundles to show the user
     // based on their self-identified experience level from the onboarding quiz.
@@ -144,7 +119,6 @@ export default function DashboardClient() {
 
     return (
         <main>
-            {showTutorial && <OnboardingTutorial onComplete={handleTutorialComplete} />}
             <motion.div
                 className="p-4 space-y-6 pb-40"
                 variants={containerVariants}
@@ -166,7 +140,7 @@ export default function DashboardClient() {
                     <PortfolioValue showTitle={true} />
                 </motion.div>
                 <div id="holdings-watchlist-tutorial">
-                    <motion.div variants={itemVariants}>
+                    <motion.div variants={itemVariants} id="watchlist-tutorial">
                         <Watchlist />
                     </motion.div>
                     <motion.div variants={itemVariants} className="mt-6" id="holdings-summary-tutorial">
@@ -174,16 +148,16 @@ export default function DashboardClient() {
                     </motion.div>
                 </div>
                 <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div id="auto-invest-tutorial">
+                    <div id="auto-invest-tutorial" className="h-full">
                         <AutoInvest />
                     </div>
-                    <div id="ai-prediction-tutorial">
+                    <div id="ai-prediction-tutorial" className="h-full">
                         <AiPrediction />
                     </div>
                 </motion.div>
                 <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <GoalProgress />
-                    <div id="community-leaderboard-tutorial">
+                    <div id="community-leaderboard-tutorial" className="h-full">
                         <CommunityLeaderboard />
                     </div>
                 </motion.div>
@@ -228,13 +202,8 @@ export default function DashboardClient() {
                         )}
                     </div>
                 </motion.div>
-                <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
-                    <div id="educational-content-tutorial">
-                        <EducationalContent content={educationalContent} />
-                    </div>
-                    <div id="bundles-tutorial">
-                        <InvestmentBundles {...bundleProps} />
-                    </div>
+                <motion.div variants={itemVariants} className="pt-4" id="bundles-tutorial">
+                    <InvestmentBundles {...bundleProps} />
                 </motion.div>
 
 

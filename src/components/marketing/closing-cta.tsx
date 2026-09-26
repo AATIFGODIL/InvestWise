@@ -5,7 +5,7 @@
 import React from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { InvestWiseMark } from "@/components/marketing/investwise-mark";
+import { InvestWiseLogo } from "@/components/marketing/investwise-logo";
 
 /**
  * The close.
@@ -29,7 +29,7 @@ export function ClosingCta() {
         />
       </div>
 
-      <InvestWiseMark className="relative z-10 h-11 w-11" />
+      <InvestWiseLogo className="relative z-10 w-[clamp(200px,20vw,280px)]" sizes="280px" />
 
       <h2 className="lp-display relative z-10 mt-8 max-w-[14ch] text-[clamp(2.2rem,7vw,4.6rem)] text-foreground">
         Learn it before it costs you.

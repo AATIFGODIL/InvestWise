@@ -3,7 +3,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { Search, Bell, Settings, LogOut, User as UserIcon, Minus, TrendingUpIcon } from "lucide-react";
+import { Search, Bell, Settings, LogOut, User as UserIcon, Minus, TrendingUpIcon, CircleHelp } from "lucide-react";
 import { CommandMenu, appIcons } from "./command-menu";
 import { Button } from "../ui/button";
 import Link from "next/link";
@@ -22,7 +22,9 @@ import {
 import { useThemeStore } from "@/store/theme-store";
 import { cn } from "@/lib/utils";
 import useLoadingStore from "@/store/loading-store";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useTourStore } from "@/store/tour-store";
+import { tourIdFor } from "@/components/tour/tours";
 import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import FavoriteItem from './favorite-item';
@@ -34,24 +36,6 @@ import AutoTradeApprovalDialog from "@/components/trade/auto-trade-approval-dial
 import { useProModeStore } from "@/store/pro-mode-store";
 import { ProModeToggle } from "@/components/shared/pro-mode-toggle";
 
-
-const containerVariants = {
-  hidden: { width: 0, opacity: 0 },
-  visible: {
-    width: 'auto',
-    opacity: 1,
-    transition: {
-      delay: 0.1,
-      duration: 0.2,
-      staggerChildren: 0.05
-    }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, scale: 0.5 },
-  visible: { opacity: 1, scale: 1 }
-};
 
 /**
  * The main header component for the application, displayed on most pages.
@@ -70,9 +54,42 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
   const { isClearMode, theme } = useThemeStore();
   const { showLoading } = useLoadingStore();
   const router = useRouter();
+  const pathname = usePathname();
+  const tourId = tourIdFor(pathname);
   const { favorites, setFavorites, toggleFavoriteSize, removeFavorite } = useFavoritesStore();
   const [initialStock, setInitialStock] = React.useState<string | undefined>(undefined);
   const [isHovered, setIsHovered] = React.useState(false);
+  const hoverCloseTimer = React.useRef<number | null>(null);
+  // Hover belongs to the Spotlight button and the favourites themselves — not
+  // the whole bar — so passing over the Pro Mode toggle or the empty space
+  // around it never unrolls anything. Leaving waits a beat, so the pointer can
+  // cross the gap between the button and a favourite without it snapping shut.
+  const openFavorites = React.useCallback(() => {
+    if (hoverCloseTimer.current) window.clearTimeout(hoverCloseTimer.current);
+    setIsHovered(true);
+  }, []);
+  const closeFavorites = React.useCallback(() => {
+    if (hoverCloseTimer.current) window.clearTimeout(hoverCloseTimer.current);
+    hoverCloseTimer.current = window.setTimeout(() => setIsHovered(false), 180);
+  }, []);
+  React.useEffect(() => () => {
+    if (hoverCloseTimer.current) window.clearTimeout(hoverCloseTimer.current);
+  }, []);
+
+  // The favourites row's natural width, so the reveal springs to a real number
+  // instead of to "auto" (which gets re-measured mid-flight and jumps).
+  const favoritesRowRef = React.useRef<HTMLDivElement>(null);
+  const [favoritesRowWidth, setFavoritesRowWidth] = React.useState(0);
+  const [favoritesSettled, setFavoritesSettled] = React.useState(false);
+  React.useEffect(() => {
+    const row = favoritesRowRef.current;
+    if (!row) return;
+    const measure = () => setFavoritesRowWidth(row.scrollWidth);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, [favorites.length > 0]);
   const isMobile = useIsMobile();
   const [isTradingViewOpen, setIsTradingViewOpen] = React.useState(false);
   const [showGlow, setShowGlow] = React.useState(false);
@@ -197,7 +214,6 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
       { name: "Set Up Auto-Invest", keywords: "recurring investment", onSelect: () => router.push('/dashboard'), icon: appIcons.repeat },
       { name: "View Trade History", keywords: "transactions log", onSelect: () => router.push('/portfolio'), icon: appIcons.history },
       { name: "Ask InvestWise AI", keywords: "chatbot help question", onSelect: () => { }, icon: appIcons.brain },
-      { name: "Educational Content", keywords: "learn video articles", onSelect: () => router.push('/dashboard'), icon: appIcons.bookOpen },
       { name: "View My Certificate", keywords: "award achievement", onSelect: () => router.push('/certificate'), icon: appIcons.award },
       { name: "TradingView", keywords: "chart graph", onSelect: () => setIsTradingViewOpen(true), icon: appIcons.tradingview, logoUrl: "https://cdn.brandfetch.io/idJGnLFA9x/w/400/h/400/theme/dark/icon.png?c=1bxid64Mup7aczewSAYMX&t=1745979227466" },
     ];
@@ -233,6 +249,8 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
     showLoading();
     router.push(href);
   };
+
+  const favoritesOpen = ((isHovered && !isMobile) || isMobile || isEditing) && favorites.length > 0;
 
   const { displayedFavorites } = React.useMemo(() => {
     const pills = favorites.filter(f => f.size === 'pill');
@@ -329,8 +347,6 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
               isMobileCompact ? "h-10" : "h-16",
               // No background - transparent nav bar
             )}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
           >
             <div
               className={cn(
@@ -361,14 +377,16 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
               </Link>
             </div>
 
-            <div className="flex-1 flex justify-center items-center h-full sm:mx-2 overflow-x-auto hide-scrollbar">
-              {/* Pro Mode Toggle - always visible, shifts left on hover with favorites */}
-              <div className="flex items-center mr-2 shrink-0">
+            <motion.div layoutScroll className="flex-1 flex justify-center items-center h-full sm:mx-2 overflow-x-auto hide-scrollbar">
+              {/* Pro Mode Toggle - always visible, shifts left when the favourites unroll */}
+              <div id="tour-pro-toggle" className="flex items-center mr-2 shrink-0">
                 <ProModeToggle className={cn(isMobileCompact ? "scale-75" : "scale-90")} showLabel={!isMobile} />
               </div>
 
+              <div className="flex items-center" onMouseEnter={openFavorites} onMouseLeave={closeFavorites}>
               <div className="relative z-10">
                 <motion.button
+                  id="tour-spotlight"
                   onPointerDown={handlePointerDown}
                   onPointerUp={handlePointerUp}
                   onPointerLeave={handlePointerUp}
@@ -401,15 +419,27 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
                 </motion.button>
               </div>
 
-              <AnimatePresence>
-                {((isHovered && !isMobile) || isMobile || isEditing) && favorites.length > 0 && (
-                  <motion.div
-                    className="flex items-center"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="hidden"
-                  >
+              {/* The favourites. Always mounted — only revealed — so opening them
+                  never re-creates the pills (and never re-fetches their prices
+                  halfway through the animation). One width spring carries the
+                  reveal; each pill fades and scales in on a short stagger. */}
+              {favorites.length > 0 && (
+                <motion.div
+                  className="flex items-center"
+                  initial={false}
+                  animate={{ width: favoritesOpen ? favoritesRowWidth : 0 }}
+                  transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+                  onAnimationStart={() => setFavoritesSettled(false)}
+                  onAnimationComplete={() => setFavoritesSettled(favoritesOpen)}
+                  style={{
+                    // Clipped while it unrolls; unclipped once open, so a pill
+                    // lifted mid-drag isn't cut off at the edge.
+                    overflow: favoritesOpen && favoritesSettled ? "visible" : "hidden",
+                    pointerEvents: favoritesOpen ? "auto" : "none",
+                  }}
+                  aria-hidden={!favoritesOpen}
+                >
+                  <div ref={favoritesRowRef} className="w-max">
                     <Reorder.Group
                       as="div"
                       axis="x"
@@ -417,33 +447,28 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
                       onReorder={handleReorder}
                       className="flex items-center gap-3 pl-3"
                     >
-                      {favorites.map(fav => (
-                        <motion.div
-                          key={fav.id}
-                          layout
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          transition={{ duration: 0.2 }}
-                          className={cn(
-                            (isEditing || displayedFavorites.some(df => df.id === fav.id)) ? 'flex' : 'hidden'
-                          )}
-                        >
+                      {favorites.map(fav => {
+                        const shown = isEditing || displayedFavorites.some(df => df.id === fav.id);
+                        return (
                           <FavoriteItem
+                            key={fav.id}
                             favorite={fav}
                             onSelect={handleItemClick}
                             onRemove={removeFavorite}
-                            variants={itemVariants}
                             isEditing={isEditing}
                             isPill={fav.size === 'pill'}
+                            revealed={favoritesOpen}
+                            revealIndex={favorites.indexOf(fav)}
+                            className={shown ? undefined : 'hidden'}
                           />
-                        </motion.div>
-                      ))}
+                        );
+                      })}
                     </Reorder.Group>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+                  </div>
+                </motion.div>
+              )}
+              </div>
+            </motion.div>
 
             <div
               className={cn(
@@ -458,6 +483,19 @@ export default function Header({ onTriggerRain, isMobileCompact = false, onHide,
               )}
               style={{ backdropFilter: isClearMode ? "url(#frosted) blur(1px)" : "blur(12px)" }}
             >
+              {tourId && (
+                <Button
+                  id="tour-help"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Show the tour for this page"
+                  title="Show the tour for this page"
+                  onClick={() => useTourStore.getState().start(tourId)}
+                  className={cn("group rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-primary/10", isMobileCompact ? "h-8 w-8" : "h-12 w-12")}
+                >
+                  <CircleHelp className={cn("transition-all bell-icon-glow", isMobileCompact ? "h-4 w-4" : "h-5 w-5", isClearMode && !isLightClear && "text-white")} />
+                </Button>
+              )}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className={cn("group rounded-full focus-visible:ring-0 focus-visible:ring-offset-0 hover:bg-primary/10 relative", isMobileCompact ? "h-8 w-8" : "h-12 w-12")}>

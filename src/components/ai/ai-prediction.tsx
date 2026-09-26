@@ -48,7 +48,7 @@ export default function AiPrediction() {
   }
 
   return (
-    <Card>
+    <Card className="flex h-full flex-col">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-2xl font-bold">
           <BrainCircuit className="h-5 w-5 text-primary" />
@@ -58,7 +58,7 @@ export default function AiPrediction() {
           Enter a stock symbol to get an AI-powered prediction for the next 5 months. This is a simulation and not financial advice.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex-1 space-y-4">
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="flex-grow space-y-2">
             <Label htmlFor="stock-symbol-portfolio">Stock Symbol</Label>

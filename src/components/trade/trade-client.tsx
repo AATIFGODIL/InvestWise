@@ -40,10 +40,6 @@ const TradingViewScreener = dynamic(() => import("@/components/shared/trading-vi
     loading: () => <Skeleton className="h-[600px] w-full" />,
 });
 
-const YouTubePlayer = dynamic(() => import('../shared/youtube-player'), {
-    ssr: false,
-    loading: () => <Skeleton className="h-full w-full aspect-video" />,
-});
 
 const InvestmentBundles = dynamic(() => import("../dashboard/investment-bundles"), {
     ssr: false,
@@ -72,19 +68,6 @@ interface StockData {
 interface TradeData {
     p: number; // price
 }
-
-const videos = [
-    {
-        title: "Finance & Trading (Combined)",
-        description: "An in-depth look at finance and trading for beginners.",
-        youtubeUrl: "https://www.youtube.com/watch?v=BUCPPCXOHbs"
-    },
-    {
-        title: "Reading Stock Charts for Beginners",
-        description: "An introduction to candlestick charts, volume, and identifying simple trends.",
-        youtubeUrl: "https://www.youtube.com/watch?v=sWTnFS10tdQ"
-    }
-]
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -382,7 +365,7 @@ export default function TradeClient() {
                     <h1 className="text-2xl font-bold">Trade</h1>
                 </motion.div>
 
-                <motion.div variants={itemVariants}>
+                <motion.div variants={itemVariants} id="stock-chart-tutorial">
                     <Card>
                         <CardHeader>
                             <div className="flex justify-between items-center flex-wrap gap-4">
@@ -495,14 +478,20 @@ export default function TradeClient() {
                 </motion.div>
 
                 <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <TradeForm
-                        selectedSymbol={searchedSymbol}
-                        selectedPrice={price}
-                        loadingPrice={loadingPrice}
-                    />
-                    <div className="space-y-6">
+                    <div id="trade-form-tutorial" className="h-full">
+                        <TradeForm
+                            selectedSymbol={searchedSymbol}
+                            selectedPrice={price}
+                            loadingPrice={loadingPrice}
+                        />
+                    </div>
+                    {/* A column of two cards that together match the order form's
+                        height: the prediction card takes up whatever is left. */}
+                    <div className="flex h-full flex-col gap-6">
                         <Watchlist />
-                        <AiPredictionTrade initialSymbol={searchedSymbol} />
+                        <div className="flex-1" id="ai-prediction-trade-tutorial">
+                            <AiPredictionTrade initialSymbol={searchedSymbol} />
+                        </div>
                     </div>
                 </motion.div>
 
@@ -517,31 +506,12 @@ export default function TradeClient() {
                     </Card>
                 </motion.div>
 
-                <motion.div variants={itemVariants} className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4">
+                <motion.div variants={itemVariants} className="pt-4" id="bundles-trade-tutorial">
                     <InvestmentBundles
                         title="Explore Specialized Bundles"
                         description=""
                         bundles={specializedBundles}
                     />
-                    <Card className="flex flex-col h-full">
-                        <CardHeader>
-                            <CardTitle className="text-2xl font-bold">Learn About Trading</CardTitle>
-                        </CardHeader>
-                        <CardContent className="h-full space-y-4 flex flex-col">
-                            <div className="grid grid-cols-2 gap-4 flex-1">
-                                {videos.map((video) => (
-                                    <YouTubePlayer
-                                        key={video.title}
-                                        videoTitle={video.title}
-                                        description={video.description}
-                                        youtubeUrl={video.youtubeUrl}
-                                        variant="minimal"
-                                        aspectRatio="auto"
-                                    />
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
                 </motion.div>
 
 

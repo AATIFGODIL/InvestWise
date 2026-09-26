@@ -336,7 +336,6 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     { name: "Set Up Auto-Invest", keywords: "recurring investment", onSelect: () => triggerNavAnimation(0), icon: Repeat },
     { name: "View Trade History", keywords: "transactions log", onSelect: () => triggerNavAnimation(1), icon: History },
     { name: "Ask InvestWise AI", keywords: "chatbot help question", onSelect: () => runCommand(openChatbot), icon: BrainCircuit },
-    { name: "Educational Content", keywords: "learn video articles", onSelect: () => triggerNavAnimation(0), icon: BookOpen },
     { name: "View My Certificate", keywords: "award achievement", onSelect: () => runCommand(() => router.push('/certificate')), icon: Award },
   ], [router, runCommand, signOut, theme, isClearMode, updateUserTheme, openChatbot, onTriggerRain, onTradingViewOpenChange, triggerNavAnimation]);
 

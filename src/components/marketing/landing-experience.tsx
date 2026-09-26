@@ -7,8 +7,8 @@ import { cn } from "@/lib/utils";
 import { LandingNav } from "@/components/marketing/landing-nav";
 import { LandingLoader } from "@/components/marketing/landing-loader";
 import { HeroCinema } from "@/components/marketing/hero-cinema";
+import { DashboardShowcase } from "@/components/marketing/dashboard-showcase";
 import { FeatureCinema } from "@/components/marketing/feature-cinema";
-import { ProofBand } from "@/components/marketing/proof-band";
 import { LearnSection } from "@/components/marketing/learn-section";
 import { ClosingCta } from "@/components/marketing/closing-cta";
 import { useStageCapabilities } from "@/components/marketing/use-stage-capabilities";
@@ -95,8 +95,8 @@ export function LandingExperience() {
         )}
       >
         <HeroCinema caps={caps} phase={phase} phaseRef={phaseRef} />
+        <DashboardShowcase caps={caps} />
         <FeatureCinema caps={caps} />
-        <ProofBand />
         <LearnSection />
         {!peel && <ClosingCta />}
       </main>

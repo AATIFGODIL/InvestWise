@@ -26,6 +26,7 @@ import { useThemeStore } from '@/store/theme-store';
 import { cn } from '@/lib/utils';
 import { motion, useAnimation } from 'framer-motion';
 import AnimatedBorder from '@/components/auth/animated-border';
+import { AuthShell } from '@/components/auth/auth-shell';
 
 // A simple SVG component for the Google icon.
 const GoogleIcon = () => (
@@ -33,32 +34,6 @@ const GoogleIcon = () => (
     <path fill="currentColor" d="M488 261.8C488 403.3 381.5 512 244 512 109.8 512 0 402.2 0 261.8 0 121.3 109.8 8.4 244 8.4c69.1 0 128.8 28.2 172.4 72.3l-66.5 64.2c-28.1-26.8-63.5-42.6-105.9-42.6-83.3 0-151.5 68.2-151.5 151.9s68.2 151.9 151.5 151.9c97.9 0 134.9-65.5 139.7-99.9H244V243.6h244v18.2z" />
   </svg>
 );
-
-// A decorative background component with subtle financial-themed patterns.
-const FinanceBackground = () => (
-  <div className="absolute inset-0">
-    <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <pattern
-          id="finance-pattern"
-          width="140"
-          height="140"
-          patternUnits="userSpaceOnUse"
-          patternTransform="rotate(45)"
-        >
-          {/* Decorative icons drawn with SVG paths */}
-          <path d="M 20 120 V 90 M 30 120 V 80 M 40 120 V 100" stroke="hsl(var(--primary) / 0.12)" strokeWidth="2" fill="none" className="shimmering-icon" style={{ animationDelay: '0.5s' }} />
-          <path d="M 70 20 A 15 15 0 0 1 85 35 L 70 35 Z" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="hsl(var(--primary) / 0.05)" className="shimmering-icon" style={{ animationDelay: '1s' }} />
-          <circle cx="70" cy="35" r="15" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" className="shimmering-icon" style={{ animationDelay: '1.5s' }} />
-          <path d="M 110 80 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 120 100 a 5 5 0 1 1 0 -10 a 5 5 0 0 1 0 10 M 110 98 L 122 82" stroke="hsl(var(--primary) / 0.12)" strokeWidth="1.5" fill="none" className="shimmering-icon" style={{ animationDelay: '2s' }} />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="hsl(var(--background))" />
-      <rect width="100%" height="100%" fill="url(#finance-pattern)" />
-    </svg>
-  </div>
-);
-
 
 export default function SignInPage() {
   const { signIn, signInWithGoogle, sendPasswordReset } = useAuth();
@@ -154,21 +129,20 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen p-4">
-      <FinanceBackground />
+    <AuthShell>
       <motion.div
         initial={{ opacity: 0, scale: 0.8, rotateY: 180 }}
         animate={{ opacity: 1, scale: 1, rotateY: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
         onAnimationComplete={() => setIsAnimationComplete(true)}
-        className="w-full max-w-xs relative z-10 flex flex-col items-center"
+        className="relative z-10 mx-auto flex w-full max-w-[360px] flex-col items-center"
         style={{ perspective: "1000px" }}
       >
         {/* Logo outside card with glow effect */}
         <motion.div
           initial={{ opacity: 0, filter: "blur(10px) drop-shadow(0 0 0px transparent)" }}
           animate={logoControls}
-          className="mt-4 mb-4 relative"
+          className="relative mb-5"
         >
           <Image
             src="/Investwise.PNG"
@@ -294,6 +268,6 @@ export default function SignInPage() {
           </CardFooter>
         </Card>
       </motion.div>
-    </div>
+    </AuthShell>
   );
 }

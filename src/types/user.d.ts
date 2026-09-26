@@ -28,5 +28,7 @@ export interface UserData {
   transactions?: Transaction[];
   paymentMethodToken?: string;
   favorites?: Favorite[];
+  /** Page tour id → the tour version the user last saw. */
+  toursSeen?: Record<string, number>;
 }
  

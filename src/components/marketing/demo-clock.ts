@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 /** How coarsely the clock is sampled, ms. */
 const TICK = 40;
@@ -108,4 +108,43 @@ export function ramp(elapsed: number, from: number, to: number): number {
 /** True across a half-open window — the demos' `if (on screen yet?)` test. */
 export function between(elapsed: number, from: number, to = Infinity): boolean {
   return elapsed >= from && elapsed < to;
+}
+
+/**
+ * Where named controls sit on the demo screen, in the screen's own 1280×800
+ * pixels, so the synthetic pointer lands on the real control rather than on a
+ * hand-measured guess that drifts the moment a label changes width.
+ *
+ * Measured from the layout (`offsetLeft`/`offsetTop`), not from bounding
+ * rects: the device is 3D-transformed on the page, and a projected rect would
+ * put the pointer a few pixels off every time the stage swings.
+ */
+export function useAnchors(dep: unknown) {
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [anchors, setAnchors] = useState<Record<string, { x: number; y: number }>>({});
+
+  useLayoutEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const next: Record<string, { x: number; y: number }> = {};
+    root.querySelectorAll<HTMLElement>("[data-anchor]").forEach((el) => {
+      let x = el.offsetWidth / 2;
+      let y = el.offsetHeight / 2;
+      let node: HTMLElement | null = el;
+      while (node && node !== root) {
+        x += node.offsetLeft;
+        y += node.offsetTop;
+        node = node.offsetParent as HTMLElement | null;
+      }
+      next[el.dataset.anchor as string] = { x: Math.round(x), y: Math.round(y) };
+    });
+    setAnchors((prev) => {
+      const same =
+        Object.keys(prev).length === Object.keys(next).length &&
+        Object.entries(next).every(([k, v]) => prev[k]?.x === v.x && prev[k]?.y === v.y);
+      return same ? prev : next;
+    });
+  }, [dep]);
+
+  return [rootRef, anchors] as const;
 }

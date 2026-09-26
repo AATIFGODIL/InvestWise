@@ -3,215 +3,247 @@
 "use client";
 
 import React from "react";
-import { Check, Moon, Sparkles, Sun } from "lucide-react";
+import { ArrowLeft, Shield, Sun, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AppChrome, SpotlightButton } from "@/components/marketing/app-chrome";
 import { DemoCursor } from "@/components/marketing/device-frame";
-import { DashboardBackdrop } from "@/components/marketing/demos/dashboard-backdrop";
-import { between, ramp, useDemoClock } from "@/components/marketing/demo-clock";
+import { MockShell, recipes, type MockTheme } from "@/components/marketing/mock/mock-kit";
+import { between, ramp, useAnchors, useDemoClock } from "@/components/marketing/demo-clock";
 
 /**
- * Clear Mode — the interface made of glass, in whatever colour you like.
+ * Clear Mode — Settings → Appearance, recorded.
  *
- * Three of InvestWise's theming controls, in the order you'd actually reach
- * for them: turn every surface to frosted glass (`isClearMode`), pick the
- * accent (`setPrimaryColor` rewrites `--primary` on the document element), and
- * flip light/dark. The recolour genuinely propagates here for the same reason
- * it does in the app — one custom property at the top of the tree, and every
- * card, chart stroke, glider and glow underneath resolves through it.
- *
- * The glass is the app's real recipe, not an approximation: `.lp-frosted`
- * carries `backdrop-filter: url(#frosted)`, the fractal-noise displacement map
- * defined once in the root layout and referenced by the command menu.
+ * Settings is one of the app's special-layout routes: no header, no rail, just
+ * a back button and a centred column. The Appearance card holds the three
+ * theme cards (Light, Dark, and Clear — "Liquid Glass"), the accent colour
+ * wheel with its hex field, and the sidebar orientation below the fold.
+ * Recorded: Clear turns every surface to glass, the hue slider drags the
+ * accent from indigo to teal and the whole page follows, then Light and back.
  */
 
-/** The app ships a full colour picker; a demo needs a shortlist. */
-const SWATCHES = [
-  { name: "Indigo", hsl: "251 82% 65%" },
-  { name: "Teal", hsl: "172 72% 47%" },
-  { name: "Amber", hsl: "38 92% 55%" },
-  { name: "Rose", hsl: "342 82% 62%" },
-];
-
 // ─── Script ──────────────────────────────────────────────────────────────────
-const CURSOR_TO_GLASS = 620;
-const TAP_GLASS = 1120;
-const GLASS_IN = 1180;
-const CURSOR_TO_TEAL = 2360;
-const TAP_TEAL = 2820;
-const CURSOR_TO_AMBER = 3560;
-const TAP_AMBER = 4020;
-const CURSOR_TO_LIGHT = 4900;
-const TAP_LIGHT = 5340;
-const CURSOR_TO_DARK = 8000;
-const TAP_DARK = 8420;
-const LOOP = 10600;
+const TO_CLEAR = 500;
+const TAP_CLEAR = 1000;
+const TO_HUE = 1900;
+const DRAG = 2400;
+const DROP = 3500;
+const TO_LIGHT = 4400;
+const TAP_LIGHT = 4900;
+const TO_DARK = 6800;
+const TAP_DARK = 7300;
+const LOOP = 9800;
 
-/** Where each control sits in the settings sheet, for the pointer to aim at. */
-const HIT = {
-  glass: { x: 964, y: 156 },
-  teal: { x: 838, y: 244 },
-  amber: { x: 874, y: 244 },
-  light: { x: 830, y: 330 },
-  dark: { x: 930, y: 330 },
-};
+const FROM = { h: 251, s: 82, l: 65 };
+const TO = { h: 173, s: 80, l: 40 };
 
-export function ClearModeDemo({
-  active,
-  reducedMotion,
-}: {
-  active: boolean;
-  reducedMotion: boolean;
-}) {
-  const t = useDemoClock(active, LOOP, { staticFrame: 6600, reducedMotion });
+function hslToHex(h: number, s: number, l: number) {
+  const a = (s / 100) * Math.min(l / 100, 1 - l / 100);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const c = l / 100 - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * c)
+      .toString(16)
+      .padStart(2, "0");
+  };
+  return `${f(0)}${f(8)}${f(4)}`.toUpperCase();
+}
 
-  const glass = t >= TAP_GLASS;
-  const glassRamp = ramp(t, GLASS_IN, GLASS_IN + 700);
+export function ClearModeDemo({ active, reducedMotion }: { active: boolean; reducedMotion: boolean }) {
+  const t = useDemoClock(active, LOOP, { staticFrame: 4200, reducedMotion });
+  const [rootRef, anchors] = useAnchors(t < 1000 ? 0 : 1);
+
+  const clear = t >= TAP_CLEAR;
   const light = between(t, TAP_LIGHT, TAP_DARK);
+  const theme: MockTheme = clear ? (light ? "clear-light" : "clear") : light ? "light" : "dark";
 
-  const accentIndex = t >= TAP_AMBER ? 2 : t >= TAP_TEAL ? 1 : 0;
-  const accent = SWATCHES[accentIndex].hsl;
+  const p = ramp(t, DRAG, DROP);
+  const eased = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+  const hue = { h: FROM.h + (TO.h - FROM.h) * eased, s: FROM.s + (TO.s - FROM.s) * eased, l: FROM.l + (TO.l - FROM.l) * eased };
+  const accent = { primary: `${hue.h.toFixed(0)} ${hue.s.toFixed(0)}% ${hue.l.toFixed(0)}%`, foreground: "210 40% 98%" };
 
+  const bar = anchors["hue-bar"] ?? { x: 640, y: 560 };
+  const hueX = bar.x - 408 + (hue.h / 360) * 816;
   const cursor =
-    t >= CURSOR_TO_DARK
-      ? HIT.dark
-      : t >= CURSOR_TO_LIGHT
-        ? HIT.light
-        : t >= CURSOR_TO_AMBER
-          ? HIT.amber
-          : t >= CURSOR_TO_TEAL
-            ? HIT.teal
-            : t >= CURSOR_TO_GLASS
-              ? HIT.glass
-              : { x: 660, y: 540 };
-
-  const tapKey = [
-    { at: TAP_GLASS, key: "glass" },
-    { at: TAP_TEAL, key: "teal" },
-    { at: TAP_AMBER, key: "amber" },
-    { at: TAP_LIGHT, key: "light" },
-    { at: TAP_DARK, key: "dark" },
-  ].find(({ at }) => between(t, at, at + 700))?.key;
-
-  const pressed = [TAP_GLASS, TAP_TEAL, TAP_AMBER, TAP_LIGHT, TAP_DARK].some((at) =>
-    between(t, at, at + 140)
-  );
+    t >= TO_DARK
+      ? anchors["theme-dark"] ?? { x: 640, y: 250 }
+      : t >= TO_LIGHT
+        ? anchors["theme-light"] ?? { x: 363, y: 250 }
+        : t >= TO_HUE
+          ? { x: hueX, y: bar.y }
+          : t >= TO_CLEAR
+            ? anchors["theme-clear"] ?? { x: 917, y: 250 }
+            : { x: 700, y: 620 };
 
   return (
-    <div
-      className={cn("h-full w-full transition-colors duration-700", light && "lp-light")}
-      // The accent is set here and nowhere else — exactly one declaration, the
-      // way `theme-store.ts` writes it onto `documentElement`.
-      style={{ "--primary": accent } as React.CSSProperties}
-    >
-      <AppChrome
-        activeNav={0}
-        glass={glass}
-        light={light}
-        headerCentre={<SpotlightButton glass={glass} light={light} />}
+    <div ref={rootRef} className="relative h-full w-full">
+      <MockShell
+        theme={theme}
+        chrome={false}
+        accent={accent}
+        className="transition-colors duration-500"
+        overlay={
+          <DemoCursor
+            x={cursor.x}
+            y={cursor.y}
+            pressed={
+              between(t, TAP_CLEAR, TAP_CLEAR + 140) ||
+              between(t, DRAG, DROP) ||
+              between(t, TAP_LIGHT, TAP_LIGHT + 140) ||
+              between(t, TAP_DARK, TAP_DARK + 140)
+            }
+            tapKey={
+              between(t, TAP_CLEAR, TAP_CLEAR + 700)
+                ? "clear"
+                : between(t, TAP_LIGHT, TAP_LIGHT + 700)
+                  ? "light"
+                  : between(t, TAP_DARK, TAP_DARK + 700)
+                    ? "dark"
+                    : undefined
+            }
+          />
+        }
       >
-        {/* Both dashboards are mounted and cross-faded, so the glass appears to
-            form over the existing surface instead of the layout being rebuilt. */}
-        <div className="absolute inset-0" style={{ opacity: 1 - glassRamp }}>
-          <DashboardBackdrop light={light} />
-        </div>
-        <div className="absolute inset-0" style={{ opacity: glassRamp }}>
-          <DashboardBackdrop glass light={light} />
-        </div>
+        <Settings theme={theme} hue={hue} />
+      </MockShell>
+    </div>
+  );
+}
 
-        {/* Settings sheet. Materialises with blur + scale rather than a plain
-            fade, because it is a pane of glass arriving, not a label. */}
-        <div
-          className={cn(
-            "absolute right-7 top-4 z-30 w-[248px] rounded-[var(--radius)] p-4",
-            glass
-              ? "lp-frosted"
-              : "bg-card shadow-[inset_0_0_0_1px_hsl(var(--border)),0_24px_50px_-16px_hsl(0_0%_0%/0.6)]"
-          )}
-        >
-          <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.24em] text-foreground/50">
-            Appearance
-          </p>
+function Settings({ theme, hue }: { theme: MockTheme; hue: { h: number; s: number; l: number } }) {
+  const r = recipes(theme);
+  const clear = theme === "clear" || theme === "clear-light";
+  const light = theme === "light" || theme === "clear-light";
+  const hex = hslToHex(hue.h, hue.s, hue.l);
 
-          {/* Clear mode toggle */}
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-2 text-[12px] font-medium text-foreground/85">
-              <Sparkles className="h-3.5 w-3.5" style={{ color: "hsl(var(--primary))" }} />
-              Clear Mode
-            </span>
-            <span
-              className="relative flex h-[20px] w-[36px] items-center rounded-full transition-colors duration-[380ms]"
-              style={{
-                background: glass ? "hsl(var(--primary))" : "hsl(var(--foreground) / 0.2)",
-                boxShadow: glass ? "0 0 18px -2px hsl(var(--primary) / 0.8)" : "none",
-              }}
-            >
-              <span
-                className="absolute h-[15px] w-[15px] rounded-full bg-white"
-                style={{
-                  transition: "transform 380ms cubic-bezier(0.32, 0.72, 0, 1)",
-                  transform: `translateX(${glass ? 18 : 3}px)`,
-                }}
-              />
+  return (
+    <div className="relative">
+      <span
+        className={cn(
+          "shimmer-bg absolute left-4 top-4 z-40 flex h-10 w-10 items-center justify-center rounded-full shadow-lg",
+          r.chip
+        )}
+      >
+        <ArrowLeft className="h-6 w-6" />
+      </span>
+
+      <main className="mx-auto max-w-4xl space-y-8 p-4 pb-24" style={{ marginTop: -150 }}>
+        <div className={r.card}>
+          <div className="flex flex-col space-y-1.5 p-6">
+            <h3 className="flex items-center gap-2 text-2xl font-semibold leading-none tracking-tight">
+              <Shield className="text-primary" />
+              Parental Control
+            </h3>
+            <p className="text-sm text-muted-foreground">Manage settings for younger users.</p>
+          </div>
+          <div className="flex items-center justify-between p-6 pt-0">
+            <span className="text-sm font-medium">Enable Parental Controls</span>
+            <span className="relative inline-flex h-6 w-11 items-center rounded-full bg-input">
+              <span className="ml-0.5 block h-5 w-5 rounded-full bg-background shadow-lg" />
             </span>
           </div>
+        </div>
 
-          <div className="my-3.5 h-px bg-foreground/10" />
-
-          {/* Accent picker */}
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-foreground/50">
-            Accent
-          </p>
-          <div className="flex gap-2">
-            {SWATCHES.map((s, i) => (
-              <span
-                key={s.name}
-                className="flex h-[26px] w-[26px] items-center justify-center rounded-full transition-transform duration-300"
-                style={{
-                  background: `hsl(${s.hsl})`,
-                  transform: i === accentIndex ? "scale(1.14)" : "scale(1)",
-                  boxShadow:
-                    i === accentIndex
-                      ? `0 0 0 2px hsl(var(--background)), 0 0 0 4px hsl(${s.hsl}), 0 0 18px -2px hsl(${s.hsl})`
-                      : "none",
-                }}
-              >
-                {i === accentIndex && <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />}
-              </span>
-            ))}
+        <div className={r.card}>
+          <div className="flex flex-col space-y-1.5 p-6">
+            <h3 className="flex items-center gap-2 text-2xl font-semibold leading-none tracking-tight">
+              <Sun className="text-primary" />
+              Appearance
+            </h3>
+            <p className="text-sm text-muted-foreground">Customize the look and feel of the app.</p>
           </div>
+          <div className="space-y-8 p-6 pt-0">
+            <div className="grid grid-cols-3 justify-items-center gap-4">
+              <ThemeCard label="Light" kind="light" selected={light} anchor="theme-light" />
+              <ThemeCard label="Dark" kind="dark" selected={!light} anchor="theme-dark" />
+              <ThemeCard label="Clear" kind="clear" light={light} selected={clear} anchor="theme-clear" />
+            </div>
 
-          <div className="my-3.5 h-px bg-foreground/10" />
-
-          {/* Light / dark */}
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.24em] text-foreground/50">
-            Theme
-          </p>
-          <div className="flex gap-2">
-            {[
-              { label: "Light", icon: Sun, on: light },
-              { label: "Dark", icon: Moon, on: !light },
-            ].map((opt) => {
-              const Icon = opt.icon;
-              return (
-                <span
-                  key={opt.label}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-[calc(var(--radius)/1.6)] py-1.5 text-[11px] font-semibold transition-colors duration-500"
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-full">
+                <div
+                  className="relative h-[200px] w-full rounded-t-lg"
                   style={{
-                    background: opt.on ? "hsl(var(--primary))" : "hsl(var(--foreground) / 0.07)",
-                    color: opt.on ? "hsl(var(--primary-foreground))" : "hsl(var(--foreground) / 0.6)",
+                    background: `linear-gradient(to top, #000, rgba(0,0,0,0)), linear-gradient(to right, #fff, hsl(${hue.h} 100% 50%))`,
                   }}
                 >
-                  <Icon className="h-3 w-3" />
-                  {opt.label}
-                </span>
-              );
-            })}
+                  <span
+                    className="absolute h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.2)]"
+                    style={{ left: "70%", top: `${100 - hue.l * 1.1}%`, background: `#${hex}` }}
+                  />
+                </div>
+                <div
+                  data-anchor="hue-bar"
+                  className="relative h-6 w-full rounded-b-lg"
+                  style={{
+                    background:
+                      "linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)",
+                  }}
+                >
+                  <span
+                    className="absolute top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.2)]"
+                    style={{ left: `${(hue.h / 360) * 100}%`, background: `hsl(${hue.h} 100% 50%)` }}
+                  />
+                </div>
+              </div>
+              <div className="grid w-full items-center gap-1.5">
+                <span className="text-sm font-medium">Primary Color (HEX)</span>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-semibold text-muted-foreground">#</span>
+                  <span className="flex h-10 w-full items-center rounded-md border border-input bg-background pl-7 font-mono text-sm">
+                    {hex}
+                  </span>
+                </div>
+                <p className="text-center text-xs text-muted-foreground">Default color is #775DEF</p>
+              </div>
+            </div>
           </div>
         </div>
+      </main>
+    </div>
+  );
+}
 
-        <DemoCursor x={cursor.x} y={cursor.y} pressed={pressed} tapKey={tapKey} />
-      </AppChrome>
+function ThemeCard({
+  label,
+  kind,
+  light = false,
+  selected,
+  anchor,
+}: {
+  label: string;
+  kind: "light" | "dark" | "clear";
+  light?: boolean;
+  selected: boolean;
+  anchor: string;
+}) {
+  return (
+    <div className="flex flex-col items-center text-center">
+      <span
+        data-anchor={anchor}
+        className={cn(
+          "flex h-24 w-24 items-center justify-center rounded-lg p-2 transition-all duration-200",
+          selected ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : "ring-1 ring-border"
+        )}
+      >
+        <span
+          className={cn(
+            "flex h-full w-full items-center justify-center rounded-md",
+            kind === "light" && "bg-white",
+            kind === "dark" && "bg-gray-800",
+            kind === "clear" && "bg-gray-700/50 backdrop-blur-sm"
+          )}
+        >
+          <TrendingUp
+            className={cn(
+              "h-8 w-8",
+              kind === "dark" && "text-white",
+              kind === "light" && "text-gray-800",
+              kind === "clear" && (light ? "text-white" : "text-primary")
+            )}
+          />
+        </span>
+      </span>
+      <p className="mt-2 text-sm font-medium">{label}</p>
+      {kind === "clear" && <p className="text-xs text-muted-foreground">(Liquid Glass)</p>}
     </div>
   );
 }

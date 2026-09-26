@@ -158,12 +158,12 @@ export default function TradeForm({ selectedSymbol, selectedPrice, loadingPrice,
 
   return (
     <TooltipProvider>
-      <Card>
-        <form onSubmit={handleSubmit(handlePreview)}>
+      <Card className="h-full">
+        <form onSubmit={handleSubmit(handlePreview)} className="flex h-full flex-col">
           <CardHeader>
             <CardTitle className="text-2xl font-bold">Place an Order</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="flex-1 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="symbol">Symbol</Label>

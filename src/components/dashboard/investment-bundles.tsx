@@ -3,7 +3,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -20,7 +19,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Button } from "../ui/button";
-import { Info, ExternalLink, DollarSign, Loader2, ShoppingCart } from "lucide-react";
+import { Info, ExternalLink, DollarSign, Loader2, ShoppingCart, Cpu, Globe, Leaf, HeartPulse, Rocket, Coins, Layers } from "lucide-react";
+import TickerLogo from "@/components/shared/ticker-logo";
 import {
   Dialog,
   DialogContent,
@@ -52,6 +52,50 @@ import {
 } from "@/components/ui/alert-dialog"
 
 const API_KEY = process.env.NEXT_PUBLIC_FINNHUB_API_KEY as string;
+
+/** Each bundle's motif — the one object that says what's inside it. */
+const BUNDLE_ICONS: Record<string, React.ElementType> = {
+  "Tech Starter Pack": Cpu,
+  "Global Giants": Globe,
+  "Green Energy Bundle": Leaf,
+  "Healthcare Innovators": HeartPulse,
+  "Disruptive Tech": Rocket,
+  "Dividend Champions": Coins,
+};
+
+/**
+ * A bundle's cover: its name set large and bold on a tile in its own hue, with
+ * its motif drawn big and faint behind it. No stock photography — the name is
+ * the picture, the way an album cover or a Wallet pass works.
+ */
+function BundleCover({ bundle }: { bundle: Bundle }) {
+  const Icon = BUNDLE_ICONS[bundle.title] ?? Layers;
+  const h = bundle.hue;
+  const name = bundle.title.replace(/ Bundle$/, "");
+  return (
+    <div
+      className="relative h-44 overflow-hidden rounded-t-3xl p-5 text-white"
+      style={{
+        background: `radial-gradient(120% 100% at 0% 0%, hsl(${h} 85% 62% / 0.55), transparent 60%), linear-gradient(140deg, hsl(${h} 65% 24%), hsl(${(h + 32) % 360} 55% 9%))`,
+      }}
+    >
+      <Icon
+        aria-hidden
+        strokeWidth={1.1}
+        className="pointer-events-none absolute -bottom-8 -right-6 h-40 w-40 -rotate-12 text-white/[0.14]"
+      />
+      <div className="relative flex items-center justify-between">
+        <span className="rounded-full bg-white/15 px-2.5 py-1 text-[11px] font-semibold tracking-wide backdrop-blur-sm">
+          {bundle.tag}
+        </span>
+        <span className="text-[11px] font-medium text-white/70">{bundle.stocks.length} stocks</span>
+      </div>
+      <h3 className="absolute bottom-4 left-5 right-14 text-[28px] font-extrabold leading-[1.02] tracking-[-0.035em]">
+        {name}
+      </h3>
+    </div>
+  );
+}
 
 interface InvestmentBundlesProps {
   bundles: Bundle[];
@@ -159,25 +203,27 @@ export default function InvestmentBundles({ bundles, title, description, showDis
                 {bundles.map((bundle, index) => (
                   <CarouselItem key={index} className="md:basis-1/2">
                     <div className="p-1 h-full">
-                      <Card className="h-full flex flex-col min-h-[360px]">
-                        {bundle.image && (
-                          <CardHeader className="p-0">
-                            <div className="relative h-48 w-full">
-                              <Image
-                                src={bundle.image}
-                                alt={bundle.title + " Image"}
-                                fill
-                                className="rounded-lg object-cover"
-                                data-ai-hint={bundle.hint}
-                              />
+                      <Card className="h-full flex flex-col">
+                        <BundleCover bundle={bundle} />
+                        <CardContent className="flex flex-1 flex-col gap-4 p-5">
+                          <p className="text-sm leading-relaxed text-muted-foreground line-clamp-2">{bundle.description}</p>
+                          <div className="mt-auto flex items-center gap-3">
+                            <div className="flex -space-x-2">
+                              {bundle.stocks.map((stock) => (
+                                <TickerLogo
+                                  key={stock.symbol}
+                                  symbol={stock.symbol}
+                                  name={stock.name}
+                                  className="h-9 w-9 ring-2 ring-background"
+                                />
+                              ))}
                             </div>
-                          </CardHeader>
-                        )}
-                        <CardContent className="flex-1 p-4">
-                          <h3 className="text-md font-semibold">{bundle.title}</h3>
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{bundle.description}</p>
+                            <p className="truncate text-xs font-semibold tracking-wide text-muted-foreground">
+                              {bundle.stocks.map((stock) => stock.symbol).join(" · ")}
+                            </p>
+                          </div>
                         </CardContent>
-                        <CardFooter className="p-4 pt-0">
+                        <CardFooter className="p-5 pt-0">
                           <DialogTrigger asChild>
                             <Button variant="outline" size="sm" className={cn(
                               "w-full ring-1 ring-white/60 hover:bg-primary/10",
@@ -225,9 +271,12 @@ export default function InvestmentBundles({ bundles, title, description, showDis
                     className="flex items-center justify-between p-2 rounded-md hover:bg-primary/10 w-full text-left"
                     onClick={() => handleStockLinkClick(stock.symbol)}
                   >
-                    <div>
-                      <p className="font-medium">{stock.name}</p>
-                      <p className="text-sm text-muted-foreground">{stock.symbol}</p>
+                    <div className="flex items-center gap-3">
+                      <TickerLogo symbol={stock.symbol} name={stock.name} />
+                      <div>
+                        <p className="font-medium">{stock.name}</p>
+                        <p className="text-sm text-muted-foreground">{stock.symbol}</p>
+                      </div>
                     </div>
                     <ExternalLink className="h-4 w-4 text-muted-foreground" />
                   </button>

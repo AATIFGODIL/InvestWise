@@ -4,7 +4,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { motion, useMotionValueEvent, useScroll, useSpring } from "framer-motion";
+import { motion, useScroll, useSpring } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { InvestWiseLogo } from "@/components/marketing/investwise-logo";
@@ -18,10 +18,9 @@ import { InvestWiseLogo } from "@/components/marketing/investwise-logo";
  * one continuous strip. Doing the same here is what stops the top of the page
  * feeling like a different product from the thing it's advertising.
  *
- * It starts out of the way and only materialises once you've left the hero. The
- * first screen is the logo at full size; putting a second, smaller copy of the
- * same logo directly above it is the kind of duplication that reads as an
- * oversight, so the bar simply isn't there yet.
+ * It is there from the first frame the page assembles, so the way in (Sign in,
+ * Get started) and the way around (the section links) are never hidden behind
+ * a scroll.
  */
 export function LandingNav() {
   const { scrollYProgress } = useScroll();
@@ -31,14 +30,13 @@ export function LandingNav() {
   // than a control, so a few ms of lag costs nothing.
   const progress = useSpring(scrollYProgress, { stiffness: 220, damping: 40, mass: 0.4 });
 
-  // Committed to state rather than a motion value because it gates
-  // `pointer-events` — a bar that is invisible but still swallowing clicks over
-  // the hero's CTAs is worse than no bar.
+  // Materialises with the page rather than popping in: one frame hidden, then
+  // down into place.
   const [shown, setShown] = React.useState(false);
-  useMotionValueEvent(scrollYProgress, "change", (p) => {
-    const next = p > 0.02;
-    setShown((current) => (current === next ? current : next));
-  });
+  React.useEffect(() => {
+    const frame = requestAnimationFrame(() => setShown(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   return (
     <>
@@ -77,9 +75,9 @@ export function LandingNav() {
             room for three groups and the CTA is what matters. */}
         <nav className="lp-glass absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 rounded-full px-1.5 py-1.5 sm:flex">
           {[
+            { label: "Dashboard", href: "#dashboard" },
             { label: "Features", href: "#features" },
-            { label: "Learn", href: "#learn" },
-            { label: "Pricing", href: "#learn" },
+            { label: "More", href: "#more" },
           ].map((item) => (
             <a
               key={item.label}

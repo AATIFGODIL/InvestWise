@@ -22,28 +22,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CreateGoal from "@/components/goals/create-goal";
 import GoalList from "@/components/goals/goal-list";
 import { useGoalStore } from "@/store/goal-store";
-import dynamic from 'next/dynamic';
-import { Skeleton } from "../ui/skeleton";
-
-import PortfolioTutorial from './portfolio-tutorial';
-
-const YouTubePlayer = dynamic(() => import('../shared/youtube-player'), {
-  ssr: false,
-  loading: () => <Skeleton className="h-full w-full aspect-video" />,
-});
-
-const videos = [
-  {
-    title: "Setting SMART Financial Goals",
-    description: "Learn how to set Specific, Measurable, Achievable, Relevant, and Time-bound goals for your financial future.",
-    youtubeUrl: "https://www.youtube.com/watch?v=UwTxtkGplUs",
-  },
-  {
-    title: "The Psychology of Trading",
-    description: "Understand the emotional and psychological aspects of trading to maintain discipline and make better decisions.",
-    youtubeUrl: "https://www.youtube.com/watch?v=sauPy2JHzI0",
-  }
-]
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -76,27 +54,6 @@ export default function PortfolioClient() {
   const { addTransaction } = useTransactionStore();
   const { goals, addGoal } = useGoalStore();
   const [activeTab, setActiveTab] = useState('overview');
-  const [showTutorial, setShowTutorial] = useState(false);
-
-  // Check tutorial state when user is available (user-specific key)
-  useEffect(() => {
-    if (typeof window !== 'undefined' && user?.uid) {
-      const tutorialKey = `hasCompletedPortfolioTutorial_${user.uid}`;
-      const hasCompletedTutorial = localStorage.getItem(tutorialKey);
-      if (!hasCompletedTutorial) {
-        setShowTutorial(true);
-      }
-    }
-  }, [user?.uid]);
-
-  const handleTutorialComplete = () => {
-    if (typeof window !== 'undefined' && user?.uid) {
-      const tutorialKey = `hasCompletedPortfolioTutorial_${user.uid}`;
-      localStorage.setItem(tutorialKey, 'true');
-    }
-    setShowTutorial(false);
-  };
-
   const handleAddFunds = async () => {
     if (!paymentMethodToken) {
       toast({
@@ -144,7 +101,6 @@ export default function PortfolioClient() {
 
   return (
     <main>
-      {showTutorial && <PortfolioTutorial onComplete={handleTutorialComplete} />}
       <motion.div
         className="p-4 space-y-6 pb-40"
         variants={containerVariants}
@@ -153,7 +109,7 @@ export default function PortfolioClient() {
       >
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Portfolio</h1>
-          <Button onClick={handleAddFunds} className={cn('ring-1 ring-white/60')}>
+          <Button id="add-funds-tutorial" onClick={handleAddFunds} className={cn('ring-1 ring-white/60')}>
             <PlusCircle className="mr-2 h-4 w-4" />
             Add $100 (Demo)
           </Button>
@@ -161,7 +117,7 @@ export default function PortfolioClient() {
 
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="flex justify-center w-full mb-6">
-            <TabsList className={cn(
+            <TabsList id="portfolio-tabs-tutorial" className={cn(
               "grid grid-cols-2 h-12 p-1.5 rounded-full relative w-full max-w-[280px] shadow-lg ring-1 ring-border bg-muted/50"
             )}>
               {['overview', 'goals'].map((tab) => (
@@ -204,10 +160,10 @@ export default function PortfolioClient() {
               <Watchlist />
             </motion.div>
             <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div id="auto-invest-portfolio-tutorial">
+              <div id="auto-invest-portfolio-tutorial" className="h-full">
                 <AutoInvest />
               </div>
-              <div id="ai-prediction-portfolio-tutorial">
+              <div id="ai-prediction-portfolio-tutorial" className="h-full">
                 <AiPrediction />
               </div>
             </motion.div>
@@ -220,15 +176,6 @@ export default function PortfolioClient() {
 
             <motion.div variants={itemVariants}>
               <GoalList goals={goals} />
-            </motion.div>
-
-            <motion.div variants={itemVariants} className="space-y-4 pt-4">
-              <h2 className="text-xl font-bold">Learn About Goals</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                {videos.map((video) => (
-                  <YouTubePlayer key={video.title} videoTitle={video.title} description={video.description} youtubeUrl={video.youtubeUrl} />
-                ))}
-              </div>
             </motion.div>
           </TabsContent>
         </Tabs>

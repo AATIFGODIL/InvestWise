@@ -12,35 +12,11 @@ import { useThemeStore } from "@/store/theme-store";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
-import dynamic from 'next/dynamic';
-import { Skeleton } from "../ui/skeleton";
 import { Button } from "../ui/button";
 import { useState, useEffect } from "react";
 import { fetchTopFinancialNewsAction } from "@/app/actions";
 import { type NewsArticle } from "@/lib/gnews";
 
-const YouTubePlayer = dynamic(() => import('../shared/youtube-player'), {
-  ssr: false,
-  loading: () => <Skeleton className="h-full w-full aspect-video" />,
-});
-
-
-const videos = [
-  {
-    title: "Following the Experts: Bear Bull Traders",
-    description: "Learn from Bear Bull Traders, one of the leading voices in financial education. Note: This is a link to their channel.",
-    youtubeUrl: "https://www.youtube.com/channel/UCfO2yCpx6_XU-xovhpJuaYw",
-    isChannel: true,
-    imageUrl: "/bull.jpg"
-  },
-  {
-    title: "Trading Insights with Adam Khoo",
-    description: "Explore trading strategies and market analysis from Adam Khoo, a professional investor and trader. Note: This is a link to his channel.",
-    youtubeUrl: "https://www.youtube.com/@AdamKhoo",
-    isChannel: true,
-    imageUrl: "/adam-khoo.jpg"
-  }
-]
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -103,7 +79,7 @@ export default function CommunityClient() {
         <motion.div variants={itemVariants}>
           <Tabs defaultValue={defaultTab} value={activeTab} onValueChange={setActiveTab} className="w-full">
             <div className="flex justify-center w-full mb-6">
-              <TabsList className={cn(
+              <TabsList id="community-tabs-tutorial" className={cn(
                 "grid grid-cols-2 h-12 p-1.5 rounded-full relative w-full max-w-[280px] shadow-lg ring-1 ring-border",
                 isClearMode
                   ? isLightClear
@@ -133,26 +109,14 @@ export default function CommunityClient() {
               </TabsList>
             </div>
             <TabsContent value="feed" className="space-y-6">
-              <Leaderboard />
-
-              {/* Side-by-side: Quests (half-width) and Videos */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-                {showQuests && (
-                  <div className="flex flex-col">
-                    <div className="flex-1 max-h-[450px] overflow-y-auto p-[1px]">
-                      <Quests />
-                    </div>
-                  </div>
-                )}
-                <div className="flex flex-col space-y-4">
-                  <h2 className="text-xl font-bold">Learn from the Experts</h2>
-                  <div className="grid grid-cols-2 gap-4 flex-1">
-                    {videos.map((video) => (
-                      <YouTubePlayer key={video.title} videoTitle={video.title} {...video} />
-                    ))}
-                  </div>
-                </div>
+              <div id="leaderboard-tutorial">
+                <Leaderboard />
               </div>
+              {showQuests && (
+                <div id="quests-tutorial">
+                  <Quests />
+                </div>
+              )}
             </TabsContent>
             <TabsContent value="trends" className="mt-6">
               <CommunityTrends showViewAllButton={false} />

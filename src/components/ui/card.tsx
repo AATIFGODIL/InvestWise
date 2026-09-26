@@ -34,7 +34,7 @@ const Card = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "relative overflow-hidden rounded-3xl border-none text-card-foreground shadow-xl transition-all duration-300 ring-1 ring-white/60 hover:ring-primary/50",
+        "relative overflow-hidden rounded-3xl border-none text-card-foreground shadow-xl transition-colors duration-300 ring-1 ring-white/60",
         // --- Start of Clear Mode Logic ---
         isClearMode
           ? isLightClear

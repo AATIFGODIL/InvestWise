@@ -6,15 +6,17 @@ import React, { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * The logical size every demo is authored at. The demos lay themselves out in
- * these pixels and nothing else — no responsive branching inside a demo, ever.
+ * The logical size every demo is authored at — a 1280×800 desktop, so the mock
+ * app inside uses the product's real Tailwind sizes (h-16 header, 80px rail,
+ * text-2xl card titles) at 1:1. The demos lay themselves out in these pixels
+ * and nothing else — no responsive branching inside a demo, ever.
  * The frame then scales the whole screen to whatever space it has been given,
  * so a demo composed for a 1440px display stays pixel-proportional inside a
  * 380px card on a phone. This is the same trick a design tool uses, and it is
  * the only way four scripted recordings stay in register with each other.
  */
-export const SCREEN_W = 1040;
-export const SCREEN_H = 650;
+export const SCREEN_W = 1280;
+export const SCREEN_H = 800;
 
 /**
  * The device the feature demos play inside.

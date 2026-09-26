@@ -17,6 +17,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { Navigation } from 'lucide-react';
 import { useThemeStore } from '@/store/theme-store';
 import { cn } from '@/lib/utils';
+import { PageTour } from '@/components/tour/page-tour';
 
 // Dynamically import client-heavy components
 const Header = dynamic(() => import('@/components/layout/header'), { ssr: false });
@@ -370,7 +371,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
                   !isSideRailExpanded ? (sidebarOrientation === 'right' ? "translate-x-8 opacity-0 pointer-events-none" : "-translate-x-8 opacity-0 pointer-events-none") : "translate-x-0 opacity-100"
                 )}
               >
-                <div className="w-[80px] flex justify-center z-50">
+                <div id="tour-chatbot" className="w-[80px] flex justify-center z-50">
                   <Chatbot isMobileCompact={false} />
                 </div>
                 <BottomNav isMobileCompact={false} noFixedWrapper />
@@ -405,6 +406,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
         </AnimatePresence>
 
         <MoneyRain isActive={isRaining} />
+        <PageTour />
 
         {/* Mobile Header Trigger (Top-Left) - accent line */}
         <AnimatePresence>

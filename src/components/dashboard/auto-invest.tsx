@@ -106,7 +106,7 @@ export default function AutoInvest() {
 
 
     return (
-        <Card>
+        <Card className="flex h-full flex-col">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-2xl font-bold">
                     <Repeat className="h-5 w-5 text-primary" />
@@ -116,7 +116,7 @@ export default function AutoInvest() {
                     Set up recurring investments to grow your portfolio automatically.
                 </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="flex flex-1 flex-col gap-4">
                 {autoInvestments.map((investment) => (
                     <div key={investment.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
                         <div>
@@ -133,7 +133,7 @@ export default function AutoInvest() {
                 ))}
                 <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
                     <DialogTrigger asChild>
-                        <Button className="w-full">
+                        <Button className="mt-auto w-full">
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Set Up New Auto-Invest
                         </Button>

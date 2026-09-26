@@ -64,8 +64,8 @@ const FEATURES: Feature[] = [
   {
     id: "spotlight",
     eyebrow: "Spotlight Search",
-    title: "One key. Everything.",
-    body: "Press ⌘K anywhere and the whole app becomes a single line of text. Search the market, jump between pages, flip a setting, or pull up a company — and get its chart, an AI read and the buy button without ever leaving the box you opened.",
+    title: "One box. Everything.",
+    body: "Tap Spotlight Search and the whole app becomes a single line of text. Search the market, jump between pages, flip a setting, or pull up a company — its chart, an AI prediction, your holding and the Buy button, without leaving the box you opened.",
     points: ["Live quotes as you type", "Every action, searchable", "Buy without changing page"],
     icon: Command,
     rail: "Search",
@@ -73,63 +73,63 @@ const FEATURES: Feature[] = [
     range: [0.08, 0.118, 0.212, 0.25],
     demo: SpotlightDemo,
     label:
-      "A recording of the InvestWise command menu: clicking Spotlight Search, typing N-V-D-A, and opening NVIDIA's detail view with its chart and AI prediction.",
+      "A recording of the InvestWise command menu: clicking Spotlight Search, typing N-V-D-A, and opening NVIDIA's detail view with its chart, Buy and Sell buttons and AI prediction.",
   },
   {
     id: "favourites",
     eyebrow: "Hover the header",
     title: "The stuff you actually use.",
-    body: "Star anything — a company, a setting, a command — and it lives in the header. Hover and your favourites unroll out of the search button; drag to reorder them; hold the button and they go into edit mode. The top bar becomes yours, not ours.",
-    points: ["Fans out on hover", "Drag to reorder, live", "Pin stocks or commands"],
+    body: "Star anything in Spotlight — a company or a command — and it lives in the header. Hover and your favourites unroll beside the search button. Hold the button for Editing Mode: drag them into order, tap one to switch between an icon and a live-price pill.",
+    points: ["Unrolls on hover", "Hold to edit, drag to reorder", "Icons or live-price pills"],
     icon: Star,
     rail: "Favourites",
     side: "right",
     range: [0.25, 0.288, 0.382, 0.42],
     demo: SpotlightHoverDemo,
     label:
-      "A recording of the InvestWise header: hovering it unrolls a row of favourite chips out of the Spotlight Search button, one is dragged to a new position, then a long press puts them into editing mode.",
+      "A recording of the InvestWise header: hovering it unrolls Google, Apple, NVIDIA and Microsoft favourites beside Spotlight Search; a long press enters Editing Mode, Microsoft is dragged to the front, and NVIDIA is tapped into a price pill.",
   },
   {
     id: "pro",
     eyebrow: "Pro Mode",
     title: "Grows up with you.",
-    body: "Start guided. When the training wheels start getting in the way, one switch rebuilds the interface around density instead of hand-holding — candles, order book, live signals, and a Research tab where Goals used to be. Flip it back whenever.",
-    points: ["Candlesticks and volume", "Depth and live signals", "Reversible, always"],
+    body: "Start guided. When the training wheels get in the way, one switch opens the Pro Research Station: four live TradingView charts carrying RSI, MACD, a moving average and Bollinger Bands. The navigation tucks into a single accent line, and Research takes Goals' place. Flip it back whenever.",
+    points: ["Four charts, live indicators", "Research replaces Goals", "Reversible, always"],
     icon: Gauge,
     rail: "Pro Mode",
     side: "left",
     range: [0.42, 0.458, 0.552, 0.59],
     demo: ProModeDemo,
     label:
-      "A recording of InvestWise Pro Mode: the header toggle switches the guided dashboard into a dense research terminal with candlestick charts, an order book and technical signals, then switches back.",
+      "A recording of InvestWise Pro Mode: the header toggle opens the Pro Research Station, a two-by-two grid of TradingView charts with indicators, while the side rail collapses to an accent line; then it switches back.",
   },
   {
     id: "copilot",
     eyebrow: "Co-pilot",
-    title: "Knows where you are.",
-    body: "The assistant is handed the page you're on before you type a word, so it answers about your position, not about investing in general. Ask why something moved and it reads your actual holdings — then tells you when doing nothing is the right call.",
-    points: ["Reads your open page", "Grounded in your holdings", "Explains, never pressures"],
+    title: "Knows what you're looking at.",
+    body: "Tap Ask AI on any chart and the assistant already knows the page you're on, the stock you're viewing and its price — so the answer is about NVDA right now, not investing in general. Attach a screenshot, or switch to voice and just talk.",
+    points: ["Knows the page and the stock", "One tap from any chart", "Voice mode and attachments"],
     icon: BrainCircuit,
     rail: "Co-pilot",
     side: "right",
     range: [0.59, 0.628, 0.722, 0.76],
     demo: CopilotDemo,
     label:
-      "A recording of the InvestWise AI co-pilot: it opens with a context chip showing the current page, receives a question about an NVDA position, and streams back an answer about portfolio concentration.",
+      "A recording of the InvestWise AI assistant: Ask AI is tapped on the Trade page's NVDA chart, the assistant opens, sends an analysis request with NVDA's current price, and replies in plain language.",
   },
   {
     id: "clear",
     eyebrow: "Clear Mode",
     title: "Yours, actually.",
-    body: "Turn every surface to frosted glass, pick the accent the whole app is built from, and move between light and dark without anything breaking. It's one custom property at the top of the tree — so the charts, the rail glider and the glow all follow.",
-    points: ["Real backdrop-filter glass", "Any accent colour", "Light and dark, both first-class"],
+    body: "Settings → Appearance. Turn every surface to liquid glass with Clear, pick any accent from the colour wheel, and move between light and dark without anything breaking. The accent is one value at the top of the app, so charts, the rail and every button follow it.",
+    points: ["Clear Mode liquid glass", "Any accent colour", "Light and dark, both first-class"],
     icon: Sparkles,
-    rail: "Theming",
+    rail: "Clear",
     side: "left",
     range: [0.76, 0.798, 0.892, 0.93],
     demo: ClearModeDemo,
     label:
-      "A recording of InvestWise Clear Mode: surfaces turn to frosted glass, the accent colour changes from indigo to teal to amber and the whole interface recolours, then the theme flips to light and back.",
+      "A recording of InvestWise Settings, Appearance: Clear Mode turns the surfaces to glass, the hue slider changes the accent from indigo to teal and the page recolours, then the theme flips to light and back to dark.",
   },
 ];
 
@@ -139,7 +139,7 @@ const STAGE_SET = 0.07;
 const BLOOM_START = FEATURES[FEATURES.length - 1].range[3];
 
 /** How far the device sits off centre while a feature holds the frame (px). */
-const DEVICE_SHIFT = 140;
+const DEVICE_SHIFT = 150;
 /** The stage is nudged right to account for the rail, so it reads as centred. */
 const STAGE_OFFSET = 50;
 
@@ -246,9 +246,7 @@ export function FeatureCinema({ caps }: { caps: StageCapabilities }) {
     <section
       id="features"
       ref={containerRef}
-      // Pulled up under the hero so the hero's exit hands straight over to this
-      // section, with no blank stretch between the two.
-      className="relative z-30 h-[1900vh] -mt-[60vh]"
+      className="relative z-30 h-[1900vh]"
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden">
         <motion.div
@@ -261,10 +259,9 @@ export function FeatureCinema({ caps }: { caps: StageCapabilities }) {
         >
           {/* Backdrop */}
           <motion.div style={{ opacity: stageOpacity }} className="absolute inset-0 z-0" aria-hidden>
-            <div className="lp-grid absolute inset-0 opacity-70" />
             <div
-              className="lp-aurora lp-drift-a left-1/2 top-1/2 h-[80vh] w-[80vh] -translate-x-1/2 -translate-y-1/2"
-              style={{ background: "hsl(var(--primary) / 0.26)" }}
+              className="absolute left-1/2 top-1/2 h-[90vh] w-[90vw] -translate-x-1/2 -translate-y-1/2"
+              style={{ background: "radial-gradient(closest-side, hsl(var(--primary) / 0.16), transparent)" }}
             />
           </motion.div>
 
@@ -275,7 +272,7 @@ export function FeatureCinema({ caps }: { caps: StageCapabilities }) {
           >
             <motion.div
               style={{ transform: deviceTransform, willChange: "transform" }}
-              className="w-[min(660px,46vw)]"
+              className="w-[min(800px,54vw)]"
             >
               <DeviceFrame label={FEATURES[Math.max(holdingIndex, 0)].label}>
                 {FEATURES.map((f, i) => {
@@ -333,33 +330,34 @@ function FeatureRail({
   );
   const x = useTransform(progress, [STAGE_IN, STAGE_SET], [-40, 0]);
 
-  const ITEM_H = 64;
-  const PAD = 16;
-  const RAIL_W = 84;
+  // `bottom-nav.tsx`'s desktop rail, at its real size: 80px wide, `py-6`,
+  // `gap-4` between items that are `py-5` around a 24px icon and a 10px label
+  // (82px each), and a glider 85% of the rail's width and 12px taller than an
+  // item — a tall pill, not a circle.
+  const RAIL_W = 80;
+  const PAD = 24;
+  const ITEM_H = 82;
+  const GAP = 16;
   const GLIDER_W = Math.round(RAIL_W * 0.85);
   const index = Math.max(activeIndex, 0);
 
   return (
     <motion.div
       style={{ opacity, x }}
-      className="absolute bottom-0 left-6 top-0 z-30 flex items-center"
+      className="absolute bottom-0 left-4 top-0 z-30 flex items-center p-2"
       aria-hidden
     >
       <div
-        className="lp-glass relative flex flex-col items-center rounded-full"
+        className="relative flex flex-col items-center gap-4 rounded-full bg-card px-2 shadow-2xl shadow-black/20 ring-1 ring-white/10"
         style={{ width: RAIL_W, paddingTop: PAD, paddingBottom: PAD }}
       >
-        {/* The glider. Same proportions as the app's: 85% of the rail width,
-            centred, sliding in Y between items. */}
         <span
-          className="absolute left-0 top-0 rounded-full"
+          className="absolute left-0 top-0 rounded-full bg-primary"
           style={{
             width: GLIDER_W,
-            height: ITEM_H,
-            transform: `translateX(${(RAIL_W - GLIDER_W) / 2}px) translateY(${PAD + index * ITEM_H}px)`,
-            background: "hsl(var(--primary))",
-            boxShadow: "0 8px 26px -8px hsl(var(--primary))",
-            transition: "transform 420ms cubic-bezier(0.32, 0.72, 0, 1)",
+            height: ITEM_H + 12,
+            transform: `translateX(${(RAIL_W - GLIDER_W) / 2}px) translateY(${PAD + index * (ITEM_H + GAP) - 6}px)`,
+            transition: "transform 500ms cubic-bezier(0.22, 0.9, 0.35, 1)",
             opacity: activeIndex < 0 ? 0 : 1,
           }}
         />
@@ -370,16 +368,18 @@ function FeatureRail({
           return (
             <span
               key={f.id}
-              className="relative z-10 flex w-full flex-col items-center justify-center gap-1 rounded-full transition-colors duration-300"
-              style={{
-                height: ITEM_H,
-                color: isActive
-                  ? "hsl(var(--primary-foreground))"
-                  : "hsl(var(--foreground) / 0.45)",
-              }}
+              className="relative z-10 flex w-full flex-col items-center justify-center gap-1 rounded-full px-1.5"
+              style={{ height: ITEM_H }}
             >
-              <Icon className="h-[19px] w-[19px]" strokeWidth={2} />
-              <span className="text-[9px] font-medium leading-none">{f.rail}</span>
+              <span
+                className={cn(
+                  "flex flex-col items-center transition-colors duration-300",
+                  isActive ? "text-primary-foreground" : "text-muted-foreground"
+                )}
+              >
+                <Icon className="h-6 w-6" />
+                <span className="mt-0.5 text-[10px] font-medium leading-tight">{f.rail}</span>
+              </span>
             </span>
           );
         })}
@@ -444,9 +444,9 @@ function FeaturePanel({
         // half its own height below centre.
         style={{ x, y: "-50%", perspective: "1200px" }}
         className={cn(
-          "absolute top-1/2 w-[min(360px,26vw)]",
+          "absolute top-1/2 w-[min(330px,23vw)]",
           // Left panels clear the rail; right panels sit off the right edge.
-          feature.side === "left" ? "left-[124px]" : "right-[max(40px,3.5vw)]"
+          feature.side === "left" ? "left-[128px]" : "right-[max(40px,3.5vw)]"
         )}
       >
         <div

@@ -67,6 +67,7 @@
  * has to survive a light/dark flip the same way the product's does.
  */
 .lp-light {
+  --destructive: 0 84.2% 60.2%;
   --background: 225 6% 84%;
   --foreground: 222.2 84% 4.9%;
   --card: 225 6% 84%;
@@ -484,6 +485,25 @@ html[data-lp-loaded="1"] [data-hero-logo] {
   border-radius: calc(var(--radius) / 2);
 }
 
+/* The headline's second line: the accent, lit from above. */
+.lp-gradient-text {
+  background: linear-gradient(180deg, hsl(var(--primary) / 0.75) 0%, hsl(var(--primary)) 55%, hsl(251 90% 78%) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* "Make it rain", in miniature. */
+@keyframes lp-bill {
+  0% { transform: translateY(-30px) rotate(-12deg); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translateY(260px) rotate(18deg); opacity: 0; }
+}
+
+.lp-bill {
+  animation: lp-bill 3s linear infinite;
+}
+
 /* ───────────────────────────────────────────────────────────────────────────
    Accessibility
    ───────────────────────────────────────────────────────────────────────────
@@ -508,7 +528,8 @@ html[data-lp-loaded="1"] [data-hero-logo] {
   .lp-tap,
   .lp-pulse,
   .lp-chip-a,
-  .lp-chip-b {
+  .lp-chip-b,
+  .lp-bill {
     animation: none !important;
   }
 

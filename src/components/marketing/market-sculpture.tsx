@@ -17,9 +17,9 @@ import { GLYPH_OUTLINE } from "@/components/marketing/glyph-outline";
  *
  * Two ways in. At a distance it is proximity: the closer the pointer gets, the
  * further the glyph leans to follow it, easing back when the pointer leaves.
- * Up close, once the page has settled, you can grab it — drag it around the
- * hero and it spins with the throw, then swings back to its place carrying
- * whatever momentum you gave it.
+ * Up close, once the page has settled, you can pick it up — but only to turn
+ * it. It never leaves its place: drag spins and tips it, a flick throws it,
+ * and it always winds down facing you.
  *
  * Rendering notes:
  *  - No HDR file. The environment is a small procedurally-painted canvas turned
@@ -27,9 +27,7 @@ import { GLYPH_OUTLINE } from "@/components/marketing/glyph-outline";
  *    kilobytes instead of a few megabytes.
  *  - Every input is a ref, never a prop the loop depends on: the render loop
  *    reads them each frame, and a state update per frame would mean a React
- *    render per frame for something no React output depends on. The drag lives
- *    here too, for the same reason — it writes a transform straight onto the
- *    host element rather than round-tripping through state.
+ *    render per frame for something no React output depends on.
  *  - The canvas is never scaled *up* by CSS. Its host is sized to the largest
  *    pose the page ever puts it in and scaled down from there, so the buffer is
  *    oversampled at rest instead of interpolated during the loader.
@@ -45,11 +43,12 @@ type Props = {
   /** Full turns across the whole of `progress`, once settled. */
   turns?: number;
   /**
-   * The CSS scale the host is displayed at, inverted. A drag is measured in
-   * screen pixels but applied inside a scaled box, so without this the glyph
-   * lags behind the pointer by exactly that factor.
+   * Written every frame with the glyph's spin velocity (rad/ms), so something
+   * outside the canvas — the hero's ring of quotes — can move with it.
    */
-  dragScale?: number;
+  velocityRef?: React.MutableRefObject<number>;
+  /** Fired once, the first time the reader picks the glyph up. */
+  onGrab?: () => void;
   className?: string;
 };
 
@@ -57,26 +56,59 @@ type Props = {
 const SPIN_SPEED = 0.0105;
 /** How hard the spin is braked once the gates clear. Per-ms decay. */
 const BRAKE = 0.99;
-/** Per-ms decay of a spin the reader threw. Long enough to watch it run down. */
-const FREE_DECAY = 0.9986;
-/** How eagerly a spun-out glyph drifts back to facing you, once it is slow. */
-const REFACE = 0.02;
 /** Pointer distance, in px, beyond which the glyph stops caring. */
 const PROXIMITY_RADIUS = 620;
 /** Extrusion depth, so the silhouette reads as a solid rather than a cut-out. */
 const DEPTH = 0.34;
 
-/** Pointer speed (px/ms) → spin (rad/ms) while dragging. */
-const DRAG_SPIN_GAIN = 0.0055;
-/** The same for the vertical axis, softer: a tumble is easier to overdo. */
-const DRAG_TUMBLE_GAIN = 0.003;
-/** Ceiling on both, so a flicked trackpad can't turn it into a strobe. */
-const MAX_DRAG_SPIN = 0.022;
-/** Per-ms decay of the drag's own reading of pointer speed, so pausing
- *  mid-drag lets the spin fall away rather than holding at the last flick. */
-const DRAG_SPIN_FADE = 0.994;
+/** Radians of turn per px of drag: a full turn across ~560px, 1:1 under the hand. */
+const DRAG_GAIN = (Math.PI * 2) / 560;
+/** How far it may be tipped toward or away from you before it resists. */
+const PITCH_LIMIT = 0.55;
+/**
+ * Apple's projection: where a flick would come to rest under scroll-style
+ * deceleration. `(v/1000)·d/(1−d)` with v in rad/s is `v·d/(1−d)` in rad/ms.
+ */
+const DECELERATION = 0.997;
+/** Yaw spring after release: critically damped, slow enough to watch it wind down. */
+const YAW_SPRING = { damping: 1, response: 1.1 };
+/** Pitch spring: Apple's rotation values — a little bounce, because it was thrown. */
+const PITCH_SPRING = { damping: 0.8, response: 0.4 };
 
 const clamp = (v: number, limit: number) => Math.max(-limit, Math.min(limit, v));
+
+/** Progressive resistance past a bound, rather than a hard stop. */
+function rubberband(value: number, limit: number) {
+  const over = Math.abs(value) - limit;
+  if (over <= 0) return value;
+  const eased = (over * limit * 0.55) / (limit + 0.55 * over);
+  return Math.sign(value) * (limit + eased);
+}
+
+/**
+ * One step of a damped spring in Apple's terms. Returns [position, velocity];
+ * velocity is per second.
+ */
+function stepSpring(
+  x: number,
+  v: number,
+  target: number,
+  { damping, response }: { damping: number; response: number },
+  dt: number
+): [number, number] {
+  const omega = (2 * Math.PI) / response;
+  const k = omega * omega;
+  const c = 2 * damping * omega;
+  // Sub-step so a dropped frame can't make a stiff spring explode.
+  const steps = Math.max(1, Math.ceil(dt / 0.008));
+  const h = dt / steps;
+  for (let i = 0; i < steps; i++) {
+    const a = -k * (x - target) - c * v;
+    v += a * h;
+    x += v * h;
+  }
+  return [x, v];
+}
 
 /** A tiny painted cube map — enough for the chrome to have highlights. */
 function buildEnvironment(renderer: THREE.WebGLRenderer): THREE.Texture {
@@ -145,15 +177,16 @@ export function MarketSculpture({
   phaseRef,
   progressRef,
   turns = 0.6,
-  dragScale = 1,
+  velocityRef,
+  onGrab,
   className,
 }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
 
   // The effect below must run exactly once — it owns a WebGL context — so the
-  // one genuinely changeable input is read through a ref instead of closed over.
-  const dragScaleRef = useRef(dragScale);
-  dragScaleRef.current = dragScale;
+  // callback is read through a ref instead of closed over.
+  const onGrabRef = useRef(onGrab);
+  onGrabRef.current = onGrab;
 
   useEffect(() => {
     const host = hostRef.current;
@@ -207,109 +240,99 @@ export function MarketSculpture({
     scene.add(new THREE.AmbientLight(0x2b1f5e, 1.2));
 
     // ── Proximity ──────────────────────────────────────────────────────────
-    // Target lean, in radians, updated on pointer move and eased toward in the
-    // loop. Reading the host's rect here rather than caching it keeps this
-    // correct through scrolling and resizing without a second listener.
+    // A pointer nearby makes the glyph lean toward it, easing back when it
+    // leaves. Deferred to the drag whenever there is one.
     let leanX = 0;
     let leanY = 0;
-    /** Declared up here only because the lean has to defer to it. */
     let dragging = false;
 
     const onPointerMove = (event: PointerEvent) => {
-      // A hand on the object outranks a hand near it — otherwise the lean and
-      // the drag are two answers to the same pointer, pulling opposite ways.
-      if (dragging) {
-        leanX = 0;
-        leanY = 0;
-        return;
-      }
-
+      if (dragging) return;
       const rect = host.getBoundingClientRect();
       const dx = event.clientX - (rect.left + rect.width / 2);
       const dy = event.clientY - (rect.top + rect.height / 2);
-
-      // Falls off to nothing at the radius, so a pointer on the far side of the
-      // page has no effect at all.
       const strength = Math.max(0, 1 - Math.hypot(dx, dy) / PROXIMITY_RADIUS);
-      leanY = (dx / PROXIMITY_RADIUS) * strength * 1.5;
-      leanX = (dy / PROXIMITY_RADIUS) * strength * 1.1;
+      leanY = (dx / PROXIMITY_RADIUS) * strength * 0.9;
+      leanX = (dy / PROXIMITY_RADIUS) * strength * 0.6;
     };
-
     const onPointerLeave = () => {
       leanX = 0;
       leanY = 0;
     };
-
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     document.addEventListener("pointerleave", onPointerLeave);
 
-    // ── Drag ───────────────────────────────────────────────────────────────
-    // `drag*` is where the pointer has put it; `pos*`/`vel*` is where the glyph
-    // actually is, chasing that on a spring. The gap between the two is the
-    // whole feel of it: it trails the pointer under the hand, and when the hand
-    // lets go the target snaps back to zero while the velocity carries on, so
-    // it overshoots home and swings in rather than sliding there.
+    // ── Rotation ───────────────────────────────────────────────────────────
+    // The glyph never leaves its place: a drag only turns it. Sideways travel
+    // spins it about its vertical axis, 1:1 with the pointer; vertical travel
+    // tips it, with rubber-band resistance past PITCH_LIMIT. On release the
+    // yaw is thrown — Apple's momentum projection picks where it would come to
+    // rest, that is rounded to the nearest whole turn so it always ends facing
+    // you, and a spring carries it there from the finger's own velocity.
+    let yaw = 0;
+    let yawVel = 0; // rad/s
+    let yawTarget = 0;
+    let pitch = 0;
+    let pitchVel = 0; // rad/s
+    let grabYaw = 0;
+    let grabPitch = 0;
+    let grabX = 0;
+    let grabY = 0;
     let pointerId = -1;
-    let lastX = 0;
-    let lastY = 0;
-    let lastMoveAt = 0;
-    let dragX = 0;
-    let dragY = 0;
-    let posX = 0;
-    let posY = 0;
-    let velX = 0;
-    let velY = 0;
-    /** The drag's live reading of pointer speed, in rad/ms of spin. */
-    let thrownSpin = 0;
-    let thrownTumble = 0;
+    let grabbedOnce = false;
+    /** Recent samples, for release velocity. */
+    let history: { t: number; yaw: number; pitch: number }[] = [];
 
     const onPointerDown = (event: PointerEvent) => {
-      // Nothing to grab until the page has assembled — during the loader this
-      // object is choreography, and it belongs to the loader.
       if (phaseRef.current !== "settled" || event.button !== 0) return;
       dragging = true;
       pointerId = event.pointerId;
-      lastX = event.clientX;
-      lastY = event.clientY;
-      lastMoveAt = event.timeStamp;
+      grabX = event.clientX;
+      grabY = event.clientY;
+      // Start from the presentation value, so grabbing it mid-spin never jumps.
+      grabYaw = yaw;
+      grabPitch = pitch;
+      yawVel = 0;
+      pitchVel = 0;
+      history = [{ t: event.timeStamp, yaw, pitch }];
       leanX = 0;
       leanY = 0;
       host.setPointerCapture(event.pointerId);
       host.style.cursor = "grabbing";
       event.preventDefault();
+      if (!grabbedOnce) {
+        grabbedOnce = true;
+        onGrabRef.current?.();
+      }
     };
 
     const onDragMove = (event: PointerEvent) => {
       if (!dragging || event.pointerId !== pointerId) return;
-
-      const gap = Math.max(event.timeStamp - lastMoveAt, 8);
-      lastMoveAt = event.timeStamp;
-
-      const scale = dragScaleRef.current;
-      const dx = (event.clientX - lastX) * scale;
-      const dy = (event.clientY - lastY) * scale;
-      lastX = event.clientX;
-      lastY = event.clientY;
-
-      dragX += dx;
-      dragY += dy;
-
-      // Sideways travel turns it about its own axis; vertical travel tumbles
-      // it. Speed, not distance — a slow drag across the hero shouldn't wind it
-      // up like a top.
-      thrownSpin = clamp((dx / gap) * DRAG_SPIN_GAIN, MAX_DRAG_SPIN);
-      thrownTumble = clamp((dy / gap) * DRAG_TUMBLE_GAIN, MAX_DRAG_SPIN);
+      yaw = grabYaw + (event.clientX - grabX) * DRAG_GAIN;
+      pitch = rubberband(grabPitch + (event.clientY - grabY) * DRAG_GAIN, PITCH_LIMIT);
+      history.push({ t: event.timeStamp, yaw, pitch });
+      // Only the last ~100ms matter for the throw.
+      while (history.length > 2 && event.timeStamp - history[0].t > 100) history.shift();
     };
 
     const endDrag = (event: PointerEvent) => {
       if (!dragging || event.pointerId !== pointerId) return;
       dragging = false;
       pointerId = -1;
-      // The target goes home immediately; `velX/velY` do not, which is what
-      // makes a throw read as a throw.
-      dragX = 0;
-      dragY = 0;
       host.style.cursor = "";
+
+      const first = history[0];
+      const last = history[history.length - 1];
+      const span = Math.max(last.t - first.t, 16);
+      // A pause before letting go means no throw — the samples are stale.
+      const stale = event.timeStamp - last.t > 80;
+      const vYawMs = stale ? 0 : (last.yaw - first.yaw) / span;
+      const vPitchMs = stale ? 0 : (last.pitch - first.pitch) / span;
+
+      yawVel = vYawMs * 1000;
+      pitchVel = vPitchMs * 1000;
+      const projected = yaw + (vYawMs * DECELERATION) / (1 - DECELERATION);
+      yawTarget = Math.round(projected / (Math.PI * 2)) * Math.PI * 2;
     };
 
     host.addEventListener("pointerdown", onPointerDown);
@@ -320,87 +343,52 @@ export function MarketSculpture({
     // ── Loop ───────────────────────────────────────────────────────────────
     let frame = 0;
     let previous = performance.now();
-    /** Free rotation, carried by the loader spin, the brake and any throw. */
-    let spin = 0;
-    let spinVelocity = SPIN_SPEED;
-    let tumble = 0;
-    let tumbleVelocity = 0;
+    let loaderVelocity = SPIN_SPEED;
     let easedLeanX = 0;
     let easedLeanY = 0;
+    let lastYaw = 0;
 
     const render = (now: number) => {
-      const dt = Math.min(now - previous, 64);
+      const dtMs = Math.min(now - previous, 64);
       previous = now;
-      // Spring maths below is written per 60fps frame; this is what keeps it
-      // honest on a 120Hz display or after a dropped frame.
-      const step = dt / 16.667;
+      const dt = dtMs / 1000;
       const phase = phaseRef.current;
 
       if (phase === "spinning") {
-        spinVelocity = SPIN_SPEED;
-        spin += spinVelocity * dt;
+        loaderVelocity = SPIN_SPEED;
+        yaw += loaderVelocity * dtMs;
       } else if (phase === "halting") {
         // Brake to a stop, then ease the remainder onto a whole turn, so it
         // comes to rest facing forward rather than wherever it happened to be.
-        spinVelocity *= Math.pow(BRAKE, dt);
-        spin += spinVelocity * dt;
-        if (spinVelocity < 0.00016) {
-          spin += (Math.round(spin / (Math.PI * 2)) * Math.PI * 2 - spin) * 0.12;
-          spinVelocity = 0;
+        loaderVelocity *= Math.pow(BRAKE, dtMs);
+        yaw += loaderVelocity * dtMs;
+        if (loaderVelocity < 0.00016) {
+          yaw += (Math.round(yaw / (Math.PI * 2)) * Math.PI * 2 - yaw) * 0.12;
+          loaderVelocity = 0;
         }
-      } else {
-        // Settled: the object is handed over to the reader. Under the hand its
-        // spin *is* the pointer's speed; off it, that momentum runs down, and
-        // only once it is nearly spent does it drift back to facing you — so a
-        // throw is never cut short by the glyph tidying itself up.
-        thrownSpin *= Math.pow(DRAG_SPIN_FADE, dt);
-        thrownTumble *= Math.pow(DRAG_SPIN_FADE, dt);
-
-        if (dragging) {
-          spinVelocity = thrownSpin;
-          tumbleVelocity = thrownTumble;
-        } else {
-          spinVelocity *= Math.pow(FREE_DECAY, dt);
-          tumbleVelocity *= Math.pow(FREE_DECAY, dt);
-        }
-
-        spin += spinVelocity * dt;
-        tumble += tumbleVelocity * dt;
-
-        if (!dragging && Math.abs(spinVelocity) < 0.00035) {
-          spin += (Math.round(spin / (Math.PI * 2)) * Math.PI * 2 - spin) * REFACE;
-          tumble += -tumble * REFACE;
-        }
+        yawTarget = Math.round(yaw / (Math.PI * 2)) * Math.PI * 2;
+      } else if (!dragging) {
+        [yaw, yawVel] = stepSpring(yaw, yawVel, yawTarget, YAW_SPRING, dt);
+        [pitch, pitchVel] = stepSpring(pitch, pitchVel, 0, PITCH_SPRING, dt);
       }
 
-      // Stiff and heavily damped under the hand so it tracks; slack and springy
-      // off it so the return has some life in it.
-      const stiffness = dragging ? 0.3 : 0.055;
-      const damping = dragging ? 0.55 : 0.83;
-      velX += (dragX - posX) * stiffness * step;
-      velY += (dragY - posY) * stiffness * step;
-      velX *= Math.pow(damping, step);
-      velY *= Math.pow(damping, step);
-      posX += velX * step;
-      posY += velY * step;
-      host.style.transform = `translate3d(${posX.toFixed(2)}px, ${posY.toFixed(2)}px, 0)`;
+      if (velocityRef) velocityRef.current = dtMs > 0 ? (yaw - lastYaw) / dtMs : 0;
+      lastYaw = yaw;
 
       easedLeanX += (leanX - easedLeanX) * 0.07;
       easedLeanY += (leanY - easedLeanY) * 0.07;
 
       const progress = progressRef?.current ?? 0;
-      pivot.rotation.y = spin + easedLeanY + progress * Math.PI * 2 * turns;
-      pivot.rotation.x = tumble + easedLeanX + Math.sin(now / 3600) * 0.05;
-      // A touch of roll off the horizontal lean and off the throw, so it banks
-      // rather than merely turning — the difference between a hinge and an
-      // object.
-      pivot.rotation.z = -easedLeanY * 0.12 - clamp(velX * 0.004, 0.3);
+      // A slow idle sway (a ~26s cycle, far from the 0.2 Hz band) keeps it
+      // alive at rest without ever turning it far enough to lose the mark.
+      const sway = phase === "settled" && !dragging ? Math.sin(now / 4200) * 0.22 : 0;
+      pivot.rotation.y = yaw + easedLeanY + sway + progress * Math.PI * 2 * turns;
+      pivot.rotation.x = pitch + easedLeanX + Math.sin(now / 3600) * 0.05;
+      pivot.rotation.z = -easedLeanY * 0.12 - clamp(yawVel * 0.004, 0.2);
 
       renderer.render(scene, camera);
       frame = requestAnimationFrame(render);
     };
-    // One frame straight away, so the canvas has the glyph on it the moment it
-    // is in the document rather than one animation frame later.
     render(previous);
 
     const resize = new ResizeObserver(() => {
@@ -427,7 +415,7 @@ export function MarketSculpture({
       renderer.dispose();
       renderer.domElement.remove();
     };
-  }, [phaseRef, progressRef, turns]);
+  }, [phaseRef, progressRef, turns, velocityRef]);
 
   return (
     // `touch-action: none` so a drag is a drag rather than the browser deciding
