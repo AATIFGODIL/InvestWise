@@ -18,10 +18,14 @@ import { InvestWiseLogo } from "@/components/marketing/investwise-logo";
  * one continuous strip. Doing the same here is what stops the top of the page
  * feeling like a different product from the thing it's advertising.
  *
- * It is there from the first frame the page assembles, so the way in (Sign in,
- * Get started) and the way around (the section links) are never hidden behind
- * a scroll.
+ * It stays out of the hero, which has the page to itself, and slides in once
+ * the dashboard section has taken over the screen. From there down it stays,
+ * so the way in (Sign in, Get started) and the way around (the section links)
+ * are always a glance away.
  */
+
+/** How far up the screen the dashboard section's top edge has to reach. */
+const REVEAL_AT = 0.35;
 export function LandingNav() {
   const { scrollYProgress } = useScroll();
 
@@ -30,18 +34,39 @@ export function LandingNav() {
   // than a control, so a few ms of lag costs nothing.
   const progress = useSpring(scrollYProgress, { stiffness: 220, damping: 40, mass: 0.4 });
 
-  // Materialises with the page rather than popping in: one frame hidden, then
-  // down into place.
+  // Shown from the dashboard section onwards, hidden again back up in the hero.
   const [shown, setShown] = React.useState(false);
   React.useEffect(() => {
-    const frame = requestAnimationFrame(() => setShown(true));
-    return () => cancelAnimationFrame(frame);
+    const dashboard = document.getElementById("dashboard");
+    if (!dashboard) {
+      setShown(true);
+      return;
+    }
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      setShown(dashboard.getBoundingClientRect().top <= window.innerHeight * REVEAL_AT);
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
   }, []);
 
   return (
     <>
       <motion.div
-        className="fixed inset-x-0 top-0 z-70 h-[3px] origin-left"
+        className={cn(
+          "fixed inset-x-0 top-0 z-70 h-[3px] origin-left transition-opacity duration-500",
+          shown ? "opacity-100" : "opacity-0"
+        )}
         style={{
           scaleX: progress,
           background: "hsl(var(--primary))",
@@ -51,8 +76,10 @@ export function LandingNav() {
       />
 
       <header
+        // While hidden it's out of the tab order too, not just invisible.
+        inert={!shown}
         className={cn(
-          "fixed inset-x-0 top-0 z-60 flex items-center justify-between gap-3 px-4 pt-4 transition-all duration-500 sm:px-6",
+          "fixed inset-x-0 top-0 z-60 flex items-center justify-between gap-3 px-4 pt-4 transition-all duration-500 motion-reduce:transition-opacity sm:px-6",
           shown ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-3 opacity-0"
         )}
       >

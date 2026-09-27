@@ -1,4 +1,4 @@
-# InvestWise - A modern stock trading and investment education platform for young investors
+// InvestWise - A modern stock trading and investment education platform for young investors
 rules_version = '2';
 
 service firebase.storage {
