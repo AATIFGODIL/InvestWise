@@ -365,7 +365,7 @@ User Context:
                   size="sm"
                   className="h-7 text-xs bg-primary/5 hover:bg-primary/10 border-primary/20 whitespace-nowrap"
                   onClick={() => {
-                    const query = `Analyze ${useChatbotStore.getState().context.symbol} based on its current price of $${useChatbotStore.getState().context.price || '...'} and recent performance.`;
+                    const query = `Analyze ${useChatbotStore.getState().context.symbol}`;
                     useChatbotStore.getState().openChatbot("Analyzing...", query);
                   }}
                 >

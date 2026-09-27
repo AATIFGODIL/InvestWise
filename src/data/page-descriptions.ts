@@ -38,7 +38,7 @@ export const PAGE_DESCRIPTIONS: Record<string, string> = {
   '/trade': `The Trade page is where users buy and sell stocks. It contains:
 - **Stock Chart (TradingView)**: A full interactive TradingView chart showing the selected stock's price history with candlesticks, volume, and technical indicators. Users can change timeframes, draw on the chart, and use professional chart tools.
 - **Stock Search Bar**: A search input at the top where users can look up any stock by symbol or company name. Results appear as a dropdown with stock logos, names, current prices, and daily changes.
-- **Ask AI Button**: Sends the current stock and price to the AI chatbot for analysis.
+- **Ask AI Button**: Opens the assistant with a quick analysis of the current stock, built from live market data and Danelfin's AI Score.
 - **Watchlist Star**: Toggle to add/remove the current stock from the watchlist.
 - **Trade Form**: A form to execute buy/sell orders. Users select Buy or Sell, choose Market or Limit order type, enter quantity, see the estimated total, and submit. For sell orders, it shows available shares.
 - **Watchlist Panel**: Quick access to tracked stocks.

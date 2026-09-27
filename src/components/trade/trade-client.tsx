@@ -387,7 +387,14 @@ export default function TradeClient() {
                                         size="sm"
                                         className="h-8 gap-2 bg-primary/10 hover:bg-primary/20 border-primary/20"
                                         onClick={() => {
-                                            const query = `Analyze ${searchedSymbol} based on its current price${price ? ` of $${price}` : ''} and recent performance.`;
+                                            // The assistant fetches live Finnhub and Danelfin data for the stock itself.
+                                            useChatbotStore.getState().setContext({
+                                                ...useChatbotStore.getState().context,
+                                                route: '/trade',
+                                                symbol: searchedSymbol,
+                                                ...(price ? { price } : {}),
+                                            });
+                                            const query = `Analyze ${searchedSymbol}`;
                                             useChatbotStore.getState().openChatbot(
                                                 "Analyzing stock data...", // Initial description
                                                 query // Pending query to auto-send
