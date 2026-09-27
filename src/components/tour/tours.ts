@@ -89,7 +89,7 @@ export const TOURS: Record<string, TourStep[]> = {
     {
       target: "#ai-prediction-tutorial",
       title: "AI Stock Prediction",
-      body: "Type a symbol for a five-month outlook with a confidence level. It's practice, not advice.",
+      body: "Type a symbol to see its AI Score from 1 to 10 and a price forecast, powered by Danelfin. It's for learning, not advice.",
     },
     {
       target: "#community-leaderboard-tutorial",

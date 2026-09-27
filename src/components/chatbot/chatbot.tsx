@@ -24,6 +24,7 @@ import { useThemeStore } from "@/store/theme-store";
 import { useProModeStore } from "@/store/pro-mode-store";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
+import { EXPLAIN_PAGE_QUERY, buildPageSnapshot } from "@/lib/page-snapshot";
 
 interface Message {
   role: "user" | "ai" | "loading";
@@ -83,9 +84,9 @@ export default function Chatbot({ isMobileCompact = false }: { isMobileCompact?:
     toggleListening,
     sendText,
   } = useLiveVoice({
-    systemInstruction: `You are a friendly and helpful AI assistant named InvestWise Bot. 
-Your primary goal is to explain complex investment terms to beginners in a simple, clear, and encouraging way.
-Avoid jargon where possible, or explain it immediately. Use analogies if they help clarify a concept.
+    systemInstruction: `You are the voice assistant inside InvestWise, a paper-trading app for young, beginner investors.
+Keep every reply short and to the point: one or two sentences. No greetings, filler or emojis.
+Use plain words and explain any jargon in a few words. This is education, not financial advice.
 
 User Context:
 - Current Page: ${pathname}${useChatbotStore.getState().context.symbol
@@ -188,7 +189,14 @@ User Context:
     }
 
     try {
-      const result = await handleInvestmentQuery(query, fileDataUri, useChatbotStore.getState().context);
+      const result = await handleInvestmentQuery(query, fileDataUri, {
+        ...useChatbotStore.getState().context,
+        route: useChatbotStore.getState().context.route || pathname,
+        // The user's own numbers, so answers are about their portfolio, and
+        // "Explain this page" can walk through all of it.
+        snapshot: buildPageSnapshot(),
+        explainPage: query === EXPLAIN_PAGE_QUERY,
+      });
       if (result.success) {
         setMessages((prev) => {
           const newMessages = prev.filter((msg) => msg.role !== "loading");
@@ -369,10 +377,7 @@ User Context:
                   variant="outline"
                   size="sm"
                   className="h-7 text-xs bg-muted/50 hover:bg-muted whitespace-nowrap"
-                  onClick={() => {
-                    const query = `I'm currently on the ${useChatbotStore.getState().context.route} page. Can you explain what I can do here and how to use the features on this page?`;
-                    useChatbotStore.getState().openChatbot("Explaining page...", query);
-                  }}
+                  onClick={() => useChatbotStore.getState().openChatbot("Explaining page...", EXPLAIN_PAGE_QUERY)}
                 >
                   Explain this page
                 </Button>
@@ -383,11 +388,7 @@ User Context:
                   variant="outline"
                   size="sm"
                   className="h-7 text-xs bg-muted/50 hover:bg-muted whitespace-nowrap"
-                  onClick={() => {
-                    const pageName = pathname === '/' ? 'Home' : pathname.slice(1);
-                    const query = `I'm currently on the ${pageName} page. Can you explain what I can do here and how to use the features on this page?`;
-                    useChatbotStore.getState().openChatbot("Explaining page...", query);
-                  }}
+                  onClick={() => useChatbotStore.getState().openChatbot("Explaining page...", EXPLAIN_PAGE_QUERY)}
                 >
                   Explain this page
                 </Button>

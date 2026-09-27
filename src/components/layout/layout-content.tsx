@@ -27,7 +27,7 @@ const MOBILE_NAV_AUTO_HIDE_MS = 20000; // 20 seconds
 
 export default function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user, hydrating } = useAuth();
+  const { user, hydrating, twoFactorVerified } = useAuth();
   const [isRaining, setIsRaining] = useState(false);
   const { isProMode } = useProModeStore();
   const isMobile = useIsMobile();
@@ -62,7 +62,8 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
   const touchStartY = useRef<number>(0);
   const SWIPE_THRESHOLD = 50; // Minimum swipe distance in pixels
 
-  useUserData(user);
+  // No account data loads until this session has passed the email code.
+  useUserData(twoFactorVerified ? user : null);
 
   const isAuthOrOnboardingRoute = pathname.startsWith('/auth') || pathname.startsWith('/onboarding') || pathname === '/';
   const isSpecialLayoutRoute = pathname.startsWith('/profile') || pathname.startsWith('/settings') || pathname.startsWith('/certificate');
@@ -253,7 +254,9 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
     return <>{children}</>;
   }
 
-  if (hydrating) {
+  // Signed in but not yet verified: show nothing of the app while the auth
+  // gate sends this session to the code screen.
+  if (hydrating || (user && twoFactorVerified !== true && !pathname.startsWith('/auth'))) {
     return (
       <div className="h-screen w-screen">
         <PageSkeleton />

@@ -58,9 +58,17 @@ const SECTIONS: { title: string; body: React.ReactNode }[] = [
           doesn&apos;t use cookies or identify you personally.
         </li>
         <li>
-          <strong>Google Gemini</strong> powers the AI assistant, stock predictions and avatar generation.
+          <strong>Google Analytics for Firebase</strong> measures how the app is used, such as which pages are
+          opened. It uses cookies and a device identifier to do this.
+        </li>
+        <li>
+          <strong>Google Gemini</strong> powers the AI assistant and avatar generation.
           What you ask the assistant is sent to it to produce a reply, along with any file you attach, your
           voice input, and the page and stock you&apos;re viewing.
+        </li>
+        <li>
+          <strong>Danelfin</strong> provides the AI Scores and price forecasts for stock predictions. The
+          symbols you look up are sent to it.
         </li>
         <li>
           <strong>Finnhub, TradingView, Logokit and GNews</strong> provide prices, charts, company logos and

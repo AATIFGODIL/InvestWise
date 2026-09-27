@@ -17,8 +17,8 @@ import { motion } from "framer-motion";
 
 export default function WelcomeBackPage() {
   const router = useRouter();
-  const { user } = useAuth();
-  useUserData(user); // This hook now just triggers data hydration
+  const { user, twoFactorVerified } = useAuth();
+  useUserData(twoFactorVerified ? user : null); // This hook now just triggers data hydration
   const [isReady, setIsReady] = useState(false);
   const { isClearMode, theme } = useThemeStore();
   const isLightClear = isClearMode && theme === 'light';

@@ -13,15 +13,15 @@ import { LandingExperience } from "@/components/marketing/landing-experience";
 // have not been shown yet.
 export default function Home() {
   const router = useRouter();
-  const { user, hydrating } = useAuth();
+  const { user, hydrating, twoFactorVerified } = useAuth();
 
   useEffect(() => {
-    if (!hydrating && user) {
+    if (!hydrating && user && twoFactorVerified) {
       // `replace`, not `push`: a signed-in user pressing Back should leave the
       // app, not bounce off this redirect and straight back into it.
       router.replace("/dashboard");
     }
-  }, [user, hydrating, router]);
+  }, [user, hydrating, twoFactorVerified, router]);
 
   // The landing page paints while auth is still resolving, rather than holding
   // a skeleton until it has. Firebase takes a few hundred ms to say who this
@@ -31,7 +31,7 @@ export default function Home() {
   // covers that beat, so a signed-in visitor sees the same splash they'd have
   // seen either way and is redirected out from under it, usually before the
   // page behind it has assembled at all.
-  if (!hydrating && user) {
+  if (!hydrating && user && twoFactorVerified) {
     return (
       <div className="h-screen w-screen">
         <PageSkeleton />

@@ -18,6 +18,7 @@ import { getBraintreeGateway } from "@/lib/braintree";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { getEnvVar } from "@/lib/env";
+import { DanelfinError, getDanelfinPrediction, type DanelfinPrediction } from "@/lib/danelfin";
 
 
 /**
@@ -224,4 +225,19 @@ export async function fetchStockHistory(symbol: string, range: string = '1mo', i
     return null;
   }
 }
- 
+
+/**
+ * AI Score and price forecast for a stock, from Danelfin.
+ * Replaces `handleStockPrediction` in the app; that flow is left intact.
+ */
+export async function handleDanelfinPrediction(
+  symbol: string
+): Promise<{ success: boolean; prediction?: DanelfinPrediction; error?: string }> {
+  try {
+    return { success: true, prediction: await getDanelfinPrediction(symbol) };
+  } catch (error) {
+    if (error instanceof DanelfinError) return { success: false, error: error.message };
+    console.error("Danelfin prediction failed:", error);
+    return { success: false, error: "Couldn't get a prediction right now. Try again soon." };
+  }
+}

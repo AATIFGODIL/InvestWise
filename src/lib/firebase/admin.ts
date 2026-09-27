@@ -1,6 +1,7 @@
 // InvestWise - Firebase Admin SDK initialization for server-side operations
 import { initializeApp, getApps, cert, applicationDefault, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
+import { getAuth, type Auth } from 'firebase-admin/auth';
 import { getEnvVar } from '@/lib/env';
 
 let app: App | null = null;
@@ -66,4 +67,7 @@ export function getAdminDb(): Firestore {
     db = getFirestore();
     return db;
 }
- 
+
+export function getAdminAuth(): Auth {
+    return getAuth(getAdminApp());
+}

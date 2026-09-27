@@ -38,8 +38,9 @@ import {
 import { useWatchlistStore } from "@/store/watchlist-store";
 import { useToast } from "@/hooks/use-toast";
 import useLoadingStore from "@/store/loading-store";
-import { handleStockPrediction } from "@/app/actions";
-import type { StockPredictionOutput } from "@/ai/types/stock-prediction-types";
+import { handleDanelfinPrediction } from "@/app/actions";
+import type { DanelfinPrediction } from "@/lib/danelfin";
+import { DanelfinPredictionView } from "@/components/ai/danelfin-prediction";
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { cn } from "@/lib/utils";
@@ -128,7 +129,8 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
   const [displayedStocks, setDisplayedStocks] = useState<StockData[]>([]);
   const [selectedStock, setSelectedStock] = useState<StockData | null>(null);
 
-  const [prediction, setPrediction] = useState<StockPredictionOutput | null>(null);
+  const [prediction, setPrediction] = useState<DanelfinPrediction | null>(null);
+  const [predictionError, setPredictionError] = useState<string | null>(null);
   const [news, setNews] = useState<FinnhubNewsArticle[]>([]);
 
   const [isFetchingDetails, setIsFetchingDetails] = useState(false);
@@ -270,8 +272,10 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
     setSelectedStock(stock);
     setIsFetchingPrediction(true);
     setPrediction(null);
-    handleStockPrediction(stock.symbol).then(res => {
+    setPredictionError(null);
+    handleDanelfinPrediction(stock.symbol).then(res => {
       if (res.success && res.prediction) setPrediction(res.prediction);
+      else setPredictionError(res.error ?? null);
       setIsFetchingPrediction(false);
     });
     setIsFetchingNews(true);
@@ -451,8 +455,7 @@ export function CommandMenu({ open, onOpenChange, onTriggerRain, initialStockSym
                       </Button>
                     </div>
                     {selectedStockHolding && (<div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Building className="h-4 w-4" /> Your Holdings</h4><div className="p-3 rounded-lg bg-muted/50"><div className="flex justify-between items-center"><span className="font-medium">{selectedStockHolding.qty} Shares</span><span className="font-medium">Value: ${(selectedStockHolding.qty * selectedStock.price).toFixed(2)}</span></div></div></div>)}
-                    <div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><BrainCircuit className="h-4 w-4" /> AI Prediction</h4><div className="p-3 rounded-lg bg-muted/50 text-xs min-h-[60px] relative">{isFetchingPrediction ? (<div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /><span>Generating prediction...</span></div>) : prediction ? (<><div className="flex justify-between items-center mb-1"><Badge className={cn("text-white", prediction.confidence === "High" ? "bg-green-500" : prediction.confidence === "Medium" ? "bg-yellow-500" : "bg-red-500")}>{prediction.confidence} Confidence</Badge></div><p className="whitespace-pre-wrap">{prediction.prediction}</p></>
-                    ) : (<p className="text-muted-foreground">Could not load AI prediction.</p>)}</div></div>
+                    <div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><BrainCircuit className="h-4 w-4" /> AI Prediction</h4><div className="p-3 rounded-lg bg-muted/50 text-xs min-h-[60px] relative">{isFetchingPrediction ? (<div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /><span>Getting prediction...</span></div>) : prediction ? (<DanelfinPredictionView prediction={prediction} compact />) : (<p className="text-muted-foreground">{predictionError ?? "Could not load AI prediction."}</p>)}</div></div>
                     <div><h4 className="font-semibold mb-2 flex items-center gap-2 text-muted-foreground"><Newspaper className="h-4 w-4" /> Recent News</h4><div className="space-y-2">{isFetchingNews ? (<div className="p-2 text-xs text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /><span>Fetching recent news...</span></div>) : news.length > 0 ? (news.map((article, i) => (<a key={i} href={article.url} target="_blank" rel="noopener noreferrer" className="block p-2 rounded-md hover:bg-muted/50 no-underline"><div className="flex gap-2">{article.image && <img src={article.image} alt={article.headline} className="w-16 h-12 object-cover rounded" />}<div><p className="font-medium truncate leading-tight whitespace-pre-wrap line-clamp-2">{article.headline}</p><p className="text-xs text-muted-foreground">{article.source} • {new Date(article.datetime * 1000).toLocaleDateString()}</p></div></div></a>))) : (<div className="p-2 text-xs text-muted-foreground">No recent news found.</div>)}</div></div>
                   </div></div>
                 )}

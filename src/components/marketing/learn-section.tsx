@@ -84,7 +84,7 @@ const CARDS: Card[] = [
     id: "prediction",
     label: "AI Stock Prediction",
     title: "A forecast that admits doubt.",
-    body: "A five-month outlook on any symbol, with the model's confidence attached. A simulation, never advice.",
+    body: "An AI Score from 1 to 10 for any US stock or ETF, plus a price forecast with a likely range. Powered by Danelfin. For learning, never advice.",
     preview: <PredictionPreview />,
   },
   {
@@ -376,17 +376,31 @@ function PredictionPreview() {
       </p>
       <div className="mt-3 rounded-2xl bg-muted/50 p-3">
         <div className="flex items-start justify-between gap-2">
-          <p className="text-[13px] font-semibold">Prediction for NVDA</p>
-          <span className="shrink-0 rounded-full bg-yellow-500 px-2 py-0.5 text-[10px] font-semibold text-white">
-            Medium Confidence
+          <div>
+            <p className="text-[10.5px] font-medium text-muted-foreground">AI Score · AAPL</p>
+            <p className="text-[22px] font-bold leading-tight">
+              8<span className="text-[12px] font-semibold text-muted-foreground">/10</span>
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-green-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+            Buy signal
           </span>
         </div>
-        <p className="mt-2 text-[11.5px] leading-relaxed text-foreground/80">
-          Demand supports the trend, but the valuation leaves little room for a miss. Expect volatility with a
-          modest upward bias.
+        <div className="mt-2 flex gap-0.5">
+          {Array.from({ length: 10 }, (_, i) => (
+            <span key={i} className={cn("h-1 flex-1 rounded-full", i < 8 ? "bg-primary" : "bg-muted-foreground/20")} />
+          ))}
+        </div>
+        <p className="mt-2 text-[11px] leading-relaxed text-foreground/80">
+          Expected 3-month return +6.1%, most likely between -3.5% and +11.6%.
         </p>
       </div>
-      <p className="mt-2.5 text-[10.5px] text-muted-foreground">This is a simulation and not financial advice.</p>
+      <div className="mt-2.5 flex items-center justify-between text-[10.5px] text-muted-foreground">
+        <span>Not financial advice.</span>
+        <span>
+          Powered by <span className="font-semibold">Danelfin</span>
+        </span>
+      </div>
     </Panel>
   );
 }

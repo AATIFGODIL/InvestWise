@@ -20,6 +20,14 @@ import { cn } from '@/lib/utils';
 import { motion, useAnimation } from 'framer-motion';
 import AnimatedBorder from '@/components/auth/animated-border';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
+import { requestVerificationCode, submitVerificationCode } from '@/lib/two-factor-client';
+
+/** Only ever send people back into this app, never to another site. */
+function safeRedirect(target: string | null): string {
+    if (!target || !target.startsWith('/') || target.startsWith('//')) return '/dashboard';
+    return target;
+}
 
 // A decorative background component with subtle financial-themed patterns.
 const FinanceBackground = () => (
@@ -54,10 +62,12 @@ export default function VerifyCodePage() {
     const [isAnimationComplete, setIsAnimationComplete] = useState(false);
     const logoControls = useAnimation();
 
-    // Get email and redirect from URL params
-    const email = searchParams.get('email') || '';
-    const redirectTo = searchParams.get('redirect') || '/onboarding/quiz';
-    const isNewUser = searchParams.get('new') === 'true';
+    const { user, hydrating, twoFactorVerified, completeTwoFactor, signOut } = useAuth();
+    // Everything about who this is comes from the signed-in session, not the URL.
+    const email = user?.email ?? '';
+    const redirectTo = safeRedirect(searchParams.get('redirect'));
+    const shouldSend = searchParams.get('send') === '1';
+    const sentOnArrival = useRef(false);
 
     // Code state - 6 digits
     const [code, setCode] = useState<string[]>(['', '', '', '', '', '']);
@@ -153,19 +163,25 @@ export default function VerifyCodePage() {
         setIsVerifying(true);
         setError(null);
 
+        if (!user) {
+            setError('Your session has expired. Please sign in again.');
+            setIsVerifying(false);
+            return;
+        }
+
         try {
-            const response = await fetch('/api/verify-code', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, code: verificationCode }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                setError(data.error || 'Verification failed');
+            try {
+                await submitVerificationCode(user, verificationCode);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Verification failed');
                 setCode(['', '', '', '', '', '']);
                 inputRefs.current[0]?.focus();
+                setIsVerifying(false);
+                return;
+            }
+
+            if (!(await completeTwoFactor())) {
+                setError("We couldn't confirm your sign-in. Please try again.");
                 setIsVerifying(false);
                 return;
             }
@@ -183,7 +199,41 @@ export default function VerifyCodePage() {
             setError('Something went wrong. Please try again.');
             setIsVerifying(false);
         }
-    }, [email, redirectTo, router, showLoading, toast]);
+    }, [user, completeTwoFactor, redirectTo, router, showLoading, toast]);
+
+    // No session at all: the code screen has nothing to verify.
+    useEffect(() => {
+        if (!hydrating && !user) router.replace('/auth/signin');
+    }, [hydrating, user, router]);
+
+    // Already verified (for instance in another tab): carry on.
+    useEffect(() => {
+        if (twoFactorVerified === true) router.replace(redirectTo);
+    }, [twoFactorVerified, redirectTo, router]);
+
+    // Sent here by the gate rather than straight from sign-in: make sure a code
+    // is on its way. The server won't send a second one if one is still valid.
+    useEffect(() => {
+        if (!shouldSend || !user || twoFactorVerified !== false || sentOnArrival.current) return;
+        sentOnArrival.current = true;
+        requestVerificationCode(user)
+            .then(async (result) => {
+                if (result.verified) {
+                    if (await completeTwoFactor()) router.replace(redirectTo);
+                    return;
+                }
+                if (!result.alreadySent) {
+                    toast({ title: 'Code Sent', description: 'Enter the code we just emailed you to continue.' });
+                    setResendCooldown(30);
+                }
+            })
+            .catch((err) => setError(err instanceof Error ? err.message : 'Failed to send a code.'));
+    }, [shouldSend, user, twoFactorVerified, completeTwoFactor, redirectTo, router, toast]);
+
+    const useDifferentAccount = async () => {
+        await signOut();
+        router.replace('/auth/signin');
+    };
 
     // Resend code
     const handleResend = async () => {
@@ -192,28 +242,23 @@ export default function VerifyCodePage() {
         setIsResending(true);
         setError(null);
 
+        if (!user) {
+            setError('Your session has expired. Please sign in again.');
+            setIsResending(false);
+            return;
+        }
+
         try {
-            // Get userId from localStorage (set during signup/signin)
-            const userId = localStorage.getItem('pendingVerificationUserId');
-
-            if (!userId) {
-                setError('Session expired. Please sign in again.');
+            const result = await requestVerificationCode(user, { force: true });
+            if (result.verified) {
+                if (await completeTwoFactor()) router.replace(redirectTo);
                 return;
             }
-
-            const response = await fetch('/api/send-verification-code', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, userId }),
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                setError(data.error || 'Failed to resend code');
+            if (result.alreadySent) {
+                toast({ title: 'Code Already Sent', description: 'A code was sent a moment ago. Check your inbox.' });
+                setResendCooldown(30);
                 return;
             }
-
             toast({
                 title: 'Code Sent!',
                 description: 'A new verification code has been sent to your email.',
@@ -360,6 +405,14 @@ export default function VerifyCodePage() {
                                 )}
                             </Button>
                         </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={useDifferentAccount}
+                            className="mx-auto text-muted-foreground hover:bg-muted hover:text-foreground"
+                        >
+                            Use a different account
+                        </Button>
                     </CardContent>
                 </Card>
             </motion.div>

@@ -1,6 +1,15 @@
 // InvestWise - 6-digit email verification code API
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/firebase/admin';
+import {
+  AuthError,
+  CODE_TTL_MS,
+  RESEND_COOLDOWN_MS,
+  generateCode,
+  hashCode,
+  isSessionVerified,
+  requireIdToken,
+} from '@/lib/two-factor-server';
 import { getEnvVar } from '@/lib/env';
 import nodemailer, { type Transporter } from 'nodemailer';
 
@@ -28,52 +37,65 @@ function getTransporter(): Transporter {
   return transporter;
 }
 
-function generateCode(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
+/**
+ * Email a 6-digit code for the caller's current sign-in session.
+ *
+ * Who and where are taken from the caller's verified Firebase ID token — never
+ * from the request body — so a code can only ever be sent to the account's own
+ * address, for the session that asked for it. If a code for this session is
+ * already waiting (another tab asked a moment ago), it isn't replaced unless
+ * `force` is set by the Resend button, and even then not more than once every
+ * 30 seconds.
+ */
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { email, userId } = body;
-
-    if (!email || !userId) {
-      return NextResponse.json(
-        { error: 'Email and userId are required' },
-        { status: 400 }
-      );
+    const token = await requireIdToken(request);
+    const email = token.email;
+    if (!email) {
+      return NextResponse.json({ error: 'This account has no email address.' }, { status: 400 });
     }
 
-    // Get Firestore instance
+    // Already verified (e.g. in another tab): nothing to send.
+    if (await isSessionVerified(token)) {
+      return NextResponse.json({ success: true, verified: true });
+    }
+
+    let force = false;
+    try {
+      force = Boolean((await request.json())?.force);
+    } catch {
+      // No body is fine.
+    }
+
     const firestore = getAdminDb();
-    const mailTransporter = getTransporter();
+    const existing = await firestore.collection('verification_codes').where('userId', '==', token.uid).get();
+    const now = Date.now();
+    const current = existing.docs.find(
+      (doc) => doc.get('authTime') === token.auth_time && doc.get('expiresAt').toDate().getTime() > now
+    );
+    if (current) {
+      const age = now - current.get('createdAt').toDate().getTime();
+      if (!force || age < RESEND_COOLDOWN_MS) {
+        return NextResponse.json({ success: true, alreadySent: true });
+      }
+    }
 
-    // Generate 6-digit code
-    const code = generateCode();
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes from now
-
-    // Delete any existing codes for this email
-    const existingCodes = await firestore
-      .collection('verification_codes')
-      .where('email', '==', email)
-      .get();
-
+    // One live code per account: replace anything older.
     const batch = firestore.batch();
-    existingCodes.forEach((doc) => {
-      batch.delete(doc.ref);
-    });
+    existing.forEach((doc) => batch.delete(doc.ref));
     await batch.commit();
 
-    // Store new code in Firestore
+    const code = generateCode();
     await firestore.collection('verification_codes').add({
+      userId: token.uid,
       email,
-      userId,
-      code,
-      expiresAt,
-      createdAt: new Date(),
+      authTime: token.auth_time,
+      codeHash: hashCode(token.uid, code),
+      attempts: 0,
+      expiresAt: new Date(now + CODE_TTL_MS),
+      createdAt: new Date(now),
     });
 
-    // Send email with code using Gmail SMTP
     const mailOptions = {
       from: `InvestWise <${getEnvVar('GMAIL_USER')}>`,
       to: email,
@@ -110,22 +132,18 @@ export async function POST(request: NextRequest) {
     };
 
     try {
-      await mailTransporter.sendMail(mailOptions);
+      await getTransporter().sendMail(mailOptions);
     } catch (emailError) {
       console.error('Email sending error:', emailError);
-      return NextResponse.json(
-        { error: 'Failed to send verification email' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'Failed to send verification email' }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, message: 'Verification code sent' });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     console.error('Send verification code error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
- 

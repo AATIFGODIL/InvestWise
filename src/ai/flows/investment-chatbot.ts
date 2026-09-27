@@ -14,48 +14,42 @@ import type { InvestmentChatbotInput, InvestmentChatbotOutput } from '@/ai/types
 import { getPageDescription } from '@/data/page-descriptions';
 
 /**
- * An asynchronous function that serves as the entry point for the investment chatbot.
- * Uses ai.generate() instead of definePrompt() to support Google Search grounding
- * (which is incompatible with JSON response mime type).
+ * The entry point for the investment chatbot. Answers are kept deliberately
+ * short; the one exception is "Explain this page", which walks through every
+ * section of the page using the user's own data (sent as `context.snapshot`).
  */
 export async function investmentChatbot(input: InvestmentChatbotInput): Promise<InvestmentChatbotOutput> {
   const ai = getAi();
 
-  // Build context section of prompt
-  let contextSection = '';
-  if (input.context) {
-    contextSection = '\nUser Context:';
-    if (input.context.route) {
-      contextSection += `\n- Current Page: ${input.context.route}`;
-      // Inject detailed page description so the AI knows exactly what's on this page
-      const pageDescription = getPageDescription(input.context.route);
-      if (pageDescription) {
-        contextSection += `\n\nDetailed Page Content (use this to give specific, tailored answers about this page):\n${pageDescription}`;
-      }
-    }
-    if (input.context.symbol) {
-      contextSection += `\n- Active Stock: ${input.context.symbol}`;
-    }
-    if (input.context.price) {
-      contextSection += `\n- Current Price: $${input.context.price}`;
-    }
+  const context = input.context ?? {};
+  const pageDescription = context.route ? getPageDescription(context.route) : null;
+
+  const sections: string[] = [
+    `You are the assistant inside InvestWise, a paper-trading app (virtual money only) for young, beginner investors.
+
+How to answer (follow strictly):
+- Be short and to the point. Default to 1 to 3 short sentences, under 60 words.
+- No greetings, pleasantries, self-introductions, emojis, or restating the question. Never pad.
+- If the user just says hi, reply with one short line offering help.
+- Use plain words. If you must use a term like "ETF" or "P/E", explain it in a few words.
+- Use short bullets only for lists or steps.
+- Use the user's own data below whenever it's relevant.
+- This is education, not financial advice: never tell the user to buy or sell a specific stock.`,
+  ];
+
+  if (context.explainPage) {
+    sections.push(`The user tapped "Explain this page". Walk through EVERY section of the page below, in the order it appears. One bullet per section: the section name in bold, then what it shows using the user's actual numbers, then what they can do there. Keep each bullet to one line. Cover every section. No intro or outro.`);
   }
 
-  // Build the full prompt
-  const systemPrompt = `You are a friendly and helpful AI assistant named InvestWise Bot. 
-Your primary goal is to explain complex investment terms to beginners in a simple, clear, and encouraging way.
-Avoid jargon where possible, or explain it immediately. Use analogies if they help clarify a concept.
-When the user asks about a specific page, refer to the detailed page content provided in context to give accurate, specific answers about the features and functionality available on that page in InvestWise.
-${contextSection}
+  if (context.route) sections.push(`Current page: ${context.route}`);
+  if (pageDescription) sections.push(`What's on this page:\n${pageDescription}`);
+  if (context.symbol) sections.push(`Stock being viewed: ${context.symbol}${context.price ? ` at $${context.price}` : ''}`);
+  if (context.snapshot) sections.push(`The user's data:\n${context.snapshot}`);
+  sections.push(`User: ${input.query}`);
 
-User's Question: ${input.query}
-
-Please provide a helpful, context-aware, and easy-to-understand explanation based on the user's query.`;
-
-  // Use ai.generate() for text output
   const response = await ai.generate({
-    model: 'googleai/gemini-3.5-flash',
-    prompt: systemPrompt,
+    model: 'googleai/gemini-3.6-flash',
+    prompt: sections.join('\n\n'),
   });
 
   return { response: response.text };

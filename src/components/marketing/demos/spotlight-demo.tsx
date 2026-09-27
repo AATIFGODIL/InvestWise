@@ -230,18 +230,21 @@ export function SpotlightDemo({ active, reducedMotion }: { active: boolean; redu
                           {t < PREDICTION_IN ? (
                             <div className="flex items-center gap-2 text-muted-foreground">
                               <span className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-muted-foreground" />
-                              <span>Generating prediction...</span>
+                              <span>Getting prediction...</span>
                             </div>
                           ) : (
                             <div style={{ opacity: ramp(t, PREDICTION_IN, PREDICTION_IN + 250) }}>
-                              <div className="mb-1 flex items-center justify-between">
-                                <span className="inline-flex items-center rounded-full bg-yellow-500 px-2.5 py-0.5 text-xs font-semibold text-white">
-                                  Medium Confidence
+                              <div className="mb-1.5 flex items-center justify-between">
+                                <span className="text-lg font-bold">
+                                  8<span className="text-xs font-semibold text-muted-foreground">/10 AI Score</span>
+                                </span>
+                                <span className="inline-flex items-center rounded-full bg-green-500 px-2.5 py-0.5 text-xs font-semibold text-white">
+                                  Buy signal
                                 </span>
                               </div>
-                              <p className="whitespace-pre-wrap">
-                                Datacenter demand supports the uptrend, but after this run the valuation leaves little
-                                room for a miss. Over five months, expect volatility with a modest upward bias.
+                              <p>Expected 3-month return +6.1%, most likely between -3.5% and +11.6%.</p>
+                              <p className="mt-1.5 text-right text-[10px] text-muted-foreground">
+                                Powered by <span className="font-semibold">Danelfin</span>
                               </p>
                             </div>
                           )}

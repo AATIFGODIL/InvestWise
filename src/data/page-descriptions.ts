@@ -12,7 +12,7 @@ export const PAGE_DESCRIPTIONS: Record<string, string> = {
 - **Watchlist**: A horizontal scrollable list of stocks the user is tracking, showing each stock's symbol, current price, and daily change percentage. Users can tap a stock to go to the Trade page.
 - **Holdings Summary**: A card showing the user's top stock holdings with allocation percentages, quantities, current values, and gain/loss.
 - **Auto-Invest**: A feature that lets users set up recurring automatic investments into specific stocks at chosen intervals (daily, weekly, monthly). Shows active auto-investments with their next execution date.
-- **AI Prediction**: An AI-powered stock prediction tool where users can enter a stock symbol and get a 5-month price forecast with confidence levels (High/Medium/Low).
+- **AI Prediction** (powered by Danelfin): enter a stock symbol to see its AI Score from 1 to 10 (the chance of beating the market over the next 3 months), its Technical, Fundamental, Sentiment and Low Risk sub-scores, a buy/hold/sell signal, and expected returns with likely ranges for 1, 3, 6 and 12 months.
 - **Goal Progress**: Shows progress toward financial goals the user has set (e.g., "Save for College", "Emergency Fund"), with progress bars and target amounts.
 - **Community Leaderboard**: Displays top investors in the InvestWise community ranked by portfolio performance.
 - **Latest Headlines**: A grid of 5 financial news articles with images, sourced from live news APIs.
@@ -27,7 +27,7 @@ export const PAGE_DESCRIPTIONS: Record<string, string> = {
 - **Holdings Table**: A detailed table of all stocks the user owns, showing symbol, company name, quantity, average cost, current price, market value, and unrealized gain/loss (both dollar amount and percentage). Rows are color-coded green/red.
 - **Watchlist**: The user's tracked stocks with prices and changes.
 - **Auto-Invest Section**: Manage recurring investment plans.
-- **AI Prediction**: Get AI forecasts for any stock.
+- **AI Prediction** (powered by Danelfin): AI Score from 1 to 10 and a price forecast for any US stock or ETF.
 - **Market Status**: Real-time open/closed indicator.
 
 **Goals Tab:**
@@ -42,7 +42,7 @@ export const PAGE_DESCRIPTIONS: Record<string, string> = {
 - **Watchlist Star**: Toggle to add/remove the current stock from the watchlist.
 - **Trade Form**: A form to execute buy/sell orders. Users select Buy or Sell, choose Market or Limit order type, enter quantity, see the estimated total, and submit. For sell orders, it shows available shares.
 - **Watchlist Panel**: Quick access to tracked stocks.
-- **AI Prediction (Trade)**: AI-powered prediction specific to the stock being viewed.
+- **AI Prediction (Trade)** (powered by Danelfin): AI Score and price forecast for the stock being viewed.
 - **Stock Screener**: A TradingView-powered screener showing a wide table of stocks with metrics like market cap, P/E ratio, dividends, etc. Users can filter and sort.
 - **Investment Bundles**: Themed stock collections for exploration.
 - **Learn About Trading**: YouTube videos about reading stock charts and trading basics.

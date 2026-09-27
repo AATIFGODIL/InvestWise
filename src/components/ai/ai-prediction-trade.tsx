@@ -8,9 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrainCircuit, Loader2 } from "lucide-react";
-import { handleStockPrediction } from "@/app/actions";
-import { type StockPredictionOutput } from "@/ai/types/stock-prediction-types";
-import { Badge } from "@/components/ui/badge";
+import { handleDanelfinPrediction } from "@/app/actions";
+import type { DanelfinPrediction } from "@/lib/danelfin";
+import { DanelfinPredictionView, PoweredByDanelfin } from "@/components/ai/danelfin-prediction";
 import { cn } from "@/lib/utils";
 import { useThemeStore } from "@/store/theme-store";
 
@@ -20,7 +20,7 @@ interface AiPredictionTradeProps {
 
 export default function AiPredictionTrade({ initialSymbol }: AiPredictionTradeProps) {
   const [symbol, setSymbol] = useState<string>(initialSymbol);
-  const [prediction, setPrediction] = useState<StockPredictionOutput | null>(null);
+  const [prediction, setPrediction] = useState<DanelfinPrediction | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { isClearMode, theme } = useThemeStore();
@@ -38,7 +38,7 @@ export default function AiPredictionTrade({ initialSymbol }: AiPredictionTradePr
     setError(null);
     setPrediction(null);
 
-    const result = await handleStockPrediction(symbol);
+    const result = await handleDanelfinPrediction(symbol);
 
     if (result.success && result.prediction) {
       setPrediction(result.prediction);
@@ -48,14 +48,6 @@ export default function AiPredictionTrade({ initialSymbol }: AiPredictionTradePr
     setIsLoading(false);
   };
 
-  const getConfidenceColor = (confidence: "High" | "Medium" | "Low") => {
-    switch(confidence) {
-        case "High": return "bg-green-500";
-        case "Medium": return "bg-yellow-500";
-        case "Low": return "bg-red-500";
-        default: return "bg-gray-500";
-    }
-  }
 
   return (
     <Card className="flex h-full flex-col">
@@ -65,8 +57,9 @@ export default function AiPredictionTrade({ initialSymbol }: AiPredictionTradePr
             AI Stock Prediction
         </CardTitle>
         <CardDescription>
-          Enter a stock symbol to get an AI-powered prediction. This is a simulation and not financial advice.
+          How likely a stock is to beat the market over the next 3 months, with a price forecast. For learning, not financial advice.
         </CardDescription>
+        <PoweredByDanelfin className="self-start" />
       </CardHeader>
       <CardContent className="flex-1 space-y-4">
         <div className="flex flex-col sm:flex-row gap-2">
@@ -102,15 +95,9 @@ export default function AiPredictionTrade({ initialSymbol }: AiPredictionTradePr
         {error && <p className="text-sm text-destructive">{error}</p>}
 
         {prediction && (
-          <Card className="bg-muted/50">
-            <CardContent className="p-4">
-              <div className="flex justify-between items-start">
-                <h4 className="font-semibold text-lg">Prediction for {symbol}</h4>
-                <Badge className={cn("text-white", getConfidenceColor(prediction.confidence))}>{prediction.confidence} Confidence</Badge>
-              </div>
-              <p className="text-sm mt-2">{prediction.prediction}</p>
-            </CardContent>
-          </Card>
+          <div className="rounded-3xl bg-muted/30 p-4">
+            <DanelfinPredictionView prediction={prediction} showAttribution={false} />
+          </div>
         )}
       </CardContent>
     </Card>

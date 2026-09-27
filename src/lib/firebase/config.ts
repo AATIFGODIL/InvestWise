@@ -5,28 +5,34 @@ import { initializeApp, getApps, getApp, type FirebaseOptions } from "firebase/a
 import { getAuth } from "firebase/auth";
 import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
-// This function determines which Firebase config to use.
+/**
+ * InvestWise's Firebase web app. These values identify the project to the
+ * browser SDK; they are public by design (access is controlled by Firebase
+ * Auth and the Firestore rules, not by keeping them hidden).
+ */
+const PROJECT_CONFIG: FirebaseOptions = {
+  apiKey: "AIzaSyAAdBMaAXBV2PSjJr3jzw9obDJcBB3fbhc",
+  authDomain: "investwise-f9rch.firebaseapp.com",
+  projectId: "investwise-f9rch",
+  storageBucket: "investwise-f9rch.firebasestorage.app",
+  messagingSenderId: "509703968960",
+  appId: "1:509703968960:web:4920eb3cbfa5d86094f525",
+  measurementId: "G-W7R8T3FZ9P",
+};
+
+// An environment config (set on the host) takes precedence; anything it
+// leaves out, such as the Analytics measurement ID, comes from the project.
 const getFirebaseConfig = (): FirebaseOptions => {
   try {
-    // This variable is set by the next.config.js file in production builds.
     if (process.env.NEXT_PUBLIC_FIREBASE_CONFIG) {
-      return JSON.parse(process.env.NEXT_PUBLIC_FIREBASE_CONFIG);
+      return { ...PROJECT_CONFIG, ...JSON.parse(process.env.NEXT_PUBLIC_FIREBASE_CONFIG) };
     }
   } catch (e) {
     console.error("Could not parse NEXT_PUBLIC_FIREBASE_CONFIG", e);
   }
-
-  // Fallback for local development using individual environment variables.
-  // These are client-side variables, so they must be prefixed with NEXT_PUBLIC_.
-  return {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "mock-api-key",
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "mock-auth-domain",
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "mock-project-id",
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "mock-storage-bucket",
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "1234567890",
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:1234567890:web:1234567890abcdef",
-  };
+  return PROJECT_CONFIG;
 };
 
 const firebaseConfig = getFirebaseConfig();
@@ -37,22 +43,26 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// Enable offline persistence only on the client-side
+// Browser-only setup.
 if (typeof window !== 'undefined') {
-    // Only attempt persistence if we have a valid config, otherwise it might fail.
-    // Check for a real project ID to determine if it's a valid config.
-    if (firebaseConfig.projectId !== "mock-project-id") {
-        enableIndexedDbPersistence(db).catch((err) => {
-            if (err.code == 'failed-precondition') {
-                // Multiple tabs open, persistence can only be enabled in one tab at a time.
-                console.warn('Firestore persistence failed: multiple tabs open.');
-            } else if (err.code == 'unimplemented') {
-                // The current browser does not support all of the features required to enable persistence
-                console.warn('Firestore persistence is not supported by this browser.');
-            }
-        });
+    enableIndexedDbPersistence(db).catch((err) => {
+        if (err.code == 'failed-precondition') {
+            // Multiple tabs open, persistence can only be enabled in one tab at a time.
+            console.warn('Firestore persistence failed: multiple tabs open.');
+        } else if (err.code == 'unimplemented') {
+            // The current browser does not support all of the features required to enable persistence
+            console.warn('Firestore persistence is not supported by this browser.');
+        }
+    });
+
+    // Google Analytics for Firebase, where the browser supports it.
+    if (firebaseConfig.measurementId) {
+        isSupported()
+            .then((supported) => {
+                if (supported) getAnalytics(app);
+            })
+            .catch(() => {});
     }
 }
-
 
 export { app, auth, db, storage };

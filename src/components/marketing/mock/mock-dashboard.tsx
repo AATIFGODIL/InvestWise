@@ -201,8 +201,8 @@ export function MockDashboard({ theme }: { theme: MockTheme }) {
             <div className="flex flex-col space-y-1.5 p-6">
               <MCardTitle icon={BrainCircuit}>AI Stock Prediction</MCardTitle>
               <p className="text-sm text-muted-foreground">
-                Enter a stock symbol to get an AI-powered prediction for the next 5 months. This is a simulation and
-                not financial advice.
+                How likely a stock is to beat the market over the next 3 months, with a price forecast. For
+                learning, not financial advice.
               </p>
             </div>
             <div className="space-y-4 p-6 pt-0">
@@ -220,16 +220,27 @@ export function MockDashboard({ theme }: { theme: MockTheme }) {
                   </MButton>
                 </div>
               </div>
-              <div className={cn(r.card, "bg-muted/50 p-4")}>
+              <div className="rounded-3xl bg-muted/30 p-4">
                 <div className="flex items-start justify-between">
-                  <h4 className="text-lg font-semibold">Prediction for NVDA</h4>
-                  <span className="inline-flex items-center rounded-full bg-yellow-500 px-2.5 py-0.5 text-xs font-semibold text-white">
-                    Medium Confidence
-                  </span>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">AI Score · NVDA</p>
+                    <p className="text-3xl font-bold">
+                      8<span className="text-base font-semibold text-muted-foreground">/10</span>
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-green-500 px-2.5 py-1 text-xs font-semibold text-white">Buy signal</span>
                 </div>
-                <p className="mt-2 text-sm">
-                  Datacentre demand supports the trend, but the valuation leaves little room for a miss. Expect a
-                  volatile five months with a modest upward bias.
+                <div className="mt-3 flex gap-1">
+                  {Array.from({ length: 10 }, (_, i) => (
+                    <span key={i} className={cn("h-1.5 flex-1 rounded-full", i < 8 ? "bg-primary" : "bg-muted-foreground/20")} />
+                  ))}
+                </div>
+                <p className="mt-3 text-sm">
+                  An above-average chance of beating the market over the next 3 months. Expected 3-month return
+                  +6.1%, most likely between -3.5% and +11.6%.
+                </p>
+                <p className="mt-2 text-right text-[11px] text-muted-foreground">
+                  Powered by <span className="font-semibold">Danelfin</span>
                 </p>
               </div>
             </div>

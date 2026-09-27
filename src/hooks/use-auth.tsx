@@ -21,13 +21,15 @@ import {
   OAuthProvider,
   sendPasswordResetEmail,
   verifyPasswordResetCode,
+  getAdditionalUserInfo,
   confirmPasswordReset,
   type AuthProvider as FirebaseAuthProvider,
   type User,
 } from "firebase/auth";
 import { auth, db } from "@/lib/firebase/config";
 import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { isSessionVerified, requestVerificationCode } from "@/lib/two-factor-client";
 import { useUserStore } from "@/store/user-store";
 import { usePortfolioStore } from "@/store/portfolio-store";
 import { useGoalStore } from "@/store/goal-store";
@@ -43,6 +45,13 @@ import { useFavoritesStore, type Favorite } from "@/store/favorites-store";
 interface AuthContextType {
   user: User | null;
   hydrating: boolean;
+  /**
+   * Whether this sign-in session has passed the email code check.
+   * `null` while signed out or still being checked.
+   */
+  twoFactorVerified: boolean | null;
+  /** Call after a code is accepted: picks up the verified session and sets up the profile. */
+  completeTwoFactor: () => Promise<boolean>;
   isTokenReady: boolean;
   signUp: (email: string, pass: string, username: string) => Promise<any>;
   signIn: (email: string, pass: string) => Promise<any>;
@@ -81,6 +90,8 @@ const initializeUserDocument = async (user: User, additionalData: { username?: s
     sidebarOrientation: "left",
     leaderboardVisibility: "public",
     showQuests: true,
+    isEmailVerified: true,
+    emailVerifiedAt: new Date(),
     createdAt: new Date(),
     portfolio: {
       holdings: [],
@@ -108,8 +119,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const { showLoading, hideLoading } = useLoadingStore();
 
+  const pathname = usePathname();
   const [user, setUser] = useState<User | null>(null);
   const [hydrating, setHydrating] = useState(true);
+  const [twoFactorVerified, setTwoFactorVerified] = useState<boolean | null>(null);
   const [isTokenReady, setIsTokenReady] = useState(false);
 
   const resetAllStores = useCallback(() => {
@@ -127,54 +140,76 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      setIsTokenReady(!!firebaseUser);
+      // Work out whether this session has passed the email code *before*
+      // publishing the user, so nothing ever renders as signed in-and-trusted
+      // for a frame and then snaps back.
+      const verified = firebaseUser ? await isSessionVerified(firebaseUser).catch(() => false) : null;
 
-      if (!firebaseUser) {
-        resetAllStores();
-        // The public surface: the root, which *is* the marketing page for
-        // anyone signed out (`src/app/page.tsx`), the same page at `/landing`,
-        // and the auth flow. Everything else is account-only and bounces to
-        // sign-in. `/` has to be matched exactly — `startsWith('/')` is every
-        // route there is.
-        const path = window.location.pathname;
-        const isPublicPage =
-          path === '/' || path.startsWith('/auth') || path.startsWith('/landing');
-        if (!isPublicPage) {
-          router.push('/auth/signin');
-        }
-      }
+      setUser(firebaseUser);
+      setTwoFactorVerified(verified);
+      setIsTokenReady(!!firebaseUser);
+      if (!firebaseUser) resetAllStores();
 
       setHydrating(false);
       hideLoading();
     });
 
     return () => unsubscribe();
-  }, [router, hideLoading, resetAllStores]);
+  }, [hideLoading, resetAllStores]);
+
+  // The gate. Runs on every navigation, in every tab:
+  //  - signed out on an account page → sign in;
+  //  - signed in but this session hasn't entered its email code → the code
+  //    screen, and back to where they were going once it's entered.
+  // Public pages (the landing page, privacy) and the sign-in steps themselves
+  // are always reachable.
+  useEffect(() => {
+    if (hydrating) return;
+    const path = pathname ?? "/";
+    const isPublic = path === "/" || path.startsWith("/landing") || path.startsWith("/privacy");
+    const isSignInStep = ["/auth/signin", "/auth/signup", "/auth/verify-code", "/auth/reset-password"].some(
+      (step) => path.startsWith(step)
+    );
+
+    if (!user) {
+      if (!isPublic && !path.startsWith("/auth")) router.replace("/auth/signin");
+      return;
+    }
+    if (twoFactorVerified !== true && !isPublic && !isSignInStep) {
+      const returnTo = `${path}${window.location.search}`;
+      router.replace(`/auth/verify-code?redirect=${encodeURIComponent(returnTo)}&send=1`);
+    }
+  }, [hydrating, user, twoFactorVerified, pathname, router]);
+
+  const completeTwoFactor = useCallback(async () => {
+    const current = auth.currentUser;
+    if (!current) return false;
+    // A fresh token carries the verification stamp the server just wrote.
+    const verified = await isSessionVerified(current, true).catch(() => false);
+    if (!verified) return false;
+
+    // The profile is only created now, once the account is proven: a password
+    // alone never gets as far as writing to the database.
+    const pendingUsername =
+      typeof window !== "undefined" ? sessionStorage.getItem("pendingUsername") ?? undefined : undefined;
+    await initializeUserDocument(current, { username: pendingUsername });
+    if (typeof window !== "undefined") sessionStorage.removeItem("pendingUsername");
+
+    setTwoFactorVerified(true);
+    return true;
+  }, []);
 
   const signUp = async (email: string, pass: string, username: string) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-      await initializeUserDocument(userCredential.user, { username });
+      await updateProfile(userCredential.user, { displayName: username });
+      // The profile document is written once the email code is entered.
+      sessionStorage.setItem("pendingUsername", username);
 
-      // Send 6-digit verification code
-      const response = await fetch('/api/send-verification-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, userId: userCredential.user.uid }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send verification code');
-      }
-
-      // Store userId for resend functionality
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('pendingVerificationUserId', userCredential.user.uid);
-      }
+      await requestVerificationCode(userCredential.user);
 
       toast({ title: "Account Created!", description: "A verification code has been sent to your email." });
-      router.push(`/auth/verify-code?email=${encodeURIComponent(email)}&redirect=/onboarding/quiz&new=true`);
+      router.push(`/auth/verify-code?redirect=${encodeURIComponent("/onboarding/quiz")}`);
     } catch (error: any) {
       hideLoading();
       throw error;
@@ -186,25 +221,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, pass);
 
-      // Send 6-digit verification code
-      const response = await fetch('/api/send-verification-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, userId: userCredential.user.uid }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send verification code');
-      }
-
-      // Store userId for resend functionality
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('pendingVerificationUserId', userCredential.user.uid);
-      }
+      // The password only opens the door halfway: this session still needs
+      // the code emailed to the account.
+      await requestVerificationCode(userCredential.user);
 
       hideLoading();
       toast({ title: "Verification Required", description: "A verification code has been sent to your email." });
-      router.push(`/auth/verify-code?email=${encodeURIComponent(email)}&redirect=/auth/welcome-back`);
+      router.push(`/auth/verify-code?redirect=${encodeURIComponent("/auth/welcome-back")}`);
     } catch (error: any) {
       hideLoading();
       throw error;
@@ -215,33 +238,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     showLoading();
     try {
       const result = await signInWithPopup(auth, provider);
-      const { isNew } = await initializeUserDocument(result.user);
-      const email = result.user.email;
+      const isNew = getAdditionalUserInfo(result)?.isNewUser ?? false;
 
-      if (!email) {
+      if (!result.user.email) {
         throw new Error('No email associated with this account');
       }
 
-      // Send 6-digit verification code for social sign-in too
-      const response = await fetch('/api/send-verification-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, userId: result.user.uid }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send verification code');
-      }
-
-      // Store userId for resend functionality
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('pendingVerificationUserId', result.user.uid);
-      }
+      // Google sign-in gets the same second step as a password.
+      await requestVerificationCode(result.user);
 
       hideLoading();
       const redirectTo = isNew ? '/onboarding/quiz' : '/auth/welcome-back';
       toast({ title: "Verification Required", description: "A verification code has been sent to your email." });
-      router.push(`/auth/verify-code?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirectTo)}&new=${isNew}`);
+      router.push(`/auth/verify-code?redirect=${encodeURIComponent(redirectTo)}`);
     } catch (error: any) {
       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         console.log("Sign-in popup closed by user.");
@@ -328,6 +337,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       value={{
         user,
         hydrating,
+        twoFactorVerified,
+        completeTwoFactor,
         isTokenReady,
         signUp,
         signIn,

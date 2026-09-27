@@ -14,7 +14,9 @@ export const InvestmentChatbotInputSchema = z.object({
   context: z.object({
     route: z.string().optional(),
     symbol: z.string().optional(),
-    price: z.number().optional()
+    price: z.number().optional(),
+    snapshot: z.string().optional().describe("The user's own portfolio, holdings, watchlist, goals and plans, as plain text."),
+    explainPage: z.boolean().optional().describe("True when the user tapped 'Explain this page'."),
   }).optional().describe("Contextual information about the user's current view"),
 });
 export type InvestmentChatbotInput = z.infer<typeof InvestmentChatbotInputSchema>;
