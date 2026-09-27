@@ -23,7 +23,11 @@ async function post<T>(path: string, user: User, body: Record<string, unknown>):
     body: JSON.stringify(body),
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || "Something went wrong. Please try again.");
+  if (!response.ok) {
+    throw new Error(
+      data.error || `The verification service isn't responding (error ${response.status}). Please try again in a moment.`
+    );
+  }
   return data as T;
 }
 

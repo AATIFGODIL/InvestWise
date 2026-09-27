@@ -196,7 +196,7 @@ export default function VerifyCodePage() {
             router.push(redirectTo);
         } catch (err) {
             console.error('Verification error:', err);
-            setError('Something went wrong. Please try again.');
+            setError(err instanceof Error && err.message ? err.message : 'Something went wrong. Please try again.');
             setIsVerifying(false);
         }
     }, [user, completeTwoFactor, redirectTo, router, showLoading, toast]);
