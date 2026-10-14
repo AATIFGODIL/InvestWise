@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { LandingNav } from "@/components/marketing/landing-nav";
 import { LandingLoader } from "@/components/marketing/landing-loader";
 import { HeroCinema } from "@/components/marketing/hero-cinema";
+import { FilmSection } from "@/components/marketing/film-section";
 import { DashboardShowcase } from "@/components/marketing/dashboard-showcase";
 import { FeatureCinema } from "@/components/marketing/feature-cinema";
 import { LearnSection } from "@/components/marketing/learn-section";
@@ -95,6 +96,7 @@ export function LandingExperience() {
         )}
       >
         <HeroCinema caps={caps} phase={phase} phaseRef={phaseRef} />
+        <FilmSection caps={caps} />
         <DashboardShowcase caps={caps} />
         <FeatureCinema caps={caps} />
         <LearnSection />

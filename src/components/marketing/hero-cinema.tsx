@@ -5,8 +5,9 @@
 import React, { useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useMotionValueEvent, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Rotate3d } from "lucide-react";
+import { ArrowRight, Play, Rotate3d } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { playFilmWithSound } from "@/components/marketing/film-section";
 import { HeroBackdrop } from "@/components/marketing/hero-backdrop";
 import { InvestWiseLogo } from "@/components/marketing/investwise-logo";
 import { MarketSculpture, type SculpturePhase } from "@/components/marketing/market-sculpture";
@@ -238,6 +239,16 @@ function Copy({ settled, align }: { settled: boolean; align: "left" | "center" }
           className="lp-cta lp-focus lp-glass rounded-full px-7 py-3.5 text-[15px] font-semibold text-foreground"
         >
           See the app
+        </a>
+        <a
+          href="#film"
+          onClick={playFilmWithSound}
+          className="lp-cta lp-focus group flex items-center gap-2.5 rounded-full py-3.5 pl-2 pr-5 text-[15px] font-semibold text-foreground/80 transition-colors hover:text-foreground"
+        >
+          <span className="lp-glass flex h-8 w-8 items-center justify-center rounded-full">
+            <Play className="ml-0.5 h-3 w-3 fill-current" />
+          </span>
+          Watch the film
         </a>
       </div>
     </div>
