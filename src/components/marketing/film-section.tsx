@@ -2,7 +2,8 @@
 
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { easeInOut, easeOut, motion, useScroll, useTransform, type MotionValue } from "framer-motion";
 import { Pause, Play, Volume2, VolumeX } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,6 +27,10 @@ import type { StageCapabilities } from "@/components/marketing/use-stage-capabil
  * actually on screen. Sound is one press away, and turning it on starts the
  * film again from the top: it is cut to its music, so joining the track
  * halfway through is the wrong way to hear it.
+ *
+ * When it ends it opens onto the dashboard: its last frame is held on a
+ * full-screen layer, the page moves to the dashboard section underneath, and
+ * the layer fades away to reveal it.
  *
  * With reduced motion it never starts by itself; a play button waits instead.
  * On a compact or touch viewport it is an ordinary inline player with the
@@ -76,6 +81,9 @@ export function playFilmWithSound() {
   video.currentTime = 0;
   void video.play().catch(() => {});
 }
+
+/** The film's last frame, held where it was on screen while the page moves under it. */
+type Curtain = { frame: string; rect: DOMRect; radius: number };
 
 function cardScale(grow: number, shrink: number) {
   return (START_SCALE + (1 - START_SCALE) * grow) * (1 - (1 - EXIT_SCALE) * shrink);
@@ -149,6 +157,38 @@ export function FilmSection({ caps }: { caps: StageCapabilities }) {
     }
   };
 
+  const [curtain, setCurtain] = useState<Curtain | null>(null);
+
+  const onEnded = () => {
+    const video = videoRef.current;
+    const frame = video?.parentElement;
+    if (!video || !frame || !document.getElementById("dashboard")) return;
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d")?.drawImage(video, 0, 0);
+
+    // The rect is measured after the card's scale; its radius is not.
+    const rect = frame.getBoundingClientRect();
+    const radius = (parseFloat(getComputedStyle(frame).borderTopLeftRadius) || 0) * (rect.width / frame.offsetWidth);
+    setCurtain({ frame: canvas.toDataURL("image/jpeg", 0.92), rect, radius });
+  };
+
+  // Runs once the curtain is in the DOM but before it is painted, so the jump
+  // to the dashboard is never seen. The film is rewound behind it, ready to
+  // start over if the visitor scrolls back up.
+  useLayoutEffect(() => {
+    if (!curtain) return;
+    const dashboard = document.getElementById("dashboard");
+    if (dashboard) window.scrollTo(0, dashboard.getBoundingClientRect().top + window.scrollY);
+    const video = videoRef.current;
+    if (video) {
+      video.currentTime = 0;
+      video.muted = autoplay;
+    }
+  }, [curtain]);
+
   const { scrollYProgress: run } = useScroll({ target: ref, offset: ["start end", "end end"] });
 
   const grow = useTransform(
@@ -177,9 +217,12 @@ export function FilmSection({ caps }: { caps: StageCapabilities }) {
     </div>
   );
 
+  const curtainLayer = curtain && <CurtainLayer curtain={curtain} onDone={() => setCurtain(null)} />;
+
   if (compact) {
     return (
       <section id="film" className="relative px-5 py-20">
+        {curtainLayer}
         {heading}
         <div className="mx-auto mt-10 max-w-xl overflow-hidden rounded-[22px] shadow-[0_30px_80px_-30px_hsl(0_0%_0%/0.9)] ring-1 ring-white/10">
           <video
@@ -191,6 +234,7 @@ export function FilmSection({ caps }: { caps: StageCapabilities }) {
             playsInline
             preload="metadata"
             onPlay={() => hold(false)}
+            onEnded={onEnded}
             className="block aspect-video w-full bg-background"
           />
         </div>
@@ -200,6 +244,7 @@ export function FilmSection({ caps }: { caps: StageCapabilities }) {
 
   return (
     <section ref={ref} className="relative z-20" style={{ height: `${RUN}vh` }}>
+      {curtainLayer}
       {/* The `#film` anchor sits at the full-screen beat rather than the
           section's top, so "Watch the film" lands on the film, not its title.
           Scrolled to the top of the screen it puts the section's top edge
@@ -237,10 +282,10 @@ export function FilmSection({ caps }: { caps: StageCapabilities }) {
             src={SRC}
             poster={POSTER}
             muted
-            loop
             playsInline
             preload="metadata"
             onClick={togglePlay}
+            onEnded={onEnded}
             onPlay={() => {
               hold(false);
               setPlaying(true);
@@ -279,6 +324,36 @@ export function FilmSection({ caps }: { caps: StageCapabilities }) {
         </motion.div>
       </div>
     </section>
+  );
+}
+
+/**
+ * The last frame, on a layer above everything, fading out over the dashboard.
+ *
+ * Portalled to `body` because the section is its own `z-20` stacking context
+ * and the dashboard, later in the page at the same z, would paint over it. Out
+ * there it is also outside the page's `.dark` wrapper, so it carries its own.
+ */
+function CurtainLayer({ curtain, onDone }: { curtain: Curtain; onDone: () => void }) {
+  const { frame, rect, radius } = curtain;
+  return createPortal(
+    <motion.div
+      initial={{ opacity: 1 }}
+      animate={{ opacity: 0 }}
+      transition={{ duration: 0.9, delay: 0.1, ease: [0.4, 0, 0.2, 1] }}
+      onAnimationComplete={onDone}
+      className="dark pointer-events-none fixed inset-0 z-[300] bg-background"
+      aria-hidden
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element -- a data URL, nothing for next/image to optimise */}
+      <img
+        src={frame}
+        alt=""
+        className="absolute"
+        style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height, borderRadius: radius }}
+      />
+    </motion.div>,
+    document.body
   );
 }
 
